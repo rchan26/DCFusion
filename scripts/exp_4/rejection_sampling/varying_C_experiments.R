@@ -1,0 +1,178 @@
+library(hierarchicalFusion)
+
+seed <- 408
+set.seed(seed)
+denominator <- 2:16
+input_samples <- list()
+fnj_results <- list()
+hier_results <- list()
+prog_results <- list()
+time_choice <- 0.5
+
+for (i in 1:length(denominator)) {
+  print(denominator[i])
+  input_samples[[i]] <- base_rejection_sampler_exp_4(beta = 1/denominator[i],
+                                                     nsamples = 10000,
+                                                     proposal_mean = 0,
+                                                     proposal_sd = 1.5,
+                                                     dominating_M = 1.75)
+  
+  curve(exp_4_density(x, beta = 1/denominator[i]), -4, 4,
+        main = denominator[i], ylab = 'tempered pdf')
+  for (j in 1:length(input_samples[[i]])) {
+    lines(density(input_samples[[i]][[j]]), col = 'black')
+  }
+  
+  # standard fork and join
+  print('performing preconditioned fork-and-join MC fusion')
+  fnj_fused <- hierarchical_fusion_exp_4(N_schedule = 10000,
+                                         m_schedule = denominator[i],
+                                         time_schedule = time_choice,
+                                         base_samples = input_samples[[i]],
+                                         mean = 0,
+                                         start_beta = 1/denominator[i],
+                                         L = 2,
+                                         precondition = TRUE,
+                                         seed = seed)
+  
+  fnj_results[[i]] <- list('time' = fnj_fused$overall_time,
+                           'overall_rho' = fnj_fused$overall_rho,
+                           'overall_Q' = fnj_fused$overall_Q,
+                           'overall_rhoQ' = fnj_fused$overall_rhoQ)
+  
+  # hierarchical if denominator[i] is 2, 4, 8, or 16
+  if (denominator[i]==2) {
+    print('performing preconditioned hierarchical MC fusion')
+    hier_fused <- hierarchical_fusion_exp_4(N_schedule = 10000,
+                                            m_schedule = 2,
+                                            time_schedule = time_choice,
+                                            base_samples = input_samples[[i]],
+                                            mean = 0,
+                                            start_beta = 1/2,
+                                            L = 2,
+                                            precondition = TRUE,
+                                            seed = seed)
+  } else if (denominator[i]==4) {
+    print('performing preconditioned hierarchical MC fusion')
+    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(10000, 2),
+                                            m_schedule = rep(2, 2),
+                                            time_schedule = rep(time_choice, 2),
+                                            base_samples = input_samples[[i]],
+                                            mean = 0,
+                                            start_beta = 1/4,
+                                            L = 3,
+                                            precondition = TRUE,
+                                            seed = seed)
+  } else if (denominator[i]==8) {
+    print('performing preconditioned hierarchical MC fusion')
+    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(10000, 3),
+                                            m_schedule = rep(2, 3),
+                                            time_schedule = rep(time_choice, 3),
+                                            base_samples = input_samples[[i]],
+                                            mean = 0,
+                                            start_beta = 1/8,
+                                            L = 4,
+                                            precondition = TRUE,
+                                            seed = seed)
+  } else if (denominator[i]==16) {
+    print('performing preconditioned hierarchical MC fusion')
+    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(10000, 4),
+                                            m_schedule = rep(2, 4),
+                                            time_schedule = rep(time_choice, 4),
+                                            base_samples = input_samples[[i]], 
+                                            mean = 0,
+                                            start_beta = 1/16,
+                                            L = 5,
+                                            precondition = TRUE,
+                                            seed = seed)
+  }
+  
+  if (denominator[i] %in% c(2, 4, 8, 16)) {
+    hier_results[[i]] <- list('time' = hier_fused$overall_time,
+                              'overall_rho' = hier_fused$overall_rho,
+                              'overall_Q' = hier_fused$overall_Q,
+                              'overall_rhoQ' = hier_fused$overall_rhoQ)
+  } else {
+    hier_results[[i]] <- NA
+  }
+  
+  # progressive
+  print('performing preconditioned progressive MC fusion')
+  prog_fused <- progressive_fusion_exp_4(N_schedule = rep(10000, denominator[i]-1),
+                                         time_schedule = rep(time_choice, denominator[i]-1),
+                                         base_samples = input_samples[[i]], 
+                                         mean = 0,
+                                         start_beta = 1/denominator[i],
+                                         precondition = TRUE,
+                                         seed = seed)
+  
+  prog_results[[i]] <- list('time' = prog_fused$time,
+                            'overall_rho' = prog_fused$rho_acc,
+                            'overall_Q' = prog_fused$Q_acc,
+                            'overall_rhoQ' = prog_fused$rhoQ_acc)
+  
+  curve(exp_4_density(x), -4, 4, ylim = c(0, 0.5), main = denominator[i])
+  lines(density(fnj_fused$samples[[1]]), col = 'orange', lty = 2)
+  if (!any(is.na(hier_results[[i]]))) {
+    lines(density(hier_fused$samples[[1]]), col = 'blue', lty = 2)
+  }
+  lines(density(prog_fused$samples[[1]]), col = 'darkgreen', lty = 2)
+}
+
+par(mai = c(1.02, 1, 0.82, 0.42))
+
+######################################## running time
+
+plot(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]][[1]]), ylim = c(0, 10),
+     ylab = 'Running time in seconds', xlab = 'Number of Subposteriors (C)', col = 'black', pch = 4)
+lines(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]][[1]]), col = 'black')
+points(x = c(2, 4, 8, 16), y = c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
+                                 sum(hier_results[[7]]$time), sum(hier_results[[15]]$time)), col = 'black', pch = 4)
+lines(x = c(2, 4, 8, 16), y = c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
+                                sum(hier_results[[7]]$time), sum(hier_results[[15]]$time)), col = 'black')
+points(x = 2:16, y = sapply(1:15, function(i) sum(prog_results[[i]]$time)), col = 'black', pch = 4)
+lines(x = 2:16, y = sapply(1:15, function(i) sum(prog_results[[i]]$time)), col = 'black')
+
+#################### log
+
+Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
+plot(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), ylim = c(-1, 12),
+     ylab = 'Time Elapsed in log(seconds)', xlab = 'Number of Subposteriors (C)',
+     col = Okabe_Ito[8], pch = 1, lwd = 3)
+lines(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), 
+      col = Okabe_Ito[8], lwd = 3)
+points(x = c(2, 4, 8, 16), y = log(c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
+                                     sum(hier_results[[7]]$time), sum(hier_results[[15]]$time))), 
+       col = Okabe_Ito[5], pch = 0, lwd = 3)
+lines(x = c(2, 4, 8, 16), y = log(c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
+                                    sum(hier_results[[7]]$time), sum(hier_results[[15]]$time))), 
+      col = Okabe_Ito[5], lty = 2, lwd = 3)
+points(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
+       col = Okabe_Ito[4], pch = 2, lwd = 3)
+lines(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
+      col = Okabe_Ito[4], lty = 3, lwd = 3)
+legend(x = 2, y = 12, 
+       legend = c('fork-and-join', 'balanced', 'progressive'),
+       lty = c(1, 2, 3), 
+       lwd = c(3, 3, 3),
+       pch = c(1, 0, 2), 
+       col = Okabe_Ito[c(8, 5, 4)],
+       cex = 1.1,
+       bty = 'n')
+
+######################################## rho acceptance
+
+plot(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]]$overall_rho), ylim = c(0, 1),
+     ylab = expression(paste('Acceptance Rate for ', rho)), xlab = 'Number of Subposteriors (C)', 
+     col = 'black', pch = 1, lwd = 3)
+lines(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]]$overall_rho), 
+      col = 'black', lwd = 3)
+
+######################################## Q acceptance
+
+plot(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]]$overall_Q), ylim = c(0, 1),
+     ylab = expression(paste('Acceptance Rate for ', hat(Q))), xlab = 'Number of Subposteriors (C)', 
+     col = 'black', pch = 1, lwd = 3)
+lines(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]]$overall_Q), 
+      col = 'black', lwd = 3)
+

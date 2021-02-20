@@ -1,0 +1,60 @@
+#ifndef HELPER_FUNCTIONS
+#define HELPER_FUNCTIONS
+
+#include <RcppArmadillo.h>
+
+double find_max(const Rcpp::NumericVector &vect);
+  
+double find_min(const Rcpp::NumericVector &vect);
+
+double weighted_mean_univariate(const Rcpp::NumericVector &x,
+                                const Rcpp::NumericVector &weights);
+
+double log_rho_univariate(const Rcpp::NumericVector &x,
+                          const double &weighted_mean,
+                          const double &time,
+                          const Rcpp::NumericVector &precondition_values);
+
+arma::mat inv_sum_matrices(const Rcpp::List &matrices);
+
+arma::vec weighted_mean_multivariate(const arma::mat &matrix,
+                                     const Rcpp::List &weights,
+                                     const arma::mat &inv_weights_sum);
+
+arma::mat calculate_proposal_cov(const double &time, const Rcpp::List &weights);
+
+arma::mat row_wise_subtraction(const arma::mat &X, const arma::vec &vect);
+
+double log_rho_multivariate(const arma::mat &x,
+                            const arma::vec &x_mean,
+                            const double &time,
+                            const Rcpp::List &inv_precondition_matrices);
+
+double logsumexp(const Rcpp::NumericVector &x);
+
+Rcpp::List particle_ESS(const Rcpp::NumericVector &log_weights);
+
+Rcpp::List rho_IS_univariate(const Rcpp::List &particles_to_fuse,
+                             const int &N,
+                             const double &time,
+                             const int &m,
+                             const Rcpp::NumericVector &precondition_values);
+
+Rcpp::List rho_IS_multivariate(const Rcpp::List &particles_to_fuse,
+                               const int &N,
+                               const int &dim,
+                               const double &time,
+                               const int &m,
+                               const Rcpp::List &inv_precondition_matrices,
+                               const arma::mat &sum_inv_precondition_matrices);
+
+arma::mat mvrnormArma(const int &N,
+                      const arma::vec &mu,
+                      const arma::mat &Sigma);
+
+arma::mat mvrnormArma_tempered(const int &N,
+                               const arma::vec &mu,
+                               const arma::mat &Sigma,
+                               const double &beta);
+
+#endif

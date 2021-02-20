@@ -1,0 +1,31 @@
+Package: hierarchicalFusion
+Type: Package
+Title: Hierarchical Monte Carlo Fusion
+Version: 1.0
+Date: 2021-02-12
+Author: Ryan Chan
+Maintainer: Ryan Chan <ryanchan2607@gmail.com>
+Description: Functions for Importance Sampling and Rejection Sampling 
+  Preconditioned Monte Carlo Fusion for Hierarchical Monte Carlo Fusion paper
+License: GPL (>= 2)
+Depends: 
+    R (>= 3.6.3),
+    Rcpp (>= 1.0.5),
+    RcppArmadillo,
+    layeredBB,
+    expm
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo,
+    layeredBB,
+    expm,
+    MASS,
+    parallelMCMCcombine
+Imports: 
+    Rcpp,
+    RcppArmadillo,
+    layeredBB,
+    expm,
+    MASS,
+    parallelMCMCcombine
+RoxygenNote: 7.1.1
