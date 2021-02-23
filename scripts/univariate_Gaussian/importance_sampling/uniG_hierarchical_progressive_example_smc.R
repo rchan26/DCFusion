@@ -45,12 +45,12 @@ print(hier_smc_precondition$CESS)
 print(hier_smc_precondition$resampled)
 
 curve(dnorm(x, mean = 1.2, sd = sqrt(0.1)), -3, 5)
-lines(density(resample_particle_y_samples(hier_smc_standard$particles[[1]], 
+lines(density(resample_particle_y_samples(particle_set = hier_smc_standard$particles[[1]], 
                                           multivariate = FALSE,
                                           resampling_method = 'resid',
                                           seed = seed)$y_samples), 
       col = 'green')
-lines(density(resample_particle_y_samples(hier_smc_precondition$particles[[1]], 
+lines(density(resample_particle_y_samples(particle_set = hier_smc_precondition$particles[[1]], 
                                           multivariate = FALSE,
                                           resampling_method = 'resid',
                                           seed = seed)$y_samples), 
@@ -89,12 +89,12 @@ print(prog_smc_precondition$CESS)
 print(prog_smc_precondition$resampled)
 
 curve(dnorm(x, mean = 1.2, sd = sqrt(0.1)), -3, 5)
-lines(density(resample_particle_y_samples(prog_smc_standard$particles[[1]], 
+lines(density(resample_particle_y_samples(particle_set = prog_smc_standard$particles[[1]], 
                                           multivariate = FALSE,
                                           resampling_method = 'resid',
                                           seed = seed)$y_samples), 
       col = 'green')
-lines(density(resample_particle_y_samples(prog_smc_precondition$particles[[1]], 
+lines(density(resample_particle_y_samples(particle_set = prog_smc_precondition$particles[[1]], 
                                           multivariate = FALSE,
                                           resampling_method = 'resid',
                                           seed = seed)$y_samples), 

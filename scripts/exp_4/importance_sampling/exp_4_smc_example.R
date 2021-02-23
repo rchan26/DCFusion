@@ -108,15 +108,15 @@ print(hier_smc_precondition$resampled)
 
 curve(exp_4_density(x), -2.5, 2.5)
 lines(density(target_mc), col = 'black')
-lines(density(resample_particle_set(hier_smc_standard$particles[[1]], 
-                                    multivariate = FALSE, 
-                                    resampling_method = 'resid',
-                                    seed = seed)), 
+lines(density(resample_particle_y_samples(particle_set = hier_smc_standard$particles[[1]], 
+                                          multivariate = FALSE, 
+                                          resampling_method = 'resid',
+                                          seed = seed)$y_samples), 
       col = 'green')
-lines(density(resample_particle_set(hier_smc_precondition$particles[[1]], 
-                                    multivariate = FALSE, 
-                                    resampling_method = 'resid',
-                                    seed = seed)), 
+lines(density(resample_particle_y_samples(particle_set = hier_smc_precondition$particles[[1]], 
+                                          multivariate = FALSE, 
+                                          resampling_method = 'resid',
+                                          seed = seed)$y_samples), 
       col = 'blue')
 
 ########################################
@@ -153,13 +153,13 @@ print(prog_smc_precondition$resampled)
 
 curve(exp_4_density(x), -2.5, 2.5)
 lines(density(target_mc), col = 'black')
-lines(density(resample_particle_set(prog_smc_standard$particles[[1]], 
-                                    multivariate = FALSE, 
-                                    resampling_method = 'resid',
-                                    seed = seed)), 
+lines(density(resample_particle_y_samples(particle_set = prog_smc_standard$particles[[1]], 
+                                          multivariate = FALSE, 
+                                          resampling_method = 'resid',
+                                          seed = seed)$y_samples), 
       col = 'green')
-lines(density(resample_particle_set(prog_smc_precondition$particles[[1]], 
-                                    multivariate = FALSE, 
-                                    resampling_method = 'resid',
-                                    seed = seed)), 
+lines(density(resample_particle_y_samples(particle_set = prog_smc_precondition$particles[[1]], 
+                                          multivariate = FALSE, 
+                                          resampling_method = 'resid',
+                                          seed = seed)$y_samples), 
       col = 'blue')

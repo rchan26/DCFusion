@@ -41,10 +41,10 @@ for (i in 1:length(correlations)) {
                                                              precondition_matrices = rep(list(diag(1,2)), 2),
                                                              ESS_threshold = 0,
                                                              seed = seed)
-  standard_samples <- resample_particle_set(particle_set = smc_fusion_standard[[i]]$particles,
-                                            multivariate = TRUE,
-                                            resampling_method = 'resid',
-                                            seed = seed)
+  standard_samples <- resample_particle_y_samples(particle_set = smc_fusion_standard[[i]]$particles,
+                                                  multivariate = TRUE,
+                                                  resampling_method = 'resid',
+                                                  seed = seed)$y_samples
   print('ESS:'); print(smc_fusion_standard[[i]]$ESS)
   print('CESS:'); print(smc_fusion_standard[[i]]$CESS)
   
@@ -61,10 +61,10 @@ for (i in 1:length(correlations)) {
                                                                  precondition_matrices = lapply(input_samples[[i]], cov),
                                                                  ESS_threshold = 0,
                                                                  seed = seed)
-  precond_samples <- resample_particle_set(particle_set = smc_fusion_precondition[[i]]$particles,
-                                           multivariate = TRUE,
-                                           resampling_method = 'resid',
-                                           seed = seed)
+  precond_samples <- resample_particle_y_samples(particle_set = smc_fusion_precondition[[i]]$particles,
+                                                 multivariate = TRUE,
+                                                 resampling_method = 'resid',
+                                                 seed = seed)$y_samples
   print('ESS:'); print(smc_fusion_precondition[[i]]$ESS)
   print('CESS:'); print(smc_fusion_precondition[[i]]$CESS)
 }

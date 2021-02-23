@@ -117,17 +117,17 @@ for (i in 1:length(denominator)) {
   
   ##########
   curve(exp_4_density(x, mean = 0), -4, 4, ylim = c(0, 0.5), main = denominator[i])
-  lines(density(resample_particle_set(smc_fnj_fused$particles[[1]], 
-                                      multivariate = FALSE, 
-                                      seed = seed)), 
+  lines(density(resample_particle_y_samples(smc_fnj_fused$particles[[1]], 
+                                            multivariate = FALSE, 
+                                            seed = seed)$y_samples), 
         col = 'orange')
-  lines(density(resample_particle_set(smc_hier_fused$particles[[1]], 
-                                      multivariate = FALSE, 
-                                      seed = seed)), 
+  lines(density(resample_particle_y_samples(smc_hier_fused$particles[[1]], 
+                                            multivariate = FALSE, 
+                                            seed = seed)$y_samples), 
         col = 'green')
-  lines(density(resample_particle_set(smc_prog_fused$particles[[1]], 
-                                      multivariate = FALSE, 
-                                      seed = seed)), 
+  lines(density(resample_particle_y_samples(smc_prog_fused$particles[[1]], 
+                                            multivariate = FALSE, 
+                                            seed = seed)$y_samples), 
         col = 'blue')
 }
 
