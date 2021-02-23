@@ -57,17 +57,15 @@ fork_and_join_precondition$CESS
 
 curve(exp_4_density(x), -2.5, 2.5)
 lines(density(target_mc), col = 'black')
-lines(density(fork_and_join_standard$proposed_samples[[1]]), col = 'green', lty = 3)
-lines(density(fork_and_join_precondition$proposed_samples[[1]]), col = 'blue', lty = 3)
-lines(density(resample_particle_set(fork_and_join_standard$particles[[1]],
-                                    multivariate = FALSE,
-                                    resampling_method = 'resid',
-                                    seed = seed)),
+lines(density(resample_particle_y_samples(particle_set = fork_and_join_standard$particles[[1]],
+                                          multivariate = FALSE,
+                                          resampling_method = 'resid',
+                                          seed = seed)$y_samples),
       col = 'green')
-lines(density(resample_particle_set(fork_and_join_precondition$particles[[1]], 
-                                    multivariate = FALSE,
-                                    resampling_method = 'resid',
-                                    seed = seed)), 
+lines(density(resample_particle_y_samples(particle_set = fork_and_join_precondition$particles[[1]], 
+                                          multivariate = FALSE,
+                                          resampling_method = 'resid',
+                                          seed = seed)$y_samples), 
       col = 'blue')
 
 ########################################
