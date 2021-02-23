@@ -295,37 +295,13 @@ Rcpp::List particle_ESS(const Rcpp::NumericVector &log_weights) {
                             Named("ESS", 1/Rcpp::sum(Rcpp::pow(normalised_weights, 2))));
 }
 
-//' rho Importance Sampling Step (univariate)
-//' 
-//' Performs the importance sampling step for rho where target is univariate
-//'
-//' @param particles_to_fuse list of length m, where particles_to_fuse[[c]]
-//'                          contains the particles for the c-th sub-posterior
-//'                          (a list of particles to fuse can be initialised by
-//'                          initialise_particle_sets() function)
-//' @param N number of particles to importance sample
-//' @param time time T for fusion algorithm
-//' @param m number of sub-posteriors to combine
-//' @param precondition_values precondition values for fusion
-//'
-//' @return A importance weighted particle set
-//' 
-//' @examples
-//' samples_to_fuse <- lapply(1:2, function(i) rnorm(100, 0, 1))
-//' particles_to_fuse <- initialise_particle_sets(samples_to_fuse = samples_to_fuse,
-//'                                               multivariate = FALSE)
-//' precondition_values <- sapply(samples_to_fuse, var)
-//' rho_IS_univariate(particles_to_fuse = particles_to_fuse,
-//'                   N = 100,
-//'                   time = 0.5,
-//'                   m = 2,
-//'                   precondition_values = precondition_values)
+
 // [[Rcpp::export]]
-Rcpp::List rho_IS_univariate(const Rcpp::List &particles_to_fuse,
-                             const int &N,
-                             const double &time,
-                             const int &m,
-                             const Rcpp::NumericVector &precondition_values) {
+Rcpp::List rho_IS_univariate_(const Rcpp::List &particles_to_fuse,
+                              const int &N,
+                              const int &m,
+                              const double &time,
+                              const Rcpp::NumericVector &precondition_values) {
   Rcpp::NumericVector x(m);
   Rcpp::NumericVector x_means(N);
   Rcpp::List x_samples = rep(Rcpp::List::create(x), N);
@@ -333,71 +309,29 @@ Rcpp::List rho_IS_univariate(const Rcpp::List &particles_to_fuse,
   for (int i=0; i < N; ++i) {
     Rcpp::NumericVector particle(m);
     for (int c=0; c < m; ++c) {
-      const Rcpp::List &particles = particles_to_fuse[c];
+      const Rcpp::Environment &particles = particles_to_fuse[c];
       const Rcpp::NumericVector &sub_post_samples = particles["y_samples"];
-      // take the ith sample of the sub-posterior samples
       particle[c] = sub_post_samples.at(i);
     }
     x_means[i] = weighted_mean_univariate(particle, 1/precondition_values);
-    log_rho_weights[i] = log_rho_univariate(particle, x_means.at(i), time, precondition_values);
+    log_rho_weights[i] = log_rho_univariate(particle, x_means[i], time, precondition_values);
     x_samples[i] = particle;
   }
-  // normalise log weights and calculate ESS
-  Rcpp::List norm_weights = particle_ESS(log_rho_weights);
-  return Rcpp::List::create(Named("y_samples", rep(NA_REAL, N)), 
-                            Named("x_samples", x_samples),
-                            Named("x_means", x_means), 
+  return Rcpp::List::create(Named("x_samples", x_samples),
+                            Named("x_means", x_means),
                             Named("log_weights", log_rho_weights),
-                            Named("normalised_weights", norm_weights["normalised_weights"]),
-                            Named("ESS", norm_weights["ESS"]),
-                            Named("CESS", norm_weights["ESS"]),
-                            Named("resampled", false),
-                            Named("N", N));
+                            Named("norm_weights", particle_ESS(log_rho_weights)));
 }
 
-//' rho Importance Sampling Step (multivariate)
-//' 
-//' Performs the importance sampling step for rho where target is univariate
-//'
-//' @param particles_to_fuse list of length m, where particles_to_fuse[[c]]
-//'                          contains the particles for the c-th sub-posterior
-//'                          (a list of particles to fuse can be initialised by
-//'                          initialise_particle_sets() function)
-//' @param N number of particles to importance sample
-//' @param dim dimension of the particles
-//' @param time time T for fusion algorithm
-//' @param m number of sub-posteriors to combine
-//' @param inv_precondition_matrices list of length m of inverse 
-//'                                  preconditioning matrices
-//' @param sum_inv_precondition_matrices the inverse of the sum of the inverse
-//'                                      precondition matrices (can be 
-//'                                      calculated by passing the inverse 
-//'                                      preconditon matrices into inv_sum_matrices())
-//'
-//' @return A importance weighted particle set
-//' 
-//' @examples
-//' samples_to_fuse <- lapply(1:2, function(i) mvrnormArma(100, c(0, 0), diag(2)))
-//' particles_to_fuse <- initialise_particle_sets(samples_to_fuse = samples_to_fuse,
-//'                                               multivariate = TRUE)
-//' precondition_mats <- lapply(samples_to_fuse, cov)
-//' inv_precondition_mats <- lapply(precondition_mats, solve)
-//' sum_inv_precondition_mats <- inv_sum_matrices(inv_precondition_mats)
-//' rho_IS_multivariate(particles_to_fuse = particles_to_fuse,
-//'                     N = 100,
-//'                     dim = 2,
-//'                     time = 0.5,
-//'                     m = 2,
-//'                     inv_precondition_matrices = inv_precondition_mats,
-//'                     sum_inv_precondition_matrices = sum_inv_precondition_mats)
+
 // [[Rcpp::export]]
-Rcpp::List rho_IS_multivariate(const Rcpp::List &particles_to_fuse,
-                               const int &dim,
-                               const int &N,
-                               const int &m,
-                               const double &time,
-                               const Rcpp::List &inv_precondition_matrices,
-                               const arma::mat &sum_inv_precondition_matrices) {
+Rcpp::List rho_IS_multivariate_(const Rcpp::List &particles_to_fuse,
+                                const int &dim,
+                                const int &N,
+                                const int &m,
+                                const double &time,
+                                const Rcpp::List &inv_precondition_matrices,
+                                const arma::mat &sum_inv_precondition_matrices) {
   arma::mat x(m, dim, arma::fill::zeros);
   arma::mat x_means(N, dim, arma::fill::zeros);
   Rcpp::List x_samples = rep(Rcpp::List::create(x), N);
@@ -405,7 +339,7 @@ Rcpp::List rho_IS_multivariate(const Rcpp::List &particles_to_fuse,
   for (int i=0; i < N; ++i) {
     arma::mat particle(m, dim);
     for (int c=0; c < m; ++c) {
-      const Rcpp::List &particles = particles_to_fuse[c];
+      const Rcpp::Environment &particles = particles_to_fuse[c];
       const arma::mat &sub_post_samples = particles["y_samples"];
       particle.row(c) = sub_post_samples.row(i);
     }
@@ -418,17 +352,10 @@ Rcpp::List rho_IS_multivariate(const Rcpp::List &particles_to_fuse,
                                               inv_precondition_matrices);
     x_samples[i] = particle; 
   }
-  // normalise log weights and calculate ESS
-  Rcpp::List norm_weights = particle_ESS(log_rho_weights);
-  return Rcpp::List::create(Named("y_samples", Rcpp::NumericMatrix::create(N, dim)), 
-                            Named("x_samples", x_samples),
-                            Named("x_means", x_means), 
+  return Rcpp::List::create(Named("x_samples", x_samples),
+                            Named("x_means", x_means),
                             Named("log_weights", log_rho_weights),
-                            Named("normalised_weights", norm_weights["normalised_weights"]),
-                            Named("ESS", norm_weights["ESS"]),
-                            Named("CESS", norm_weights["ESS"]),
-                            Named("resampled", false),
-                            Named("N", N));
+                            Named("norm_weights", particle_ESS(log_rho_weights)));
 }
 
 //' Simulate from a Multivariate Gaussian Distribution

@@ -43,7 +43,7 @@ the samples for the c-th sub-posterior}
 (beta) for c-th sub-posterior (can also pass in one number if
 they are all at the same inverse temperature)}
 
-\item{precondition_values}{list of length m, where precondition_values[[c]]
+\item{precondition_values}{vector of length m, where precondition_values[c]
 is the precondition value for sub-posterior c}
 
 \item{bounds_multiplier}{scalar value to mulitply bounds by 

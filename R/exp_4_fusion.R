@@ -1,102 +1,3 @@
-#' #' phi-function for exp(-(((x-mean)^4)*beta)/2)
-#' #'
-#' #' phi-function for the Exact Algorithm for exp(-(((x-mean)^4)*beta)/2)
-#' #'
-#' #' @param x real value
-#' #' @param beta beta value
-#' #' @param mean mean value
-#' #' @param precondition precondition value
-#' #'
-#' #' @return real value
-#' #'
-#' #' @examples
-#' #' curve(ea_phi_exp_4_DL(x, 0, 1, 1), from = -4, to = 4)
-#' #'
-#' #' @export
-#' ea_phi_exp_4_DL <- function(x, mean, beta, precondition) {
-#'   y <- x - mean
-#'   return(precondition*((2*beta*beta*(y^6))-(3*beta*y*y)))
-#' }
-#' 
-#' #' Obtain bounds for phi function
-#' #'
-#' #' Finds the lower and upper bounds of the phi function between a given interval
-#' #'
-#' #' @param mean mean value
-#' #' @param beta beta value
-#' #' @param lower lower end of interval
-#' #' @param upper upper end of interval
-#' #' @param precondition precondition value
-#' #'
-#' #' @return A list of components
-#' #' \describe{
-#' #'   \item{LB}{lower bound of phi}
-#' #'   \item{UB}{upper bound of phi}
-#' #' }
-#' #'
-#' #' @examples
-#' #' mu <- 0.435
-#' #' beta <- 0.583
-#' #' precondition <- 1.243
-#' #' lower <- 0
-#' #' upper <- 1.2
-#' #'
-#' #' curve(ea_phi_exp_4_DL(x, mu, beta, precondition), lower, upper, ylab = 'phi')
-#' #' abline(v=c(lower, upper))
-#' #' abline(h=bound_phi_exp_4(mean = mu,
-#' #'                          beta = beta,
-#' #'                          lower = lower,
-#' #'                          upper = upper,
-#' #'                          precondition = precondition),
-#' #'                          col = 'red', lty = 2)
-#' #'
-#' #' @export
-#' ea_phi_exp_4_DL_bounds <- function(mean, beta, precondition, lower, upper) {
-#'   x <- c(lower, upper)
-#'   if (mean > lower & mean < upper) {x <- c(x, mean)}
-#'   m1 <- mean - (1/(2*beta))^(0.25)
-#'   m2 <- mean + (1/(2*beta))^(0.25)
-#'   if (m1 > lower & m1 < upper) {x <- c(x, m1)}
-#'   if (m2 > lower & m2 < upper) {x <- c(x, m2)}
-#'   phi <- ea_phi_exp_4_DL(x = x, mean = mean, beta = beta, precondition = precondition)
-#'   return(list('LB' = min(phi), 'UB' = max(phi)))
-#' }
-#' 
-#' #' Obtain the global lower bound for phi function
-#' #'
-#' #' Finds the global bound of the phi function between a given interval
-#' #'
-#' #' @param mean mean value
-#' #' @param beta beta value
-#' #' @param precondition precondition value
-#' #'
-#' #' @return The global lower bound of phi
-#' #'
-#' #' @examples
-#' #' mu <- 0.435
-#' #' beta <- 0.583
-#' #' precondition <- 1.243
-#' #' lower <- 0
-#' #' upper <- 1.6
-#' #'
-#' #' curve(phi_exp_4(x, mu, beta, precondition), lower, upper, ylab = 'phi')
-#' #' abline(v=c(lower, upper))
-#' #' abline(h=ea_phi_exp_4_DL_LB(mean = mu,
-#' #'                             beta = beta,
-#' #'                             precondition = precondition))
-#' #' abline(h=ea_phi_exp_4_DL_bounds(mean = mu,
-#' #'                                 beta = beta,
-#' #'                                 lower = lower,
-#' #'                                 upper = upper,
-#' #'                                 precondition = precondition),
-#' #'                                 col = 'red', lty = 2)
-#' #'
-#' #' @export
-#' ea_phi_exp_4_DL_LB <- function(mean, beta, precondition) {
-#'   x <- c(mean - (1/(2*beta))^(0.25), mean + (1/(2*beta))^(0.25))
-#'   return(min(ea_phi_exp_4_DL(x = x, mean = mean, beta = beta, precondition)))
-#' }
-
 #' Diffusion probability for the Exact Algorithm for langevin diffusion 
 #' with pi = exp(-(beta*(x-mean)^4)/2) 
 #'
@@ -234,7 +135,7 @@ ea_exp_4_DL <- function(N, input_samples, time, mean, beta, precondition) {
 #' @param betas vector of length m, where betas[c] is the inverse temperature 
 #'              (beta) for c-th sub-posterior (can also pass in one number if 
 #'              they are all at the same inverse temperature)
-#' @param precondition_values vector of length m, where precondition_values[[c]]
+#' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
 #'
 #' @return A list with components:
@@ -306,7 +207,7 @@ fusion_exp_4 <- function(N,
 #' @param betas vector of length m, where betas[c] is the inverse temperature 
 #'              (beta) for c-th sub-posterior (can also pass in one number if 
 #'              they are all at the same inverse temperature)
-#' @param precondition_values vector of length m, where precondition_values[[c]]
+#' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
@@ -712,13 +613,13 @@ progressive_fusion_exp_4 <- function(N_schedule,
 #'
 #' Q Importance Sampling weighting for sub-posteriors of the form exp(-((x^4)*beta)/2)
 #'
-#' @param particle_set particles set prior to Q importance sampling step
+#' @param particle_set particles object prior to Q importance sampling step
 #' @param m number of sub-posteriors to combine
 #' @param time time T for fusion algorithm
 #' @param mean mean value
 #' @param betas vector of length c, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
-#' @param precondition_values list of length m, where precondition_values[[c]]
+#' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
@@ -734,7 +635,9 @@ Q_IS_exp_4 <- function(particle_set,
                        precondition_values,
                        seed = NULL,
                        n_cores = parallel::detectCores()) {
-  if (!is.vector(betas) | (length(betas)!=m)) {
+  if (!("particle" %in% class(particle_set))) {
+    stop("Q_IS_exp_4: particle_set must be a \"particle\" object")
+  } else if (!is.vector(betas) | (length(betas)!=m)) {
     stop("Q_IS_exp_4: betas must be a vector of length m")
   } else if (!is.vector(precondition_values) | (length(precondition_values)!=m)) {
     stop("Q_IS_exp_4: precondition_values must be a vector of length m")
@@ -766,7 +669,7 @@ Q_IS_exp_4 <- function(particle_set,
     log_Q_weights <- rep(0, split_N)
     for (i in 1:split_N) {
       y_samples[i] <- rnorm(1, mean = split_x_means[[core]][i], sd = proposal_sd)
-      log_Q <- sum(sapply(1:m, function(c) {
+      log_Q_weights[i] <- sum(sapply(1:m, function(c) {
         ea_exp_4_DL_PT(x0 = split_x_samples[[core]][[i]][c],
                        y = y_samples[i],
                        s = 0,
@@ -776,7 +679,6 @@ Q_IS_exp_4 <- function(particle_set,
                        precondition = precondition_values[c],
                        logarithm = TRUE)
       }))
-      log_Q_weights[i] <- log_Q_weights[i] + log_Q
     }
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
@@ -796,9 +698,9 @@ Q_IS_exp_4 <- function(particle_set,
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
   # where inc_change is the incremental change in weight (= log_Q_weights)
-  particle_set$CESS <- particle_ESS(log_weights = log_Q_weights)$ESS
+  particle_set$CESS['Q'] <- particle_ESS(log_weights = log_Q_weights)$ESS
   # set the resampled indicator to FALSE
-  particle_set$resampled <- FALSE
+  particle_set$resampled['Q'] <- FALSE
   return(particle_set)
 }
 
@@ -816,7 +718,7 @@ Q_IS_exp_4 <- function(particle_set,
 #' @param mean mean value
 #' @param betas vector of length c, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
-#' @param precondition_values list of length m, where precondition_values[[c]]
+#' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
@@ -862,6 +764,8 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
                                       n_cores = parallel::detectCores()) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("parallel_fusion_SMC_exp_4: particles_to_fuse must be a list of length m")
+  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
+    stop("parallel_fusion_SMC_exp_4: particles in particles_to_fuse must be \"particle\" objects")
   } else if (!is.vector(betas) | (length(betas)!=m)) {
     stop("parallel_fusion_SMC_exp_4: betas must be a vector of length m")
   } else if (!is.vector(precondition_values) | (length(precondition_values)!=m)) {
@@ -878,24 +782,12 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
   # check if the resampled indicator if FALSE
   # also check if there are enough samples
   for (c in 1:length(particles_to_fuse)) {
-    if (!particles_to_fuse[[c]]$resampled) {
-      indices <- resample_indices(normalised_weights = particles_to_fuse[[c]]$normalised_weights,
-                                  method = resampling_method,
-                                  n = N)
-      particles_to_fuse[[c]]$y_samples <- particles_to_fuse[[c]]$y_samples[indices]
-      # reset weights and ESS
-      particles_to_fuse[[c]]$normalised_weights[] <- 1/N
-      particles_to_fuse[[c]]$log_weights[] <- log(1/N)
-      particles_to_fuse[[c]]$ESS <- N
-    } else if (particles_to_fuse[[c]]$N < N) {
-      indices <- resample_indices(normalised_weights = particles_to_fuse[[c]]$normalised_weights,
-                                  method = resampling_method,
-                                  n = N)
-      particles_to_fuse[[c]]$y_samples <- particles_to_fuse[[c]]$y_samples[indices]
-      # reset weights and ESS
-      particles_to_fuse[[c]]$normalised_weights[] <- 1/N
-      particles_to_fuse[[c]]$log_weights[] <- log(1/N)
-      particles_to_fuse[[c]]$ESS <- N
+    if ((!particles_to_fuse[[c]]$resampled['Q']) | (particles_to_fuse[[c]]$N != N)) {
+      particles_to_fuse[[c]] <- resample_particle_y_samples(N = N,
+                                                            particle_set = particles_to_fuse[[c]],
+                                                            multivariate = FALSE,
+                                                            resampling_method = resampling_method,
+                                                            seed = seed)
     }
   }
   # start time recording
@@ -903,28 +795,22 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
   # ---------- first importance sampling step
   particles <- rho_IS_univariate(particles_to_fuse = particles_to_fuse,
                                  N = N,
-                                 time = time,
                                  m = m,
+                                 time = time,
                                  precondition_values = precondition_values)
   # record ESS and CESS after rho step 
   ESS <- c('rho' = particles$ESS)
-  CESS <- c('rho' = particles$CESS)
+  CESS <- c('rho' = particles$CESS['rho'])
   # ----------- resample particles
   # only resample if ESS < N*ESS_threshold
   if (particles$ESS < N*ESS_threshold) {
-    particles$resampled <- TRUE
     resampled <- c('rho' = TRUE)
-    indices <- resample_indices(normalised_weights = particles$normalised_weights,
-                                method = resampling_method,
-                                n = N)
-    particles$x_samples <- particles$x_samples[indices]
-    x_means <- particles$x_means[indices]
-    # reset weights and ESS
-    particles$normalised_weights[] <- 1/N
-    particles$log_weights[] <- log(1/N)
-    particles$ESS <- N
+    particles <- resample_particle_x_samples(N = N,
+                                             particle_set = particles,
+                                             multivariate = FALSE,
+                                             resampling_method = resampling_method,
+                                             seed = seed)
   } else {
-    particles$resampled <- FALSE
     resampled <- c('rho' = FALSE)
   }
   # ---------- second importance sampling step
@@ -939,24 +825,19 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
                           n_cores = n_cores)
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
-  CESS['Q'] <- particles$CESS
+  CESS['Q'] <- particles$CESS['Q']
   # record proposed samples
   proposed_samples <- particles$y_samples
-  # ---------- resample particles to return an equally weighted particle set 
+  # ----------- resample particles
   # only resample if ESS < N*ESS_threshold
   if (particles$ESS < N*ESS_threshold) {
-    particles$resampled <- TRUE
     resampled['Q'] <- TRUE
-    indices <- resample_indices(normalised_weights = particles$normalised_weights,
-                                method = resampling_method,
-                                n = N)
-    particles$y_samples <- particles$y_samples[indices]
-    # reset weights and ESS
-    particles$normalised_weights[] <- 1/N
-    particles$log_weights[] <- log(1/N)
-    particles$ESS <- N
+    particles <- resample_particle_y_samples(N = N,
+                                             particle_set = particles,
+                                             multivariate = FALSE,
+                                             resampling_method = resampling_method,
+                                             seed = seed)
   } else {
-    particles$resampled <- FALSE
     resampled['Q'] <- FALSE
   }
   if (identical(precondition_values, rep(1, m))) {

@@ -207,72 +207,12 @@ particle_ESS <- function(log_weights) {
     .Call(`_hierarchicalFusion_particle_ESS`, log_weights)
 }
 
-#' rho Importance Sampling Step (univariate)
-#' 
-#' Performs the importance sampling step for rho where target is univariate
-#'
-#' @param particles_to_fuse list of length m, where particles_to_fuse[[c]]
-#'                          contains the particles for the c-th sub-posterior
-#'                          (a list of particles to fuse can be initialised by
-#'                          initialise_particle_sets() function)
-#' @param N number of particles to importance sample
-#' @param time time T for fusion algorithm
-#' @param m number of sub-posteriors to combine
-#' @param precondition_values precondition values for fusion
-#'
-#' @return A importance weighted particle set
-#' 
-#' @examples
-#' samples_to_fuse <- lapply(1:2, function(i) rnorm(100, 0, 1))
-#' particles_to_fuse <- initialise_particle_sets(samples_to_fuse = samples_to_fuse,
-#'                                               multivariate = FALSE)
-#' precondition_values <- sapply(samples_to_fuse, var)
-#' rho_IS_univariate(particles_to_fuse = particles_to_fuse,
-#'                   N = 100,
-#'                   time = 0.5,
-#'                   m = 2,
-#'                   precondition_values = precondition_values)
-rho_IS_univariate <- function(particles_to_fuse, N, time, m, precondition_values) {
-    .Call(`_hierarchicalFusion_rho_IS_univariate`, particles_to_fuse, N, time, m, precondition_values)
+rho_IS_univariate_ <- function(particles_to_fuse, N, m, time, precondition_values) {
+    .Call(`_hierarchicalFusion_rho_IS_univariate_`, particles_to_fuse, N, m, time, precondition_values)
 }
 
-#' rho Importance Sampling Step (multivariate)
-#' 
-#' Performs the importance sampling step for rho where target is univariate
-#'
-#' @param particles_to_fuse list of length m, where particles_to_fuse[[c]]
-#'                          contains the particles for the c-th sub-posterior
-#'                          (a list of particles to fuse can be initialised by
-#'                          initialise_particle_sets() function)
-#' @param N number of particles to importance sample
-#' @param dim dimension of the particles
-#' @param time time T for fusion algorithm
-#' @param m number of sub-posteriors to combine
-#' @param inv_precondition_matrices list of length m of inverse 
-#'                                  preconditioning matrices
-#' @param sum_inv_precondition_matrices the inverse of the sum of the inverse
-#'                                      precondition matrices (can be 
-#'                                      calculated by passing the inverse 
-#'                                      preconditon matrices into inv_sum_matrices())
-#'
-#' @return A importance weighted particle set
-#' 
-#' @examples
-#' samples_to_fuse <- lapply(1:2, function(i) mvrnormArma(100, c(0, 0), diag(2)))
-#' particles_to_fuse <- initialise_particle_sets(samples_to_fuse = samples_to_fuse,
-#'                                               multivariate = TRUE)
-#' precondition_mats <- lapply(samples_to_fuse, cov)
-#' inv_precondition_mats <- lapply(precondition_mats, solve)
-#' sum_inv_precondition_mats <- inv_sum_matrices(inv_precondition_mats)
-#' rho_IS_multivariate(particles_to_fuse = particles_to_fuse,
-#'                     N = 100,
-#'                     dim = 2,
-#'                     time = 0.5,
-#'                     m = 2,
-#'                     inv_precondition_matrices = inv_precondition_mats,
-#'                     sum_inv_precondition_matrices = sum_inv_precondition_mats)
-rho_IS_multivariate <- function(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, sum_inv_precondition_matrices) {
-    .Call(`_hierarchicalFusion_rho_IS_multivariate`, particles_to_fuse, dim, N, m, time, inv_precondition_matrices, sum_inv_precondition_matrices)
+rho_IS_multivariate_ <- function(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, sum_inv_precondition_matrices) {
+    .Call(`_hierarchicalFusion_rho_IS_multivariate_`, particles_to_fuse, dim, N, m, time, inv_precondition_matrices, sum_inv_precondition_matrices)
 }
 
 #' Simulate from a Multivariate Gaussian Distribution
@@ -312,6 +252,14 @@ mvrnormArma <- function(N, mu, Sigma) {
 #'                                          beta = 2)
 mvrnormArma_tempered <- function(N, mu, Sigma, beta) {
     .Call(`_hierarchicalFusion_mvrnormArma_tempered`, N, mu, Sigma, beta)
+}
+
+ea_phi_BLR_DL <- function(beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat) {
+    .Call(`_hierarchicalFusion_ea_phi_BLR_DL`, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat)
+}
+
+ea_phi_BLR_DL_LB <- function(X, prior_variances, C, precondition_mat) {
+    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_LB`, X, prior_variances, C, precondition_mat)
 }
 
 ea_phi_biGaussian_DL_vec <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {

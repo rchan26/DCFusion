@@ -716,7 +716,9 @@ Q_IS_biGaussian <- function(particle_set,
                             inv_precondition_matrices,
                             seed = NULL,
                             n_cores = parallel::detectCores()) {
-  if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
+  if (!("particle" %in% class(particle_set))) {
+    stop("Q_IS_biGaussian: particle_set must be a \"particle\" object")
+  } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("Q_IS_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
     stop("Q_IS_biGaussian: sd_vec must be a vector of length 2")
@@ -758,7 +760,7 @@ Q_IS_biGaussian <- function(particle_set,
     log_Q_weights <- rep(0, split_N)
     for (i in 1:split_N) {
       y_samples[i,] <- mvrnormArma(N = 1, mu = split_x_means[[core]][i,], Sigma = proposal_cov)
-      log_Q <- sum(sapply(1:m, function(c) {
+      log_Q_weights[i] <- sum(sapply(1:m, function(c) {
         ea_biGaussian_DL_PT(x0 = as.vector(split_x_samples[[core]][[i]][c,]),
                             y = as.vector(y_samples[i,]),
                             s = 0,
@@ -771,7 +773,6 @@ Q_IS_biGaussian <- function(particle_set,
                             transform_mats = transform_matrices[[c]],
                             logarithm = TRUE)
       }))
-      log_Q_weights[i] <- log_Q_weights[i] + log_Q
     }
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
@@ -782,19 +783,19 @@ Q_IS_biGaussian <- function(particle_set,
     Q_weighted_samples[[i]]$y_samples}))
   log_Q_weights <- unlist(lapply(1:length(split_x_samples), function(i) {
     Q_weighted_samples[[i]]$log_Q_weights}))
-  # ---------- update particle set 
+  # ---------- update particle set
   # update the weights and return updated particle set
   particle_set$y_samples <- y_samples
-  particle_set$log_weights <- particle_set$log_weights + log_Q_weights 
+  particle_set$log_weights <- particle_set$log_weights + log_Q_weights
   # normalise weights
   norm_weights <- particle_ESS(log_weights = particle_set$log_weights)
   particle_set$normalised_weights <- norm_weights$normalised_weights
   particle_set$ESS <- norm_weights$ESS
-  # calculate the conditional ESS (i.e. the 1/sum(inc_change^2)) 
+  # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
   # where inc_change is the incremental change in weight (= log_Q_weights)
-  particle_set$CESS <- particle_ESS(log_weights = log_Q_weights)$ESS
+  particle_set$CESS['Q'] <- particle_ESS(log_weights = log_Q_weights)$ESS
   # set the resampled indicator to FALSE
-  particle_set$resampled <- FALSE
+  particle_set$resampled['Q'] <- FALSE
   return(particle_set)
 }
 
@@ -862,7 +863,9 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                            n_cores = parallel::detectCores()) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("parallel_fusion_SMC_biGaussian: particles_to_fuse must be a list of length m")
-  }  else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
+  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
+    stop("parallel_fusion_SMC_biGaussian: particles in particles_to_fuse must be \"particle\" objects")
+  } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("parallel_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
     stop("parallel_fusion_SMC_biGaussian: sd_vec must be a vector of length 2")
@@ -872,7 +875,7 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_biGaussian: precondition_matrices must be a list of length m")
   } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
     stop("parallel_fusion_SMC_biGaussian: ESS_threshold must be between 0 and 1")
-  }
+  } 
   # set a seed if one is supplied
   if (!is.null(seed)) {
     set.seed(seed)
@@ -882,24 +885,12 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
   # check if the resampled indicator if FALSE
   # also check if there are enough samples
   for (c in 1:length(particles_to_fuse)) {
-    if (!particles_to_fuse[[c]]$resampled) {
-      indices <- resample_indices(normalised_weights = particles_to_fuse[[c]]$normalised_weights,
-                                  method = resampling_method,
-                                  n = N)
-      particles_to_fuse[[c]]$y_samples <- particles_to_fuse[[c]]$y_samples[indices,]
-      # reset weights and ESS
-      particles_to_fuse[[c]]$normalised_weights[] <- 1/N
-      particles_to_fuse[[c]]$log_weights[] <- log(1/N)
-      particles_to_fuse[[c]]$ESS <- N
-    } else if (particles_to_fuse[[c]]$N < N) {
-      indices <- resample_indices(normalised_weights = particles_to_fuse[[c]]$normalised_weights,
-                                  method = resampling_method,
-                                  n = N)
-      particles_to_fuse[[c]]$y_samples <- particles_to_fuse[[c]]$y_samples[indices,]
-      # reset weights and ESS
-      particles_to_fuse[[c]]$normalised_weights[] <- 1/N
-      particles_to_fuse[[c]]$log_weights[] <- log(1/N)
-      particles_to_fuse[[c]]$ESS <- N
+    if ((!particles_to_fuse[[c]]$resampled['Q']) | (particles_to_fuse[[c]]$N != N)) {
+      particles_to_fuse[[c]] <- resample_particle_y_samples(N = N,
+                                                            particle_set = particles_to_fuse[[c]],
+                                                            multivariate = TRUE,
+                                                            resampling_method = resampling_method,
+                                                            seed = seed)
     }
   }
   # start time recording
@@ -917,23 +908,17 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                    sum_inv_precondition_matrices = inv_sum_matrices(inv_precondition_matrices))
   # record ESS and CESS after rho step 
   ESS <- c('rho' = particles$ESS)
-  CESS <- c('rho' = particles$CESS)
+  CESS <- c('rho' = particles$CESS['rho'])
   # ----------- resample particles
   # only resample if ESS < N*ESS_threshold
   if (particles$ESS < N*ESS_threshold) {
-    particles$resampled <- TRUE
     resampled <- c('rho' = TRUE)
-    indices <- resample_indices(normalised_weights = particles$normalised_weights,
-                                method = resampling_method,
-                                n = N)
-    particles$x_samples <- particles$x_samples[indices]
-    x_means <- particles$x_means[indices,]
-    # reset weights and ESS
-    particles$normalised_weights[] <- 1/N
-    particles$log_weights[] <- log(1/N)
-    particles$ESS <- N
+    particles <- resample_particle_x_samples(N = N,
+                                             particle_set = particles,
+                                             multivariate = TRUE,
+                                             resampling_method = resampling_method,
+                                             seed = seed)
   } else {
-    particles$resampled <- FALSE
     resampled <- c('rho' = FALSE)
   }
   # ---------- second importance sampling step
@@ -951,24 +936,19 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                n_cores = n_cores)
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
-  CESS['Q'] <- particles$CESS
+  CESS['Q'] <- particles$CESS['Q']
   # record proposed samples
   proposed_samples <- particles$y_samples
-  # ---------- resample particles to return an equally weighted particle set 
+  # ----------- resample particles
   # only resample if ESS < N*ESS_threshold
   if (particles$ESS < N*ESS_threshold) {
-    particles$resampled <- TRUE
     resampled['Q'] <- TRUE
-    indices <- resample_indices(normalised_weights = particles$normalised_weights,
-                                method = resampling_method,
-                                n = N)
-    particles$y_samples <- particles$y_samples[indices,]
-    # reset weights and ESS
-    particles$normalised_weights[] <- 1/N
-    particles$log_weights[] <- log(1/N)
-    particles$ESS <- N
+    particles <- resample_particle_y_samples(N = N,
+                                             particle_set = particles,
+                                             multivariate = TRUE,
+                                             resampling_method = resampling_method,
+                                             seed = seed)
   } else {
-    particles$resampled <- FALSE
     resampled['Q'] <- FALSE
   }
   if (identical(precondition_matrices, rep(list(diag(1, 2)), m))) {

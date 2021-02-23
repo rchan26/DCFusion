@@ -16,7 +16,7 @@ Q_IS_exp_4(
 )
 }
 \arguments{
-\item{particle_set}{particles set prior to Q importance sampling step}
+\item{particle_set}{particles object prior to Q importance sampling step}
 
 \item{m}{number of sub-posteriors to combine}
 
@@ -27,7 +27,7 @@ Q_IS_exp_4(
 \item{betas}{vector of length c, where betas[c] is the inverse temperature 
 value for c-th posterior}
 
-\item{precondition_values}{list of length m, where precondition_values[[c]]
+\item{precondition_values}{vector of length m, where precondition_values[c]
 is the precondition value for sub-posterior c}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}

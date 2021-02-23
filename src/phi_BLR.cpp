@@ -41,14 +41,14 @@ double div_log_BLR_gradient(const arma::mat &X,
 }
 
 // [[Rcpp::export]]
-double phi_BLR(const arma::vec &beta,
-               const arma::vec &y_labels,
-               const arma::mat &X,
-               const arma::vec &prior_means,
-               const arma::vec &prior_variances,
-               const double &C,
-               const arma::mat &precondition_mat,
-               const arma::mat &transform_mat) {
+double ea_phi_BLR_DL(const arma::vec &beta,
+                     const arma::vec &y_labels,
+                     const arma::mat &X,
+                     const arma::vec &prior_means,
+                     const arma::vec &prior_variances,
+                     const double &C,
+                     const arma::mat &precondition_mat,
+                     const arma::mat &transform_mat) {
   // transform beta
   const arma::vec transformed_beta = transform_mat * beta;
   // computing the matrix multiplication of X*transformed_beta, which is a (n x 1) vector
@@ -72,14 +72,14 @@ double phi_BLR(const arma::vec &beta,
                                            prior_variances,
                                            C,
                                            precondition_mat);
-  return(0.5*(first_term + divergence));
+  return(0.5*(first_term+divergence));
 }
 
 // [[Rcpp::export]]
-double phi_LB_BLR(const arma::mat &X,
-                  const arma::vec &prior_variances,
-                  const double &C,
-                  const arma::mat &precondition_mat) {
+double ea_phi_BLR_DL_LB(const arma::mat &X,
+                        const arma::vec &prior_variances,
+                        const double &C,
+                        const arma::mat &precondition_mat) {
   // calculating the sums in the lower bound
   arma::vec design_sum(X.n_cols, arma::fill::zeros);
   double prior_variances_sum = 0;

@@ -37,7 +37,7 @@ Q_IS_mixG(
 \item{betas}{vector of length c, where betas[c] is the inverse temperature 
 value for c-th posterior}
 
-\item{precondition_values}{list of length m, where precondition_values[[c]]
+\item{precondition_values}{vector of length m, where precondition_values[c]
 is the precondition value for sub-posterior c}
 
 \item{bounds_multiplier}{scalar value to mulitply bounds by 

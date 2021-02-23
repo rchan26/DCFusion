@@ -40,7 +40,7 @@ for c-th sub-posterior}
 \item{betas}{vector of length c, where betas[c] is the inverse temperature 
 value for c-th posterior}
 
-\item{precondition_values}{list of length m, where precondition_values[[c]]
+\item{precondition_values}{vector of length m, where precondition_values[c]
 is the precondition value for sub-posterior c}
 
 \item{resampling_method}{method to be used in resampling, default is multinomial 

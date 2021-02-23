@@ -1,155 +1,3 @@
-#' #' phi-function for tempered Gaussian distribution
-#' #'
-#' #' phi-function for the Exact Algorithm for tempered Gaussian distribution
-#' #'
-#' #' @param x real value
-#' #' @param mean mean value
-#' #' @param sd standard deviation value
-#' #' @param beta real value
-#' #' @param precondition precondition value
-#' #'
-#' #' @return real value
-#' #'
-#' #' @examples
-#' #' curve(ea_phi_uniGaussian_DL(x, 0, 1, 1, 1), from = -4, to = 4)
-#' #'
-#' #' @export
-#' ea_phi_uniGaussian_DL <- function(x, mean, sd, beta, precondition) {
-#'   y <- x - mean
-#'   t1 <- (beta*beta*y*y)/(sd^4)
-#'   t2 <- beta/(sd*sd)
-#'   return(0.5*precondition*(t1+t2))
-#' }
-#' 
-#' #' Obtain bounds for phi function
-#' #'
-#' #' Finds the lower and upper bounds of the phi function between an interval
-#' #'
-#' #' @param mean mean value
-#' #' @param sd standard deviation value
-#' #' @param beta real value
-#' #' @param lower lower end of interval
-#' #' @param upper upper end of interval
-#' #' @param precondition precondition value
-#' #'
-#' #' @return A list of components
-#' #' \describe{
-#' #'   \item{LB}{lower bound of phi}
-#' #'   \item{UB}{upper bound of phi}
-#' #' }
-#' #'
-#' #' @examples
-#' #' mu <- 0.423
-#' #' sd <- 3.231
-#' #' beta <- 0.8693
-#' #' precondition <- 1.243
-#' #' lower <- -2.823
-#' #' upper <- 4.322
-#' #' curve(ea_phi_uniGaussian_DL(x, mu, sd, beta, precondition), lower, upper)
-#' #' abline(h=ea_phi_uniGaussian_DL_bounds(mean = mu,
-#' #'                                       sd = sd,
-#' #'                                       beta = beta,
-#' #'                                       lower = lower,
-#' #'                                       upper = upper,
-#' #'                                       precondition = precondition),
-#' #'        col = 'red', lty = 2)
-#' #' 
-#' #' #' another example where the mean is not in the interval
-#' #' mu <- 0.423
-#' #' sd <- 3.231
-#' #' beta <- 0.8693
-#' #' precondition <- 1.243
-#' #' lower <- 2.823
-#' #' upper <- 5.322
-#' #' curve(ea_phi_uniGaussian_DL(x, mu, sd, beta, precondition), lower, upper)
-#' #' abline(h=ea_phi_uniGaussian_DL_bounds(mean = mu,
-#' #'                                       sd = sd,
-#' #'                                       beta = beta,
-#' #'                                       lower = lower,
-#' #'                                       upper = upper,
-#' #'                                       precondition = precondition),
-#' #'        col = 'red', lty = 2)
-#' #'
-#' #' @export
-#' ea_phi_uniGaussian_DL_bounds <- function(mean, sd, beta, precondition, lower, upper) {
-#'   x <- c(lower, upper)
-#'   if (mean > lower & mean < upper) {x <- c(x, mean)}
-#'   phi <- ea_phi_uniGaussian_DL(x = x,
-#'                                mean = mean,
-#'                                sd = sd,
-#'                                beta = beta,
-#'                                precondition = precondition)
-#'   return(list('LB' = min(phi), 'UB' = max(phi)))
-#' }
-#' 
-#' #' Obtain bounds for phi function
-#' #'
-#' #' Finds the lower and upper bounds of the phi function between an interval
-#' #'
-#' #' @param mean mean value
-#' #' @param sd standard deviation value
-#' #' @param beta real value
-#' #' @param lower lower end of interval
-#' #' @param upper upper end of interval
-#' #' @param precondition precondition value
-#' #'
-#' #' @return A list of components
-#' #' \describe{
-#' #'   \item{LB}{lower bound of phi}
-#' #'   \item{UB}{upper bound of phi}
-#' #' }
-#' #'
-#' #' @examples
-#' #' mu <- 0.423
-#' #' sd <- 3.231
-#' #' beta <- 0.8693
-#' #' precondition <- 1.243
-#' #' lower <- -2.823
-#' #' upper <- 4.322
-#' #' curve(ea_phi_uniGaussian_DL(x, mu, sd, beta, precondition), lower, upper)
-#' #' abline(h=ea_phi_uniGaussian_DL_bounds(mean = mu,
-#' #'                                       sd = sd,
-#' #'                                       beta = beta,
-#' #'                                       lower = lower,
-#' #'                                       upper = upper,
-#' #'                                       precondition = precondition),
-#' #'        col = 'red', lty = 2)
-#' #' abline(h=ea_phi_uniGaussian_DL_LB(mean = mu,
-#' #'                                   sd = sd,
-#' #'                                   beta = beta,
-#' #'                                   precondition = precondition),
-#' #'        col = 'blue', lty = 3)
-#' #' 
-#' #' #' another example where the mean is not in the interval
-#' #' mu <- 0.423
-#' #' sd <- 3.231
-#' #' beta <- 0.8693
-#' #' precondition <- 1.243
-#' #' lower <- 2.823
-#' #' upper <- 5.322
-#' #' curve(ea_phi_uniGaussian_DL(x, mu, sd, beta, precondition), lower, upper)
-#' #' abline(h=ea_phi_uniGaussian_DL_bounds(mean = mu,
-#' #'                                       sd = sd,
-#' #'                                       beta = beta,
-#' #'                                       lower = lower,
-#' #'                                       upper = upper,
-#' #'                                       precondition = precondition),
-#' #'        col = 'red', lty = 2)
-#' #' abline(h=ea_phi_uniGaussian_DL_LB(mean = mu,
-#' #'                                   sd = sd,
-#' #'                                   beta = beta,
-#' #'                                   precondition = precondition),
-#' #'        col = 'blue', lty = 3)
-#' #'
-#' #' @export
-#' ea_phi_uniGaussian_DL_LB <- function(mean, sd, beta, precondition) {
-#'   return(ea_phi_uniGaussian_DL(x = mean,
-#'                                mean = mean,
-#'                                sd = sd,
-#'                                beta = beta,
-#'                                precondition = precondition))
-#' }
-
 #' Diffusion probability for the Exact Algorithm for langevin diffusion for 
 #' tempered Gaussian distribution
 #'
@@ -809,7 +657,7 @@ progressive_fusion_uniGaussian <- function(N_schedule,
 #'            for c-th sub-posterior
 #' @param betas vector of length c, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
-#' @param precondition_values list of length m, where precondition_values[[c]]
+#' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
@@ -826,7 +674,9 @@ Q_IS_uniGaussian <- function(particle_set,
                              precondition_values,
                              seed = NULL,
                              n_cores = parallel::detectCores()) {
-  if (!is.vector(means) | (length(means)!=m)) {
+  if (!("particle" %in% class(particle_set))) {
+    stop("Q_IS_uniGaussian: particle_set must be a \"particle\" object")
+  } else if (!is.vector(means) | (length(means)!=m)) {
     stop("Q_IS_uniGaussian: means must be a vector of length m")
   } else if (!is.vector(sds) | (length(sds)!=m)) {
     stop("Q_IS_uniGaussian: sds must be a vector of length m")
@@ -862,7 +712,7 @@ Q_IS_uniGaussian <- function(particle_set,
     log_Q_weights <- rep(0, split_N)
     for (i in 1:split_N) {
       y_samples[i] <- rnorm(1, mean = split_x_means[[core]][i], sd = proposal_sd)
-      log_Q <- sum(sapply(1:m, function(c) {
+      log_Q_weights[i] <- sum(sapply(1:m, function(c) {
         ea_uniGaussian_DL_PT(x0 = split_x_samples[[core]][[i]][c],
                              y = y_samples[i],
                              s = 0,
@@ -873,7 +723,6 @@ Q_IS_uniGaussian <- function(particle_set,
                              precondition = precondition_values[c],
                              logarithm = TRUE)
       }))
-      log_Q_weights[i] <- log_Q_weights[i] + log_Q
     }
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
@@ -893,9 +742,9 @@ Q_IS_uniGaussian <- function(particle_set,
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
   # where inc_change is the incremental change in weight (= log_Q_weights)
-  particle_set$CESS <- particle_ESS(log_weights = log_Q_weights)$ESS
+  particle_set$CESS['Q'] <- particle_ESS(log_weights = log_Q_weights)$ESS
   # set the resampled indicator to FALSE
-  particle_set$resampled <- FALSE
+  particle_set$resampled['Q'] <- FALSE
   return(particle_set)
 }
 
@@ -916,7 +765,7 @@ Q_IS_uniGaussian <- function(particle_set,
 #'            for c-th sub-posterior
 #' @param betas vector of length c, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
-#' @param precondition_values list of length m, where precondition_values[[c]]
+#' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
@@ -963,6 +812,8 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
                                             n_cores = parallel::detectCores()) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("parallel_fusion_SMC_uniGaussian: particles_to_fuse must be a list of length m")
+  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
+    stop("parallel_fusion_SMC_uniGaussian: particles in particles_to_fuse must be \"particle\" objects")
   } else if (!is.vector(means) | (length(means)!=m)) {
     stop("parallel_fusion_SMC_uniGaussian: means must be a vector of length m")
   } else if (!is.vector(sds) | (length(sds)!=m)) {
@@ -983,53 +834,35 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
   # check if the resampled indicator if FALSE
   # also check if there are enough samples
   for (c in 1:length(particles_to_fuse)) {
-    if (!particles_to_fuse[[c]]$resampled) {
-      indices <- resample_indices(normalised_weights = particles_to_fuse[[c]]$normalised_weights,
-                                  method = resampling_method,
-                                  n = N)
-      particles_to_fuse[[c]]$y_samples <- particles_to_fuse[[c]]$y_samples[indices]
-      # reset weights and ESS
-      particles_to_fuse[[c]]$normalised_weights[] <- 1/N
-      particles_to_fuse[[c]]$log_weights[] <- log(1/N)
-      particles_to_fuse[[c]]$ESS <- N
-    } else if (particles_to_fuse[[c]]$N < N) {
-      indices <- resample_indices(normalised_weights = particles_to_fuse[[c]]$normalised_weights,
-                                  method = resampling_method,
-                                  n = N)
-      particles_to_fuse[[c]]$y_samples <- particles_to_fuse[[c]]$y_samples[indices]
-      # reset weights and ESS
-      particles_to_fuse[[c]]$normalised_weights[] <- 1/N
-      particles_to_fuse[[c]]$log_weights[] <- log(1/N)
-      particles_to_fuse[[c]]$ESS <- N
+    if ((!particles_to_fuse[[c]]$resampled['Q']) | (particles_to_fuse[[c]]$N != N)) {
+      particles_to_fuse[[c]] <- resample_particle_y_samples(N = N,
+                                                            particle_set = particles_to_fuse[[c]],
+                                                            multivariate = FALSE,
+                                                            resampling_method = resampling_method,
+                                                            seed = seed)
     }
   }
   # start time recording
   pcm <- proc.time()
   # ---------- first importance sampling step 
-  particles <- rho_IS_univariate(particles_to_fuse = particles_to_fuse, 
-                                 N = N, 
-                                 time = time, 
-                                 m = m, 
+  particles <- rho_IS_univariate(particles_to_fuse = particles_to_fuse,
+                                 N = N,
+                                 m = m,
+                                 time = time,
                                  precondition_values = precondition_values)
   # record ESS and CESS after rho step 
   ESS <- c('rho' = particles$ESS)
-  CESS <- c('rho' = particles$CESS)
+  CESS <- c('rho' = particles$CESS['rho'])
   # ----------- resample particles
   # only resample if ESS < N*ESS_threshold
   if (particles$ESS < N*ESS_threshold) {
-    particles$resampled <- TRUE
     resampled <- c('rho' = TRUE)
-    indices <- resample_indices(normalised_weights = particles$normalised_weights,
-                                method = resampling_method,
-                                n = N)
-    particles$x_samples <- particles$x_samples[indices]
-    x_means <- particles$x_means[indices]
-    # reset weights and ESS
-    particles$normalised_weights[] <- 1/N
-    particles$log_weights[] <- log(1/N)
-    particles$ESS <- N
+    particles <- resample_particle_x_samples(N = N,
+                                             particle_set = particles,
+                                             multivariate = FALSE,
+                                             resampling_method = resampling_method,
+                                             seed = seed)
   } else {
-    particles$resampled <- FALSE
     resampled <- c('rho' = FALSE)
   }
   # ---------- second importance sampling step
@@ -1045,24 +878,19 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
                                 n_cores = n_cores)
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
-  CESS['Q'] <- particles$CESS
+  CESS['Q'] <- particles$CESS['Q']
   # record proposed samples
   proposed_samples <- particles$y_samples
-  # ---------- resample particles to return an equally weighted particle set 
+  # ----------- resample particles
   # only resample if ESS < N*ESS_threshold
   if (particles$ESS < N*ESS_threshold) {
-    particles$resampled <- TRUE
     resampled['Q'] <- TRUE
-    indices <- resample_indices(normalised_weights = particles$normalised_weights,
-                                method = resampling_method,
-                                n = N)
-    particles$y_samples <- particles$y_samples[indices]
-    # reset weights and ESS
-    particles$normalised_weights[] <- 1/N
-    particles$log_weights[] <- log(1/N)
-    particles$ESS <- N
+    particles <- resample_particle_y_samples(N = N,
+                                             particle_set = particles,
+                                             multivariate = FALSE,
+                                             resampling_method = resampling_method,
+                                             seed = seed)
   } else {
-    particles$resampled <- FALSE
     resampled['Q'] <- FALSE
   }
   if (identical(precondition_values, rep(1, m))) {

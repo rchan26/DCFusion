@@ -116,24 +116,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rho_IS_univariate
-Rcpp::List rho_IS_univariate(const Rcpp::List& particles_to_fuse, const int& N, const double& time, const int& m, const Rcpp::NumericVector& precondition_values);
-RcppExport SEXP _hierarchicalFusion_rho_IS_univariate(SEXP particles_to_fuseSEXP, SEXP NSEXP, SEXP timeSEXP, SEXP mSEXP, SEXP precondition_valuesSEXP) {
+// rho_IS_univariate_
+Rcpp::List rho_IS_univariate_(const Rcpp::List& particles_to_fuse, const int& N, const int& m, const double& time, const Rcpp::NumericVector& precondition_values);
+RcppExport SEXP _hierarchicalFusion_rho_IS_univariate_(SEXP particles_to_fuseSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP precondition_valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type particles_to_fuse(particles_to_fuseSEXP);
     Rcpp::traits::input_parameter< const int& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const int& >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type precondition_values(precondition_valuesSEXP);
-    rcpp_result_gen = Rcpp::wrap(rho_IS_univariate(particles_to_fuse, N, time, m, precondition_values));
+    rcpp_result_gen = Rcpp::wrap(rho_IS_univariate_(particles_to_fuse, N, m, time, precondition_values));
     return rcpp_result_gen;
 END_RCPP
 }
-// rho_IS_multivariate
-Rcpp::List rho_IS_multivariate(const Rcpp::List& particles_to_fuse, const int& dim, const int& N, const int& m, const double& time, const Rcpp::List& inv_precondition_matrices, const arma::mat& sum_inv_precondition_matrices);
-RcppExport SEXP _hierarchicalFusion_rho_IS_multivariate(SEXP particles_to_fuseSEXP, SEXP dimSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP sum_inv_precondition_matricesSEXP) {
+// rho_IS_multivariate_
+Rcpp::List rho_IS_multivariate_(const Rcpp::List& particles_to_fuse, const int& dim, const int& N, const int& m, const double& time, const Rcpp::List& inv_precondition_matrices, const arma::mat& sum_inv_precondition_matrices);
+RcppExport SEXP _hierarchicalFusion_rho_IS_multivariate_(SEXP particles_to_fuseSEXP, SEXP dimSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP sum_inv_precondition_matricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -144,7 +144,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type sum_inv_precondition_matrices(sum_inv_precondition_matricesSEXP);
-    rcpp_result_gen = Rcpp::wrap(rho_IS_multivariate(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, sum_inv_precondition_matrices));
+    rcpp_result_gen = Rcpp::wrap(rho_IS_multivariate_(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, sum_inv_precondition_matrices));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -172,6 +172,38 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type Sigma(SigmaSEXP);
     Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
     rcpp_result_gen = Rcpp::wrap(mvrnormArma_tempered(N, mu, Sigma, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ea_phi_BLR_DL
+double ea_phi_BLR_DL(const arma::vec& beta, const arma::vec& y_labels, const arma::mat& X, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat, const arma::mat& transform_mat);
+RcppExport SEXP _hierarchicalFusion_ea_phi_BLR_DL(SEXP betaSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP, SEXP transform_matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y_labels(y_labelsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type prior_means(prior_meansSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
+    Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type transform_mat(transform_matSEXP);
+    rcpp_result_gen = Rcpp::wrap(ea_phi_BLR_DL(beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ea_phi_BLR_DL_LB
+double ea_phi_BLR_DL_LB(const arma::mat& X, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
+RcppExport SEXP _hierarchicalFusion_ea_phi_BLR_DL_LB(SEXP XSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
+    Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
+    rcpp_result_gen = Rcpp::wrap(ea_phi_BLR_DL_LB(X, prior_variances, C, precondition_mat));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -390,10 +422,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_hierarchicalFusion_log_rho_multivariate", (DL_FUNC) &_hierarchicalFusion_log_rho_multivariate, 4},
     {"_hierarchicalFusion_logsumexp", (DL_FUNC) &_hierarchicalFusion_logsumexp, 1},
     {"_hierarchicalFusion_particle_ESS", (DL_FUNC) &_hierarchicalFusion_particle_ESS, 1},
-    {"_hierarchicalFusion_rho_IS_univariate", (DL_FUNC) &_hierarchicalFusion_rho_IS_univariate, 5},
-    {"_hierarchicalFusion_rho_IS_multivariate", (DL_FUNC) &_hierarchicalFusion_rho_IS_multivariate, 7},
+    {"_hierarchicalFusion_rho_IS_univariate_", (DL_FUNC) &_hierarchicalFusion_rho_IS_univariate_, 5},
+    {"_hierarchicalFusion_rho_IS_multivariate_", (DL_FUNC) &_hierarchicalFusion_rho_IS_multivariate_, 7},
     {"_hierarchicalFusion_mvrnormArma", (DL_FUNC) &_hierarchicalFusion_mvrnormArma, 3},
     {"_hierarchicalFusion_mvrnormArma_tempered", (DL_FUNC) &_hierarchicalFusion_mvrnormArma_tempered, 4},
+    {"_hierarchicalFusion_ea_phi_BLR_DL", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL, 8},
+    {"_hierarchicalFusion_ea_phi_BLR_DL_LB", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_LB, 4},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_vec", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_vec, 7},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_matrix", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_matrix, 7},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_bounds, 9},
