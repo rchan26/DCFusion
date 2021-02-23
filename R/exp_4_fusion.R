@@ -826,6 +826,7 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
   CESS['Q'] <- particles$CESS['Q']
+  names(CESS) <- c('rho', 'Q')
   # record proposed samples
   proposed_samples <- particles$y_samples
   # ----------- resample particles

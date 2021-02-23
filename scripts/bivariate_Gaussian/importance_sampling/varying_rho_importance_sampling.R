@@ -8,14 +8,10 @@ mean <- rep(0, 2)
 sd <- rep(1, 2)
 correlations <- c(seq(0, 0.9, 0.1), 0.95)
 fusion_time <- 1
-
 true_samples <- list()
-true_kde <- list()
 input_samples <- list()
 smc_fusion_standard <- list()
 smc_fusion_precondition <- list()
-kde_standard <- list()
-kde_precondition <- list()
 
 for (i in 1:length(correlations)) {
   print(paste('i:', i))
@@ -41,10 +37,6 @@ for (i in 1:length(correlations)) {
                                                              precondition_matrices = rep(list(diag(1,2)), 2),
                                                              ESS_threshold = 0,
                                                              seed = seed)
-  standard_samples <- resample_particle_y_samples(particle_set = smc_fusion_standard[[i]]$particles,
-                                                  multivariate = TRUE,
-                                                  resampling_method = 'resid',
-                                                  seed = seed)$y_samples
   print('ESS:'); print(smc_fusion_standard[[i]]$ESS)
   print('CESS:'); print(smc_fusion_standard[[i]]$CESS)
   
@@ -61,10 +53,6 @@ for (i in 1:length(correlations)) {
                                                                  precondition_matrices = lapply(input_samples[[i]], cov),
                                                                  ESS_threshold = 0,
                                                                  seed = seed)
-  precond_samples <- resample_particle_y_samples(particle_set = smc_fusion_precondition[[i]]$particles,
-                                                 multivariate = TRUE,
-                                                 resampling_method = 'resid',
-                                                 seed = seed)$y_samples
   print('ESS:'); print(smc_fusion_precondition[[i]]$ESS)
   print('CESS:'); print(smc_fusion_precondition[[i]]$CESS)
 }
@@ -115,3 +103,4 @@ points(correlations, ESS_per_sec_precondition, col = 'black', lwd = 3)
 lines(correlations, ESS_per_sec_precondition, col = 'black', lty = 3, lwd = 3)
 legend(x = 0, y = 1000, legend = c('standard', 'preconditioned'), col = c('black', 'black'),
        lty = c(1,3), lwd = c(3,3), bty = 'n')
+
