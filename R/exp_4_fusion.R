@@ -945,8 +945,7 @@ hierarchical_fusion_SMC_exp_4 <- function(N_schedule,
   } else {
     stop("hierarchical_fusion_SMC_exp_4: m_schedule must be a vector of length (L-1)")
   }
-  # we append 1 to the vector m_schedule to make the indices work later on when 
-  # we call fusion
+  # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   m_schedule <- c(m_schedule, 1)
   # initialising results
   particles <- list()

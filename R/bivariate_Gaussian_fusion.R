@@ -864,6 +864,10 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_biGaussian: particles_to_fuse must be a list of length m")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
     stop("parallel_fusion_SMC_biGaussian: particles in particles_to_fuse must be \"particle\" objects")
+  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) is.matrix(sub_posterior$y_samples)))) {
+    stop("parallel_fusion_SMC_biGaussian: the particles' samples for y should all be matrices")
+  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ncol(sub_posterior$y_samples)!=2))) {
+    stop("parallel_fusion_SMC_biGaussian: the particles' samples for y should all be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("parallel_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
@@ -1066,8 +1070,7 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
   } else {
     stop("hierarchical_fusion_SMC_biGaussian: m_schedule must be a vector of length (L-1)")
   }
-  # we append 1 to the vector m_schedule to make the indices work later on when
-  # we call fusion
+  # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   m_schedule <- c(m_schedule, 1)
   # initialising results 
   particles <- list()
