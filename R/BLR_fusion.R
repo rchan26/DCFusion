@@ -83,7 +83,7 @@ ea_phi_BLR_DL_bounds <- function(initial_parameters,
               lower = lower,
               upper = upper,
               control = list('fnscale' = -1, 'maxit' = 250))$value
-  # multiply the bounds by bounds_multiplier to compensate the case 
+  # multiply the bounds by bounds_multiplier to compensate the case
   # that the opitimser did not get the bounds exactly correct
   # calculate the Bounds Difference
   BD <- UB-LB
@@ -108,7 +108,7 @@ ea_BLR_DL_PT <- function(dim,
                          transform_mats,
                          diffusion_estimator,
                          beta_NB = 10,
-                         bounds_multiplier = 1.1, 
+                         bounds_multiplier = 1.1,
                          logarithm) {
   # transform to preconditoned space
   z0 <- transform_mats$to_Z %*% x0
@@ -174,7 +174,7 @@ ea_BLR_DL_PT <- function(dim,
         cat('(phi-LZ):', phi-LZ, '\n', file = 'bounds.txt', append = T)
         stop('Some of (phi-LZ) are < 0. Try increase bounds_multiplier')
       }
-    } 
+    }
     if (logarithm) {
       return(-LZ*(t-s) - kap*log(UZ-LZ) + log_acc_prob)
     } else {
@@ -231,7 +231,7 @@ ea_BLR_DL_PT <- function(dim,
         stop('Some of (phi-LZ) are < 0. Try increase bounds_multiplier')
       }
     }
-    log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) - 
+    log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) -
       lgamma(beta_NB+kap) - beta_NB*log(beta_NB) - kap*log(gamma_NB)
     if (logarithm) {
       return(-UZ*(t-s) + log_middle_term + log_acc_prob)
@@ -247,7 +247,7 @@ ea_BLR_DL_PT <- function(dim,
 combine_data <- function(list_of_data, dim) {
   if (!is.list(list_of_data)) {
     stop("combine_data: list_of_data must be a list")
-  } else if (!all(sapply(list_of_data, function(sub_posterior) (is.list(sub_posterior) & names(sub_posterior)==c('y', 'X'))))) {
+  } else if (!all(sapply(list_of_data, function(sub_posterior) (is.list(sub_posterior) & identical(names(data), c("y", "X")))))) {
     stop("combine_data: each item in list_of_data must be a list of length 2 with names y and X")
   } else if (!all(sapply(1:m, function(i) is.vector(list_of_data[[i]]$y)))) {
     stop("combine_data: for each i in 1:length(list_of_data), list_of_data[[i]]$y must be a vector")
@@ -281,6 +281,16 @@ Q_IS_BLR <- function(particle_set,
                      node = 1) {
   if (!("particle" %in% class(particle_set))) {
     stop("Q_IS_BLR: particle_set must be a \"particle\" object")
+  } else if (!is.list(data_split) | length(data_split)!=m) {
+    stop("Q_IS_BLR: data_split must be a list of length m")
+  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(data), c("y", "X")))))) {
+    stop("Q_IS_BLR: each item in data_split must be a list of length 2 with names y and X")
+  } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
+    stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
+  } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
+    stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
+  } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)!=dim))) {
+    stop("Q_IS_BLR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("Q_IS_BLR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -374,15 +384,14 @@ Q_IS_BLR <- function(particle_set,
 #'                          initialise a this from list of sub-posterior samples
 #'                          by using the intialise_particle_sets function
 #' @param N number of samples
+#' @param m number of sub-posteriors to combine
+#' @param time time T for fusion algorithm
 #' @param dim dimension of the predictors (= p+1)
-#' @param y_split list of length m, where y_split[[c]] is the y responses for
-#'                sub-posterior c
-#' @param X_split list of length m, where X_split[[c]] is the design matrix for
-#'                sub-posterior c
+#' @param data_split list of length m where each item is a list of length 2 where
+#'                   for c=1,...,m, data[[c]]$y is the vector for y responses and
+#'                   data[[c]]$x is the design matrix for the covariates for sub-posterior c
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
-#' @param time time T for fusion algorithm
-#' @param m number of sub-posteriors to combine
 #' @param C overall number of sub-posteriors
 #' @param precondition_matricies list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
@@ -394,25 +403,36 @@ Q_IS_BLR <- function(particle_set,
 #'                      number of samples that ESS needs to be lower than for
 #'                      resampling (i.e. resampling is carried out only when
 #'                      ESS < N*ESS_threshold)
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10). If Poisson
+#'                estimator used, then this can be ignored
+#' @param bounds_multiplier scalar value to mulitply bounds by
+#'                          (should greater than or equal to 1)
 #' @param seed seed number - default is NULL, meaning there is no seed
+#' @param n_cores number of cores to use
 #' @param level indicates which level this is for the hierarchy (default 1)
 #' @param node indicates which node this is for the hierarchy (default 1)
-#' @param n_cores number of cores to use
 #'
 #' @return A list with components:
 #' \describe{
-#'   \item{particles}{weighted particle set from fusion}
-#'   \item{proposed_samples}{proposal samples for y}
-#'   \item{ESS}{effective sample size after rho and Q step}
-#'   \item{resampled}{boolean value to record if the particles were resampled
-#'                    after each step; rho and Q}
-#'   \item{time}{user time elapsed for algorithm to run}
+#'   \item{particles}{particles returned from fusion sampler}
+#'   \item{proposed_samples}{proposal samples from fusion sampler}
+#'   \item{time}{run-time of fusion sampler}
+#'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
+#'              sample size of the particles after each step BEFORE deciding
+#'              whether or not to resample for level l, node i}
+#'   \item{CESS}{list of length (L-1), where CESS[[l]][[i]] is the conditional
+#'               effective sample size of the particles after each step}
+#'   \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a
+#'                    boolean value to record if the particles were resampled
+#'                    after each step; rho and Q for level l, node i}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
 #'                                are the pre-conditioning matrices that were used
 #'                                and precondition_matrices[[1]] are the combined
 #'                                precondition matrices}
-#'   \item{combined_y}{combined y responses after fusion}
-#'   \item{combined_X}{combined design matrix after fusion}
+#'   \item{combined_data}{combined data for the fusion density}
 #' }
 #'
 #' @export
@@ -441,11 +461,11 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_BLR: particles in particles_to_fuse must be \"particle\" objects")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) is.matrix(sub_posterior$y_samples)))) {
     stop("parallel_fusion_SMC_BLR: the particles' samples for y should all be matrices")
-  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ncol(sub_posterior$y_samples)!=dim))) {
+  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ncol(sub_posterior$y_samples)==dim))) {
     stop("parallel_fusion_SMC_BLR: the particles' samples for y should all be matrices with dim columns")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("parallel_fusion_SMC_BLR: data_split must be a list of length m")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & names(sub_posterior)==c('y', 'X'))))) {
+  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(data), c("y", "X")))))) {
     stop("parallel_fusion_SMC_BLR: each item in data_split must be a list of length 2 with names y and X")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
     stop("parallel_fusion_SMC_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
@@ -485,7 +505,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
   }
   # start time recording
   pcm <- proc.time()
-  # ---------- first importance sampling step 
+  # ---------- first importance sampling step
   # pre-calculating the inverse precondition matrices
   inv_precondition_matrices <- lapply(precondition_matrices, solve)
   # importance sampling for rho step
@@ -496,7 +516,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
                                    sum_inv_precondition_matrices = inv_sum_matrices(inv_precondition_matrices))
-  # record ESS and CESS after rho step 
+  # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)
   CESS <- c('rho' = particles$CESS['rho'])
   # ----------- resample particles
@@ -572,23 +592,22 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the
 #'                   number of samples per node at level l
-#' @param dim dimension of the predictors (= p+1)
-#' @param y_split list of length C, where y_split[[c]] is the y responses
-#'                for sub-posterior c
-#' @param X_split list of length C, where X_split[[c]] is the design matrix
-#'                for sub-posterior c
-#' @param prior_means prior for means of predictors
-#' @param prior_variances prior for variances of predictors
-#' @param time_schedule vector of length (L-1), where time_schedule[k] is time
-#'                      T for algorithm for level k
 #' @param m_schedule vector of length (L-1), where m_schedule[k] is the number
 #'                   of samples to fuse for level k
+#' @param time_schedule vector of length (L-1), where time_schedule[k] is time
+#'                      T for algorithm for level k
+#' @param base_samples list of length C, where base_samples[[c]] contains
+#'                     the samples for the c-th node in the level
+#' @param L total number of levels in the hierarchy
+#' @param dim dimension of the predictors (= p+1)
+#' @param data_split list of length C where each item is a list of length 2 where
+#'                   for c=1,...,C, data[[c]]$y is the vector for y responses and
+#'                   data[[c]]$x is the design matrix for the covariates for sub-posterior c
+#' @param prior_means prior for means of predictors
+#' @param prior_variances prior for variances of predictors
 #' @param C number of sub-posteriors at the base level
 #' @param precondition logical value determining whether or not a
 #'                     preconditioning matrix is to be used
-#' @param L total number of levels in the hierarchy
-#' @param base_samples list of length C, where base_samples[[c]] contains
-#'                     the samples for the c-th node in the level
 #' @param resampling_method method to be used in resampling, default is
 #'                          multinomial resampling ('multi'). Other choices are
 #'                          stratified ('strat'), systematic ('system'),
@@ -597,6 +616,13 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'                      of the number of samples that ESS needs to be
 #'                      lower than for resampling (i.e. resampling is carried
 #'                      out only when ESS < N*ESS_threshold)
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10). If Poisson
+#'                estimator used, then this can be ignored
+#' @param bounds_multiplier scalar value to mulitply bounds by
+#'                          (should greater than or equal to 1)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -653,14 +679,14 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     stop("hierarchical_fusion_SMC_BLR: base_samples must be a list of length C")
   } else if (!is.list(data_split) | length(data_split)!=C) {
     stop("hierarchical_fusion_SMC_BLR: data_split must be a list of length C")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & names(sub_posterior)==c('y', 'X'))))) {
+  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(data), c("y", "X")))))) {
     stop("hierarchical_fusion_SMC_BLR: each item in data_split must be a list of length 2 with names y and X")
-  } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
-    stop("hierarchical_fusion_SMC_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
-  } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
-    stop("hierarchical_fusion_SMC_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
-  } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)!=dim))) {
-    stop("hierarchical_fusion_SMC_BLR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
+  } else if (!all(sapply(1:C, function(i) is.vector(data_split[[i]]$y)))) {
+    stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$y must be a vector")
+  } else if (!all(sapply(1:C, function(i) is.matrix(data_split[[i]]$X)))) {
+    stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$X must be a matrix")
+  } else if (!all(sapply(1:C, function(i) ncol(data_split[[i]]$X)!=dim))) {
+    stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, ncol(data_split[[i]]$X) must be equal to dim")
   } else if (!all(sapply(base_samples, is.matrix)) | !all(sapply(base_samples, function(core) ncol(core)==dim))) {
     stop("hierarchical_fusion_SMC_BLR: the sub-posteriors in base_samples must be matrices with dim columns")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {

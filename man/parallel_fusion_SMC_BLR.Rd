@@ -40,6 +40,10 @@ by using the intialise_particle_sets function}
 
 \item{dim}{dimension of the predictors (= p+1)}
 
+\item{data_split}{list of length m where each item is a list of length 2 where
+for c=1,...,m, data[[c]]$y is the vector for y responses and
+data[[c]]$x is the design matrix for the covariates for sub-posterior c}
+
 \item{prior_means}{prior for means of predictors}
 
 \item{prior_variances}{prior for variances of predictors}
@@ -56,6 +60,16 @@ number of samples that ESS needs to be lower than for
 resampling (i.e. resampling is carried out only when
 ESS < N*ESS_threshold)}
 
+\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
+between "Poisson" (default) for Poission estimator
+and "NB" for Negative Binomial estimator}
+
+\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10). If Poisson
+estimator used, then this can be ignored}
+
+\item{bounds_multiplier}{scalar value to mulitply bounds by
+(should greater than or equal to 1)}
+
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
@@ -64,30 +78,28 @@ ESS < N*ESS_threshold)}
 
 \item{node}{indicates which node this is for the hierarchy (default 1)}
 
-\item{y_split}{list of length m, where y_split[[c]] is the y responses for
-sub-posterior c}
-
-\item{X_split}{list of length m, where X_split[[c]] is the design matrix for
-sub-posterior c}
-
 \item{precondition_matricies}{list of length m, where precondition_matrices[[c]]
 is the precondition matrix for sub-posterior c}
 }
 \value{
 A list with components:
 \describe{
-  \item{particles}{weighted particle set from fusion}
-  \item{proposed_samples}{proposal samples for y}
-  \item{ESS}{effective sample size after rho and Q step}
-  \item{resampled}{boolean value to record if the particles were resampled
-                   after each step; rho and Q}
-  \item{time}{user time elapsed for algorithm to run}
+  \item{particles}{particles returned from fusion sampler}
+  \item{proposed_samples}{proposal samples from fusion sampler}
+  \item{time}{run-time of fusion sampler}
+  \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
+             sample size of the particles after each step BEFORE deciding
+             whether or not to resample for level l, node i}
+  \item{CESS}{list of length (L-1), where CESS[[l]][[i]] is the conditional
+              effective sample size of the particles after each step}
+  \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a
+                   boolean value to record if the particles were resampled
+                   after each step; rho and Q for level l, node i}
   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
                                are the pre-conditioning matrices that were used
                                and precondition_matrices[[1]] are the combined
                                precondition matrices}
-  \item{combined_y}{combined y responses after fusion}
-  \item{combined_X}{combined design matrix after fusion}
+  \item{combined_data}{combined data for the fusion density}
 }
 }
 \description{

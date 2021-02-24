@@ -42,6 +42,10 @@ the samples for the c-th node in the level}
 
 \item{dim}{dimension of the predictors (= p+1)}
 
+\item{data_split}{list of length C where each item is a list of length 2 where
+for c=1,...,C, data[[c]]$y is the vector for y responses and
+data[[c]]$x is the design matrix for the covariates for sub-posterior c}
+
 \item{prior_means}{prior for means of predictors}
 
 \item{prior_variances}{prior for variances of predictors}
@@ -61,15 +65,19 @@ of the number of samples that ESS needs to be
 lower than for resampling (i.e. resampling is carried
 out only when ESS < N*ESS_threshold)}
 
+\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
+between "Poisson" (default) for Poission estimator
+and "NB" for Negative Binomial estimator}
+
+\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10). If Poisson
+estimator used, then this can be ignored}
+
+\item{bounds_multiplier}{scalar value to mulitply bounds by
+(should greater than or equal to 1)}
+
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
-
-\item{y_split}{list of length C, where y_split[[c]] is the y responses
-for sub-posterior c}
-
-\item{X_split}{list of length C, where X_split[[c]] is the design matrix
-for sub-posterior c}
 }
 \value{
 A list with components:
