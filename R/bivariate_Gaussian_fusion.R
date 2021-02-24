@@ -21,7 +21,7 @@ ea_phi_biGaussian_DL <- function(x,
                                  precondition_mat,
                                  transform_mat) {
   if (is.vector(x)) {
-    if (length(x) == 2) {
+    if (length(x)==2) {
       return(hierarchicalFusion:::ea_phi_biGaussian_DL_vec(x = x,
                                                            mean_vec = mean_vec,
                                                            sd_vec = sd_vec,
@@ -306,7 +306,7 @@ parallel_fusion_biGaussian <- function(N,
     samples_per_core <- rep(1, N)
   } else {
     samples_per_core <- rep(floor(N/n_cores), n_cores)
-    if (sum(samples_per_core) != N) {
+    if (sum(samples_per_core)!=N) {
       remainder <- N %% n_cores
       samples_per_core[1:remainder] <- samples_per_core[1:remainder] + 1
     }
@@ -416,13 +416,13 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
                                            precondition = TRUE,
                                            seed = NULL,
                                            n_cores = parallel::detectCores()) {
-  if (!is.vector(N_schedule) | (length(N_schedule) != (L-1))) {
+  if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
     stop("hierarchical_fusion_biGaussian: N_schedule must be a vector of length (L-1)")
-  } else if (!is.vector(m_schedule) | (length(m_schedule) != (L-1))) {
+  } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
     stop("hierarchical_fusion_biGaussian: m_schedule must be a vector of length (L-1)")
-  } else if (!is.vector(time_schedule) | (length(time_schedule) != (L-1))) {
+  } else if (!is.vector(time_schedule) | (length(time_schedule)!=(L-1))) {
     stop("hierarchical_fusion_biGaussian: time_schedule must be a vector of length (L-1)")
-  } else if (!is.list(base_samples) | (length(base_samples) != (1/start_beta))) {
+  } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("hierarchical_fusion_biGaussian: base_samples must be a list of length (1/start_beta)")
   } else if (!all(sapply(base_samples, is.matrix)) | !all(sapply(base_samples, function(core) ncol(core)==2))) {
     stop("hierarchical_fusion_biGaussian: the sub-posteriors in base_samples must be matrices with two columns")
@@ -431,9 +431,9 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
     stop("hierarchical_fusion_biGaussian: sd_vec must be a vector of length 2")
   }
-  if (is.vector(m_schedule) & (length(m_schedule) == (L-1))) {
+  if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
     for (l in (L-1):1) {
-      if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1 != 0) {
+      if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1!=0) {
         stop("hierarchical_fusion_biGaussian: check that (1/start_beta)/prod(m_schedule[(L-1):l])
               is an integer for l=L-1,...,1")
       }
@@ -612,7 +612,7 @@ progressive_fusion_biGaussian <- function(N_schedule,
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_biGaussian.txt')
   for (k in ((1/start_beta)-1):1) {
-    if (k == (1/start_beta)-1) {
+    if (k==(1/start_beta)-1) {
       cat('########################\n', file = 'progressive_fusion_biGaussian.txt', 
           append = T)
       cat('Starting to fuse', 2, 'densities for level', k, 'which is using', 
@@ -884,7 +884,7 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
   # check if the resampled indicator if FALSE
   # also check if there are enough samples
   for (c in 1:length(particles_to_fuse)) {
-    if ((!particles_to_fuse[[c]]$resampled['Q']) | (particles_to_fuse[[c]]$N != N)) {
+    if ((!particles_to_fuse[[c]]$resampled['Q']) | (particles_to_fuse[[c]]$N!=N)) {
       particles_to_fuse[[c]] <- resample_particle_y_samples(N = N,
                                                             particle_set = particles_to_fuse[[c]],
                                                             multivariate = TRUE,
@@ -1039,13 +1039,13 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
                                                ESS_threshold = 0.5,
                                                seed = NULL,
                                                n_cores = parallel::detectCores()) {
-  if (!is.vector(N_schedule) | (length(N_schedule) != (L-1))) {
+  if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
     stop("hierarchical_fusion_SMC_biGaussian: N_schedule must be a vector of length (L-1)")
-  } else if (!is.vector(m_schedule) | (length(m_schedule) != (L-1))) {
+  } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
     stop("hierarchical_fusion_SMC_biGaussian: m_schedule must be a vector of length (L-1)")
-  } else if (!is.vector(time_schedule) | (length(time_schedule) != (L-1))) {
+  } else if (!is.vector(time_schedule) | (length(time_schedule)!=(L-1))) {
     stop("hierarchical_fusion_SMC_biGaussian: time_schedule must be a vector of length (L-1)")
-  } else if (!is.list(base_samples) | (length(base_samples) != (1/start_beta))) {
+  } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("hierarchical_fusion_SMC_biGaussian: base_samples must be a list of length (1/start_beta)")
   } else if (!all(sapply(base_samples, is.matrix)) | !all(sapply(base_samples, function(core) ncol(core)==2))) {
     stop("hierarchical_fusion_SMC_biGaussian: the sub-posteriors in base_samples must be matrices with two columns")
@@ -1053,12 +1053,12 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
     stop("hierarchical_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
     stop("hierarchical_fusion_SMC_biGaussian: sd_vec must be a vector of length 2")
-  } else if (ESS_threshold < 0 || ESS_threshold > 1) {
+  } else if (ESS_threshold < 0 | ESS_threshold > 1) {
     stop("hierarchical_fusion_SMC_biGaussian: ESS_threshold must be between 0 and 1")
   }
-  if (is.vector(m_schedule) & (length(m_schedule) == (L-1))) {
+  if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
     for (l in (L-1):1) {
-      if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1 != 0) {
+      if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1!=0) {
         stop("hierarchical_fusion_SMC_biGaussian: check that (1/start_beta)/prod(m_schedule[(L-1):l])
               is an integer for l=L-1,...,1")
       }
@@ -1124,7 +1124,7 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
     ESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$ESS)
     CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$CESS)
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$resampled)
-    precondition_values[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_values[[1]])
+    precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_matrices[[1]])
   }
   cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_SMC_biGaussian.txt', append = T)
   if (length(particles[[1]])==1) {
@@ -1134,7 +1134,7 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
     ESS[[1]] <- ESS[[1]][[1]]
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
-    precondition_values[[1]] <- precondition_values[[1]][[1]]
+    precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
   }
   return(list('particles' = particles,
               'proposed_samples' = proposed_samples,
@@ -1243,7 +1243,7 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_SMC_biGaussian.txt')
   for (k in ((1/start_beta)-1):1) {
-    if (k == (1/start_beta)-1) {
+    if (k==(1/start_beta)-1) {
       cat('########################\n', file = 'progressive_fusion_SMC_biGaussian.txt', 
           append = T)
       cat('Starting to fuse', 2, 'densities for level', k, 'which is using', 
@@ -1312,7 +1312,7 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
     ESS[[k]] <- fused$ESS
     CESS[[k]] <- fused$CESS
     resampled[[k]] <- fused$resampled
-    precondition_values[[k]] <- fused$precondition_values[[1]]
+    precondition_matrices[[k]] <- fused$precondition_matrices[[1]]
   }
   cat('Completed progressive fusion\n', file = 'progressive_fusion_SMC_biGaussian.txt', append = T)
   return(list('particles' = particles,
@@ -1321,6 +1321,6 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,
-              'precondition_values' = precondition_values,
+              'precondition_matrices' = precondition_matrices,
               'diffusion_times' = time_schedule))
 }

@@ -289,7 +289,7 @@ parallel_fusion_uniGaussian <- function(N,
     samples_per_core <- rep(1, N)
   } else {
     samples_per_core <- rep(floor(N/n_cores), n_cores)
-    if (sum(samples_per_core) != N) {
+    if (sum(samples_per_core)!=N) {
       remainder <- N %% n_cores
       samples_per_core[1:remainder] <- samples_per_core[1:remainder] + 1
     }
@@ -396,18 +396,18 @@ hierarchical_fusion_uniGaussian <- function(N_schedule,
                                             precondition = TRUE,
                                             seed = NULL,
                                             n_cores = parallel::detectCores()) {
-  if (!is.vector(N_schedule) | (length(N_schedule) != (L-1))) {
+  if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
     stop("hierarchical_fusion_uniGaussian: N_schedule must be a vector of length (L-1)")
-  } else if (!is.vector(m_schedule) | (length(m_schedule) != (L-1))) {
+  } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
     stop("hierarchical_fusion_uniGaussian: m_schedule must be a vector of length (L-1)")
-  } else if (!is.vector(time_schedule) | (length(time_schedule) != (L-1))) {
+  } else if (!is.vector(time_schedule) | (length(time_schedule)!=(L-1))) {
     stop("hierarchical_fusion_uniGaussian: time_schedule must be a vector of length (L-1)")
-  } else if (!is.list(base_samples) | (length(base_samples) != (1/start_beta))) {
+  } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("hierarchical_fusion_uniGaussian: base_samples must be a list of length (1/start_beta)")
   }
-  if (is.vector(m_schedule) & (length(m_schedule) == (L-1))) {
+  if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
     for (l in (L-1):1) {
-      if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1 != 0) {
+      if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1!=0) {
         stop("hierarchical_fusion_uniGaussian: check that (1/start_beta)/prod(m_schedule[(L-1):l])
               is an integer for l=L-1,...,1")
       }
@@ -573,7 +573,7 @@ progressive_fusion_uniGaussian <- function(N_schedule,
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_uniGaussian.txt')
   for (k in ((1/start_beta)-1):1) {
-    if (k == (1/start_beta)-1) {
+    if (k==(1/start_beta)-1) {
       cat('########################\n', file = 'progressive_fusion_uniGaussian.txt', 
           append = T)
       cat('Starting to fuse', 2, 'densities for level', k, 'which is using', 
@@ -834,7 +834,7 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
   # check if the resampled indicator if FALSE
   # also check if there are enough samples
   for (c in 1:length(particles_to_fuse)) {
-    if ((!particles_to_fuse[[c]]$resampled['Q']) | (particles_to_fuse[[c]]$N != N)) {
+    if ((!particles_to_fuse[[c]]$resampled['Q']) | (particles_to_fuse[[c]]$N!=N)) {
       particles_to_fuse[[c]] <- resample_particle_y_samples(N = N,
                                                             particle_set = particles_to_fuse[[c]],
                                                             multivariate = FALSE,
@@ -979,20 +979,20 @@ hierarchical_fusion_SMC_uniGaussian <- function(N_schedule,
                                                 ESS_threshold = 0.5,
                                                 seed = NULL,
                                                 n_cores = parallel::detectCores()) {
-  if (!is.vector(N_schedule) | (length(N_schedule) != (L-1))) {
+  if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
     stop("hierarchical_fusion_SMC_uniGaussian: N_schedule must be a vector of length (L-1)")
-  } else if (!is.vector(m_schedule) | (length(m_schedule) != (L-1))) {
+  } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
     stop("hierarchical_fusion_SMC_uniGaussian: m_schedule must be a vector of length (L-1)")
-  } else if (!is.vector(time_schedule) | (length(time_schedule) != (L-1))) {
+  } else if (!is.vector(time_schedule) | (length(time_schedule)!=(L-1))) {
     stop("hierarchical_fusion_SMC_uniGaussian: time_schedule must be a vector of length (L-1)")
-  } else if (!is.list(base_samples) | (length(base_samples) != (1/start_beta))) {
+  } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("hierarchical_fusion_SMC_uniGaussian: base_samples must be a list of length (1/start_beta)")
   } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
     stop("hierarchical_fusion_SMC_uniGaussian: ESS_threshold must be between 0 and 1")
   }
-  if (is.vector(m_schedule) & (length(m_schedule) == (L-1))) {
+  if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
     for (l in (L-1):1) {
-      if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1 != 0) {
+      if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1!=0) {
         stop("hierarchical_fusion_SMC_uniGaussian: check that (1/start_beta)/prod(m_schedule[(L-1):l])
               is an integer for l=L-1,...,1")
       }
@@ -1166,7 +1166,7 @@ progressive_fusion_SMC_uniGaussian <- function(N_schedule,
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_SMC_uniGaussian.txt')
   for (k in ((1/start_beta)-1):1) {
-    if (k == (1/start_beta)-1) {
+    if (k==(1/start_beta)-1) {
       cat('########################\n', file = 'progressive_fusion_SMC_uniGaussian.txt', 
           append = T)
       cat('Starting to fuse', 2, 'densities for level', k, 'which is using', 
