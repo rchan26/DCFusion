@@ -7,69 +7,68 @@
 parallel_fusion_SMC_BLR(
   particles_to_fuse,
   N,
+  m,
+  time,
   dim,
-  y_split,
-  X_split,
+  data_split,
   prior_means,
   prior_variances,
-  time,
-  m,
   C,
   precondition_matrices,
   resampling_method = "multi",
   ESS_threshold = 0.5,
   diffusion_estimator = "Poisson",
   beta_NB = 10,
-  bounds_multiplier = 1.2,
+  bounds_multiplier = 1.1,
   seed = NULL,
+  n_cores = parallel::detectCores(),
   level = 1,
-  node = 1,
-  n_cores = parallel::detectCores()
+  node = 1
 )
 }
 \arguments{
-\item{particles_to_fuse}{list of length m, where particles_to_fuse[c] contains 
-the particles for the c-th sub-posterior. Can 
-initialise a this from list of sub-posterior samples 
+\item{particles_to_fuse}{list of length m, where particles_to_fuse[c] contains
+the particles for the c-th sub-posterior. Can
+initialise a this from list of sub-posterior samples
 by using the intialise_particle_sets function}
 
 \item{N}{number of samples}
 
+\item{m}{number of sub-posteriors to combine}
+
+\item{time}{time T for fusion algorithm}
+
 \item{dim}{dimension of the predictors (= p+1)}
+
+\item{prior_means}{prior for means of predictors}
+
+\item{prior_variances}{prior for variances of predictors}
+
+\item{C}{overall number of sub-posteriors}
+
+\item{resampling_method}{method to be used in resampling, default is multinomial
+resampling ('multi'). Other choices are stratified
+resampling ('strat'), systematic resampling ('system'),
+residual resampling ('resid')}
+
+\item{ESS_threshold}{number between 0 and 1 defining the proportion of the
+number of samples that ESS needs to be lower than for
+resampling (i.e. resampling is carried out only when
+ESS < N*ESS_threshold)}
+
+\item{seed}{seed number - default is NULL, meaning there is no seed}
+
+\item{n_cores}{number of cores to use}
+
+\item{level}{indicates which level this is for the hierarchy (default 1)}
+
+\item{node}{indicates which node this is for the hierarchy (default 1)}
 
 \item{y_split}{list of length m, where y_split[[c]] is the y responses for
 sub-posterior c}
 
 \item{X_split}{list of length m, where X_split[[c]] is the design matrix for
 sub-posterior c}
-
-\item{prior_means}{prior for means of predictors}
-
-\item{prior_variances}{prior for variances of predictors}
-
-\item{time}{time T for fusion algorithm}
-
-\item{m}{number of sub-posteriors to combine}
-
-\item{C}{overall number of sub-posteriors}
-
-\item{resampling_method}{method to be used in resampling, default is multinomial 
-resampling ('multi'). Other choices are stratified 
-resampling ('strat'), systematic resampling ('system'),
-residual resampling ('resid')}
-
-\item{ESS_threshold}{number between 0 and 1 defining the proportion of the 
-number of samples that ESS needs to be lower than for 
-resampling (i.e. resampling is carried out only when 
-ESS < N*ESS_threshold)}
-
-\item{seed}{seed number - default is NULL, meaning there is no seed}
-
-\item{level}{indicates which level this is for the hierarchy (default 1)}
-
-\item{node}{indicates which node this is for the hierarchy (default 1)}
-
-\item{n_cores}{number of cores to use}
 
 \item{precondition_matricies}{list of length m, where precondition_matrices[[c]]
 is the precondition matrix for sub-posterior c}
@@ -83,9 +82,9 @@ A list with components:
   \item{resampled}{boolean value to record if the particles were resampled
                    after each step; rho and Q}
   \item{time}{user time elapsed for algorithm to run}
-  \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]] 
-                               are the pre-conditioning matrices that were used 
-                               and precondition_matrices[[1]] are the combined 
+  \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
+                               are the pre-conditioning matrices that were used
+                               and precondition_matrices[[1]] are the combined
                                precondition matrices}
   \item{combined_y}{combined y responses after fusion}
   \item{combined_X}{combined design matrix after fusion}

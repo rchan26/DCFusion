@@ -6,71 +6,70 @@
 \usage{
 hierarchical_fusion_SMC_BLR(
   N_schedule,
+  m_schedule,
+  time_schedule,
+  base_samples,
+  L,
   dim,
-  y_split,
-  X_split,
+  data_split,
   prior_means,
   prior_variances,
-  time_schedule,
-  m_schedule,
   C,
-  precondition = FALSE,
-  L,
-  base_samples,
+  precondition = TRUE,
   resampling_method = "multi",
   ESS_threshold = 0.5,
   diffusion_estimator = "Poisson",
   beta_NB = 10,
-  bounds_multiplier = 1.2,
+  bounds_multiplier = 1.1,
   seed = NULL,
   n_cores = parallel::detectCores()
 )
 }
 \arguments{
-\item{N_schedule}{vector of length (L-1), where N_schedule[l] is the 
+\item{N_schedule}{vector of length (L-1), where N_schedule[l] is the
 number of samples per node at level l}
 
+\item{m_schedule}{vector of length (L-1), where m_schedule[k] is the number
+of samples to fuse for level k}
+
+\item{time_schedule}{vector of length (L-1), where time_schedule[k] is time
+T for algorithm for level k}
+
+\item{base_samples}{list of length C, where base_samples[[c]] contains
+the samples for the c-th node in the level}
+
+\item{L}{total number of levels in the hierarchy}
+
 \item{dim}{dimension of the predictors (= p+1)}
-
-\item{y_split}{list of length C, where y_split[[c]] is the y responses 
-for sub-posterior c}
-
-\item{X_split}{list of length C, where X_split[[c]] is the design matrix 
-for sub-posterior c}
 
 \item{prior_means}{prior for means of predictors}
 
 \item{prior_variances}{prior for variances of predictors}
 
-\item{time_schedule}{vector of length (L-1), where time_schedule[k] is time 
-T for algorithm for level k}
-
-\item{m_schedule}{vector of length (L-1), where m_schedule[k] is the number 
-of samples to fuse for level k}
-
 \item{C}{number of sub-posteriors at the base level}
 
-\item{precondition}{logical value determining whether or not a 
+\item{precondition}{logical value determining whether or not a
 preconditioning matrix is to be used}
 
-\item{L}{total number of levels in the hierarchy}
-
-\item{base_samples}{list of length C, where base_samples[[c]] contains
-the samples for the c-th node in the level}
-
-\item{resampling_method}{method to be used in resampling, default is 
-multinomial resampling ('multi'). Other choices are 
-stratified ('strat'), systematic ('system'), 
+\item{resampling_method}{method to be used in resampling, default is
+multinomial resampling ('multi'). Other choices are
+stratified ('strat'), systematic ('system'),
 residual ('resid')}
 
-\item{ESS_threshold}{number between 0 and 1 defining the proportion 
+\item{ESS_threshold}{number between 0 and 1 defining the proportion
 of the number of samples that ESS needs to be
-lower than for resampling (i.e. resampling is carried 
+lower than for resampling (i.e. resampling is carried
 out only when ESS < N*ESS_threshold)}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
+
+\item{y_split}{list of length C, where y_split[[c]] is the y responses
+for sub-posterior c}
+
+\item{X_split}{list of length C, where X_split[[c]] is the design matrix
+for sub-posterior c}
 }
 \value{
 A list with components:
@@ -79,14 +78,14 @@ A list with components:
                    particles for level l, node i}
   \item{proposed_samples}{list of length (L-1), where proposed_samples[[l]][[i]]
                           are the proposed samples for level l, node i}
-  \item{time}{list of length (L-1), where time[[l]] is the run time 
+  \item{time}{list of length (L-1), where time[[l]] is the run time
                     for level l, node i}
-  \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective 
-             sample size of the particles after each step BEFORE deciding 
+  \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
+             sample size of the particles after each step BEFORE deciding
              whether or not to resample for level l, node i}
   \item{CESS}{list of length (L-1), where ESS[[l]][[i]] is the conditional
               effective sample size of the particles after each step}
-  \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a 
+  \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a
                    boolean value to record if the particles were resampled
                    after each step; rho and Q for level l, node i}
   \item{precondition_matrices}{pre-conditioning matrices that were used}
