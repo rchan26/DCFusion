@@ -445,10 +445,10 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_BLR: the particles' samples for y should all be matrices with dim columns")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("parallel_fusion_SMC_BLR: data_split must be a list of length m")
-  } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
-    stop("parallel_fusion_SMC_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & names(sub_posterior)==c('y', 'X'))))) {
     stop("parallel_fusion_SMC_BLR: each item in data_split must be a list of length 2 with names y and X")
+  } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
+    stop("parallel_fusion_SMC_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
     stop("parallel_fusion_SMC_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
   } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)!=dim))) {
