@@ -776,7 +776,6 @@ Q_IS_biGaussian <- function(particle_set,
     }
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
-  # stopping cluster
   parallel::stopCluster(cl)
   # unlist the proposed samples for y and their associated log Q weights
   y_samples <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
