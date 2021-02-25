@@ -7,7 +7,7 @@
 resample_particle_y_samples(
   N = particle_set$N,
   particle_set,
-  multivariate = TRUE,
+  multivariate,
   resampling_method = "multi",
   seed = NULL
 )

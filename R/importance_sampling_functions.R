@@ -245,7 +245,7 @@ resample_indices <- function(normalised_weights,
 #' @export
 resample_particle_y_samples <- function(N = particle_set$N,
                                         particle_set, 
-                                        multivariate = TRUE, 
+                                        multivariate, 
                                         resampling_method = 'multi',
                                         seed = NULL) {
   if (!("particle" %in% class(particle_set))) {
@@ -262,21 +262,15 @@ resample_particle_y_samples <- function(N = particle_set$N,
                                 n = N)
     if (multivariate) {
       particle_set$y_samples <- particle_set$y_samples[indices,]
-      particle_set$log_weights[] <- log(1/N)
-      particle_set$normalised_weights[] <- 1/N
-      particle_set$ESS <- N
-      particle_set$resampled['Q'] <- TRUE
-      particle_set$N <- N
-      return(particle_set)
     } else {
       particle_set$y_samples <- particle_set$y_samples[indices]
-      particle_set$log_weights[] <- log(1/N)
-      particle_set$normalised_weights[] <- 1/N
-      particle_set$ESS <- N
-      particle_set$resampled['Q'] <- TRUE
-      particle_set$N <- N
-      return(particle_set)
     }
+    particle_set$log_weights[] <- log(1/N)
+    particle_set$normalised_weights[] <- 1/N
+    particle_set$ESS <- N
+    particle_set$resampled['Q'] <- TRUE
+    particle_set$N <- N
+    return(particle_set)
   }
 }
 
@@ -313,8 +307,8 @@ resample_particle_y_samples <- function(N = particle_set$N,
 #' 
 #' @export
 resample_particle_x_samples <- function(N = particle_set$N,
-                                        particle_set, 
-                                        multivariate = TRUE, 
+                                        particle_set,
+                                        multivariate,
                                         resampling_method = 'multi',
                                         seed = NULL) {
   if (!("particle" %in% class(particle_set))) {
@@ -330,24 +324,17 @@ resample_particle_x_samples <- function(N = particle_set$N,
                                 method = resampling_method,
                                 n = N)
     if (multivariate) {
-      particle_set$x_samples <- particle_set$x_samples[indices]
       particle_set$x_means <- particle_set$x_means[indices,]
-      particle_set$normalised_weights[] <- 1/N
-      particle_set$log_weights[] <- log(1/N)
-      particle_set$ESS <- N
-      particle_set$resampled['rho'] <- TRUE
-      particle_set$N <- N
-      return(particle_set)
     } else {
-      particle_set$x_samples <- particle_set$x_samples[indices]
       particle_set$x_means <- particle_set$x_means[indices]
-      particle_set$normalised_weights[] <- 1/N
-      particle_set$log_weights[] <- log(1/N)
-      particle_set$ESS <- N
-      particle_set$resampled['rho'] <- TRUE
-      particle_set$N <- N
-      return(particle_set)
     }
+    particle_set$x_samples <- particle_set$x_samples[indices]
+    particle_set$normalised_weights[] <- 1/N
+    particle_set$log_weights[] <- log(1/N)
+    particle_set$ESS <- N
+    particle_set$resampled['rho'] <- TRUE
+    particle_set$N <- N
+    return(particle_set)
   }
 }
 
