@@ -32,10 +32,10 @@ resampled particle set
 Resamples the particle set for the samples for y
 }
 \examples{
-p <- create_particle(samples = rnorm(10, 0, 1), multivariate = FALSE)
-particles <- resample_particle_y_samples(particle_set = p,
-                                         multivariate = FALSE,
-                                         resampling_method = 'resid',
-                                         seed = seed)
+particles <- create_particle(samples = rnorm(10, 0, 1), multivariate = FALSE)
+particles <- resample_particle_y_samples(particle_set = particles,
+                                 multivariate = FALSE,
+                                 resampling_method = 'resid',
+                                 seed = 21)
 
 }
