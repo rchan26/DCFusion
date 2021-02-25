@@ -277,8 +277,10 @@ parallel_fusion_biGaussian <- function(N,
                                        n_cores = parallel::detectCores()) {
   if (!is.list(samples_to_fuse) | (length(samples_to_fuse)!=m)) {
     stop("parallel_fusion_biGaussian: samples_to_fuse must be a list of length m")
-  } else if (!all(sapply(samples_to_fuse, is.matrix)) | !all(sapply(samples_to_fuse, function(core) ncol(core)==2))) {
-    stop("parallel_fusion_biGaussian: the sub-posteriors in samples_to_fuse must be matrices with two columns")
+  } else if (!all(sapply(samples_to_fuse, is.matrix))) {
+    stop("parallel_fusion_biGaussian: the sub-posteriors in samples_to_fuse must be matrices")
+  } else if (!all(sapply(samples_to_fuse, function(core) ncol(core)==2))) {
+    stop("parallel_fusion_biGaussian: the sub-posteriors in samples_to_fuse must be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("parallel_fusion_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
@@ -424,8 +426,10 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
     stop("hierarchical_fusion_biGaussian: time_schedule must be a vector of length (L-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("hierarchical_fusion_biGaussian: base_samples must be a list of length (1/start_beta)")
-  } else if (!all(sapply(base_samples, is.matrix)) | !all(sapply(base_samples, function(core) ncol(core)==2))) {
-    stop("hierarchical_fusion_biGaussian: the sub-posteriors in base_samples must be matrices with two columns")
+  } else if (!all(sapply(base_samples, is.matrix))) {
+    stop("hierarchical_fusion_biGaussian: the sub-posterior samples in base_samples must be matrices")
+  } else if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
+    stop("hierarchical_fusion_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("hierarchical_fusion_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
@@ -589,8 +593,10 @@ progressive_fusion_biGaussian <- function(N_schedule,
     stop("progressive_fusion_biGaussian: time_schedule must be a vector of length ((1/start_beta)-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("progressive_fusion_biGaussian: base_samples must be a list of length (1/start_beta)")
-  } else if (!all(sapply(base_samples, is.matrix)) | !all(sapply(base_samples, function(core) ncol(core)==2))) {
-    stop("progressive_fusion_biGaussian: the sub-posteriors in base_samples must be matrices with two columns")
+  } else if (!all(sapply(base_samples, is.matrix))) {
+    stop("progressive_fusion_biGaussian: the sub-posterior samples in base_samples must be matrices")
+  } else if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
+    stop("progressive_fusion_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("progressive_fusion_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
@@ -1051,8 +1057,10 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
     stop("hierarchical_fusion_SMC_biGaussian: time_schedule must be a vector of length (L-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("hierarchical_fusion_SMC_biGaussian: base_samples must be a list of length (1/start_beta)")
-  } else if (!all(sapply(base_samples, is.matrix)) | !all(sapply(base_samples, function(core) ncol(core)==2))) {
-    stop("hierarchical_fusion_SMC_biGaussian: the sub-posteriors in base_samples must be matrices with two columns")
+  } else if (!all(sapply(base_samples, is.matrix))) {
+    stop("hierarchical_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices")
+  } else if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
+    stop("hierarchical_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("hierarchical_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
@@ -1219,8 +1227,10 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
     stop("progressive_fusion_SMC_biGaussian: time_schedule must be a vector of length ((1/start_beta)-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("progressive_fusion_SMC_biGaussian: base_samples must be a list of length (1/start_beta)")
-  } else if (!all(sapply(base_samples, is.matrix)) | !all(sapply(base_samples, function(core) ncol(core)==2))) {
-    stop("progressive_fusion_SMC_biGaussian: the sub-posteriors in base_samples must be matrices with two columns")
+  } else if (!all(sapply(base_samples, is.matrix))) {
+    stop("progressive_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices")
+  } else if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
+    stop("progressive_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("progressive_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
