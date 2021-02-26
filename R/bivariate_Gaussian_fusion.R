@@ -191,13 +191,13 @@ fusion_biGaussian <- function(N,
   fusion_samples <- matrix(data = NA, nrow = N, ncol = 2)
   i <- 0; iters_rho <- 0; iters_Q <- 0
   proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
-  inv_precon_mats_sum <- inv_sum_matrices(matrices = inv_precondition_matrices)
+  inverse_sum_inv_precondition_matrices <- inv_sum_matrices(matrices = inv_precondition_matrices)
   while (i < N) {
     iters_rho <- iters_rho + 1
     x <- t(sapply(samples_to_fuse, function(core) core[sample(nrow(core), 1),]))
     x_mean <- weighted_mean_multivariate(matrix = x,
                                          weights = inv_precondition_matrices,
-                                         inv_weights_sum = inv_precon_mats_sum)
+                                         inverse_sum_weights = inverse_sum_inv_precondition_matrices)
     log_rho_prob <- log_rho_multivariate(x = x,
                                          x_mean = x_mean,
                                          time = time,
@@ -914,7 +914,7 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                    m = m,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
-                                   sum_inv_precondition_matrices = inv_sum_matrices(inv_precondition_matrices))
+                                   inverse_sum_inv_precondition_matrices = inv_sum_matrices(inv_precondition_matrices))
   # record ESS and CESS after rho step 
   ESS <- c('rho' = particles$ESS)
   CESS <- c('rho' = particles$CESS['rho'])

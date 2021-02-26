@@ -32,27 +32,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// inv_sum_matrices
-arma::mat inv_sum_matrices(const Rcpp::List& matrices);
-RcppExport SEXP _hierarchicalFusion_inv_sum_matrices(SEXP matricesSEXP) {
+// inverse_sum_matrices
+arma::mat inverse_sum_matrices(const Rcpp::List& matrices);
+RcppExport SEXP _hierarchicalFusion_inverse_sum_matrices(SEXP matricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type matrices(matricesSEXP);
-    rcpp_result_gen = Rcpp::wrap(inv_sum_matrices(matrices));
+    rcpp_result_gen = Rcpp::wrap(inverse_sum_matrices(matrices));
     return rcpp_result_gen;
 END_RCPP
 }
 // weighted_mean_multivariate
-arma::vec weighted_mean_multivariate(const arma::mat& matrix, const Rcpp::List& weights, const arma::mat& inv_weights_sum);
-RcppExport SEXP _hierarchicalFusion_weighted_mean_multivariate(SEXP matrixSEXP, SEXP weightsSEXP, SEXP inv_weights_sumSEXP) {
+arma::vec weighted_mean_multivariate(const arma::mat& matrix, const Rcpp::List& weights, const arma::mat& inverse_sum_weights);
+RcppExport SEXP _hierarchicalFusion_weighted_mean_multivariate(SEXP matrixSEXP, SEXP weightsSEXP, SEXP inverse_sum_weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type matrix(matrixSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type weights(weightsSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type inv_weights_sum(inv_weights_sumSEXP);
-    rcpp_result_gen = Rcpp::wrap(weighted_mean_multivariate(matrix, weights, inv_weights_sum));
+    Rcpp::traits::input_parameter< const arma::mat& >::type inverse_sum_weights(inverse_sum_weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(weighted_mean_multivariate(matrix, weights, inverse_sum_weights));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -132,8 +132,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rho_IS_multivariate_
-Rcpp::List rho_IS_multivariate_(const Rcpp::List& particles_to_fuse, const int& dim, const int& N, const int& m, const double& time, const Rcpp::List& inv_precondition_matrices, const arma::mat& sum_inv_precondition_matrices);
-RcppExport SEXP _hierarchicalFusion_rho_IS_multivariate_(SEXP particles_to_fuseSEXP, SEXP dimSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP sum_inv_precondition_matricesSEXP) {
+Rcpp::List rho_IS_multivariate_(const Rcpp::List& particles_to_fuse, const int& dim, const int& N, const int& m, const double& time, const Rcpp::List& inv_precondition_matrices, const arma::mat& inverse_sum_inv_precondition_matrices);
+RcppExport SEXP _hierarchicalFusion_rho_IS_multivariate_(SEXP particles_to_fuseSEXP, SEXP dimSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP inverse_sum_inv_precondition_matricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -143,8 +143,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int& >::type m(mSEXP);
     Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type sum_inv_precondition_matrices(sum_inv_precondition_matricesSEXP);
-    rcpp_result_gen = Rcpp::wrap(rho_IS_multivariate_(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, sum_inv_precondition_matrices));
+    Rcpp::traits::input_parameter< const arma::mat& >::type inverse_sum_inv_precondition_matrices(inverse_sum_inv_precondition_matricesSEXP);
+    rcpp_result_gen = Rcpp::wrap(rho_IS_multivariate_(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -419,7 +419,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_hierarchicalFusion_weighted_mean_univariate", (DL_FUNC) &_hierarchicalFusion_weighted_mean_univariate, 2},
     {"_hierarchicalFusion_log_rho_univariate", (DL_FUNC) &_hierarchicalFusion_log_rho_univariate, 4},
-    {"_hierarchicalFusion_inv_sum_matrices", (DL_FUNC) &_hierarchicalFusion_inv_sum_matrices, 1},
+    {"_hierarchicalFusion_inverse_sum_matrices", (DL_FUNC) &_hierarchicalFusion_inverse_sum_matrices, 1},
     {"_hierarchicalFusion_weighted_mean_multivariate", (DL_FUNC) &_hierarchicalFusion_weighted_mean_multivariate, 3},
     {"_hierarchicalFusion_calculate_proposal_cov", (DL_FUNC) &_hierarchicalFusion_calculate_proposal_cov, 2},
     {"_hierarchicalFusion_row_wise_subtraction", (DL_FUNC) &_hierarchicalFusion_row_wise_subtraction, 2},

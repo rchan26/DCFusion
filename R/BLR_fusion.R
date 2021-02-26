@@ -108,7 +108,7 @@ ea_BLR_DL_PT <- function(dim,
                          transform_mats,
                          diffusion_estimator,
                          beta_NB = 10,
-                         bounds_multiplier = 1.1,
+                         bounds_multiplier = 1.5,
                          logarithm) {
   # transform to preconditoned space
   z0 <- transform_mats$to_Z %*% x0
@@ -120,10 +120,10 @@ ea_BLR_DL_PT <- function(dim,
                                                          s = s,
                                                          t = t,
                                                          mult = 0.1)
-  lbound_Z <- sapply(1:2, function(dim) bes_layers[[dim]]$L)
-  ubound_Z <- sapply(1:2, function(dim) bes_layers[[dim]]$U)
+  lbound_Z <- sapply(1:dim, function(dim) bes_layers[[dim]]$L)
+  ubound_Z <- sapply(1:dim, function(dim) bes_layers[[dim]]$U)
   # calculate the lower and upper bounds of phi
-  bounds <- lapply(list(lbound_z, ubound_z), function(init) {
+  bounds <- lapply(list(z0, zt, lbound_Z, ubound_Z), function(init) {
     ea_phi_BLR_DL_bounds(initial_parameters = init,
                          y_labels = y_labels,
                          X = X,
@@ -156,22 +156,22 @@ ea_BLR_DL_PT <- function(dim,
                                   prior_variances = prior_variances,
                                   C = C,
                                   precondition_mat = precondition_mat,
-                                  transform_mat = transform_mat)
+                                  transform_mat = transform_mats$to_X)
       terms <- (UZ-phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
-        cat('LZ:', LZ, '\n', file = 'bounds.txt', append = T)
-        cat('UZ:', UZ, '\n', file = 'bounds.txt', append = T)
-        cat('phi:', phi, '\n', file = 'bounds.txt', append = T)
-        cat('(UZ-phi):', terms, '\n', file = 'bounds.txt', append = T)
-        cat('(phi-LZ):', phi-LZ, '\n', file = 'bounds.txt', append = T)
+        cat('LZ:', LZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('UZ:', UZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('phi:', phi, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('(UZ-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('(phi-LZ):', phi-LZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
         stop('Some of (UZ-phi) are < 0. Try increase bounds_multiplier')
       } else if (any((phi - LZ) < 0)) {
-        cat('LZ:', LZ, '\n', file = 'bounds.txt', append = T)
-        cat('UZ:', UZ, '\n', file = 'bounds.txt', append = T)
-        cat('phi:', phi, '\n', file = 'bounds.txt', append = T)
-        cat('(UZ-phi):', terms, '\n', file = 'bounds.txt', append = T)
-        cat('(phi-LZ):', phi-LZ, '\n', file = 'bounds.txt', append = T)
+        cat('LZ:', LZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('UZ:', UZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('phi:', phi, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('(UZ-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('(phi-LZ):', phi-LZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
         stop('Some of (phi-LZ) are < 0. Try increase bounds_multiplier')
       }
     }
@@ -190,7 +190,7 @@ ea_BLR_DL_PT <- function(dim,
                         prior_variances = prior_variances,
                         C = C,
                         precondition_mat = precondition_mat,
-                        transform_mat = transform_mat)},
+                        transform_mat = transform_mats$to_X)},
       lowerLimit = s,
       upperLimit = t)$integral
     gamma_NB <- (t-s)*UZ - integral_estimate
@@ -212,22 +212,22 @@ ea_BLR_DL_PT <- function(dim,
                                   prior_variances = prior_variances,
                                   C = C,
                                   precondition_mat = precondition_mat,
-                                  transform_mat = transform_mat)
+                                  transform_mat = transform_mats$to_X)
       terms <- (UZ-phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
-        cat('LZ:', LZ, '\n', file = 'bounds.txt', append = T)
-        cat('UZ:', UZ, '\n', file = 'bounds.txt', append = T)
-        cat('phi:', phi, '\n', file = 'bounds.txt', append = T)
-        cat('(UZ-phi):', terms, '\n', file = 'bounds.txt', append = T)
-        cat('(phi-LZ):', phi-LZ, '\n', file = 'bounds.txt', append = T)
+        cat('LZ:', LZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('UZ:', UZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('phi:', phi, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('(UZ-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('(phi-LZ):', phi-LZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
         stop('Some of (UZ-phi) are < 0. Try increase bounds_multiplier')
       } else if (any((phi - LZ) < 0)) {
-        cat('LZ:', LZ, '\n', file = 'bounds.txt', append = T)
-        cat('UZ:', UZ, '\n', file = 'bounds.txt', append = T)
-        cat('phi:', phi, '\n', file = 'bounds.txt', append = T)
-        cat('(UZ-phi):', terms, '\n', file = 'bounds.txt', append = T)
-        cat('(phi-LZ):', phi-LZ, '\n', file = 'bounds.txt', append = T)
+        cat('LZ:', LZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('UZ:', UZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('phi:', phi, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('(UZ-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('(phi-LZ):', phi-LZ, '\n', file = "SMC_BLR_bounds.txt", append = T)
         stop('Some of (phi-LZ) are < 0. Try increase bounds_multiplier')
       }
     }
@@ -249,11 +249,11 @@ combine_data <- function(list_of_data, dim) {
     stop("combine_data: list_of_data must be a list")
   } else if (!all(sapply(list_of_data, function(sub_posterior) (is.list(sub_posterior) & identical(names(data), c("y", "X")))))) {
     stop("combine_data: each item in list_of_data must be a list of length 2 with names y and X")
-  } else if (!all(sapply(1:m, function(i) is.vector(list_of_data[[i]]$y)))) {
+  } else if (!all(sapply(1:length(list_of_data), function(i) is.vector(list_of_data[[i]]$y)))) {
     stop("combine_data: for each i in 1:length(list_of_data), list_of_data[[i]]$y must be a vector")
-  } else if (!all(sapply(1:m, function(i) is.matrix(list_of_data[[i]]$X)))) {
+  } else if (!all(sapply(1:length(list_of_data), function(i) is.matrix(list_of_data[[i]]$X)))) {
     stop("combine_data: for each i in 1:length(list_of_data), list_of_data[[i]]$X must be a matrix")
-  } else if (!all(sapply(1:m, function(i) ncol(list_of_data[[i]]$X)!=dim))) {
+  } else if (!all(sapply(1:length(list_of_data), function(i) ncol(list_of_data[[i]]$X)==dim))) {
     stop("combine_data: for each i in 1:length(list_of_data), ncol(list_of_data[[i]]$X) must be equal to dim")
   }
   y <- unlist(lapply(list_of_data, function(sub_posterior) sub_posterior$y))
@@ -274,7 +274,7 @@ Q_IS_BLR <- function(particle_set,
                      inv_precondition_matrices,
                      diffusion_estimator,
                      beta_NB = 10,
-                     bounds_multiplier = 1.1,
+                     bounds_multiplier = 1.5,
                      seed = NULL,
                      n_cores = parallel::detectCores(),
                      level = 1,
@@ -289,7 +289,7 @@ Q_IS_BLR <- function(particle_set,
     stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
     stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
-  } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)!=dim))) {
+  } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)==dim))) {
     stop("Q_IS_BLR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("Q_IS_BLR: prior_means must be vectors of length dim")
@@ -309,7 +309,7 @@ Q_IS_BLR <- function(particle_set,
   proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
   N <- particle_set$N
   # ---------- creating parallel cluster
-  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "smc_fusion_outfile.txt")
+  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
   varlist <- c(ls(), list("ea_phi_BLR_DL_matrix",
                           "ea_phi_BLR_DL_bounds",
                           "ea_BLR_DL_PT"))
@@ -328,8 +328,10 @@ Q_IS_BLR <- function(particle_set,
   # sample for y and importance weight in parallel to split computation
   Q_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
     split_N <- length(split_indices[[core]])
-    y_samples <- matrix(nrow = split_N, ncol = 2)
+    y_samples <- matrix(nrow = split_N, ncol = dim)
     log_Q_weights <- rep(0, split_N)
+    cat('Level:', level, '|| Node:', node, '|| Core:', core, '|| START \n',
+        file = 'Q_IS_BLR_progress.txt', append = T)
     for (i in 1:split_N) {
       y_samples[i,] <- mvrnormArma(N = 1, mu = split_x_means[[core]][i,], Sigma = proposal_cov)
       log_Q_weights[i] <- sum(sapply(1:m, function(c) {
@@ -351,7 +353,7 @@ Q_IS_BLR <- function(particle_set,
                      logarithm = TRUE)
       }))
       cat('Level:', level, '|| Node:', node, '|| Core:', core, '||', i, '/',
-          split_N, '\n', file = 'Q_IS_progress.txt', append = T)
+          split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
     }
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
@@ -450,7 +452,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                     ESS_threshold = 0.5,
                                     diffusion_estimator = 'Poisson',
                                     beta_NB = 10,
-                                    bounds_multiplier = 1.1,
+                                    bounds_multiplier = 1.5,
                                     seed = NULL,
                                     n_cores = parallel::detectCores(),
                                     level = 1,
@@ -479,8 +481,6 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_BLR: prior_variances must be vectors of length dim")
   } else if (!is.list(precondition_matrices) | (length(precondition_matrices)!=m)) {
     stop("parallel_fusion_SMC_BLR: precondition_matrices must be a list of length m")
-  } else if (!is.list(inv_precondition_matrices) | (length(inv_precondition_matrices)!=m)) {
-    stop("parallel_fusion_SMC_BLR: inv_precondition_matrices must be a list of length m")
   } else if (!(diffusion_estimator %in% c('Poisson', 'NB'))) {
     stop("parallel_fusion_SMC_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
   } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
@@ -515,7 +515,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                    m = m,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
-                                   sum_inv_precondition_matrices = inv_sum_matrices(inv_precondition_matrices))
+                                   inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices))
   # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)
   CESS <- c('rho' = particles$CESS['rho'])
@@ -548,8 +548,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                         bounds_multiplier = bounds_multiplier,
                         seed = seed,
                         n_cores = n_cores,
-                        level = 1,
-                        node = 1)
+                        level = level,
+                        node = node)
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
   CESS['Q'] <- particles$CESS['Q']
@@ -571,6 +571,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
   if (identical(precondition_matrices, rep(list(diag(1, dim)), m))) {
     return(list('particles' = particles,
                 'proposed_samples' = proposed_samples,
+                'time' = (proc.time()-pcm)['elapsed'],
                 'ESS' = ESS,
                 'CESS' = CESS,
                 'resampled' = resampled,
@@ -579,10 +580,11 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
   } else {
     return(list('particles' = particles,
                 'proposed_samples' = proposed_samples,
+                'time' = (proc.time()-pcm)['elapsed'],
                 'ESS' = ESS,
                 'CESS' = CESS,
                 'resampled' = resampled,
-                'precondition_matrices' = list(inv_sum_matrices(inv_precondition_matrices),
+                'precondition_matrices' = list(inverse_sum_matrices(inv_precondition_matrices),
                                                precondition_matrices),
                 'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
   }
@@ -644,8 +646,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'                    after each step; rho and Q for level l, node i}
 #'   \item{precondition_matrices}{pre-conditioning matrices that were used}
 #'   \item{resampling_method}{method that was used in resampling}
-#'   \item{y_inputs}{input y data for each level and node}
-#'   \item{X_inputs}{input X data for each level and node}
+#'   \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
+#'                      data input for the sub-posteiror in level l, node i}
 #'   \item{diffusion_times}{vector of length (L-1), where diffusion_times[l]
 #'                          are the times for fusion in level l}
 #' }
@@ -666,7 +668,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                                         ESS_threshold = 0.5,
                                         diffusion_estimator = 'Poisson',
                                         beta_NB = 10,
-                                        bounds_multiplier = 1.1,
+                                        bounds_multiplier = 1.5,
                                         seed = NULL,
                                         n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
@@ -782,8 +784,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
-    y_inputs[[1]] <- y_inputs[[1]][[1]]
-    X_inputs[[1]] <- X_inputs[[1]][[1]]
+    data_inputs[[1]] <- data_inputs[[1]][[1]]
   }
   return(list('particles' = particles,
               'proposed_samples' = proposed_samples,

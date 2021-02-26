@@ -107,11 +107,11 @@ double log_rho_univariate(const Rcpp::NumericVector &x,
 //' m1 <- matrix(c(1,2,3,4), nrow = 2, ncol = 2)
 //' m2 <- matrix(c(5,6,7,8), nrow = 2, ncol = 2)
 //' m3 <- matrix(c(9,10,11,12), nrow = 2, ncol = 2)
-//' inv_sum_matrices(list(m1, m2, m3))
+//' inverse_sum_matrices(list(m1, m2, m3))
 //' # returns the same as using solve() in R
 //' solve(m1+m2+m3)
 // [[Rcpp::export]]
-arma::mat inv_sum_matrices(const Rcpp::List &matrices) {
+arma::mat inverse_sum_matrices(const Rcpp::List &matrices) {
   const arma::mat &matrix_1 = matrices[0];
   arma::mat matrix_sum(matrix_1.n_cols, matrix_1.n_cols, arma::fill::zeros);
   for (int c=0; c < matrices.size(); ++c) {
@@ -127,8 +127,8 @@ arma::mat inv_sum_matrices(const Rcpp::List &matrices) {
 //' 
 //' @param matrix an (m x n) matrix where the ith row is the ith sample
 //' @param weights list of m matricies of the same dimension (n x n)
-//' @param inv_weights_sum the inverse of the sum of the weights (can be 
-//'                        calculated by passing in weights to inv_sum_matrices)
+//' @param inverse_sum_weights the inverse of the sum of the weights (can be 
+//'                        calculated by passing in weights to inverse_sum_matrices)
 //'
 //' @return proposal mean vector
 //' 
@@ -139,17 +139,17 @@ arma::mat inv_sum_matrices(const Rcpp::List &matrices) {
 //' X <- matrix(c(1,2,3,4,5,6), nrow = 3, ncol = 2)
 //' weighted_mean_multivariate(matrix = X,
 //'                            weights = list(m1, m2, m3),
-//'                            inv_sum_matrices(list(m1, m2, m3)))
+//'                            inverse_sum_weights = inverse_sum_matrices(list(m1, m2, m3)))
 // [[Rcpp::export]]
 arma::vec weighted_mean_multivariate(const arma::mat &matrix,
                                      const Rcpp::List &weights,
-                                     const arma::mat &inv_weights_sum) {
-  arma::vec weighted_mean(matrix.n_cols);
+                                     const arma::mat &inverse_sum_weights) {
+  arma::vec weighted_mean(matrix.n_cols, arma::fill::zeros);
   for (int c=0; c < matrix.n_rows; ++c) {
     const arma::mat &weight = weights[c];
-    weighted_mean += (weight * arma::trans(matrix.row(c)));
+    weighted_mean += weight*arma::trans(matrix.row(c));
   }
-  return(inv_weights_sum * weighted_mean);
+  return(inverse_sum_weights*weighted_mean);
 }
 
 //' Calculate the proposal covariance matrix
@@ -191,7 +191,7 @@ arma::mat calculate_proposal_cov(const double &time, const Rcpp::List &weights) 
 //' row_wise_subtraction(X = X, vect = c(1,2))
 // [[Rcpp::export]] 
 arma::mat row_wise_subtraction(const arma::mat &X, const arma::vec &vect) {
-  arma::mat new_mat(size(X));
+  arma::mat new_mat(size(X), arma::fill::zeros);
   const arma::rowvec row_vect = trans(vect);
   for (int row=0; row < X.n_rows; ++row) {
     new_mat.row(row) = X.row(row) - row_vect;
@@ -225,11 +225,11 @@ arma::mat row_wise_subtraction(const arma::mat &X, const arma::vec &vect) {
 //' # calcualte precondition matrices and their inverses
 //' precondition_matrices <- list(Sig1, Sig2, Sig3)
 //' inv_precondition_matrices <- lapply(precondition_matrices, solve)
-//' inv_weights_sum <- inv_sum_matrices(precondition_matrices)
+//' inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
 //' # calculate the weighted mean where weights are the inverse precondition matrices
 //' x_mean <- weighted_mean_multivariate(matrix = x,
 //'                                      weights = precondition_matrices,
-//'                                      inv_weights_sum = inv_weights_sum)
+//'                                      inverse_sum_weights = inverse_sum_weights)
 //' # calculate logarithm of rho with time T = 0.5
 //' log_rho_multivariate(x = x,
 //'                      x_mean = x_mean,
@@ -267,8 +267,8 @@ double log_rho_multivariate(const arma::mat &x,
 //' print(y2) 
 // [[Rcpp::export]]
 double logsumexp(const Rcpp::NumericVector &x) {
-  const double x_star = max(x);
-  return (x_star + log(sum(exp(x-x_star))));
+  const double x_star = Rcpp::max(x);
+  return (x_star+log(sum(exp(x-x_star))));
 }
 
 //' Calculate the ESS
@@ -307,6 +307,7 @@ Rcpp::List rho_IS_univariate_(const Rcpp::List &particles_to_fuse,
   Rcpp::List x_samples = rep(Rcpp::List::create(x), N);
   Rcpp::NumericVector log_rho_weights(N);
   for (int i=0; i < N; ++i) {
+    Rcpp::checkUserInterrupt();
     Rcpp::NumericVector particle(m);
     for (int c=0; c < m; ++c) {
       const Rcpp::Environment &particles = particles_to_fuse[c];
@@ -323,7 +324,6 @@ Rcpp::List rho_IS_univariate_(const Rcpp::List &particles_to_fuse,
                             Named("norm_weights", particle_ESS(log_rho_weights)));
 }
 
-
 // [[Rcpp::export]]
 Rcpp::List rho_IS_multivariate_(const Rcpp::List &particles_to_fuse,
                                 const int &dim,
@@ -331,26 +331,28 @@ Rcpp::List rho_IS_multivariate_(const Rcpp::List &particles_to_fuse,
                                 const int &m,
                                 const double &time,
                                 const Rcpp::List &inv_precondition_matrices,
-                                const arma::mat &sum_inv_precondition_matrices) {
+                                const arma::mat &inverse_sum_inv_precondition_matrices) {
   arma::mat x(m, dim, arma::fill::zeros);
   arma::mat x_means(N, dim, arma::fill::zeros);
   Rcpp::List x_samples = rep(Rcpp::List::create(x), N);
   Rcpp::NumericVector log_rho_weights(N);
   for (int i=0; i < N; ++i) {
+    Rcpp::checkUserInterrupt();
     arma::mat particle(m, dim);
     for (int c=0; c < m; ++c) {
       const Rcpp::Environment &particles = particles_to_fuse[c];
       const arma::mat &sub_post_samples = particles["y_samples"];
       particle.row(c) = sub_post_samples.row(i);
     }
-    x_means.row(i) = arma::trans(weighted_mean_multivariate(particle, 
-                                 inv_precondition_matrices, 
-                                 sum_inv_precondition_matrices));
-    log_rho_weights[i] = log_rho_multivariate(particle, 
-                                              arma::trans(x_means.row(i)), 
-                                              time, 
+    arma::vec particle_mean = weighted_mean_multivariate(particle,
+                                                         inv_precondition_matrices,
+                                                         inverse_sum_inv_precondition_matrices);
+    log_rho_weights[i] = log_rho_multivariate(particle,
+                                              particle_mean,
+                                              time,
                                               inv_precondition_matrices);
     x_samples[i] = particle; 
+    x_means.row(i) = arma::trans(particle_mean);
   }
   return Rcpp::List::create(Named("x_samples", x_samples),
                             Named("x_means", x_means),

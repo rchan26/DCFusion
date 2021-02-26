@@ -44,14 +44,12 @@ check_activity <- function(data, proportion = T) {
   }
 }
 
-##################################################
-
 # set a seed
 seed <- 1920
 set.seed(seed)
 
 # simulate data set
-simulated_data <- simulate_data(N = 1000,
+simulated_data <- simulate_data(N = 10000,
                                 alpha = -3,
                                 frequencies = c(0.2, 0.5),
                                 coefficients = c(1.2, 0.8))
@@ -65,19 +63,19 @@ data$y <- simulated_data$y
 data$X <- as.matrix(cbind(rep(1, nrow(simulated_data[,2:3])), simulated_data[,2:3]))
 colnames(data$X)[1] <- 'intercept'
 
-##################################################
+###### Sampling from full posterier #####
 
 full_posterior <- hmc_sample_BLR(data = data,
                                  C = 1,
                                  prior_means = rep(0, 3),
                                  prior_variances = rep(1, 3),
-                                 iterations = 20000,
+                                 iterations = 50000,
                                  warmup = 10000,
                                  chains = 1,
                                  seed = seed,
                                  output = T)
 
-##################################################
+###### Sampling from sub-posteriors #####
 
 data_split_4 <- split_data(simulated_data, y_col_index = 1, X_col_index = 2:3, C = 4, as_dataframe = F)
 sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = 50000,
@@ -94,39 +92,27 @@ compare_samples_bivariate(posteriors = c(sub_posteriors_4, list(full_posterior))
                           common_limit = c(-4, 4),
                           title = 'C = 4')
 
-lapply(sub_posteriors_4, cov)
-##################################################
+sapply(sub_posteriors_4, function(sub_posterior) min(abs(cov(sub_posterior))))
+
+###### Consensus Monte Carlo #####
 
 # perform consensus Monte Carlo
 consensus_mat <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = T)
 consensus_scale <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = F)
+compare_samples_bivariate(posteriors = list(full_posterior, consensus_mat$samples, consensus_scale$samples),
+                          colours = c('black', 'red', 'blue'),
+                          common_limit = c(-4, 4),
+                          title = 'C = 4 || Consensus Monte Carlo')
 
-##################################################
+###### Standard fork and join #####
 
 particles_to_fuse <- initialise_particle_sets(samples_to_fuse = sub_posteriors_4, multivariate = TRUE)
 
-# standard fork and join [Poisson estimator]
-test_standard_SMC_Poisson <- parallel_fusion_SMC_BLR(particles_to_fuse = particles_to_fuse,
-                                                     N = 20000,
-                                                     m = 4,
-                                                     time = 1,
-                                                     dim = 3,
-                                                     data_split = data_split_4,
-                                                     prior_means = rep(0, 3),
-                                                     prior_variances = rep(1, 3),
-                                                     C = 4,
-                                                     precondition_matrices = lapply(1:4, function(c) diag(1, 3)),
-                                                     resampling_method = 'resid',
-                                                     ESS_threshold = 0.5,
-                                                     diffusion_estimator = 'Poisson',
-                                                     bounds_multiplier = 1.2,
-                                                     seed = seed)
-
 # preconditioned fork and join [Poisson estimator]
 test_preconditioned_SMC_Poisson <- parallel_fusion_SMC_BLR(particles_to_fuse = particles_to_fuse,
-                                                           N = 20000,
+                                                           N = 100000,
                                                            m = 4,
-                                                           time = 1,
+                                                           time = 0.5,
                                                            dim = 3,
                                                            data_split = data_split_4,
                                                            prior_means = rep(0, 3),
@@ -138,29 +124,16 @@ test_preconditioned_SMC_Poisson <- parallel_fusion_SMC_BLR(particles_to_fuse = p
                                                            diffusion_estimator = 'Poisson',
                                                            bounds_multiplier = 1.2,
                                                            seed = seed)
-
-# standard fork and join [Negative Binomial estimator]
-test_standard_SMC_NB <- parallel_fusion_SMC_BLR(particles_to_fuse = particles_to_fuse,
-                                                N = 20000,
-                                                m = 4,
-                                                time = 1,
-                                                dim = 3,
-                                                data_split = data_split_4,
-                                                prior_means = rep(0, 3),
-                                                prior_variances = rep(1, 3),
-                                                C = 4,
-                                                precondition_matrices = lapply(1:4, function(c) diag(1, 3)),
-                                                resampling_method = 'resid',
-                                                ESS_threshold = 0.5,
-                                                diffusion_estimator = 'NB',
-                                                bounds_multiplier = 1.2,
-                                                seed = seed)
+test_preconditioned_SMC_Poisson$particles <- resample_particle_y_samples(particle_set = test_preconditioned_SMC_Poisson$particles,
+                                                                         multivariate = TRUE,
+                                                                         resampling_method = 'resid',
+                                                                         seed = seed)
 
 # preconditioned fork and join [Negative Binomial estimator]
 test_preconditioned_SMC_NB <- parallel_fusion_SMC_BLR(particles_to_fuse = particles_to_fuse,
                                                       N = 20000,
                                                       m = 4,
-                                                      time = 1,
+                                                      time = 0.5,
                                                       dim = 3,
                                                       data_split = data_split_4,
                                                       prior_means = rep(0, 3),
@@ -172,35 +145,24 @@ test_preconditioned_SMC_NB <- parallel_fusion_SMC_BLR(particles_to_fuse = partic
                                                       diffusion_estimator = 'NB',
                                                       bounds_multiplier = 1.2,
                                                       seed = seed)
+test_preconditioned_SMC_NB$particles <- resample_particle_y_samples(particle_set = test_preconditioned_SMC_NB$particles,
+                                                                    multivariate = TRUE,
+                                                                    resampling_method = 'resid',
+                                                                    seed = seed)
 
-plot_fusion_results(1, 5, full_posterior, test_parallel_fusion_SMC$samples[[1]], bw = rep(0.3, 5))
-plot_fusion_results(1, 5, full_posterior, test_parallel_fusion_RIS$samples[[1]], bw = rep(0.3, 5))
-plot_fusion_results(1, 5, full_posterior, test_parallel_fusion_TA$samples[[1]], bw = rep(0.3, 5))
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            test_preconditioned_SMC_Poisson$particles$y_samples,
+                                            test_preconditioned_SMC_NB$particles$y_samples),
+                          colours = c('black', 'red', 'blue'),
+                          common_limit = c(-4, 4),
+                          title = 'C = 4 || SMC Fork-and-Join (Precondition)')
 
-##################################################
-
-# standard hierarchical [Poisson estimator]
-test_standard_hierarchical_SMC_Poisson <- hierarchical_fusion_SMC_BLR(N_schedule = rep(20000, 2),
-                                                                      m_schedule = rep(2, 2),
-                                                                      time_schedule = rep(1, 2),
-                                                                      base_samples = sub_posteriors_4,
-                                                                      L = 3,
-                                                                      dim = 3,
-                                                                      data_split = data_split_4,
-                                                                      prior_means = rep(0, 3),
-                                                                      prior_variances = rep(1, 3),
-                                                                      C = 4,
-                                                                      precondition = FALSE,
-                                                                      resampling_method = 'resid',
-                                                                      ESS_threshold = 0.5,
-                                                                      diffusion_estimator = 'Poisson',
-                                                                      bounds_multiplier = 1.2,
-                                                                      seed = seed)
+###### Hierarchical #####
 
 # preconditioned hierarchical [Poisson estimator]
 test_preconditioned_hierarchical_SMC_Poisson <- hierarchical_fusion_SMC_BLR(N_schedule = rep(20000, 2),
                                                                             m_schedule = rep(2, 2),
-                                                                            time_schedule = rep(1, 2),
+                                                                            time_schedule = rep(0.5, 2),
                                                                             base_samples = sub_posteriors_4,
                                                                             L = 3,
                                                                             dim = 3,
@@ -214,29 +176,15 @@ test_preconditioned_hierarchical_SMC_Poisson <- hierarchical_fusion_SMC_BLR(N_sc
                                                                             diffusion_estimator = 'Poisson',
                                                                             bounds_multiplier = 1.2,
                                                                             seed = seed)
-
-# standard hierarchical [Negative Binomial estimator]
-test_standard_hierarchical_SMC_NB <- hierarchical_fusion_SMC_BLR(N_schedule = rep(20000, 2),
-                                                                 m_schedule = rep(2, 2),
-                                                                 time_schedule = rep(1, 2),
-                                                                 base_samples = sub_posteriors_4,
-                                                                 L = 3,
-                                                                 dim = 3,
-                                                                 data_split = data_split_4,
-                                                                 prior_means = rep(0, 3),
-                                                                 prior_variances = rep(1, 3),
-                                                                 C = 4,
-                                                                 precondition = FALSE,
-                                                                 resampling_method = 'resid',
-                                                                 ESS_threshold = 0.5,
-                                                                 diffusion_estimator = 'NB',
-                                                                 bounds_multiplier = 1.2,
-                                                                 seed = seed)
+test_preconditioned_hierarchical_SMC_Poisson$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson$particles[[1]],
+                                                                                           multivariate = TRUE,
+                                                                                           resampling_method = 'resid',
+                                                                                           seed = seed)
 
 # preconditioned hierarchical [Negative Binomial estimator]
 test_preconditioned_hierarchical_SMC_NB <- hierarchical_fusion_SMC_BLR(N_schedule = rep(20000, 2),
                                                                        m_schedule = rep(2, 2),
-                                                                       time_schedule = rep(1, 2),
+                                                                       time_schedule = rep(0.5, 2),
                                                                        base_samples = sub_posteriors_4,
                                                                        L = 3,
                                                                        dim = 3,
@@ -250,3 +198,14 @@ test_preconditioned_hierarchical_SMC_NB <- hierarchical_fusion_SMC_BLR(N_schedul
                                                                        diffusion_estimator = 'NB',
                                                                        bounds_multiplier = 1.2,
                                                                        seed = seed)
+test_preconditioned_hierarchical_SMC_NB$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_NB$particles[[1]],
+                                                                                      multivariate = TRUE,
+                                                                                      resampling_method = 'resid',
+                                                                                      seed = seed)
+
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            test_preconditioned_hierarchical_SMC_Poisson$particles[[1]]$y_samples,
+                                            test_preconditioned_hierarchical_SMC_NB$particles[[1]]$y_samples),
+                          colours = c('black', 'red', 'blue'),
+                          common_limit = c(-4, 4),
+                          title = 'C = 4 || SMC Hierarchical (Precondition)')

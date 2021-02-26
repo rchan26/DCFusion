@@ -254,7 +254,7 @@ resample_particle_y_samples <- function(N = particle_set$N,
   if (!is.null(seed)) {
     set.seed(seed)
   }
-  if (particle_set$resampled['Q']) {
+  if (particle_set$resampled['Q'] & particle_set$N==N) {
     return(particle_set)
   } else {
     indices <- resample_indices(normalised_weights = particle_set$normalised_weights,
@@ -265,8 +265,8 @@ resample_particle_y_samples <- function(N = particle_set$N,
     } else {
       particle_set$y_samples <- particle_set$y_samples[indices]
     }
-    particle_set$log_weights[] <- log(1/N)
-    particle_set$normalised_weights[] <- 1/N
+    particle_set$log_weights <- rep(log(1/N), N)
+    particle_set$normalised_weights <- rep(1/N, N)
     particle_set$ESS <- N
     particle_set$resampled['Q'] <- TRUE
     particle_set$N <- N
@@ -317,7 +317,7 @@ resample_particle_x_samples <- function(N = particle_set$N,
   if (!is.null(seed)) {
     set.seed(seed)
   }
-  if (particle_set$resampled['rho']) {
+  if (particle_set$resampled['rho'] & particle_set$N==N) {
     return(particle_set)
   } else {
     indices <- resample_indices(normalised_weights = particle_set$normalised_weights,
@@ -329,10 +329,10 @@ resample_particle_x_samples <- function(N = particle_set$N,
       particle_set$x_means <- particle_set$x_means[indices]
     }
     particle_set$x_samples <- particle_set$x_samples[indices]
-    particle_set$normalised_weights[] <- 1/N
-    particle_set$log_weights[] <- log(1/N)
+    particle_set$log_weights <- rep(log(1/N), N)
+    particle_set$normalised_weights <- rep(1/N, N)
     particle_set$ESS <- N
-    particle_set$resampled['rho'] <- TRUE
+    particle_set$resampled['Q'] <- TRUE
     particle_set$N <- N
     return(particle_set)
   }
@@ -413,10 +413,10 @@ rho_IS_univariate <- function(particles_to_fuse,
 #' @param time time T for fusion algorithm
 #' @param inv_precondition_matrices list of length m of inverse 
 #'                                  preconditioning matrices
-#' @param sum_inv_precondition_matrices the inverse of the sum of the inverse
-#'                                      precondition matrices (can be 
-#'                                      calculated by passing the inverse 
-#'                                      preconditon matrices into inv_sum_matrices())
+#' @param inverse_sum_inv_precondition_matrices the inverse of the sum of the inverse
+#'                                              precondition matrices (can be 
+#'                                              calculated by passing the inverse 
+#'                                              precondition matrices into inv_sum_matrices())
 #'
 #' @return A importance weighted particle set
 #' 
@@ -426,14 +426,14 @@ rho_IS_univariate <- function(particles_to_fuse,
 #'                                               multivariate = TRUE)
 #' precondition_mats <- lapply(samples_to_fuse, cov)
 #' inv_precondition_mats <- lapply(precondition_mats, solve)
-#' sum_inv_precondition_mats <- inv_sum_matrices(inv_precondition_mats)
+#' inv_sum_inv_precondition_mats <- inv_sum_matrices(inv_precondition_mats)
 #' particles <- rho_IS_multivariate(particles_to_fuse = particles_to_fuse,
 #'                                  N = 100,
 #'                                  dim = 2,
 #'                                  m = 2,
 #'                                  time = 0.5,
 #'                                  inv_precondition_matrices = inv_precondition_mats,
-#'                                  sum_inv_precondition_matrices = sum_inv_precondition_mats)
+#'                                  inverse_sum_inv_precondition_matrices = inv_sum_inv_precondition_mats)
 #'
 #' @export
 rho_IS_multivariate <- function(particles_to_fuse,
@@ -442,7 +442,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
                                 m,
                                 time,
                                 inv_precondition_matrices,
-                                sum_inv_precondition_matrices) {
+                                inverse_sum_inv_precondition_matrices) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("rho_IS_multivariate: particles_to_fuse must be a list of length m")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
@@ -458,7 +458,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
                                  m = m,
                                  time = time,
                                  inv_precondition_matrices = inv_precondition_matrices,
-                                 sum_inv_precondition_matrices = sum_inv_precondition_matrices)
+                                 inverse_sum_inv_precondition_matrices = inverse_sum_inv_precondition_matrices)
   ps <- new.env(parent = emptyenv())
   ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
   ps$x_samples <- rho_IS$x_samples

@@ -63,11 +63,11 @@ log_rho_univariate <- function(x, weighted_mean, time, precondition_values) {
 #' m1 <- matrix(c(1,2,3,4), nrow = 2, ncol = 2)
 #' m2 <- matrix(c(5,6,7,8), nrow = 2, ncol = 2)
 #' m3 <- matrix(c(9,10,11,12), nrow = 2, ncol = 2)
-#' inv_sum_matrices(list(m1, m2, m3))
+#' inverse_sum_matrices(list(m1, m2, m3))
 #' # returns the same as using solve() in R
 #' solve(m1+m2+m3)
-inv_sum_matrices <- function(matrices) {
-    .Call(`_hierarchicalFusion_inv_sum_matrices`, matrices)
+inverse_sum_matrices <- function(matrices) {
+    .Call(`_hierarchicalFusion_inverse_sum_matrices`, matrices)
 }
 
 #' Calculate the weighted mean (multivariate)
@@ -76,8 +76,8 @@ inv_sum_matrices <- function(matrices) {
 #' 
 #' @param matrix an (m x n) matrix where the ith row is the ith sample
 #' @param weights list of m matricies of the same dimension (n x n)
-#' @param inv_weights_sum the inverse of the sum of the weights (can be 
-#'                        calculated by passing in weights to inv_sum_matrices)
+#' @param inverse_sum_weights the inverse of the sum of the weights (can be 
+#'                        calculated by passing in weights to inverse_sum_matrices)
 #'
 #' @return proposal mean vector
 #' 
@@ -88,9 +88,9 @@ inv_sum_matrices <- function(matrices) {
 #' X <- matrix(c(1,2,3,4,5,6), nrow = 3, ncol = 2)
 #' weighted_mean_multivariate(matrix = X,
 #'                            weights = list(m1, m2, m3),
-#'                            inv_sum_matrices(list(m1, m2, m3)))
-weighted_mean_multivariate <- function(matrix, weights, inv_weights_sum) {
-    .Call(`_hierarchicalFusion_weighted_mean_multivariate`, matrix, weights, inv_weights_sum)
+#'                            inverse_sum_weights = inverse_sum_matrices(list(m1, m2, m3)))
+weighted_mean_multivariate <- function(matrix, weights, inverse_sum_weights) {
+    .Call(`_hierarchicalFusion_weighted_mean_multivariate`, matrix, weights, inverse_sum_weights)
 }
 
 #' Calculate the proposal covariance matrix
@@ -153,11 +153,11 @@ row_wise_subtraction <- function(X, vect) {
 #' # calcualte precondition matrices and their inverses
 #' precondition_matrices <- list(Sig1, Sig2, Sig3)
 #' inv_precondition_matrices <- lapply(precondition_matrices, solve)
-#' inv_weights_sum <- inv_sum_matrices(precondition_matrices)
+#' inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
 #' # calculate the weighted mean where weights are the inverse precondition matrices
 #' x_mean <- weighted_mean_multivariate(matrix = x,
 #'                                      weights = precondition_matrices,
-#'                                      inv_weights_sum = inv_weights_sum)
+#'                                      inverse_sum_weights = inverse_sum_weights)
 #' # calculate logarithm of rho with time T = 0.5
 #' log_rho_multivariate(x = x,
 #'                      x_mean = x_mean,
@@ -211,8 +211,8 @@ rho_IS_univariate_ <- function(particles_to_fuse, N, m, time, precondition_value
     .Call(`_hierarchicalFusion_rho_IS_univariate_`, particles_to_fuse, N, m, time, precondition_values)
 }
 
-rho_IS_multivariate_ <- function(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, sum_inv_precondition_matrices) {
-    .Call(`_hierarchicalFusion_rho_IS_multivariate_`, particles_to_fuse, dim, N, m, time, inv_precondition_matrices, sum_inv_precondition_matrices)
+rho_IS_multivariate_ <- function(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices) {
+    .Call(`_hierarchicalFusion_rho_IS_multivariate_`, particles_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices)
 }
 
 #' Simulate from a Multivariate Gaussian Distribution

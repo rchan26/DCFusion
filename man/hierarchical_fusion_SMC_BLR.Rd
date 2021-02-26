@@ -20,7 +20,7 @@ hierarchical_fusion_SMC_BLR(
   ESS_threshold = 0.5,
   diffusion_estimator = "Poisson",
   beta_NB = 10,
-  bounds_multiplier = 1.1,
+  bounds_multiplier = 1.5,
   seed = NULL,
   n_cores = parallel::detectCores()
 )
@@ -98,8 +98,8 @@ A list with components:
                    after each step; rho and Q for level l, node i}
   \item{precondition_matrices}{pre-conditioning matrices that were used}
   \item{resampling_method}{method that was used in resampling}
-  \item{y_inputs}{input y data for each level and node}
-  \item{X_inputs}{input X data for each level and node}
+  \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
+                     data input for the sub-posteiror in level l, node i}
   \item{diffusion_times}{vector of length (L-1), where diffusion_times[l]
                          are the times for fusion in level l}
 }

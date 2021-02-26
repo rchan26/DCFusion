@@ -36,11 +36,11 @@ x[3,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig3)
 # calcualte precondition matrices and their inverses
 precondition_matrices <- list(Sig1, Sig2, Sig3)
 inv_precondition_matrices <- lapply(precondition_matrices, solve)
-inv_weights_sum <- inv_sum_matrices(precondition_matrices)
+inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
 # calculate the weighted mean where weights are the inverse precondition matrices
 x_mean <- weighted_mean_multivariate(matrix = x,
                                      weights = precondition_matrices,
-                                     inv_weights_sum = inv_weights_sum)
+                                     inverse_sum_weights = inverse_sum_weights)
 # calculate logarithm of rho with time T = 0.5
 log_rho_multivariate(x = x,
                      x_mean = x_mean,

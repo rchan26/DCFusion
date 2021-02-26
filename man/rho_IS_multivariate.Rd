@@ -11,7 +11,7 @@ rho_IS_multivariate(
   m,
   time,
   inv_precondition_matrices,
-  sum_inv_precondition_matrices
+  inverse_sum_inv_precondition_matrices
 )
 }
 \arguments{
@@ -31,10 +31,10 @@ initialise_particle_sets() function)}
 \item{inv_precondition_matrices}{list of length m of inverse 
 preconditioning matrices}
 
-\item{sum_inv_precondition_matrices}{the inverse of the sum of the inverse
+\item{inverse_sum_inv_precondition_matrices}{the inverse of the sum of the inverse
 precondition matrices (can be 
 calculated by passing the inverse 
-preconditon matrices into inv_sum_matrices())}
+precondition matrices into inv_sum_matrices())}
 }
 \value{
 A importance weighted particle set
@@ -48,13 +48,13 @@ particles_to_fuse <- initialise_particle_sets(samples_to_fuse = samples_to_fuse,
                                               multivariate = TRUE)
 precondition_mats <- lapply(samples_to_fuse, cov)
 inv_precondition_mats <- lapply(precondition_mats, solve)
-sum_inv_precondition_mats <- inv_sum_matrices(inv_precondition_mats)
+inv_sum_inv_precondition_mats <- inv_sum_matrices(inv_precondition_mats)
 particles <- rho_IS_multivariate(particles_to_fuse = particles_to_fuse,
                                  N = 100,
                                  dim = 2,
                                  m = 2,
                                  time = 0.5,
                                  inv_precondition_matrices = inv_precondition_mats,
-                                 sum_inv_precondition_matrices = sum_inv_precondition_mats)
+                                 inverse_sum_inv_precondition_matrices = inv_sum_inv_precondition_mats)
 
 }

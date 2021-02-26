@@ -15,11 +15,11 @@ double log_rho_univariate(const Rcpp::NumericVector &x,
                           const double &time,
                           const Rcpp::NumericVector &precondition_values);
 
-arma::mat inv_sum_matrices(const Rcpp::List &matrices);
+arma::mat inverse_sum_matrices(const Rcpp::List &matrices);
 
 arma::vec weighted_mean_multivariate(const arma::mat &matrix,
                                      const Rcpp::List &weights,
-                                     const arma::mat &inv_weights_sum);
+                                     const arma::mat &inverse_sum_weights);
 
 arma::mat calculate_proposal_cov(const double &time, const Rcpp::List &weights);
 
@@ -46,7 +46,7 @@ Rcpp::List rho_IS_multivariate_(const Rcpp::List &particles_to_fuse,
                                 const int &m,
                                 const double &time,
                                 const Rcpp::List &inv_precondition_matrices,
-                                const arma::mat &sum_inv_precondition_matrices);
+                                const arma::mat &inverse_sum_inv_precondition_matrices);
 
 arma::mat mvrnormArma(const int &N,
                       const arma::vec &mu,

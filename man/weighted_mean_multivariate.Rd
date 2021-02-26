@@ -4,15 +4,15 @@
 \alias{weighted_mean_multivariate}
 \title{Calculate the weighted mean (multivariate)}
 \usage{
-weighted_mean_multivariate(matrix, weights, inv_weights_sum)
+weighted_mean_multivariate(matrix, weights, inverse_sum_weights)
 }
 \arguments{
 \item{matrix}{an (m x n) matrix where the ith row is the ith sample}
 
 \item{weights}{list of m matricies of the same dimension (n x n)}
 
-\item{inv_weights_sum}{the inverse of the sum of the weights (can be 
-calculated by passing in weights to inv_sum_matrices)}
+\item{inverse_sum_weights}{the inverse of the sum of the weights (can be 
+calculated by passing in weights to inverse_sum_matrices)}
 }
 \value{
 proposal mean vector
@@ -27,5 +27,5 @@ m3 <- matrix(c(9,10,11,12), nrow = 2, ncol = 2)
 X <- matrix(c(1,2,3,4,5,6), nrow = 3, ncol = 2)
 weighted_mean_multivariate(matrix = X,
                            weights = list(m1, m2, m3),
-                           inv_sum_matrices(list(m1, m2, m3)))
+                           inverse_sum_weights = inverse_sum_matrices(list(m1, m2, m3)))
 }

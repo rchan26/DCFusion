@@ -19,7 +19,7 @@ parallel_fusion_SMC_BLR(
   ESS_threshold = 0.5,
   diffusion_estimator = "Poisson",
   beta_NB = 10,
-  bounds_multiplier = 1.1,
+  bounds_multiplier = 1.5,
   seed = NULL,
   n_cores = parallel::detectCores(),
   level = 1,
