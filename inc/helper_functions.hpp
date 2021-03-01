@@ -34,13 +34,13 @@ double logsumexp(const Rcpp::NumericVector &x);
 
 Rcpp::List particle_ESS(const Rcpp::NumericVector &log_weights);
 
-Rcpp::List rho_IS_univariate_(const Rcpp::List &particles_to_fuse,
+Rcpp::List rho_IS_univariate_(const Rcpp::List &samples_to_fuse,
                               const int &N,
                               const int &m,
                               const double &time,
                               const Rcpp::NumericVector &precondition_values);
 
-Rcpp::List rho_IS_multivariate_(const Rcpp::List &particles_to_fuse,
+Rcpp::List rho_IS_multivariate_(const Rcpp::List &samples_to_fuse,
                                 const int &dim,
                                 const int &N,
                                 const int &m,

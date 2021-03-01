@@ -351,6 +351,7 @@ resample_particle_x_samples <- function(N = particle_set$N,
 #' @param time time T for fusion algorithm
 #' @param precondition_values vector of length m, where precondition_values[[c]]
 #'                            is the precondition value for sub-posterior c
+#' @param n_cores number of cores to use
 #'
 #' @return A importance weighted particle set
 #' 
@@ -370,7 +371,8 @@ rho_IS_univariate <- function(particles_to_fuse,
                               N,
                               m,
                               time,
-                              precondition_values) {
+                              precondition_values,
+                              n_cores = parallel::detectCores()) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("rho_IS_univariate: particles_to_fuse must be a list of length m")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
@@ -380,19 +382,37 @@ rho_IS_univariate <- function(particles_to_fuse,
   } else if (!is.vector(precondition_values) | length(precondition_values)!=m) {
     stop("rho_IS_univariate: precondition_values must be a vector of length m")
   }
-  rho_IS <- rho_IS_univariate_(particles_to_fuse = particles_to_fuse,
-                               N = N,
-                               m = m,
-                               time = time,
-                               precondition_values = precondition_values)
+  # ---------- creating parallel cluster
+  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
+  varlist <- c(ls(), "rho_IS_univariate_")
+  parallel::clusterExport(cl, envir = environment(), varlist = varlist)
+  if (!is.null(seed)) {
+    parallel::clusterSetRNGStream(cl, iseed = seed)
+  }
+  # split the y_samples that we want to combine
+  max_samples_per_core <- ceiling(N/n_cores)
+  split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
+  split_samples_to_fuse <- lapply(split_indices, function(indices) {
+    lapply(1:m, function(i) particles_to_fuse[[i]]$y_samples[indices])
+  })
+  rho_IS <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
+    rho_IS_univariate_(samples_to_fuse = split_samples_to_fuse[[core]],
+                       N = length(split_indices[[core]]),
+                       m = m,
+                       time = time,
+                       precondition_values = precondition_values)
+  })
+  parallel::stopCluster(cl)
+  # ---------- create particle
   ps <- new.env(parent = emptyenv())
-  ps$y_samples <- rep(NA, N)
-  ps$x_samples <- rho_IS$x_samples
-  ps$x_means <- rho_IS$x_means
-  ps$log_weights <- rho_IS$log_weights
-  ps$normalised_weights <- rho_IS$norm_weights$normalised_weights
-  ps$ESS <- rho_IS$norm_weights$ESS
-  ps$CESS <- c('rho' = rho_IS$norm_weights$ESS, 'Q' = NA)
+  ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
+  ps$x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
+  ps$x_means <-  unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
+  ps$log_weights <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
+  norm_weights <- particle_ESS(ps$log_weights)
+  ps$normalised_weights <- norm_weights$normalised_weights
+  ps$ESS <- norm_weights$ESS
+  ps$CESS <- c('rho' = norm_weights$ESS, 'Q' = NA)
   ps$resampled <- c('rho' = FALSE, 'Q' = FALSE)
   ps$N <- N
   class(ps) <- "particle"
@@ -417,6 +437,7 @@ rho_IS_univariate <- function(particles_to_fuse,
 #'                                              precondition matrices (can be 
 #'                                              calculated by passing the inverse 
 #'                                              precondition matrices into inverse_sum_matrices())
+#' @param n_cores number of cores to use
 #'
 #' @return A importance weighted particle set
 #' 
@@ -442,7 +463,8 @@ rho_IS_multivariate <- function(particles_to_fuse,
                                 m,
                                 time,
                                 inv_precondition_matrices,
-                                inverse_sum_inv_precondition_matrices) {
+                                inverse_sum_inv_precondition_matrices,
+                                n_cores = parallel::detectCores()) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("rho_IS_multivariate: particles_to_fuse must be a list of length m")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
@@ -452,21 +474,39 @@ rho_IS_multivariate <- function(particles_to_fuse,
   } else if (!is.list(inv_precondition_matrices) | length(inv_precondition_matrices)!=m) {
     stop("rho_IS_multivariate: inv_precondition_matrices must be a list of length m")
   }
-  rho_IS <- rho_IS_multivariate_(particles_to_fuse = particles_to_fuse,
-                                 dim = dim,
-                                 N = N,
-                                 m = m,
-                                 time = time,
-                                 inv_precondition_matrices = inv_precondition_matrices,
-                                 inverse_sum_inv_precondition_matrices = inverse_sum_inv_precondition_matrices)
+  # ---------- creating parallel cluster
+  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
+  varlist <- c(ls(), "rho_IS_multivariate_")
+  parallel::clusterExport(cl, envir = environment(), varlist = varlist)
+  if (!is.null(seed)) {
+    parallel::clusterSetRNGStream(cl, iseed = seed)
+  }
+  # split the y_samples that we want to combine
+  max_samples_per_core <- ceiling(N/n_cores)
+  split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
+  split_samples_to_fuse <- lapply(split_indices, function(indices) {
+    lapply(1:m, function(i) particles_to_fuse[[i]]$y_samples[indices,,drop = FALSE])
+  })
+  rho_IS <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
+    rho_IS_multivariate_(samples_to_fuse = split_samples_to_fuse[[core]],
+                         dim = dim,
+                         N = length(split_indices[[core]]),
+                         m = m,
+                         time = time,
+                         inv_precondition_matrices = inv_precondition_matrices,
+                         inverse_sum_inv_precondition_matrices = inverse_sum_inv_precondition_matrices)
+  })
+  parallel::stopCluster(cl)
+  # ---------- create particle
   ps <- new.env(parent = emptyenv())
   ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
-  ps$x_samples <- rho_IS$x_samples
-  ps$x_means <- rho_IS$x_means
-  ps$log_weights <- rho_IS$log_weights
-  ps$normalised_weights <- rho_IS$norm_weights$normalised_weights
-  ps$ESS <- rho_IS$norm_weights$ESS
-  ps$CESS <- c('rho' = rho_IS$norm_weights$ESS, 'Q' = NA)
+  ps$x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
+  ps$x_means <-  do.call(rbind, lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
+  ps$log_weights <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
+  norm_weights <- particle_ESS(ps$log_weights)
+  ps$normalised_weights <- norm_weights$normalised_weights
+  ps$ESS <- norm_weights$ESS
+  ps$CESS <- c('rho' = norm_weights$ESS, 'Q' = NA)
   ps$resampled <- c('rho' = FALSE, 'Q' = FALSE)
   ps$N <- N
   class(ps) <- "particle"

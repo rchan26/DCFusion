@@ -207,12 +207,12 @@ particle_ESS <- function(log_weights) {
     .Call(`_hierarchicalFusion_particle_ESS`, log_weights)
 }
 
-rho_IS_univariate_ <- function(particles_to_fuse, N, m, time, precondition_values) {
-    .Call(`_hierarchicalFusion_rho_IS_univariate_`, particles_to_fuse, N, m, time, precondition_values)
+rho_IS_univariate_ <- function(samples_to_fuse, N, m, time, precondition_values) {
+    .Call(`_hierarchicalFusion_rho_IS_univariate_`, samples_to_fuse, N, m, time, precondition_values)
 }
 
-rho_IS_multivariate_ <- function(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices) {
-    .Call(`_hierarchicalFusion_rho_IS_multivariate_`, particles_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices)
+rho_IS_multivariate_ <- function(samples_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices) {
+    .Call(`_hierarchicalFusion_rho_IS_multivariate_`, samples_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices)
 }
 
 #' Simulate from a Multivariate Gaussian Distribution

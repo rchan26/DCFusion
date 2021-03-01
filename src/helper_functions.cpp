@@ -297,7 +297,7 @@ Rcpp::List particle_ESS(const Rcpp::NumericVector &log_weights) {
 
 
 // [[Rcpp::export]]
-Rcpp::List rho_IS_univariate_(const Rcpp::List &particles_to_fuse,
+Rcpp::List rho_IS_univariate_(const Rcpp::List &samples_to_fuse,
                               const int &N,
                               const int &m,
                               const double &time,
@@ -310,8 +310,9 @@ Rcpp::List rho_IS_univariate_(const Rcpp::List &particles_to_fuse,
     Rcpp::checkUserInterrupt();
     Rcpp::NumericVector particle(m);
     for (int c=0; c < m; ++c) {
-      const Rcpp::Environment &particles = particles_to_fuse[c];
-      const Rcpp::NumericVector &sub_post_samples = particles["y_samples"];
+      // const Rcpp::Environment &particles = particles_to_fuse[c];
+      // const Rcpp::NumericVector &sub_post_samples = particles["y_samples"];
+      const Rcpp::NumericVector &sub_post_samples = samples_to_fuse[c];
       particle[c] = sub_post_samples.at(i);
     }
     x_means[i] = weighted_mean_univariate(particle, 1/precondition_values);
@@ -320,12 +321,11 @@ Rcpp::List rho_IS_univariate_(const Rcpp::List &particles_to_fuse,
   }
   return Rcpp::List::create(Named("x_samples", x_samples),
                             Named("x_means", x_means),
-                            Named("log_weights", log_rho_weights),
-                            Named("norm_weights", particle_ESS(log_rho_weights)));
+                            Named("log_weights", log_rho_weights));
 }
 
 // [[Rcpp::export]]
-Rcpp::List rho_IS_multivariate_(const Rcpp::List &particles_to_fuse,
+Rcpp::List rho_IS_multivariate_(const Rcpp::List &samples_to_fuse,
                                 const int &dim,
                                 const int &N,
                                 const int &m,
@@ -340,8 +340,9 @@ Rcpp::List rho_IS_multivariate_(const Rcpp::List &particles_to_fuse,
     Rcpp::checkUserInterrupt();
     arma::mat particle(m, dim);
     for (int c=0; c < m; ++c) {
-      const Rcpp::Environment &particles = particles_to_fuse[c];
-      const arma::mat &sub_post_samples = particles["y_samples"];
+      // const Rcpp::Environment &particles = particles_to_fuse[c];
+      // const arma::mat &sub_post_samples = particles["y_samples"];
+      const arma::mat &sub_post_samples = samples_to_fuse[c];
       particle.row(c) = sub_post_samples.row(i);
     }
     arma::vec particle_mean = weighted_mean_multivariate(particle,
@@ -356,8 +357,7 @@ Rcpp::List rho_IS_multivariate_(const Rcpp::List &particles_to_fuse,
   }
   return Rcpp::List::create(Named("x_samples", x_samples),
                             Named("x_means", x_means),
-                            Named("log_weights", log_rho_weights),
-                            Named("norm_weights", particle_ESS(log_rho_weights)));
+                            Named("log_weights", log_rho_weights));
 }
 
 //' Simulate from a Multivariate Gaussian Distribution

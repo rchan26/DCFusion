@@ -11,7 +11,8 @@ rho_IS_multivariate(
   m,
   time,
   inv_precondition_matrices,
-  inverse_sum_inv_precondition_matrices
+  inverse_sum_inv_precondition_matrices,
+  n_cores = parallel::detectCores()
 )
 }
 \arguments{
@@ -35,6 +36,8 @@ preconditioning matrices}
 precondition matrices (can be 
 calculated by passing the inverse 
 precondition matrices into inverse_sum_matrices())}
+
+\item{n_cores}{number of cores to use}
 }
 \value{
 A importance weighted particle set

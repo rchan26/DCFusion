@@ -4,7 +4,14 @@
 \alias{rho_IS_univariate}
 \title{rho Importance Sampling Step (univariate)}
 \usage{
-rho_IS_univariate(particles_to_fuse, N, m, time, precondition_values)
+rho_IS_univariate(
+  particles_to_fuse,
+  N,
+  m,
+  time,
+  precondition_values,
+  n_cores = parallel::detectCores()
+)
 }
 \arguments{
 \item{particles_to_fuse}{list of length m, where particles_to_fuse[[c]]
@@ -20,6 +27,8 @@ initialise_particle_sets() function)}
 
 \item{precondition_values}{vector of length m, where precondition_values[[c]]
 is the precondition value for sub-posterior c}
+
+\item{n_cores}{number of cores to use}
 }
 \value{
 A importance weighted particle set

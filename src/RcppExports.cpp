@@ -117,34 +117,34 @@ BEGIN_RCPP
 END_RCPP
 }
 // rho_IS_univariate_
-Rcpp::List rho_IS_univariate_(const Rcpp::List& particles_to_fuse, const int& N, const int& m, const double& time, const Rcpp::NumericVector& precondition_values);
-RcppExport SEXP _hierarchicalFusion_rho_IS_univariate_(SEXP particles_to_fuseSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP precondition_valuesSEXP) {
+Rcpp::List rho_IS_univariate_(const Rcpp::List& samples_to_fuse, const int& N, const int& m, const double& time, const Rcpp::NumericVector& precondition_values);
+RcppExport SEXP _hierarchicalFusion_rho_IS_univariate_(SEXP samples_to_fuseSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP precondition_valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type particles_to_fuse(particles_to_fuseSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type samples_to_fuse(samples_to_fuseSEXP);
     Rcpp::traits::input_parameter< const int& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const int& >::type m(mSEXP);
     Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type precondition_values(precondition_valuesSEXP);
-    rcpp_result_gen = Rcpp::wrap(rho_IS_univariate_(particles_to_fuse, N, m, time, precondition_values));
+    rcpp_result_gen = Rcpp::wrap(rho_IS_univariate_(samples_to_fuse, N, m, time, precondition_values));
     return rcpp_result_gen;
 END_RCPP
 }
 // rho_IS_multivariate_
-Rcpp::List rho_IS_multivariate_(const Rcpp::List& particles_to_fuse, const int& dim, const int& N, const int& m, const double& time, const Rcpp::List& inv_precondition_matrices, const arma::mat& inverse_sum_inv_precondition_matrices);
-RcppExport SEXP _hierarchicalFusion_rho_IS_multivariate_(SEXP particles_to_fuseSEXP, SEXP dimSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP inverse_sum_inv_precondition_matricesSEXP) {
+Rcpp::List rho_IS_multivariate_(const Rcpp::List& samples_to_fuse, const int& dim, const int& N, const int& m, const double& time, const Rcpp::List& inv_precondition_matrices, const arma::mat& inverse_sum_inv_precondition_matrices);
+RcppExport SEXP _hierarchicalFusion_rho_IS_multivariate_(SEXP samples_to_fuseSEXP, SEXP dimSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP inverse_sum_inv_precondition_matricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type particles_to_fuse(particles_to_fuseSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type samples_to_fuse(samples_to_fuseSEXP);
     Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
     Rcpp::traits::input_parameter< const int& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const int& >::type m(mSEXP);
     Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type inverse_sum_inv_precondition_matrices(inverse_sum_inv_precondition_matricesSEXP);
-    rcpp_result_gen = Rcpp::wrap(rho_IS_multivariate_(particles_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices));
+    rcpp_result_gen = Rcpp::wrap(rho_IS_multivariate_(samples_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices));
     return rcpp_result_gen;
 END_RCPP
 }
