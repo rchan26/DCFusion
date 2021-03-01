@@ -797,7 +797,8 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
                                  N = N,
                                  m = m,
                                  time = time,
-                                 precondition_values = precondition_values)
+                                 precondition_values = precondition_values,
+                                 n_cores = n_cores)
   # record ESS and CESS after rho step 
   ESS <- c('rho' = particles$ESS)
   CESS <- c('rho' = particles$CESS['rho'])

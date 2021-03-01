@@ -310,8 +310,6 @@ Rcpp::List rho_IS_univariate_(const Rcpp::List &samples_to_fuse,
     Rcpp::checkUserInterrupt();
     Rcpp::NumericVector particle(m);
     for (int c=0; c < m; ++c) {
-      // const Rcpp::Environment &particles = particles_to_fuse[c];
-      // const Rcpp::NumericVector &sub_post_samples = particles["y_samples"];
       const Rcpp::NumericVector &sub_post_samples = samples_to_fuse[c];
       particle[c] = sub_post_samples.at(i);
     }
@@ -340,8 +338,6 @@ Rcpp::List rho_IS_multivariate_(const Rcpp::List &samples_to_fuse,
     Rcpp::checkUserInterrupt();
     arma::mat particle(m, dim);
     for (int c=0; c < m; ++c) {
-      // const Rcpp::Environment &particles = particles_to_fuse[c];
-      // const arma::mat &sub_post_samples = particles["y_samples"];
       const arma::mat &sub_post_samples = samples_to_fuse[c];
       particle.row(c) = sub_post_samples.row(i);
     }
