@@ -22,23 +22,23 @@ ea_phi_biGaussian_DL <- function(x,
                                  transform_mat) {
   if (is.vector(x)) {
     if (length(x)==2) {
-      return(hierarchicalFusion:::ea_phi_biGaussian_DL_vec(x = x,
-                                                           mean_vec = mean_vec,
-                                                           sd_vec = sd_vec,
-                                                           corr = corr,
-                                                           beta = beta,
-                                                           precondition_mat = precondition_mat,
-                                                           transform_mat = transform_mat))
+      return(ea_phi_biGaussian_DL_vec(x = x,
+                                      mean_vec = mean_vec,
+                                      sd_vec = sd_vec,
+                                      corr = corr,
+                                      beta = beta,
+                                      precondition_mat = precondition_mat,
+                                      transform_mat = transform_mat))
     }
   } else if (is.matrix(x)) {
     if (dim(x)[2]==2) {
-      return(hierarchicalFusion:::ea_phi_biGaussian_DL_matrix(x = x,
-                                                              mean_vec = mean_vec,
-                                                              sd_vec = sd_vec,
-                                                              corr = corr,
-                                                              beta = beta,
-                                                              precondition_mat = precondition_mat,
-                                                              transform_mat = transform_mat))
+      return(ea_phi_biGaussian_DL_matrix(x = x,
+                                         mean_vec = mean_vec,
+                                         sd_vec = sd_vec,
+                                         corr = corr,
+                                         beta = beta,
+                                         precondition_mat = precondition_mat,
+                                         transform_mat = transform_mat))
     }
   }
   stop("ea_phi_biGaussian_DL: x must be a vector or length 2 or a matrix with 2 columns")
@@ -91,8 +91,8 @@ ea_biGaussian_DL_PT <- function(x0,
                                                          s = s,
                                                          t = t,
                                                          mult = 0.1)
-  lbound_Z <- sapply(1:2, function(dim) bes_layers[[dim]]$L)
-  ubound_Z <- sapply(1:2, function(dim) bes_layers[[dim]]$U)
+  lbound_Z <- sapply(1:2, function(d) bes_layers[[d]]$L)
+  ubound_Z <- sapply(1:2, function(d) bes_layers[[d]]$U)
   # calculate the lower and upper bounds of phi
   bounds <- ea_phi_biGaussian_DL_bounds(mean_vec = mean_vec,
                                         sd_vec = sd_vec,
@@ -121,13 +121,13 @@ ea_biGaussian_DL_PT <- function(x0,
                                                            t = t,
                                                            bessel_layers = bes_layers,
                                                            times = runif(kap, s, t))
-    phi <- hierarchicalFusion:::ea_phi_biGaussian_DL_matrix(x = t(layered_bb$simulated_path[1:2,]),
-                                                            mean_vec = mean_vec,
-                                                            sd_vec = sd_vec,
-                                                            corr = corr,
-                                                            beta = beta,
-                                                            precondition_mat = precondition_mat,
-                                                            transform_mat = transform_mats$to_X)
+    phi <- ea_phi_biGaussian_DL_matrix(x = t(layered_bb$simulated_path[1:2,]),
+                                       mean_vec = mean_vec,
+                                       sd_vec = sd_vec,
+                                       corr = corr,
+                                       beta = beta,
+                                       precondition_mat = precondition_mat,
+                                       transform_mat = transform_mats$to_X)
     log_acc_prob <- sum(log(UZ-phi))
   }
   if (logarithm) {

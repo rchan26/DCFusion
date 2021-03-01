@@ -120,10 +120,10 @@ ea_BLR_DL_PT <- function(dim,
                                                          s = s,
                                                          t = t,
                                                          mult = 0.1)
-  lbound_Z <- sapply(1:dim, function(dim) bes_layers[[dim]]$L)
-  ubound_Z <- sapply(1:dim, function(dim) bes_layers[[dim]]$U)
+  lbound_Z <- sapply(1:dim, function(d) bes_layers[[d]]$L)
+  ubound_Z <- sapply(1:dim, function(d) bes_layers[[d]]$U)
   # calculate the lower and upper bounds of phi
-  bounds <- lapply(list(z0, zt, lbound_Z, ubound_Z), function(init) {
+  bounds <- lapply(list((z0+zt)/2, lbound_Z, ubound_Z), function(init) {
     ea_phi_BLR_DL_bounds(initial_parameters = init,
                          y_labels = y_labels,
                          X = X,

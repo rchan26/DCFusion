@@ -69,7 +69,7 @@ full_posterior <- hmc_sample_BLR(data = data,
                                  C = 1,
                                  prior_means = rep(0, 5),
                                  prior_variances = rep(1, 5),
-                                 iterations = 50000,
+                                 iterations = 110000,
                                  warmup = 10000,
                                  chains = 1,
                                  seed = seed,
@@ -181,6 +181,13 @@ plot_fusion_matrix(full_post = full_posterior,
                    common_limit = c(-4, 4),
                    title = 'Hierarchical Fusion (Poisson)')
 
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            test_preconditioned_hierarchical_SMC_Poisson$proposed_samples[[1]],
+                                            test_preconditioned_hierarchical_SMC_Poisson$particles[[1]]$y_samples),
+                          colours = c('black', 'darkgreen', 'red'),
+                          common_limit = c(-4, 4),
+                          title = 'Hierarchical Fusion (Poisson)')
+
 # preconditioned hierarchical [Negative Binomial estimator]
 test_preconditioned_hierarchical_SMC_NB <- hierarchical_fusion_SMC_BLR(N_schedule = rep(20000, 4),
                                                                        m_schedule = rep(2, 4),
@@ -202,6 +209,18 @@ test_preconditioned_hierarchical_SMC_NB$particles[[1]] <- resample_particle_y_sa
                                                                                       multivariate = TRUE,
                                                                                       resampling_method = 'resid',
                                                                                       seed = seed)
+
+plot_fusion_matrix(full_post = full_posterior,
+                   fusion_post = test_preconditioned_hierarchical_SMC_NB$particles[[1]]$y_samples,
+                   common_limit = c(-4, 4),
+                   title = 'Hierarchical Fusion (Poisson)')
+
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            test_preconditioned_hierarchical_SMC_NB$proposed_samples[[1]],
+                                            test_preconditioned_hierarchical_SMC_NB$particles[[1]]$y_samples),
+                          colours = c('black', 'darkgreen', 'red'),
+                          common_limit = c(-4, 4),
+                          title = 'Hierarchical Fusion (Poisson)')
 
 compare_samples_bivariate(posteriors = list(full_posterior,
                                             test_preconditioned_hierarchical_SMC_Poisson$particles[[1]]$y_samples,
