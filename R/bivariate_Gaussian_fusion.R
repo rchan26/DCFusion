@@ -191,7 +191,7 @@ fusion_biGaussian <- function(N,
   fusion_samples <- matrix(data = NA, nrow = N, ncol = 2)
   i <- 0; iters_rho <- 0; iters_Q <- 0
   proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
-  inverse_sum_inv_precondition_matrices <- inv_sum_matrices(matrices = inv_precondition_matrices)
+  inverse_sum_inv_precondition_matrices <- inverse_sum_matrices(matrices = inv_precondition_matrices)
   while (i < N) {
     iters_rho <- iters_rho + 1
     x <- t(sapply(samples_to_fuse, function(core) core[sample(nrow(core), 1),]))
@@ -352,7 +352,7 @@ parallel_fusion_biGaussian <- function(N,
                 'time' = final['elapsed'],
                 'rho_iterations' = rho_iterations,
                 'Q_iterations' = Q_iterations,
-                'precondition_matrices' = list(inv_sum_matrices(lapply(precondition_matrices, solve)),
+                'precondition_matrices' = list(inverse_sum_matrices(lapply(precondition_matrices, solve)),
                                                precondition_matrices)))
   }
 }
@@ -872,7 +872,7 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_biGaussian: particles in particles_to_fuse must be \"particle\" objects")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) is.matrix(sub_posterior$y_samples)))) {
     stop("parallel_fusion_SMC_biGaussian: the particles' samples for y should all be matrices")
-  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ncol(sub_posterior$y_samples)!=2))) {
+  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ncol(sub_posterior$y_samples)==2))) {
     stop("parallel_fusion_SMC_biGaussian: the particles' samples for y should all be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("parallel_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
@@ -914,7 +914,7 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                    m = m,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
-                                   inverse_sum_inv_precondition_matrices = inv_sum_matrices(inv_precondition_matrices))
+                                   inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices))
   # record ESS and CESS after rho step 
   ESS <- c('rho' = particles$ESS)
   CESS <- c('rho' = particles$CESS['rho'])
@@ -976,7 +976,7 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                 'ESS' = ESS,
                 'CESS' = CESS,
                 'resampled' = resampled,
-                'precondition_matrices' = list(inv_sum_matrices(inv_precondition_matrices), 
+                'precondition_matrices' = list(inverse_sum_matrices(inv_precondition_matrices), 
                                                precondition_matrices)))
   }
 }

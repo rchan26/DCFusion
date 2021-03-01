@@ -416,7 +416,7 @@ rho_IS_univariate <- function(particles_to_fuse,
 #' @param inverse_sum_inv_precondition_matrices the inverse of the sum of the inverse
 #'                                              precondition matrices (can be 
 #'                                              calculated by passing the inverse 
-#'                                              precondition matrices into inv_sum_matrices())
+#'                                              precondition matrices into inverse_sum_matrices())
 #'
 #' @return A importance weighted particle set
 #' 
@@ -426,7 +426,7 @@ rho_IS_univariate <- function(particles_to_fuse,
 #'                                               multivariate = TRUE)
 #' precondition_mats <- lapply(samples_to_fuse, cov)
 #' inv_precondition_mats <- lapply(precondition_mats, solve)
-#' inv_sum_inv_precondition_mats <- inv_sum_matrices(inv_precondition_mats)
+#' inv_sum_inv_precondition_mats <- inverse_sum_matrices(inv_precondition_mats)
 #' particles <- rho_IS_multivariate(particles_to_fuse = particles_to_fuse,
 #'                                  N = 100,
 #'                                  dim = 2,
