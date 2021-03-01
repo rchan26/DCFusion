@@ -69,11 +69,13 @@ full_posterior <- hmc_sample_BLR(data = data,
                                  C = 1,
                                  prior_means = rep(0, 3),
                                  prior_variances = rep(1, 3),
-                                 iterations = 110000,
+                                 iterations = 1010000,
                                  warmup = 10000,
                                  chains = 1,
                                  seed = seed,
                                  output = T)
+
+min(abs(cov(full_posterior)))
 
 ##### Fusion on one core #####
 
@@ -84,9 +86,9 @@ data_split <- split_data(simulated_data, y_col_index = 1, X_col_index = 2:3, C =
 
 # preconditioned fork and join [Poisson estimator]
 test_preconditioned_SMC_Poisson <- parallel_fusion_SMC_BLR(particles_to_fuse = particles_to_fuse,
-                                                           N = 100000,
+                                                           N = 1000000,
                                                            m = 1,
-                                                           time = 0.5,
+                                                           time = 1,
                                                            dim = 3,
                                                            data_split = data_split,
                                                            prior_means = rep(0, 3),
@@ -105,9 +107,9 @@ test_preconditioned_SMC_Poisson$particles <- resample_particle_y_samples(particl
 
 # preconditioned fork and join [Negative Binomial estimator]
 test_preconditioned_SMC_NB <- parallel_fusion_SMC_BLR(particles_to_fuse = particles_to_fuse,
-                                                      N = 100000,
+                                                      N = 1000000,
                                                       m = 1,
-                                                      time = 0.5,
+                                                      time = 1,
                                                       dim = 3,
                                                       data_split = data_split,
                                                       prior_means = rep(0, 3),
@@ -129,4 +131,4 @@ compare_samples_bivariate(posteriors = list(full_posterior,
                                             test_preconditioned_SMC_NB$particles$y_samples),
                           colours = c('black', 'red', 'blue'),
                           common_limit = c(-4, 4),
-                          title = 'Fusion on one core (Precondition) || N = 100000')
+                          title = 'Fusion on one core (Precondition) || N = 1000000')
