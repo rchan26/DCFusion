@@ -283,7 +283,7 @@ Q_IS_BLR <- function(particle_set,
     stop("Q_IS_BLR: particle_set must be a \"particle\" object")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("Q_IS_BLR: data_split must be a list of length m")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(data), c("y", "X")))))) {
+  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X")))))) {
     stop("Q_IS_BLR: each item in data_split must be a list of length 2 with names y and X")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
     stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
@@ -467,7 +467,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_BLR: the particles' samples for y should all be matrices with dim columns")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("parallel_fusion_SMC_BLR: data_split must be a list of length m")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(data), c("y", "X")))))) {
+  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X")))))) {
     stop("parallel_fusion_SMC_BLR: each item in data_split must be a list of length 2 with names y and X")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
     stop("parallel_fusion_SMC_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
@@ -682,7 +682,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     stop("hierarchical_fusion_SMC_BLR: base_samples must be a list of length C")
   } else if (!is.list(data_split) | length(data_split)!=C) {
     stop("hierarchical_fusion_SMC_BLR: data_split must be a list of length C")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(data), c("y", "X")))))) {
+  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X")))))) {
     stop("hierarchical_fusion_SMC_BLR: each item in data_split must be a list of length 2 with names y and X")
   } else if (!all(sapply(1:C, function(i) is.vector(data_split[[i]]$y)))) {
     stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$y must be a vector")
