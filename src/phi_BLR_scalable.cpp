@@ -7,12 +7,12 @@ using namespace Rcpp;
 arma::vec datum_log_BLR_gradient(const arma::vec &beta,
                                  const double &y,
                                  const arma::rowvec &X,
-                                 const double &X_beta,
                                  const int &data_size,
                                  const arma::vec &prior_means,
                                  const arma::vec &prior_variances,
                                  const double &C) {
   arma::vec gradient(beta.size(), arma::fill::zeros);
+  const double X_beta = arma::dot(X_index, beta);
   for (int k=0; k < beta.size(); ++k) {
     gradient.at(k) += X.at(k)*(y-(1/(1+exp(-X_beta))));
     gradient.at(k) -= (beta.at(k)-prior_means.at(k))/(data_size*C*prior_variances.at(k));
@@ -20,13 +20,14 @@ arma::vec datum_log_BLR_gradient(const arma::vec &beta,
   return(gradient);
 }
 
-double datum_div_log_BLR_gradient(const arma::rowvec &X,
-                                  const double &X_beta,
+double datum_div_log_BLR_gradient(const arma::vec &beta,
+                                  const arma::rowvec &X,
                                   const int &data_size,
                                   const arma::vec &prior_variances,
                                   const double &C,
                                   const arma::mat &precondition_mat) {
   double divergence = 0;
+  const double X_beta = arma::dot(X_index, beta);
   const double exp_X_beta = exp(X_beta);
   for (int k=0; k < X.size(); ++k) {
     double diver = 0;
@@ -47,25 +48,22 @@ arma::vec alpha_tilde(const int &index,
                       const arma::vec &prior_means,
                       const arma::vec &prior_variances,
                       const double &C) {
-  const double y = y_labels.at(index);
-  const rowvec X_index = X.row(index);
-  const double X_beta = arma::dot(X_index, beta);
-  arma::vec grad_log = datum_log_BLR_gradient(beta,
-                                              y,
-                                              X_index,
-                                              X_beta,
-                                              data_size,
-                                              prior_means,
-                                              prior_variances,
-                                              C);
-  arma::vec grad_log_hat = datum_log_BLR_gradient(beta_hat,
-                                                  y,
-                                                  X_index,
-                                                  X_beta,
-                                                  data_size,
-                                                  prior_means,
-                                                  prior_variances,
-                                                  C);
+  const double &y = y_labels.at(index);
+  const rowvec &X_index = X.row(index);
+  const arma::vec grad_log = datum_log_BLR_gradient(beta,
+                                                    y,
+                                                    X_index,
+                                                    data_size,
+                                                    prior_means,
+                                                    prior_variances,
+                                                    C);
+  const arma::vec grad_log_hat = datum_log_BLR_gradient(beta_hat,
+                                                        y,
+                                                        X_index,
+                                                        data_size,
+                                                        prior_means,
+                                                        prior_variances,
+                                                        C);
   return(data_size*(grad_log-grad_log_hat));
 }
 
@@ -77,21 +75,19 @@ double div_alpha_tilde(const int &index,
                        const arma::vec &prior_variances,
                        const double &C,
                        const arma::mat &precondition_mat) {
-  const rowvec X_index = X.row(index);
-  const double X_beta = arma::dot(X_index, beta);
-  double div_grad_log = datum_div_log_BLR_gradient(X_index,
-                                                   X_beta,
-                                                   data_size,
-                                                   prior_variances,
-                                                   C,
-                                                   precondition_mat);
-  double div_grad_log_hat = datum_div_log_BLR_gradient(X_index,
-                                                       X_beta,
-                                                       data_size,
-                                                       prior_variances,
-                                                       C,
-                                                       precondition_mat);
-  
+  const rowvec &X_index = X.row(index);
+  const double div_grad_log = datum_div_log_BLR_gradient(beta,
+                                                         X_index,
+                                                         data_size,
+                                                         prior_variances,
+                                                         C,
+                                                         precondition_mat);
+  const double div_grad_log_hat = datum_div_log_BLR_gradient(beta_hat,
+                                                             X_index,
+                                                             data_size,
+                                                             prior_variances,
+                                                             C,
+                                                             precondition_mat);
   return(data_size*(div_grad_log-div_grad_log_hat));
 }
 
@@ -166,11 +162,12 @@ Rcpp::NumericVector ea_phi_BLR_DL_matrix_scalable(const Rcpp::List &cv_list,
   return(phi);
 }
 
-double hessian_bound(const int &dim,
-                     const arma::mat &X,
-                     const arma::vec &prior_variances,
-                     const double &C,
-                     const arma::mat &precondition_mat) {
+// [[Rcpp::export]]
+double hessian_bound_BLR(const int &dim,
+                         const arma::mat &X,
+                         const arma::vec &prior_variances,
+                         const double &C,
+                         const arma::mat &precondition_mat) {
   // ----- compute hessian matrix
   arma::mat hessian(dim, dim, arma::fill::zeros);
   int data_size = X.n_rows;

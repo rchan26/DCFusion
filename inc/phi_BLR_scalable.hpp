@@ -2,19 +2,17 @@
 #define PHI_SCALABLE_BLR
 
 #include <RcppArmadillo.h>
-#include <algorithm>
 
 arma::vec datum_log_BLR_gradient(const arma::vec &beta,
                                  const double &y,
                                  const arma::rowvec &X,
-                                 const double &X_beta,
                                  const int &data_size,
                                  const arma::vec &prior_means,
                                  const arma::vec &prior_variances,
                                  const double &C);
 
-double datum_div_log_BLR_gradient(const arma::rowvec &X,
-                                  const double &X_beta,
+double datum_div_log_BLR_gradient(const arma::vec &beta,
+                                  const arma::rowvec &X,
                                   const int &data_size,
                                   const arma::vec &prior_variances,
                                   const double &C,
@@ -59,16 +57,11 @@ Rcpp::NumericVector ea_phi_BLR_DL_matrix_scalable(const Rcpp::List &cv_list,
                                                   const arma::mat &precondition_mat,
                                                   const arma::mat &transform_mat);
 
-double maximum_distance_to_beta_hat(const double &dim,
-                                    const arma::vec &beta_hat,
-                                    const Rcpp::NumericVector &lower,
-                                    const Rcpp::NumericVector &upper);
-
-double hessian_bound(const int &dim,
-                     const arma::mat &X,
-                     const arma::vec &prior_variances,
-                     const double &C,
-                     const arma::mat &precondition_mat);
+double hessian_bound_BLR(const int &dim,
+                         const arma::mat &X,
+                         const arma::vec &prior_variances,
+                         const double &C,
+                         const arma::mat &precondition_mat);
 
 // double sqrt_norm(const arma::vec &vect);
 // 

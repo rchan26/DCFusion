@@ -56,7 +56,7 @@ maximum_distance_hypercube_to_cv <- function(dim,
                                              bessel_layers) {
   bounds <- lapply(1:dim, function(d) c(bessel_layers[[d]]$L, bessel_layers[[d]]$U))
   hypercube_Z <- as.matrix(expand.grid(bounds))
-  hypercube_X <- hypercube_Z%*%transform_mat
+  hypercube_X <- hypercube_Z %*% transform_mat
   distance_to_beta_hat <- sqrt(apply(row_wise_subtraction(hypercube_X, beta_hat)^2, 1, sum))
   return(max(distance_to_beta_hat))
 }
@@ -74,11 +74,11 @@ ea_phi_BLR_DL_bounds_scalable <- function(cv_list,
                                            beta_hat = cv_list$beta_hat,
                                            transform_mat = transform_mat,
                                            bessel_layers = bessel_layers)
-  hes_bds <- hessian_bound(dim = dim,
-                           X = X,
-                           prior_variances = prior_variances,
-                           C = C,
-                           precondition_mat = precondition_mat)
+  hes_bds <- hessian_bound_BLR(dim = dim,
+                               X = X,
+                               prior_variances = prior_variances,
+                               C = C,
+                               precondition_mat = precondition_mat)
   dsz <- cv_list$data_size
   grad_log_beta_hat <- cv_list$grad_log_beta_hat
   grad_log_beta_hat_bds <- sqrt(sum((2*grad_log_beta_hat)^2))
@@ -123,11 +123,11 @@ ea_BLR_DL_PT_scalable <- function(dim,
                                           precondition_mat = precondition_mat,
                                           transform_mat = transform_mats$to_X,
                                           bessel_layers = bes_layers)
-  LZ <- bounds$LB
-  UZ <- bounds$UB
+  LX <- bounds$LB
+  UX <- bounds$UB
   if (diffusion_estimator=='Poisson') {
     # simulate the number of points to simulate from Possion distribution
-    kap <- rpois(n = 1, lambda = (UZ-LZ)*(t-s))
+    kap <- rpois(n = 1, lambda = (UX-LX)*(t-s))
     log_acc_prob <- 0
     if (kap > 0) {
       layered_bb <- layeredBB::multi_layered_brownian_bridge(dim = dim,
@@ -146,30 +146,31 @@ ea_BLR_DL_PT_scalable <- function(dim,
                                            C = C,
                                            precondition_mat = precondition_mat,
                                            transform_mat = transform_mats$to_X)
-      terms <- (UZ-phi)
+      terms <- (UX-phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
-        cat('LZ:', LZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('UZ:', UZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('LX:', LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('UX:', UX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(UZ-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(phi-LZ):', phi-LZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        stop('Some of (UZ-phi) are < 0.')
-      } else if (any((phi - LZ) < 0)) {
-        cat('LZ:', LZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('UZ:', UZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        stop('Some of (UX-phi) are < 0.')
+      } else if (any((phi - LX) < 0)) {
+        cat('LX:', LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('UX:', UX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(UZ-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(phi-LZ):', phi-LZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        stop('Some of (phi-LZ) are < 0.')
+        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        stop('Some of (phi-LX) are < 0.')
       }
     }
     if (logarithm) {
-      return(-LZ*(t-s) - kap*log(UZ-LZ) + log_acc_prob)
+      return(-LX*(t-s) - kap*log(UX-LX) + log_acc_prob)
     } else {
-      return(exp(-LZ*(t-s) - kap*log(UZ-LZ) + log_acc_prob))
+      return(exp(-LX*(t-s) - kap*log(UX-LX) + log_acc_prob))
     }
   } else if (diffusion_estimator=="NB") {
+    stop("ea_BLR_DL_PT_scalable: NB diffusion_estimator not yet implemented")
     # integral estimate for gamma in NB estimator
     integral_estimate <- cubature::adaptIntegrate(f = function(s_) {
       ea_phi_BLR_DL_vec(beta = (z0*(t-s_)+zt*s_)/(t-s),
@@ -182,7 +183,7 @@ ea_BLR_DL_PT_scalable <- function(dim,
                         transform_mat = transform_mats$to_X)},
       lowerLimit = s,
       upperLimit = t)$integral
-    gamma_NB <- (t-s)*UZ - integral_estimate
+    gamma_NB <- (t-s)*UX - integral_estimate
     # simulate the number of points to simulate from Negative Binomial distribution
     kap <- rnbinom(1, size = beta_NB, mu = gamma_NB)
     log_acc_prob <- 0
@@ -203,30 +204,30 @@ ea_BLR_DL_PT_scalable <- function(dim,
                                            C = C,
                                            precondition_mat = precondition_mat,
                                            transform_mat = transform_mats$to_X)
-      terms <- (UZ-phi)
+      terms <- (UX-phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
-        cat('LZ:', LZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('UZ:', UZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('LX:', LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('UX:', UX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(UZ-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(phi-LZ):', phi-LZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        stop('Some of (UZ-phi) are < 0.')
-      } else if (any((phi - LZ) < 0)) {
-        cat('LZ:', LZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('UZ:', UZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        stop('Some of (UX-phi) are < 0.')
+      } else if (any((phi - LX) < 0)) {
+        cat('LX:', LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('UX:', UX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(UZ-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(phi-LZ):', phi-LZ, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        stop('Some of (phi-LZ) are < 0.')
+        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        stop('Some of (phi-LX) are < 0.')
       }
     }
     log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) -
       lgamma(beta_NB+kap) - beta_NB*log(beta_NB) - kap*log(gamma_NB)
     if (logarithm) {
-      return(-UZ*(t-s) + log_middle_term + log_acc_prob)
+      return(-UX*(t-s) + log_middle_term + log_acc_prob)
     } else {
-      return(exp(-UZ*(t-s) + log_middle_term + log_acc_prob))
+      return(exp(-UX*(t-s) + log_middle_term + log_acc_prob))
     }
   } else {
     stop("ea_BLR_DL_PT_scalable: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
@@ -656,6 +657,3 @@ hierarchical_fusion_SMC_BLR_scalable <- function(N_schedule,
               'data_inputs' = data_inputs,
               'diffusion_times' = time_schedule))
 }
-
-
-

@@ -4,6 +4,7 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
+// [[Rcpp::export]]
 arma::vec log_BLR_gradient(const arma::vec &beta,
                            const arma::vec &y_labels,
                            const arma::mat &X,
@@ -21,6 +22,7 @@ arma::vec log_BLR_gradient(const arma::vec &beta,
   return(gradient);
 }
 
+// [[Rcpp::export]]
 double div_log_BLR_gradient(const arma::mat &X,
                             const arma::vec &X_beta,
                             const arma::vec &prior_variances,
