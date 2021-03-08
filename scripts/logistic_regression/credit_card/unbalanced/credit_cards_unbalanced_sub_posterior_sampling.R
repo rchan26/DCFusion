@@ -107,7 +107,6 @@ apply(full_posterior_mcmc, 2, mean)
 ##### Sampling from sub-posterior C=2 #####
 
 data_split_2 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 2, as_dataframe = F)
-
 sub_posteriors_2 <- hmc_base_sampler_BLR(nsamples = 30000,
                                          y_split = data_split_2$y_split,
                                          X_split = data_split_2$X_split,
@@ -118,12 +117,11 @@ sub_posteriors_2 <- hmc_base_sampler_BLR(nsamples = 30000,
                                          seed = seed,
                                          output = T)
 
-# compare_samples_bivariate(sub_posteriors_2, c('red' ,'blue'), c(-4, 4))
+compare_samples_bivariate(sub_posteriors_2, c('red' ,'blue'), c(-4, 4))
 
 ##### Sampling from sub-posterior C=4 #####
 
 data_split_4 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 4, as_dataframe = F)
-
 sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = 30000,
                                          y_split = data_split_4$y_split,
                                          X_split = data_split_4$X_split,
@@ -134,12 +132,11 @@ sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = 30000,
                                          seed = seed,
                                          output = T)
 
-# compare_samples_bivariate(sub_posteriors_4, c(rep('red', 2), rep('blue', 2)), c(-4, 4))
+compare_samples_bivariate(sub_posteriors_4, c(rep('red', 2), rep('blue', 2)), c(-4, 4))
 
 ##### Sampling from sub-posterior C=8 #####
 
 data_split_8 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 8, as_dataframe = F)
-
 sub_posteriors_8 <- hmc_base_sampler_BLR(nsamples = 30000,
                                          y_split = data_split_8$y_split,
                                          X_split = data_split_8$X_split,
@@ -150,16 +147,12 @@ sub_posteriors_8 <- hmc_base_sampler_BLR(nsamples = 30000,
                                          seed = seed,
                                          output = T)
 
-# compare_samples_bivariate(sub_posteriors_8, c(rep('red', 2), rep('blue', 2), rep('green', 2), rep('purple', 2)), c(-4, 4))
+compare_samples_bivariate(sub_posteriors_8, c(rep('red', 2), rep('blue', 2), rep('green', 2), rep('purple', 2)), c(-4, 4))
 
 bandwidths <- rep(0.1, 5)
 
 consensus_mat_8 <- consensus_scott(S = 8, samples_to_combine = sub_posteriors_8, indep = F)
 consensus_sca_8 <- consensus_scott(S = 8, samples_to_combine = sub_posteriors_8, indep = T)
-
-compare_samples_univariate(1, 5, list(full_posterior, consensus_mat_8$samples, consensus_sca_8$samples), 
-                           c('black', 'red', 'blue'), bw = bandwidths)
-
 integrated_abs_distance(full_posterior, consensus_mat_8$samples, bandwidths)
 integrated_abs_distance(full_posterior, consensus_sca_8$samples, bandwidths)
 
@@ -167,22 +160,15 @@ neiswanger_8_true <- neiswanger(S = 8,
                                 samples_to_combine = sub_posteriors_8, 
                                 bw = bandwidths, 
                                 anneal = TRUE)
-
 neiswanger_8_false <- neiswanger(S = 8, 
                                  samples_to_combine = sub_posteriors_8, 
                                  bw = bandwidths, 
                                  anneal = FALSE)
-
 integrated_abs_distance(full_posterior, neiswanger_8_true$samples, bw = bandwidths)
 integrated_abs_distance(full_posterior, neiswanger_8_false$samples, bw = bandwidths)
 
 weierstrass_8_importance <- weierstrass(Samples = sub_posteriors_8, method = 'importance')
 weierstrass_8_rejection <- weierstrass(Samples = sub_posteriors_8, method = 'reject')
-
-compare_samples_univariate(1, 5, 
-                           list(full_posterior, weierstrass_8_importance$samples, weierstrass_8_rejection$samples), 
-                           c('black', 'red', 'blue'), bw = bandwidths)
-
 integrated_abs_distance(full_posterior, weierstrass_8_importance$samples, bandwidths)
 integrated_abs_distance(full_posterior, weierstrass_8_rejection$samples, bandwidths)
 
@@ -202,11 +188,6 @@ sub_posteriors_16 <- hmc_base_sampler_BLR(nsamples = 30000,
 
 consensus_mat_16 <- consensus_scott(S = 16, samples_to_combine = sub_posteriors_16, indep = F)
 consensus_sca_16 <- consensus_scott(S = 16, samples_to_combine = sub_posteriors_16, indep = T)
-
-compare_samples_univariate(1, 5, 
-                           list(full_posterior, consensus_mat_16$samples, consensus_sca_16$samples), 
-                           c('black', 'red', 'blue'), bw = bandwidths)
-
 integrated_abs_distance(full_posterior, consensus_mat_16$samples, bandwidths)
 integrated_abs_distance(full_posterior, consensus_sca_16$samples, bandwidths)
 
@@ -214,22 +195,15 @@ neiswanger_16_true <- neiswanger(S = 16,
                                 samples_to_combine = sub_posteriors_16, 
                                 bw = bandwidths, 
                                 anneal = TRUE)
-
 neiswanger_16_false <- neiswanger(S = 16, 
                                  samples_to_combine = sub_posteriors_16, 
                                  bw = bandwidths, 
                                  anneal = FALSE)
-
 integrated_abs_distance(full_posterior, neiswanger_16_true$samples, bw = bandwidths)
 integrated_abs_distance(full_posterior, neiswanger_16_false$samples, bw = bandwidths)
 
 weierstrass_16_importance <- weierstrass(Samples = sub_posteriors_16, method = 'importance')
 weierstrass_16_rejection <- weierstrass(Samples = sub_posteriors_16, method = 'reject')
-
-compare_samples_univariate(1, 5, 
-                           list(full_posterior, weierstrass_16_importance$samples, weierstrass_16_rejection$samples), 
-                           c('black', 'red', 'blue'), bw = bandwidths)
-
 integrated_abs_distance(full_posterior, weierstrass_16_importance$samples, bandwidths)
 integrated_abs_distance(full_posterior, weierstrass_16_rejection$samples, bandwidths)
 
@@ -249,11 +223,6 @@ sub_posteriors_32 <- hmc_base_sampler_BLR(nsamples = 30000,
 
 consensus_mat_32 <- consensus_scott(S = 32, samples_to_combine = sub_posteriors_32, indep = F)
 consensus_sca_32 <- consensus_scott(S = 32, samples_to_combine = sub_posteriors_32, indep = T)
-
-compare_samples_univariate(1, 5, 
-                           list(full_posterior, consensus_mat_32$samples, consensus_sca_32$samples),
-                           c('black', 'red', 'blue'), bw = bandwidths)
-
 integrated_abs_distance(full_posterior, consensus_mat_32$samples, bw = bandwidths)
 integrated_abs_distance(full_posterior, consensus_sca_32$samples, bw = bandwidths)
 
@@ -261,33 +230,16 @@ neiswanger_32_true <- neiswanger(S = 32,
                                 samples_to_combine = sub_posteriors_32, 
                                 bw = bandwidths, 
                                 anneal = TRUE)
-
 neiswanger_32_false <- neiswanger(S = 32, 
                                  samples_to_combine = sub_posteriors_32, 
                                  bw = bandwidths, 
                                  anneal = FALSE)
-
 integrated_abs_distance(full_posterior, neiswanger_32_true$samples, bw = bandwidths)
 integrated_abs_distance(full_posterior, neiswanger_32_false$samples, bw = bandwidths)
 
-weierstrass32_importance <- weierstrass(Samples = sub_posteriors_32,
+weierstrass_32_importance <- weierstrass(Samples = sub_posteriors_32,
                                         method = 'importance')
-weierstrass32_rejection <- weierstrass(Samples = sub_posteriors_32,
+weierstrass_32_rejection <- weierstrass(Samples = sub_posteriors_32,
                                        method = 'reject')
-
-integrated_abs_distance(full_posterior, weierstrass32_importance$samples, bw = bandwidths)
-integrated_abs_distance(full_posterior, weierstrass32_rejection$samples, bw = bandwidths)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+integrated_abs_distance(full_posterior, weierstrass_32_importance$samples, bw = bandwidths)
+integrated_abs_distance(full_posterior, weierstrass_32_rejection$samples, bw = bandwidths)

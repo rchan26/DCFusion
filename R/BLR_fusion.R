@@ -26,7 +26,7 @@ ea_phi_BLR_DL <- function(beta,
                                 precondition_mat = precondition_mat,
                                 transform_mat = transform_mat))
   }
-  stop("ea_phi_BLR_DL: x must be a vector or a matrix")
+  stop("ea_phi_BLR_DL: beta must be a vector or a matrix")
 }
 
 #' @export
@@ -247,7 +247,7 @@ ea_BLR_DL_PT <- function(dim,
 combine_data <- function(list_of_data, dim) {
   if (!is.list(list_of_data)) {
     stop("combine_data: list_of_data must be a list")
-  } else if (!all(sapply(list_of_data, function(sub_posterior) (is.list(sub_posterior) & identical(names(data), c("y", "X")))))) {
+  } else if (!all(sapply(list_of_data, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X")))))) {
     stop("combine_data: each item in list_of_data must be a list of length 2 with names y and X")
   } else if (!all(sapply(1:length(list_of_data), function(i) is.vector(list_of_data[[i]]$y)))) {
     stop("combine_data: for each i in 1:length(list_of_data), list_of_data[[i]]$y must be a vector")
@@ -291,6 +291,8 @@ Q_IS_BLR <- function(particle_set,
     stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
   } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)==dim))) {
     stop("Q_IS_BLR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
+  } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
+    stop("Q_IS_BLR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("Q_IS_BLR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -475,6 +477,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
   } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)==dim))) {
     stop("parallel_fusion_SMC_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix with dim columns")
+  } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
+    stop("parallel_fusion_SMC_BLR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("parallel_fusion_SMC_BLR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -690,6 +694,8 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$X must be a matrix")
   } else if (!all(sapply(1:C, function(i) ncol(data_split[[i]]$X)==dim))) {
     stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$X must be a matrix with dim columns")
+  } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
+    stop("hierarchical_fusion_SMC_BLR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
   } else if (!all(sapply(base_samples, is.matrix))) {
     stop("hierarchical_fusion_SMC_BLR: the sub-posterior samples in base_samples must be matrices")
   } else if (!all(sapply(base_samples, function(core) ncol(core)==dim))) {

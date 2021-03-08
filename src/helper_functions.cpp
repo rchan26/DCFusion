@@ -348,7 +348,7 @@ Rcpp::List rho_IS_multivariate_(const Rcpp::List &samples_to_fuse,
                                               particle_mean,
                                               time,
                                               inv_precondition_matrices);
-    x_samples[i] = particle; 
+    x_samples[i] = particle;
     x_means.row(i) = arma::trans(particle_mean);
   }
   return Rcpp::List::create(Named("x_samples", x_samples),
