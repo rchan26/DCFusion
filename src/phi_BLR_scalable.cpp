@@ -12,9 +12,9 @@ arma::vec datum_log_BLR_gradient(const arma::vec &beta,
                                  const arma::vec &prior_variances,
                                  const double &C) {
   arma::vec gradient(beta.size(), arma::fill::zeros);
-  const double X_beta = arma::dot(X_index, beta);
+  const double exp_X_beta = exp(arma::dot(X, beta));
   for (int k=0; k < beta.size(); ++k) {
-    gradient.at(k) += X.at(k)*(y-(1/(1+exp(-X_beta))));
+    gradient.at(k) += X.at(k)*(y-(1/(1+exp_X_beta)));
     gradient.at(k) -= (beta.at(k)-prior_means.at(k))/(data_size*C*prior_variances.at(k));
   }
   return(gradient);
@@ -27,8 +27,7 @@ double datum_div_log_BLR_gradient(const arma::vec &beta,
                                   const double &C,
                                   const arma::mat &precondition_mat) {
   double divergence = 0;
-  const double X_beta = arma::dot(X_index, beta);
-  const double exp_X_beta = exp(X_beta);
+  const double exp_X_beta = exp(arma::dot(X, beta));
   for (int k=0; k < X.size(); ++k) {
     double diver = 0;
     diver -= (X.at(k)*X.at(k)*exp_X_beta)/((1+exp_X_beta)*(1+exp_X_beta));
@@ -49,7 +48,7 @@ arma::vec alpha_tilde(const int &index,
                       const arma::vec &prior_variances,
                       const double &C) {
   const double &y = y_labels.at(index);
-  const rowvec &X_index = X.row(index);
+  const arma::rowvec &X_index = X.row(index);
   const arma::vec grad_log = datum_log_BLR_gradient(beta,
                                                     y,
                                                     X_index,
@@ -75,7 +74,7 @@ double div_alpha_tilde(const int &index,
                        const arma::vec &prior_variances,
                        const double &C,
                        const arma::mat &precondition_mat) {
-  const rowvec &X_index = X.row(index);
+  const arma::rowvec &X_index = X.row(index);
   const double div_grad_log = datum_div_log_BLR_gradient(beta,
                                                          X_index,
                                                          data_size,
@@ -102,8 +101,8 @@ double ea_phi_BLR_DL_vec_scalable(const Rcpp::List &cv_list,
                                   const arma::mat &precondition_mat,
                                   const arma::mat &transform_mat) {
   const arma::vec transformed_beta = transform_mat * beta;
-  const double beta_hat = cv_list["beta_hat"];
-  const int data_size = cv_list["data_size"]
+  const arma::vec beta_hat = cv_list["beta_hat"];
+  const int data_size = cv_list["data_size"];
   const double grad_log_beta_hat = cv_list["grad_log_beta_hat"];
   const int I = as<int>(Rcpp::sample(X.n_rows, 1))-1;
   const int J = as<int>(Rcpp::sample(X.n_rows, 1))-1;
