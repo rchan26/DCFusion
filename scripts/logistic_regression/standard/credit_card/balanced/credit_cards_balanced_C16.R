@@ -32,7 +32,7 @@ for (i in 3:length(time_choices)) {
                                               test_preconditioned_hierarchical_SMC_Poisson[[i]]$particles[[1]]$y_samples),
                             colours = c('black', 'darkgreen', 'red'),
                             common_limit = c(-4, 4),
-                            title = 'Credit Cards || C=16 || SMC Hierarchical [Poisson] (Precondition)')
+                            title = paste('Credit Cards - C=16 || SMC Hierarchical [Poisson] || Time =', time_choices[i]))
   test_preconditioned_hierarchical_SMC_Poisson[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson[[i]]$particles[[1]],
                                                                                                   multivariate = TRUE,
                                                                                                   resampling_method = 'resid',
@@ -63,11 +63,24 @@ for (i in 3:length(time_choices)) {
                                               test_preconditioned_hierarchical_SMC_NB[[i]]$particles[[1]]$y_samples),
                             colours = c('black', 'darkgreen', 'blue'),
                             common_limit = c(-4, 4),
-                            title = 'Credit Cards || C=16 || SMC Hierarchical [NB] (Precondition)')
+                            title = paste('Credit Cards - C=16 || SMC Hierarchical [NB] || Time =', time_choices[i]))
   compare_samples_bivariate(posteriors = list(full_posterior,
                                               test_preconditioned_hierarchical_SMC_Poisson[[i]]$particles[[1]]$y_samples,
                                               test_preconditioned_hierarchical_SMC_NB[[i]]$particles[[1]]$y_samples),
                             colours = c('black', 'red', 'blue'),
                             common_limit = c(-4, 4),
-                            title = 'Credit Cards || C=16 || SMC Hierarchical (Precondition)')
+                            title = paste('Credit Cards - C=16 || SMC Hierarchical || Time =', time_choices[i]))
 }
+
+for (i in 1:length(time_choices)) {
+  print(paste('Time: ', time_choices[i]))
+  print('Poisson Fusion')
+  print(integrated_abs_distance(full_posterior,
+                                test_preconditioned_hierarchical_SMC_Poisson[[i]]$particles[[1]]$y_samples,
+                                bandwidths))
+  print('NB Fusion')
+  print(integrated_abs_distance(full_posterior,
+                                test_preconditioned_hierarchical_SMC_NB[[i]]$particles[[1]]$y_samples,
+                                bandwidths))
+}
+

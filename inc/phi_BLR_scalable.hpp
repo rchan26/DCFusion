@@ -63,15 +63,4 @@ double hessian_bound_BLR(const int &dim,
                          const double &C,
                          const arma::mat &precondition_mat);
 
-// double sqrt_norm(const arma::vec &vect);
-// 
-// Rcpp::List ea_phi_BLR_DL_scalable_bounds(const Rcpp::List cv_list,
-//                                          const double &dim,
-//                                          const arma::mat &X,
-//                                          const arma::vec &prior_variances,
-//                                          const double &C,
-//                                          const arma::mat &precondition_mat,
-//                                          const Rcpp::NumericVector &lower,
-//                                          const Rcpp::NumericVector &upper);
-
 #endif

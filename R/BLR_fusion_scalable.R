@@ -38,14 +38,16 @@ control_variates_BLR <- function(dim,
                                  prior_means,
                                  prior_variances,
                                  C) {
-  return(list('beta_hat' = as.vector(unname(glm(formula = data$y ~ data$X[,2:dim], family = 'binomial')$coeff)),
-              'grad_log_beta_hat' = as.vector(log_BLR_gradient(beta = beta_hat,
-                                                               y_labels = data$y,
-                                                               X = data$X,
-                                                               X_beta = as.vector(data$X%*%beta_hat),
-                                                               prior_means = prior_means,
-                                                               prior_variances = prior_variances,
-                                                               C = C)),
+  beta_hat <- as.vector(unname(glm(formula = data$y ~ data$X[,2:dim], family = 'binomial')$coeff))
+  grad_log_beta_hat <- as.vector(log_BLR_gradient(beta = beta_hat,
+                                                  y_labels = data$y,
+                                                  X = data$X,
+                                                  X_beta = as.vector(data$X%*%beta_hat),
+                                                  prior_means = prior_means,
+                                                  prior_variances = prior_variances,
+                                                  C = C))
+  return(list('beta_hat' = beta_hat,
+              'grad_log_beta_hat' = grad_log_beta_hat,
               'data_size' = length(data$y)))
 }
 
@@ -321,6 +323,7 @@ Q_IS_BLR_scalable <- function(particle_set,
                               y = as.vector(y_samples[i,]),
                               s = 0,
                               t = time,
+                              cv_list = cv_lists[[c]],
                               y_labels = data_split[[c]]$y,
                               X = data_split[[c]]$X,
                               prior_means = prior_means,
