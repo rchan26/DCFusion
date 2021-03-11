@@ -42,7 +42,7 @@ control_variates_BLR <- function(dim,
   grad_log_beta_hat <- as.vector(log_BLR_gradient(beta = beta_hat,
                                                   y_labels = data$y,
                                                   X = data$X,
-                                                  X_beta = as.vector(data$X%*%beta_hat),
+                                                  X_beta = as.vector(data$X %*% beta_hat),
                                                   prior_means = prior_means,
                                                   prior_variances = prior_variances,
                                                   C = C))
@@ -58,9 +58,8 @@ maximum_distance_hypercube_to_cv <- function(dim,
                                              bessel_layers) {
   bounds <- lapply(1:dim, function(d) c(bessel_layers[[d]]$L, bessel_layers[[d]]$U))
   hypercube_Z <- as.matrix(expand.grid(bounds))
-  hypercube_X <- hypercube_Z %*% transform_mat
-  distance_to_beta_hat <- sqrt(apply(row_wise_subtraction(hypercube_X, beta_hat)^2, 1, sum))
-  return(max(distance_to_beta_hat))
+  hypercube_X <- t(transform_mat %*% t(hypercube_Z))
+  return(max(sapply(1:nrow(hypercube_X), function(i) Euclidean_distance(hypercube_X[i,], beta_hat))))
 }
 
 #' @export
@@ -76,18 +75,16 @@ ea_phi_BLR_DL_bounds_scalable <- function(cv_list,
                                            beta_hat = cv_list$beta_hat,
                                            transform_mat = transform_mat,
                                            bessel_layers = bessel_layers)
-  hes_bds <- hessian_bound_BLR(dim = dim,
-                               X = X,
-                               prior_variances = prior_variances,
-                               C = C,
-                               precondition_mat = precondition_mat)
-  dsz <- cv_list$data_size
-  grad_log_beta_hat <- cv_list$grad_log_beta_hat
-  grad_log_beta_hat_bds <- sqrt(sum((2*grad_log_beta_hat)^2))
-  precond_diag_sum <- sum(diag(precondition_mat))
-  LB <- -dsz*hes_bds*(dist*grad_log_beta_hat_bds+precond_diag_sum)
-  UB <- dsz*hes_bds*dist*(grad_log_beta_hat_bds+dsz*hes_bds*dist) + dsz*precond_diag_sum*hes_bds
-  return(list('LB' = 0.5*LB, 'UB' = 0.5*UB))
+  P_n <- hessian_bound_BLR(dim = dim,
+                           X = X,
+                           prior_variances = prior_variances,
+                           C = C,
+                           precondition_mat = precondition_mat)
+  n <- cv_list$data_size
+  alpha_bds <- sqrt(sum((2*cv_list$grad_log_beta_hat)^2))
+  sum_precond_diag <- sum(diag(precondition_mat))
+  bound <- n*P_n*dist*(alpha_bds + n*P_n*dist) + n*P_n*sum_precond_diag
+  return(list('LB' = -0.5*bound, 'UB' = 0.5*bound))
 }
 
 #' @export
@@ -156,6 +153,11 @@ ea_BLR_DL_PT_scalable <- function(dim,
         cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('Some of (UX-phi) are < 0. \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi[which((UX-phi) < 0)]:', phi[which(terms<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('which((UX-phi) < 0):', which(terms < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi[which((phi-LX) < 0)]:', phi[which(phi-LX<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('which((phi-LX) < 0):', which((phi-LX) < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         stop('Some of (UX-phi) are < 0.')
       } else if (any((phi - LX) < 0)) {
         cat('LX:', LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
@@ -163,6 +165,11 @@ ea_BLR_DL_PT_scalable <- function(dim,
         cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('Some of (phi-LX) are < 0. \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi[which((UX-phi) < 0)]:', phi[which(terms<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('which((UX-phi) < 0):', which(terms < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi[which((phi-LX) < 0)]:', phi[which(phi-LX<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('which((phi-LX) < 0):', which((phi-LX) < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         stop('Some of (phi-LX) are < 0.')
       }
     }
@@ -173,64 +180,6 @@ ea_BLR_DL_PT_scalable <- function(dim,
     }
   } else if (diffusion_estimator=="NB") {
     stop("ea_BLR_DL_PT_scalable: NB diffusion_estimator not yet implemented")
-    # integral estimate for gamma in NB estimator
-    integral_estimate <- cubature::adaptIntegrate(f = function(s_) {
-      ea_phi_BLR_DL_vec(beta = (z0*(t-s_)+zt*s_)/(t-s),
-                        y_labels = y_labels,
-                        X = X,
-                        prior_means = prior_means,
-                        prior_variances = prior_variances,
-                        C = C,
-                        precondition_mat = precondition_mat,
-                        transform_mat = transform_mats$to_X)},
-      lowerLimit = s,
-      upperLimit = t)$integral
-    gamma_NB <- (t-s)*UX - integral_estimate
-    # simulate the number of points to simulate from Negative Binomial distribution
-    kap <- rnbinom(1, size = beta_NB, mu = gamma_NB)
-    log_acc_prob <- 0
-    if (kap > 0) {
-      layered_bb <- layeredBB::multi_layered_brownian_bridge(dim = dim,
-                                                             x = z0,
-                                                             y = zt,
-                                                             s = s,
-                                                             t = t,
-                                                             bessel_layers = bes_layers,
-                                                             times = runif(kap, s, t))
-      phi <- ea_phi_BLR_DL_matrix_scalable(cv_list = cv_list,
-                                           beta = t(layered_bb$simulated_path[1:dim,]),
-                                           y_labels = y_labels,
-                                           X = X,
-                                           prior_means = prior_means,
-                                           prior_variances = prior_variances,
-                                           C = C,
-                                           precondition_mat = precondition_mat,
-                                           transform_mat = transform_mats$to_X)
-      terms <- (UX-phi)
-      log_acc_prob <- sum(log(terms))
-      if (any(terms < 0)) {
-        cat('LX:', LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('UX:', UX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        stop('Some of (UX-phi) are < 0.')
-      } else if (any((phi - LX) < 0)) {
-        cat('LX:', LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('UX:', UX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        stop('Some of (phi-LX) are < 0.')
-      }
-    }
-    log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) -
-      lgamma(beta_NB+kap) - beta_NB*log(beta_NB) - kap*log(gamma_NB)
-    if (logarithm) {
-      return(-UX*(t-s) + log_middle_term + log_acc_prob)
-    } else {
-      return(exp(-UX*(t-s) + log_middle_term + log_acc_prob))
-    }
   } else {
     stop("ea_BLR_DL_PT_scalable: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
   }

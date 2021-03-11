@@ -12,9 +12,9 @@ arma::vec datum_log_BLR_gradient(const arma::vec &beta,
                                  const arma::vec &prior_variances,
                                  const double &C) {
   arma::vec gradient(beta.size(), arma::fill::zeros);
-  const double exp_X_beta = exp(arma::dot(X, beta));
+  const double exp_minus_X_beta = exp(-arma::dot(X, beta));
   for (int k=0; k < beta.size(); ++k) {
-    gradient.at(k) += X.at(k)*(y-(1/(1+exp_X_beta)));
+    gradient.at(k) += X.at(k)*(y-(1/(1+exp_minus_X_beta)));
     gradient.at(k) -= (beta.at(k)-prior_means.at(k))/(data_size*C*prior_variances.at(k));
   }
   return(gradient);
@@ -184,7 +184,7 @@ double hessian_bound_BLR(const int &dim,
   }
   // ----- calculate spectral norm of A = precondition_mat * hessian
   arma::mat A = precondition_mat * hessian;
-  // find eigenvalues of (A^{*} * A), where A^{*} is the conjugate transpose of A
+  // find eigenvalues of (A^{*} * A), where A^{*} is the (conjugate) transpose of A
   arma::vec eigenvals = arma::eig_sym(arma::trans(A)*A);
   // obtain the largest eigenvalue
   double max_eigenval = (arma::abs(eigenvals)).max();

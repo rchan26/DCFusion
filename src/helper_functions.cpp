@@ -177,6 +177,34 @@ arma::mat calculate_proposal_cov(const double &time, const Rcpp::List &weights) 
   return(arma::inv(lambda_inv/time));
 }
 
+//' Euclidean distance between two vectors
+//' 
+//' Calculates the Euclidean distance between two vectoirs
+//'
+//' @param x vector
+//' @param y vector
+//'
+//' @return the Euclidean distance between vectors x and y
+//' 
+//' @examples
+//' x <- c(0.3, 0.2, 0.5, 1.2)
+//' y <- c(-0.5, 0.8, 1.4, 0.9)
+//' Euclidean_distance(x, y)
+//' # should equal:
+//' sqrt(0.8^2 + 0.6^2 + 0.9^2 + 0.3^2)
+// [[Rcpp::export]] 
+double Euclidean_distance(const Rcpp::NumericVector &x,
+                          const Rcpp::NumericVector &y) {
+  if (x.size()!=y.size()) {
+    stop("Euclidean_distance: x and y must be the same size");
+  }
+  double dist = 0;
+  for (int i=0; i < x.size(); ++i) {
+    dist += (x.at(i)-y.at(i))*(x.at(i)-y.at(i));
+  }
+  return(sqrt(dist));
+}
+
 //' Row-wise subtraction of a vector to rows of a matrix
 //' 
 //' Calculates the subtraction of a vector to each row of a matrix

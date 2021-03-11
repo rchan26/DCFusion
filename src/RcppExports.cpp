@@ -68,6 +68,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Euclidean_distance
+double Euclidean_distance(const Rcpp::NumericVector& x, const Rcpp::NumericVector& y);
+RcppExport SEXP _hierarchicalFusion_Euclidean_distance(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(Euclidean_distance(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
 // row_wise_subtraction
 arma::mat row_wise_subtraction(const arma::mat& X, const arma::vec& vect);
 RcppExport SEXP _hierarchicalFusion_row_wise_subtraction(SEXP XSEXP, SEXP vectSEXP) {
@@ -507,6 +519,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_hierarchicalFusion_inverse_sum_matrices", (DL_FUNC) &_hierarchicalFusion_inverse_sum_matrices, 1},
     {"_hierarchicalFusion_weighted_mean_multivariate", (DL_FUNC) &_hierarchicalFusion_weighted_mean_multivariate, 3},
     {"_hierarchicalFusion_calculate_proposal_cov", (DL_FUNC) &_hierarchicalFusion_calculate_proposal_cov, 2},
+    {"_hierarchicalFusion_Euclidean_distance", (DL_FUNC) &_hierarchicalFusion_Euclidean_distance, 2},
     {"_hierarchicalFusion_row_wise_subtraction", (DL_FUNC) &_hierarchicalFusion_row_wise_subtraction, 2},
     {"_hierarchicalFusion_log_rho_multivariate", (DL_FUNC) &_hierarchicalFusion_log_rho_multivariate, 4},
     {"_hierarchicalFusion_logsumexp", (DL_FUNC) &_hierarchicalFusion_logsumexp, 1},

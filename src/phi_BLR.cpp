@@ -17,7 +17,7 @@ arma::vec log_BLR_gradient(const arma::vec &beta,
     for (int i=0; i < X.n_rows; ++i) {
       gradient.at(k) += X.at(i,k)*(y_labels.at(i)-(1/(1+exp(-X_beta.at(i)))));
     }
-    gradient.at(k) -= ((beta.at(k)-prior_means.at(k))/(C*prior_variances.at(k)));
+    gradient.at(k) -= (beta.at(k)-prior_means.at(k))/(C*prior_variances.at(k));
   }
   return(gradient);
 }
@@ -33,7 +33,7 @@ double div_log_BLR_gradient(const arma::mat &X,
     double diver = 0;
     for (int i=0; i < X.n_rows; ++i) {
       const double &exp_X_beta = exp(X_beta.at(i));
-      diver -= ((X.at(i,k)*X.at(i,k)*exp_X_beta)/((1+exp_X_beta)*(1+exp_X_beta)));
+      diver -= (X.at(i,k)*X.at(i,k)*exp_X_beta)/((1+exp_X_beta)*(1+exp_X_beta));
     }
     diver -= 1/(C*prior_variances.at(k));
     diver *= precondition_mat.at(k,k);

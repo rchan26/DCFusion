@@ -111,6 +111,25 @@ calculate_proposal_cov <- function(time, weights) {
     .Call(`_hierarchicalFusion_calculate_proposal_cov`, time, weights)
 }
 
+#' Euclidean distance between two vectors
+#' 
+#' Calculates the Euclidean distance between two vectoirs
+#'
+#' @param x vector
+#' @param y vector
+#'
+#' @return the Euclidean distance between vectors x and y
+#' 
+#' @examples
+#' x <- c(0.3, 0.2, 0.5, 1.2)
+#' y <- c(-0.5, 0.8, 1.4, 0.9)
+#' Euclidean_distance(x, y)
+#' # should equal:
+#' sqrt(0.8^2 + 0.6^2 + 0.9^2 + 0.3^2)
+Euclidean_distance <- function(x, y) {
+    .Call(`_hierarchicalFusion_Euclidean_distance`, x, y)
+}
+
 #' Row-wise subtraction of a vector to rows of a matrix
 #' 
 #' Calculates the subtraction of a vector to each row of a matrix
