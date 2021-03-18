@@ -94,19 +94,50 @@ compare_samples_bivariate(posteriors = c(sub_posteriors_4, list(full_posterior))
 
 sapply(sub_posteriors_4, function(sub_posterior) min(abs(cov(sub_posterior))))
 
-###### Consensus Monte Carlo #####
-
-# perform consensus Monte Carlo
-consensus_mat <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = T)
-consensus_scale <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = F)
-compare_samples_bivariate(posteriors = list(full_posterior, consensus_mat$samples, consensus_scale$samples),
-                          colours = c('black', 'red', 'blue'),
-                          common_limit = c(-4, 4),
-                          title = 'C = 4 || Consensus Monte Carlo')
-
 ###### Standard fork and join #####
 
 particles_to_fuse <- initialise_particle_sets(samples_to_fuse = sub_posteriors_4, multivariate = TRUE)
+
+# standard fork and join [Poisson estimator]
+test_standard_SMC_Poisson_scalable <- list()
+times <- c(0.001, 0.005, 0.01, 0.02)
+for (i in 1:length(times)) {
+  test_standard_SMC_Poisson_scalable[[i]] <- parallel_fusion_SMC_BLR_scalable(particles_to_fuse = particles_to_fuse,
+                                                                              N = 100000,
+                                                                              m = 4,
+                                                                              time = times[i],
+                                                                              dim = 3,
+                                                                              data_split = data_split_4,
+                                                                              prior_means = rep(0, 3),
+                                                                              prior_variances = rep(1, 3),
+                                                                              C = 4,
+                                                                              precondition_matrices = lapply(1:4, function(i) diag(1, 3)),
+                                                                              resampling_method = 'resid',
+                                                                              ESS_threshold = 0.5,
+                                                                              diffusion_estimator = 'Poisson',
+                                                                              seed = seed)
+  test_standard_SMC_Poisson_scalable[[i]]$particles <- resample_particle_y_samples(particle_set = test_standard_SMC_Poisson_scalable[[i]]$particles,
+                                                                                   multivariate = TRUE,
+                                                                                   resampling_method = 'resid',
+                                                                                   seed = seed)
+}
+
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            test_standard_SMC_Poisson_scalable[[1]]$particles$y_samples,
+                                            test_standard_SMC_Poisson_scalable[[2]]$particles$y_samples,
+                                            test_standard_SMC_Poisson_scalable[[3]]$particles$y_samples,
+                                            test_standard_SMC_Poisson_scalable[[4]]$particles$y_samples),
+                          colours = c('black', 'red', 'blue', 'darkgreen', 'orange'),
+                          common_limit = c(-4, 4),
+                          title = 'C = 4 || SMC Fork-and-Join (Standard) || N = 100000')
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            test_standard_SMC_Poisson_scalable[[1]]$proposed_samples,
+                                            test_standard_SMC_Poisson_scalable[[2]]$proposed_samples,
+                                            test_standard_SMC_Poisson_scalable[[3]]$proposed_samples,
+                                            test_standard_SMC_Poisson_scalable[[4]]$proposed_samples),
+                          colours = c('black', 'red', 'blue', 'darkgreen', 'orange'),
+                          common_limit = c(-4, 4),
+                          title = 'C = 4 || SMC Fork-and-Join (Standard) || N = 100000')
 
 # preconditioned fork and join [Poisson estimator]
 test_preconditioned_SMC_Poisson_scalable <- parallel_fusion_SMC_BLR_scalable(particles_to_fuse = particles_to_fuse,
@@ -123,34 +154,14 @@ test_preconditioned_SMC_Poisson_scalable <- parallel_fusion_SMC_BLR_scalable(par
                                                                              ESS_threshold = 0.5,
                                                                              diffusion_estimator = 'Poisson',
                                                                              seed = seed)
-test_preconditioned_SMC_Poisson_scalable$particles <- resample_particle_y_samples(particle_set = test_preconditioned_SMC_Poisson_scalable$particles,
+ltest_preconditioned_SMC_Poisson_scalable$particles <- resample_particle_y_samples(particle_set = test_preconditioned_SMC_Poisson_scalable$particles,
                                                                                   multivariate = TRUE,
                                                                                   resampling_method = 'resid',
                                                                                   seed = seed)
-parallel_fusion_BLR
-# preconditioned fork and join [Negative Binomial estimator]
-test_preconditioned_SMC_NB_scalable <- parallel_fusion_SMC_BLR_scalable(particles_to_fuse = particles_to_fuse,
-                                                                        N = 100000,
-                                                                        m = 4,
-                                                                        time = 0.5,
-                                                                        dim = 3,
-                                                                        data_split = data_split_4,
-                                                                        prior_means = rep(0, 3),
-                                                                        prior_variances = rep(1, 3),
-                                                                        C = 4,
-                                                                        precondition_matrices = lapply(sub_posteriors_4, cov),
-                                                                        resampling_method = 'resid',
-                                                                        ESS_threshold = 0.5,
-                                                                        diffusion_estimator = 'NB',
-                                                                        seed = seed)
-test_preconditioned_SMC_NB_scalable$particles <- resample_particle_y_samples(particle_set = test_preconditioned_SMC_NB_scalable$particles,
-                                                                             multivariate = TRUE,
-                                                                             resampling_method = 'resid',
-                                                                             seed = seed)
 
 compare_samples_bivariate(posteriors = list(full_posterior,
                                             test_preconditioned_SMC_Poisson_scalable$particles$y_samples,
-                                            test_preconditioned_SMC_NB_scalable$particles$y_samples),
+                                            test_standard_SMC_Poisson_scalable$particles$y_samples),
                           colours = c('black', 'red', 'blue'),
                           common_limit = c(-4, 4),
                           title = 'C = 4 || SMC Fork-and-Join (Precondition) || N = 100000')

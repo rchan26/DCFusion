@@ -289,16 +289,40 @@ ea_phi_BLR_DL_matrix <- function(beta, y_labels, X, prior_means, prior_variances
     .Call(`_hierarchicalFusion_ea_phi_BLR_DL_matrix`, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat)
 }
 
-ea_phi_BLR_DL_vec_scalable <- function(cv_list, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat) {
-    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_vec_scalable`, cv_list, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat)
+log_BLR_gradient_Z <- function(beta, y_labels, X_beta, transformed_X, prior_means, prior_variances, C, precondition_mat, transform_mat) {
+    .Call(`_hierarchicalFusion_log_BLR_gradient_Z`, beta, y_labels, X_beta, transformed_X, prior_means, prior_variances, C, precondition_mat, transform_mat)
 }
 
-ea_phi_BLR_DL_matrix_scalable <- function(cv_list, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat) {
-    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_matrix_scalable`, cv_list, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat)
+div_log_BLR_gradient_Z <- function(X_beta, transformed_X, prior_variances, C, precondition_mat, transform_mat) {
+    .Call(`_hierarchicalFusion_div_log_BLR_gradient_Z`, X_beta, transformed_X, prior_variances, C, precondition_mat, transform_mat)
+}
+
+ea_phi_BLR_DL_vec_Z <- function(beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat) {
+    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_vec_Z`, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat, transform_mat)
+}
+
+alpha_tilde <- function(index, beta, beta_hat, y_labels, X, data_size, prior_means, prior_variances, C) {
+    .Call(`_hierarchicalFusion_alpha_tilde`, index, beta, beta_hat, y_labels, X, data_size, prior_means, prior_variances, C)
+}
+
+div_alpha_tilde <- function(index, beta, beta_hat, X, data_size, prior_variances, C, precondition_mat) {
+    .Call(`_hierarchicalFusion_div_alpha_tilde`, index, beta, beta_hat, X, data_size, prior_variances, C, precondition_mat)
+}
+
+ea_phi_BLR_DL_vec_scalable <- function(cv_list, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_vec_scalable`, cv_list, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat)
+}
+
+ea_phi_BLR_DL_matrix_scalable <- function(cv_list, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_matrix_scalable`, cv_list, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat)
 }
 
 hessian_bound_BLR <- function(dim, X, prior_variances, C, precondition_mat) {
     .Call(`_hierarchicalFusion_hessian_bound_BLR`, dim, X, prior_variances, C, precondition_mat)
+}
+
+spectral_norm_hessian <- function(dim, beta, X, index, prior_variances, C, precondition_mat) {
+    .Call(`_hierarchicalFusion_spectral_norm_hessian`, dim, beta, X, index, prior_variances, C, precondition_mat)
 }
 
 ea_phi_biGaussian_DL_vec <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {

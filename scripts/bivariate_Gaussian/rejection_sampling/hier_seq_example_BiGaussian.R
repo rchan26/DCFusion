@@ -14,13 +14,13 @@ corr <- 0.9/(sd[1]*sd[2])
 fusion_time <- 1
 
 # sampling from the sub-posteriors (target at inverse temperature 1/8)
-input_samples <- lapply(1:8, function(i) mvrnormArma_tempered(10000,
+input_samples <- lapply(1:8, function(i) mvrnormArma_tempered(1000000,
                                                               mu = mean,
                                                               Sigma = cov_mat,
                                                               beta = 1/8))
 
 # sample from true target density
-true_samples <- mvrnormArma(100000, mu = mean, Sigma = cov_mat)
+true_samples <- mvrnormArma(1000000, mu = mean, Sigma = cov_mat)
 true_kde <- MASS::kde2d(true_samples[,1], true_samples[,2], n = 50)
 image(true_kde)
 contour(true_kde, add = T)
@@ -37,7 +37,7 @@ test_hier_standard <- hierarchical_fusion_biGaussian(N_schedule = rep(10000, 3),
                                                      corr = corr,
                                                      start_beta = 1/8,
                                                      precondition = FALSE,
-                                                     seed = seed, 
+                                                     seed = seed,
                                                      n_cores = 12)
 kde_hier_standard <- MASS::kde2d(test_hier_standard$samples[[1]][,1],
                                  test_hier_standard$samples[[1]][,2], 

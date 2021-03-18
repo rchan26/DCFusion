@@ -34,4 +34,5 @@ double ea_phi_biGaussian_DL_LB(const arma::vec &mean_vec,
                                const double &corr,
                                const double &beta,
                                const arma::mat &precondition_mat);
+
 #endif
