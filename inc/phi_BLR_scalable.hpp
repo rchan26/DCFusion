@@ -37,25 +37,23 @@ double div_alpha_tilde(const int &index,
                        const double &C,
                        const arma::mat &precondition_mat);
 
-double ea_phi_BLR_DL_vec_scalable(const Rcpp::List &cv_list,
-                                  const arma::vec &beta,
-                                  const arma::vec &y_labels,
-                                  const arma::mat &X,
-                                  const arma::vec &prior_means,
-                                  const arma::vec &prior_variances,
-                                  const double &C,
-                                  const arma::mat &precondition_mat,
-                                  const arma::mat &transform_mat);
+Rcpp::List ea_phi_BLR_DL_vec_scalable(const Rcpp::List &cv_list,
+                                      const arma::vec &beta,
+                                      const arma::vec &y_labels,
+                                      const arma::mat &X,
+                                      const arma::vec &prior_means,
+                                      const arma::vec &prior_variances,
+                                      const double &C,
+                                      const arma::mat &precondition_mat);
 
-Rcpp::NumericVector ea_phi_BLR_DL_matrix_scalable(const Rcpp::List &cv_list,
-                                                  const arma::mat &beta,
-                                                  const arma::vec &y_labels,
-                                                  const arma::mat &X,
-                                                  const arma::vec &prior_means,
-                                                  const arma::vec &prior_variances,
-                                                  const double &C,
-                                                  const arma::mat &precondition_mat,
-                                                  const arma::mat &transform_mat);
+Rcpp::List ea_phi_BLR_DL_matrix_scalable(const Rcpp::List &cv_list,
+                                         const arma::mat &beta,
+                                         const arma::vec &y_labels,
+                                         const arma::mat &X,
+                                         const arma::vec &prior_means,
+                                         const arma::vec &prior_variances,
+                                         const double &C,
+                                         const arma::mat &precondition_mat);
 
 double hessian_bound_BLR(const int &dim,
                          const arma::mat &X,

@@ -6,8 +6,7 @@ ea_phi_BLR_DL_scalable <- function(cv_list,
                                    prior_means,
                                    prior_variances,
                                    C,
-                                   precondition_mat,
-                                   transform_mat) {
+                                   precondition_mat) {
   if (is.vector(beta)) {
     return(ea_phi_BLR_DL_vec_scalable(cv_list = cv_list,
                                       beta = beta,
@@ -16,8 +15,7 @@ ea_phi_BLR_DL_scalable <- function(cv_list,
                                       prior_means = prior_means,
                                       prior_variances = prior_variances,
                                       C = C,
-                                      precondition_mat = precondition_mat,
-                                      transform_mat = transform_mat))
+                                      precondition_mat = precondition_mat))
   } else if (is.matrix(beta)) {
     return(ea_phi_BLR_DL_matrix_scalable(cv_list = cv_list,
                                          beta = beta,
@@ -26,8 +24,7 @@ ea_phi_BLR_DL_scalable <- function(cv_list,
                                          prior_means = prior_means,
                                          prior_variances = prior_variances,
                                          C = C,
-                                         precondition_mat = precondition_mat,
-                                         transform_mat = transform_mat))
+                                         precondition_mat = precondition_mat))
   }
   stop("ea_phi_BLR_DL_scalable: beta must be a vector or a matrix")
 }
@@ -37,17 +34,27 @@ control_variates_BLR <- function(dim,
                                  data,
                                  prior_means,
                                  prior_variances,
-                                 C) {
+                                 C,
+                                 precondition_mat) {
   beta_hat <- as.vector(unname(glm(formula = data$y ~ data$X[,2:dim], family = 'binomial')$coeff))
+  X_beta <- as.vector(data$X %*% beta_hat)
   grad_log_beta_hat <- as.vector(log_BLR_gradient(beta = beta_hat,
                                                   y_labels = data$y,
                                                   X = data$X,
-                                                  X_beta = as.vector(data$X %*% beta_hat),
+                                                  X_beta = X_beta,
                                                   prior_means = prior_means,
                                                   prior_variances = prior_variances,
                                                   C = C))
+  t1 <- as.vector(t(grad_log_beta_hat)%*%precondition_mat%*%grad_log_beta_hat)
+  t2 <- div_log_BLR_gradient(X = data$X,
+                             X_beta = X_beta,
+                             prior_variances = prior_variances,
+                             C = C, 
+                             precondition_mat = precondition_mat)
   return(list('beta_hat' = beta_hat,
               'grad_log_beta_hat' = grad_log_beta_hat,
+              'div_grad_log_beta_hat' = t2,
+              'constant' = 0.5*(t1+t2),
               'data_size' = length(data$y)))
 }
 
@@ -83,8 +90,14 @@ ea_phi_BLR_DL_bounds_scalable <- function(cv_list,
   n <- cv_list$data_size
   alpha_bds <- sqrt(sum((2*cv_list$grad_log_beta_hat)^2))
   sum_precond_diag <- sum(diag(precondition_mat))
-  bound <- n*P_n*dist*(alpha_bds + n*P_n*dist) + n*P_n*sum_precond_diag
-  return(list('LB' = -0.5*bound, 'UB' = 0.5*bound))
+  bound <- n*P_n*dist*(alpha_bds+n*P_n*dist) + n*P_n*sum_precond_diag
+  return(list('LB' = -0.5*bound + cv_list$constant,
+              'UB' = 0.5*bound + cv_list$constant,
+              'dist' = dist,
+              'P_n' = P_n,
+              'n' = n,
+              'alpha_bds' = alpha_bds,
+              'sum_precond_diag' = sum_precond_diag))
 }
 
 #' @export
@@ -136,40 +149,106 @@ ea_BLR_DL_PT_scalable <- function(dim,
                                                              t = t,
                                                              bessel_layers = bes_layers,
                                                              times = runif(kap, s, t))
+      sim_path <- t(transform_mats$to_X %*% layered_bb$simulated_path[1:dim,])
       phi <- ea_phi_BLR_DL_matrix_scalable(cv_list = cv_list,
-                                           beta = t(layered_bb$simulated_path[1:dim,]),
+                                           beta = sim_path,
                                            y_labels = y_labels,
                                            X = X,
                                            prior_means = prior_means,
                                            prior_variances = prior_variances,
                                            C = C,
-                                           precondition_mat = precondition_mat,
-                                           transform_mat = transform_mats$to_X)
-      terms <- (UX-phi)
+                                           precondition_mat = precondition_mat)
+      terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
+        cat('########## \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('LX:', LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('UX:', UX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('kap:', kap, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi:', phi$phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('Some of (UX-phi) are < 0. \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('phi[which((UX-phi) < 0)]:', phi[which(terms<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('##### Some of (UX-phi) are < 0. \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi[which((UX-phi) < 0)]:', phi$phi[which(terms<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('which((UX-phi) < 0):', which(terms < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('phi[which((phi-LX) < 0)]:', phi[which(phi-LX<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('which((phi-LX) < 0):', which((phi-LX) < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi[which((phi-LX) < 0)]:', phi$phi[which(phi$phi-LX<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('which((phi-LX) < 0):', which((phi$phi-LX) < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        hes_spectral_norm_I <- sapply(1:kap, function(i) spectral_norm_hessian(dim = dim,
+                                                                               beta = sim_path[i,],
+                                                                               X = X,
+                                                                               index = phi$I[i],
+                                                                               prior_variances = prior_variances,
+                                                                               C = C,
+                                                                               precondition_mat = precondition_mat))
+        hes_spectral_norm_J <- sapply(1:kap, function(i) spectral_norm_hessian(dim = dim,
+                                                                               beta = sim_path[i,],
+                                                                               X = X,
+                                                                               index = phi$J[i],
+                                                                               prior_variances = prior_variances,
+                                                                               C = C,
+                                                                               precondition_mat = precondition_mat))
+        cat('bounds$P_n:', bounds$P_n, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('hes_spectral_norm_I:', hes_spectral_norm_I, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('hes_spectral_norm_J:', hes_spectral_norm_J, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        if (any(hes_spectral_norm_I > bounds$P_n)) {
+          cat('##### Some of hes_spectral_norm_I < bounds$P_n \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+          cat('hes_spectral_norm_I[which(hes_spectral_norm_I > bounds$P_n)]:', hes_spectral_norm_I[which(hes_spectral_norm_I > bounds$P_n)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+          cat('which(hes_spectral_norm_I > bounds$P_n):', which(hes_spectral_norm_I > bounds$P_n),  '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        } else {
+          cat('##### hes_spectral_norm_I < bounds$P_n \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        }
+        if (any(hes_spectral_norm_J > bounds$P_n)) {
+          cat('##### Some of hes_spectral_norm_J > bounds$P_n \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+          cat('hes_spectral_norm_J[which(hes_spectral_norm_I > bounds$P_n)]:', hes_spectral_norm_J[which(hes_spectral_norm_J > bounds$P_n)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+          cat('which(hes_spectral_norm_J > bounds$P_n):', which(hes_spectral_norm_J > bounds$P_n),  '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        } else {
+          cat('##### hes_spectral_norm_J < bounds$P_n \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        }
         stop('Some of (UX-phi) are < 0.')
-      } else if (any((phi - LX) < 0)) {
+      } else if (any((phi$phi - LX) < 0)) {
+        cat('########## \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('LX:', LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('UX:', UX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('phi:', phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('kap:', kap, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi:', phi$phi, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('(UX-phi):', terms, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('(phi-LX):', phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('Some of (phi-LX) are < 0. \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('phi[which((UX-phi) < 0)]:', phi[which(terms<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('##### Some of (phi-LX) are < 0. \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi[which((UX-phi) < 0)]:', phi$phi[which(terms<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
         cat('which((UX-phi) < 0):', which(terms < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('phi[which((phi-LX) < 0)]:', phi[which(phi-LX<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
-        cat('which((phi-LX) < 0):', which((phi-LX) < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('phi[which((phi-LX) < 0)]:', phi$phi[which(phi$phi-LX<0)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('which((phi-LX) < 0):', which((phi$phi-LX) < 0), '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        hes_spectral_norm_I <- sapply(1:kap, function(i) spectral_norm_hessian(dim = dim,
+                                                                               beta = sim_path[i,],
+                                                                               X = X,
+                                                                               index = phi$I[i],
+                                                                               prior_variances = prior_variances,
+                                                                               C = C,
+                                                                               precondition_mat = precondition_mat))
+        hes_spectral_norm_J <- sapply(1:kap, function(i) spectral_norm_hessian(dim = dim,
+                                                                               beta = sim_path[i,],
+                                                                               X = X,
+                                                                               index = phi$J[i],
+                                                                               prior_variances = prior_variances,
+                                                                               C = C,
+                                                                               precondition_mat = precondition_mat))
+        cat('bounds$P_n:', bounds$P_n, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('hes_spectral_norm_I:', hes_spectral_norm_I, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        cat('hes_spectral_norm_J:', hes_spectral_norm_J, '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        if (any(hes_spectral_norm_I > bounds$P_n)) {
+          cat('##### Some of hes_spectral_norm_I < bounds$P_n \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+          cat('hes_spectral_norm_I[which(hes_spectral_norm_I > bounds$P_n)]:', hes_spectral_norm_I[which(hes_spectral_norm_I > bounds$P_n)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+          cat('which(hes_spectral_norm_I > bounds$P_n):', which(hes_spectral_norm_I > bounds$P_n),  '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        } else {
+          cat('##### hes_spectral_norm_I < bounds$P_n \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        }
+        if (any(hes_spectral_norm_J > bounds$P_n)) {
+          cat('##### Some of hes_spectral_norm_J > bounds$P_n \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+          cat('hes_spectral_norm_J[which(hes_spectral_norm_I > bounds$P_n)]:', hes_spectral_norm_J[which(hes_spectral_norm_J > bounds$P_n)], '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+          cat('which(hes_spectral_norm_J > bounds$P_n):', which(hes_spectral_norm_J > bounds$P_n),  '\n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        } else {
+          cat('##### hes_spectral_norm_J < bounds$P_n \n', file = "SMC_BLR_scalable_bounds.txt", append = T)
+        }
         stop('Some of (phi-LX) are < 0.')
       }
     }
@@ -236,7 +315,8 @@ Q_IS_BLR_scalable <- function(particle_set,
                          data = data_split[[c]],
                          prior_means = prior_means,
                          prior_variances = prior_variances,
-                         C = C)
+                         C = C,
+                         precondition_mat = precondition_matrices[[c]])
   })
   proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
   N <- particle_set$N
