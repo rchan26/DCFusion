@@ -63,7 +63,7 @@ double ea_phi_BLR_DL_vec(const arma::vec &beta,
                                               C);
   const double t1 = as_scalar((arma::trans(gradient)*precondition_mat)*gradient);
   const arma::mat hessian = log_BLR_hessian(X, X_beta, prior_variances, C);
-  const double t2 = arma::accu(precondition_mat % hessian);
+  const double t2 = arma::trace(precondition_mat*hessian);
   return(0.5*(t1+t2));
 }
 
@@ -131,12 +131,12 @@ Rcpp::NumericVector ea_phi_BLR_DL_matrix(const arma::mat &beta,
 // }
 
 // // [[Rcpp::export]]
-// double div_log_BLR_gradient_Z(const arma::vec &X_beta,
-//                               const arma::mat &transformed_X,
-//                               const arma::vec &prior_variances,
-//                               const double &C,
-//                               const arma::mat &precondition_mat,
-//                               const arma::mat &transform_mat) {
+// double term2_Z(const arma::vec &X_beta,
+//                const arma::mat &transformed_X,
+//                const arma::vec &prior_variances,
+//                const double &C,
+//                const arma::mat &precondition_mat,
+//                const arma::mat &transform_mat) {
 //   double divergence = 0;
 //   for (int k=0; k < transformed_X.n_cols; ++k) {
 //     for (int i=0; i < transformed_X.n_rows; ++i) {
@@ -172,11 +172,21 @@ Rcpp::NumericVector ea_phi_BLR_DL_matrix(const arma::mat &beta,
 //                                                 precondition_mat,
 //                                                 transform_mat);
 //   const double t1 = arma::dot(gradient, gradient);
-//   const double t2 = div_log_BLR_gradient_Z(X_beta,
-//                                            transformed_X,
-//                                            prior_variances,
-//                                            C,
-//                                            precondition_mat,
-//                                            transform_mat);
+//   const double t2 = term2_Z(X_beta,
+//                             transformed_X,
+//                             prior_variances,
+//                             C,
+//                             precondition_mat,
+//                             transform_mat);
 //   return(0.5*(t1+t2));
+// }
+
+// // [[Rcpp::export]]
+// double term2_X(const arma::mat &X,
+//                const arma::vec &X_beta,
+//                const arma::vec &prior_variances,
+//                const double &C,
+//                const arma::mat &precondition_mat) {
+//   const arma::mat hessian = log_BLR_hessian(X, X_beta, prior_variances, C);
+//   return(arma::trace(precondition_mat * hessian));
 // }

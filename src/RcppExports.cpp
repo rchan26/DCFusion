@@ -326,9 +326,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// hessian_bound_BLR
-double hessian_bound_BLR(const int& dim, const arma::mat& X, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
-RcppExport SEXP _hierarchicalFusion_hessian_bound_BLR(SEXP dimSEXP, SEXP XSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
+// spectral_norm_bound_BLR
+double spectral_norm_bound_BLR(const int& dim, const arma::mat& X, const arma::vec& prior_variances, const double& C, const arma::mat& sqrt_precondition_mat, const arma::mat& precondition_mat);
+RcppExport SEXP _hierarchicalFusion_spectral_norm_bound_BLR(SEXP dimSEXP, SEXP XSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_precondition_matSEXP, SEXP precondition_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -336,14 +336,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type sqrt_precondition_mat(sqrt_precondition_matSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
-    rcpp_result_gen = Rcpp::wrap(hessian_bound_BLR(dim, X, prior_variances, C, precondition_mat));
+    rcpp_result_gen = Rcpp::wrap(spectral_norm_bound_BLR(dim, X, prior_variances, C, sqrt_precondition_mat, precondition_mat));
     return rcpp_result_gen;
 END_RCPP
 }
-// spectral_norm_hessian
-double spectral_norm_hessian(const int& dim, const arma::vec& beta, const arma::mat& X, const int& index, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
-RcppExport SEXP _hierarchicalFusion_spectral_norm_hessian(SEXP dimSEXP, SEXP betaSEXP, SEXP XSEXP, SEXP indexSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
+// spectral_norm_BLR
+double spectral_norm_BLR(const int& dim, const arma::vec& beta, const arma::mat& X, const int& index, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
+RcppExport SEXP _hierarchicalFusion_spectral_norm_BLR(SEXP dimSEXP, SEXP betaSEXP, SEXP XSEXP, SEXP indexSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -354,7 +355,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
-    rcpp_result_gen = Rcpp::wrap(spectral_norm_hessian(dim, beta, X, index, prior_variances, C, precondition_mat));
+    rcpp_result_gen = Rcpp::wrap(spectral_norm_BLR(dim, beta, X, index, prior_variances, C, precondition_mat));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -586,8 +587,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_hierarchicalFusion_log_BLR_hessian_tilde", (DL_FUNC) &_hierarchicalFusion_log_BLR_hessian_tilde, 7},
     {"_hierarchicalFusion_ea_phi_BLR_DL_vec_scalable", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_vec_scalable, 8},
     {"_hierarchicalFusion_ea_phi_BLR_DL_matrix_scalable", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_matrix_scalable, 8},
-    {"_hierarchicalFusion_hessian_bound_BLR", (DL_FUNC) &_hierarchicalFusion_hessian_bound_BLR, 5},
-    {"_hierarchicalFusion_spectral_norm_hessian", (DL_FUNC) &_hierarchicalFusion_spectral_norm_hessian, 7},
+    {"_hierarchicalFusion_spectral_norm_bound_BLR", (DL_FUNC) &_hierarchicalFusion_spectral_norm_bound_BLR, 6},
+    {"_hierarchicalFusion_spectral_norm_BLR", (DL_FUNC) &_hierarchicalFusion_spectral_norm_BLR, 7},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_vec", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_vec, 7},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_matrix", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_matrix, 7},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_bounds, 9},

@@ -55,10 +55,11 @@ Rcpp::List ea_phi_BLR_DL_matrix_scalable(const Rcpp::List &cv_list,
                                          const double &C,
                                          const arma::mat &precondition_mat);
 
-double hessian_bound_BLR(const int &dim,
-                         const arma::mat &X,
-                         const arma::vec &prior_variances,
-                         const double &C,
-                         const arma::mat &precondition_mat);
+double spectral_norm_bound_BLR(const int &dim,
+                               const arma::mat &X,
+                               const arma::vec &prior_variances,
+                               const double &C,
+                               const arma::mat &sqrt_precondition_mat,
+                               const arma::mat &precondition_mat);
 
 #endif

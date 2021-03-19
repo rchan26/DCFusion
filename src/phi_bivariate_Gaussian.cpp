@@ -24,7 +24,7 @@ double ea_phi_biGaussian_DL_vec(const arma::vec &x,
   const double t1 = as_scalar((arma::trans(grad_log_fc)*precondition_mat)*grad_log_fc);
   arma::mat hessian = {{mult_term/var1, -mult_term*corr/sd1sd2},
                        {-mult_term*corr/sd1sd2, mult_term/var2}};
-  const double t2 = arma::accu(precondition_mat % hessian);
+  const double t2 = arma::trace(precondition_mat*hessian);
   return(0.5*(t1+t2));
 }
 

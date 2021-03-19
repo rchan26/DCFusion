@@ -305,12 +305,12 @@ ea_phi_BLR_DL_matrix_scalable <- function(cv_list, beta, y_labels, X, prior_mean
     .Call(`_hierarchicalFusion_ea_phi_BLR_DL_matrix_scalable`, cv_list, beta, y_labels, X, prior_means, prior_variances, C, precondition_mat)
 }
 
-hessian_bound_BLR <- function(dim, X, prior_variances, C, precondition_mat) {
-    .Call(`_hierarchicalFusion_hessian_bound_BLR`, dim, X, prior_variances, C, precondition_mat)
+spectral_norm_bound_BLR <- function(dim, X, prior_variances, C, sqrt_precondition_mat, precondition_mat) {
+    .Call(`_hierarchicalFusion_spectral_norm_bound_BLR`, dim, X, prior_variances, C, sqrt_precondition_mat, precondition_mat)
 }
 
-spectral_norm_hessian <- function(dim, beta, X, index, prior_variances, C, precondition_mat) {
-    .Call(`_hierarchicalFusion_spectral_norm_hessian`, dim, beta, X, index, prior_variances, C, precondition_mat)
+spectral_norm_BLR <- function(dim, beta, X, index, prior_variances, C, precondition_mat) {
+    .Call(`_hierarchicalFusion_spectral_norm_BLR`, dim, beta, X, index, prior_variances, C, precondition_mat)
 }
 
 ea_phi_biGaussian_DL_vec <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {

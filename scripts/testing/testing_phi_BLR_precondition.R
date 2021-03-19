@@ -77,39 +77,29 @@ grad_Z <- log_BLR_gradient_Z(beta = beta,
                              transform_mat = diag(1, 3))
 sum(grad_Z^2)
 
-# not equal with covariance preconditioning matrix
-div_log_BLR_gradient(X = data$X,
-                     X_beta = data$X %*% beta,
-                     prior_variances = rep(1, 3),
-                     C = 1,
-                     precondition_mat = cov(full_posterior))
-div_log_BLR_gradient_Z(X_beta = data$X %*% beta,
-                       transformed_X = data$X %*% expm::sqrtm(cov(full_posterior)),
-                       prior_variances = rep(1, 3),
-                       C = 1,
-                       precondition_mat = cov(full_posterior),
-                       transform_mat = expm::sqrtm(cov(full_posterior)))
-term2(X = data$X,
-      X_beta = data$X %*% beta,
-      prior_variances = rep(1, 3),
-      C = 1,
-      precondition_mat = cov(full_posterior))
+# equal with covariance preconditioning matrix
+term2_Z(X_beta = data$X %*% beta,
+        transformed_X = data$X %*% expm::sqrtm(cov(full_posterior)),
+        prior_variances = rep(1, 3),
+        C = 1,
+        precondition_mat = cov(full_posterior),
+        transform_mat = expm::sqrtm(cov(full_posterior)))
+term2_X(X = data$X,
+        X_beta = data$X %*% beta,
+        prior_variances = rep(1, 3),
+        C = 1,
+        precondition_mat = cov(full_posterior))
 
 # equal with identity matrix
-div_log_BLR_gradient(X = data$X,
-                     X_beta = data$X %*% beta,
-                     prior_variances = rep(1, 3),
-                     C = 1,
-                     precondition_mat = diag(1, 3))
-div_log_BLR_gradient_Z(X_beta = data$X %*% beta,
-                       transformed_X = data$X %*% diag(1, 3),
-                       prior_variances = rep(1, 3),
-                       C = 1,
-                       precondition_mat = diag(1, 3),
-                       transform_mat = diag(1, 3))
-term2(X = data$X,
-      X_beta = data$X %*% beta,
-      prior_variances = rep(1, 3),
-      C = 1,
-      precondition_mat = diag(1, 3))
+term2_Z(X_beta = data$X %*% beta,
+        transformed_X = data$X %*% diag(1, 3),
+        prior_variances = rep(1, 3),
+        C = 1,
+        precondition_mat = diag(1, 3),
+        transform_mat = diag(1, 3))
+term2_X(X = data$X,
+        X_beta = data$X %*% beta,
+        prior_variances = rep(1, 3),
+        C = 1,
+        precondition_mat = diag(1, 3))
 
