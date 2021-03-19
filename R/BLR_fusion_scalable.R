@@ -46,14 +46,16 @@ control_variates_BLR <- function(dim,
                                                   prior_variances = prior_variances,
                                                   C = C))
   t1 <- as.vector(t(grad_log_beta_hat)%*%precondition_mat%*%grad_log_beta_hat)
-  t2 <- div_log_BLR_gradient(X = data$X,
-                             X_beta = X_beta,
-                             prior_variances = prior_variances,
-                             C = C, 
-                             precondition_mat = precondition_mat)
+  hessian_log_beta_hat <- log_BLR_hessian(X = data$X,
+                                          X_beta = X_beta,
+                                          prior_variances = prior_variances,
+                                          C = C)
+  t2 <- sum(precondition_mat * hessian_log_beta_hat)
   return(list('beta_hat' = beta_hat,
               'grad_log_beta_hat' = grad_log_beta_hat,
-              'div_grad_log_beta_hat' = t2,
+              'hessian_log_beta_hat' = hessian_log_beta_hat,
+              't1' = t1,
+              't2' = t2,
               'constant' = 0.5*(t1+t2),
               'data_size' = length(data$y)))
 }

@@ -273,9 +273,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// div_alpha_tilde
-double div_alpha_tilde(const int& index, const arma::vec& beta, const arma::vec& beta_hat, const arma::mat& X, const int& data_size, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
-RcppExport SEXP _hierarchicalFusion_div_alpha_tilde(SEXP indexSEXP, SEXP betaSEXP, SEXP beta_hatSEXP, SEXP XSEXP, SEXP data_sizeSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
+// log_BLR_hessian_tilde
+arma::mat log_BLR_hessian_tilde(const int& index, const arma::vec& beta, const arma::vec& beta_hat, const arma::mat& X, const int& data_size, const arma::vec& prior_variances, const double& C);
+RcppExport SEXP _hierarchicalFusion_log_BLR_hessian_tilde(SEXP indexSEXP, SEXP betaSEXP, SEXP beta_hatSEXP, SEXP XSEXP, SEXP data_sizeSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -286,8 +286,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int& >::type data_size(data_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
-    rcpp_result_gen = Rcpp::wrap(div_alpha_tilde(index, beta, beta_hat, X, data_size, prior_variances, C, precondition_mat));
+    rcpp_result_gen = Rcpp::wrap(log_BLR_hessian_tilde(index, beta, beta_hat, X, data_size, prior_variances, C));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -584,7 +583,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_hierarchicalFusion_ea_phi_BLR_DL_vec", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_vec, 8},
     {"_hierarchicalFusion_ea_phi_BLR_DL_matrix", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_matrix, 8},
     {"_hierarchicalFusion_alpha_tilde", (DL_FUNC) &_hierarchicalFusion_alpha_tilde, 9},
-    {"_hierarchicalFusion_div_alpha_tilde", (DL_FUNC) &_hierarchicalFusion_div_alpha_tilde, 8},
+    {"_hierarchicalFusion_log_BLR_hessian_tilde", (DL_FUNC) &_hierarchicalFusion_log_BLR_hessian_tilde, 7},
     {"_hierarchicalFusion_ea_phi_BLR_DL_vec_scalable", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_vec_scalable, 8},
     {"_hierarchicalFusion_ea_phi_BLR_DL_matrix_scalable", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_matrix_scalable, 8},
     {"_hierarchicalFusion_hessian_bound_BLR", (DL_FUNC) &_hierarchicalFusion_hessian_bound_BLR, 5},

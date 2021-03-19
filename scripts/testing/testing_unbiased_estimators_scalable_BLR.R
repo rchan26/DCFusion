@@ -4,6 +4,7 @@ cv_list = control_variates_BLR(dim = 3,
                                prior_variances = rep(1, 3),
                                C = 1,
                                precondition_mat = cov(full_posterior))
+precondition_mat <- cov(full_posterior)
 
 test_scalable_phi <- function(beta, 
                               y_labels,
@@ -39,16 +40,17 @@ test_scalable_phi <- function(beta,
                                                                               prior_means = prior_means,
                                                                               prior_variances = prior_variances,
                                                                               C = C,
-                                                                              precondition_mat = precondition_mat))
+                                                                              precondition_mat = precondition_mat)$phi)
   print(paste('phi:', phi))
   print(paste('phi_transformed:', phi_transformed))
   print(paste('mean(scalable_phi)', mean(scalable_phi)))
+  print(paste('abs(phi-mean(scalable_phi)):', abs(phi-mean(scalable_phi))))
   return(list('phi' = phi,
               'phi_transformed' = phi_transformed,
               'scalable_phi' = scalable_phi))
 }
 
-test_phi_1 <- test_scalable_phi(beta = full_posterior[1,], 
+test_phi_1 <- test_scalable_phi(beta = full_posterior[250,], 
                                 y_labels = data$y,
                                 X = data$X,
                                 prior_means = rep(0, 3), 
@@ -61,7 +63,7 @@ test_phi_1 <- test_scalable_phi(beta = full_posterior[1,],
                                 dim = 3,
                                 n_evaluate = 100000)
 
-test_phi_1 <- test_scalable_phi(beta = full_posterior[50,], 
+test_phi_2 <- test_scalable_phi(beta = full_posterior[50,], 
                                 y_labels = data$y,
                                 X = data$X,
                                 prior_means = rep(0, 3), 
@@ -110,6 +112,7 @@ test_scalable_alpha <- function(beta,
                                                                  C = C))
   print('alpha:'); print(as.vector(alpha))
   print('mean(scalable_alpha):'); print(apply(scalable_alpha, 1, mean))
+  print('abs(alpha-mean(scalable_alpha)):'); print(as.vector(abs(alpha-apply(scalable_alpha, 1, mean))))
   return(list('alpha' = alpha,
               'scalable_alpha' = scalable_alpha))
 }
@@ -132,52 +135,52 @@ test_alpha_2 <- test_scalable_alpha(beta = full_posterior[50,],
                                     cv_list = cv_list,
                                     n_evaluate = 100000)
 
-test_scalable_div_alpha <- function(beta,
-                                    X,
-                                    prior_variances,
-                                    C,
-                                    precondition_mat,
-                                    cv_list,
-                                    n_evaluate) {
-  X_beta <- X %*% beta
-  X_beta_hat <- X %*% cv_list$beta_hat
-  div_log_beta <- div_log_BLR_gradient(X = X,
-                                       X_beta = X_beta,
-                                       prior_variances = prior_variances,
-                                       C = C,
-                                       precondition_mat = precondition_mat)
-  div_log_beta_hat <- div_log_BLR_gradient(X = X,
-                                           X_beta = X_beta_hat,
+test_scalable_term2 <- function(beta,
+                                X,
+                                prior_variances,
+                                C,
+                                precondition_mat,
+                                cv_list,
+                                n_evaluate) {
+  hessian <- log_BLR_hessian(X = X,
+                             X_beta = X %*% beta,
+                             prior_variances = prior_variances,
+                             C = C)
+  hessian_hat <- log_BLR_hessian(X = X,
+                                 X_beta = X %*% cv_list$beta_hat,
+                                 prior_variances = prior_variances,
+                                 C = C) 
+  hess_diff <- hessian-hessian_hat
+  term2 <- sum(precondition_mat * hess_diff)
+  scalable_term2 <- sapply(1:n_evaluate, function(i) {
+    hessian_tilde <- log_BLR_hessian_tilde(index = sample(0:(cv_list$data_size-1), 1),
+                                           beta = beta,
+                                           beta_hat = cv_list$beta_hat,
+                                           X = X,
+                                           data_size = cv_list$data_size,
                                            prior_variances = prior_variances,
-                                           C = C,
-                                           precondition_mat = precondition_mat) 
-  div_alpha <- div_log_beta - div_log_beta_hat
-  scalable_div_alpha <- sapply(1:n_evaluate, function(i) div_alpha_tilde(index = sample(0:(cv_list$data_size-1), 1),
-                                                                         beta = beta,
-                                                                         beta_hat = cv_list$beta_hat,
-                                                                         X = X,
-                                                                         data_size = cv_list$data_size,
-                                                                         prior_variances = prior_variances,
-                                                                         C = C,
-                                                                         precondition_mat = precondition_mat))
-  print(paste('div_alpha:', div_alpha))
-  print(paste('mean(scalable_div_alpha):', mean(scalable_div_alpha)))
-  return(list('div_alpha' = div_alpha,
-              'scalable_div_alpha' = scalable_div_alpha))
+                                           C = C)
+    return(sum(precondition_mat * hessian_tilde))
+  })
+  print(paste('term2:', term2))
+  print(paste('mean(scalable_term2):', mean(scalable_term2)))
+  print(paste('abs(term2-mean(scalable_term2)):', abs(term2-mean(scalable_term2))))
+  return(list('term2' = term2,
+              'scalable_term2' = scalable_term2))
 }
 
-test_div_alpha_1 <- test_scalable_div_alpha(beta = full_posterior[1,],
-                                            X = data$X,
-                                            prior_variances = rep(1, 3),
-                                            C = 1,
-                                            precondition_mat = precondition_mat,
-                                            cv_list = cv_list,
-                                            n_evaluate = 100000)
+test_term2_1 <- test_scalable_term2(beta = full_posterior[150,],
+                                    X = data$X,
+                                    prior_variances = rep(1, 3),
+                                    C = 1,
+                                    precondition_mat = precondition_mat,
+                                    cv_list = cv_list,
+                                    n_evaluate = 100000)
 
-test_div_alpha_2 <- test_scalable_div_alpha(beta = full_posterior[50,],
-                                            X = data$X,
-                                            prior_variances = rep(1, 3),
-                                            C = 1,
-                                            precondition_mat = precondition_mat,
-                                            cv_list = cv_list,
-                                            n_evaluate = 100000)
+test_term2_2 <- test_scalable_term2(beta = full_posterior[50,],
+                                    X = data$X,
+                                    prior_variances = rep(1, 3),
+                                    C = 1,
+                                    precondition_mat = precondition_mat,
+                                    cv_list = cv_list,
+                                    n_evaluate = 100000)
