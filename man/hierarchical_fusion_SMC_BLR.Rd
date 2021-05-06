@@ -18,9 +18,10 @@ hierarchical_fusion_SMC_BLR(
   precondition = TRUE,
   resampling_method = "multi",
   ESS_threshold = 0.5,
+  cv_location = "hypercube_centre",
   diffusion_estimator = "Poisson",
   beta_NB = 10,
-  bounds_multiplier = 1.5,
+  gamma_NB_n_points = 2,
   seed = NULL,
   n_cores = parallel::detectCores()
 )
@@ -72,12 +73,12 @@ and "NB" for Negative Binomial estimator}
 \item{beta_NB}{beta parameter for Negative Binomial estimator (default 10). If Poisson
 estimator used, then this can be ignored}
 
-\item{bounds_multiplier}{scalar value to mulitply bounds by
-(should greater than or equal to 1)}
-
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
+
+\item{bounds_multiplier}{scalar value to mulitply bounds by
+(should greater than or equal to 1)}
 }
 \value{
 A list with components:

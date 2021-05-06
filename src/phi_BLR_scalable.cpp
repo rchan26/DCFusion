@@ -1,3 +1,4 @@
+#include "../inc/helper_functions.hpp"
 #include "../inc/phi_BLR_scalable.hpp"
 
 using namespace Rcpp;
@@ -14,7 +15,7 @@ arma::vec datum_log_BLR_gradient(const arma::vec &beta,
   arma::vec gradient(beta.size(), arma::fill::zeros);
   const double exp_minus_X_beta = exp(-arma::dot(X, beta));
   for (int k=0; k < beta.size(); ++k) {
-    gradient.at(k) += X.at(k)*(y-(1/(1+exp_minus_X_beta)));
+    gradient.at(k) = X.at(k)*(y-(1/(1+exp_minus_X_beta)));
     gradient.at(k) -= (beta.at(k)-prior_means.at(k))/(data_size*C*prior_variances.at(k));
   }
   return(gradient);
@@ -28,13 +29,11 @@ arma::mat datum_log_BLR_hessian(const arma::vec &beta,
   arma::mat hessian(X.size(), X.size(), arma::fill::zeros);
   const double exp_X_beta = exp(arma::dot(X, beta));
   const double ratio = exp_X_beta/((1+exp_X_beta)*(1+exp_X_beta));
-  for (int j=0; j < X.size(); ++j) {
-    for (int k=0; k < X.size(); ++k) {
-      hessian.at(j,k) -= X.at(j)*X.at(k)*ratio;
+  for (int i=0; i < X.size(); ++i) {
+    for (int j=0; j < X.size(); ++j) {
+      hessian.at(i,j) = -X.at(i)*X.at(j)*ratio;
     }
-  }
-  for (int k=0; k < X.n_cols; ++k) {
-    hessian.at(k,k) -= 1/(data_size*C*prior_variances.at(k));
+    hessian.at(i,i) -= 1/(data_size*C*prior_variances.at(i));
   }
   return(hessian);
 }
@@ -134,7 +133,58 @@ Rcpp::List ea_phi_BLR_DL_vec_scalable(const Rcpp::List &cv_list,
   const double &constant = cv_list["constant"];
   return(Rcpp::List::create(Rcpp::Named("phi", 0.5*(t1+t2)+constant),
                             Rcpp::Named("I", I+1),
-                            Rcpp::Named("J", J+1)));
+                            Rcpp::Named("J", J+1),
+                            Rcpp::Named("t1", t1),
+                            Rcpp::Named("t2", t2)));
+}
+
+// [[Rcpp::export]]
+Rcpp::List ea_phi_BLR_DL_vec_scalable_indicies(const int &I,
+                                               const int &J,
+                                               const Rcpp::List &cv_list,
+                                               const arma::vec &beta,
+                                               const arma::vec &y_labels,
+                                               const arma::mat &X,
+                                               const arma::vec &prior_means,
+                                               const arma::vec &prior_variances,
+                                               const double &C,
+                                               const arma::mat &precondition_mat) {
+  const arma::vec &beta_hat = cv_list["beta_hat"];
+  const int &data_size = cv_list["data_size"];
+  const arma::vec &grad_log_beta_hat = cv_list["grad_log_beta_hat"];
+  const arma::vec alpha_I = alpha_tilde(I,
+                                        beta,
+                                        beta_hat,
+                                        y_labels,
+                                        X,
+                                        data_size,
+                                        prior_means,
+                                        prior_variances,
+                                        C);
+  const arma::vec alpha_J = alpha_tilde(J,
+                                        beta,
+                                        beta_hat,
+                                        y_labels,
+                                        X,
+                                        data_size,
+                                        prior_means,
+                                        prior_variances,
+                                        C);
+  const double t1 = as_scalar(arma::trans(alpha_I)*precondition_mat*(2*grad_log_beta_hat+alpha_J));
+  const arma::mat hessian = log_BLR_hessian_tilde(I,
+                                                  beta,
+                                                  beta_hat,
+                                                  X,
+                                                  data_size,
+                                                  prior_variances,
+                                                  C);
+  const double t2 = arma::trace(precondition_mat*hessian);
+  const double &constant = cv_list["constant"];
+  return(Rcpp::List::create(Rcpp::Named("phi", 0.5*(t1+t2)+constant),
+                            Rcpp::Named("I", I+1),
+                            Rcpp::Named("J", J+1),
+                            Rcpp::Named("t1", t1),
+                            Rcpp::Named("t2", t2)));
 }
 
 // [[Rcpp::export]]
@@ -149,6 +199,8 @@ Rcpp::List ea_phi_BLR_DL_matrix_scalable(const Rcpp::List &cv_list,
   Rcpp::NumericVector phi(beta.n_rows);
   Rcpp::NumericVector I(beta.n_rows);
   Rcpp::NumericVector J(beta.n_rows);
+  Rcpp::NumericVector t1(beta.n_rows);
+  Rcpp::NumericVector t2(beta.n_rows);
   for (int i=0; i < beta.n_rows; ++i) {
     Rcpp::List phi_eval = ea_phi_BLR_DL_vec_scalable(cv_list,
                                                      arma::trans(beta.row(i)),
@@ -161,67 +213,121 @@ Rcpp::List ea_phi_BLR_DL_matrix_scalable(const Rcpp::List &cv_list,
     phi[i] = phi_eval["phi"];
     I[i] = phi_eval["I"];
     J[i] = phi_eval["J"];
+    t1[i] = phi_eval["t1"];
+    t2[i] = phi_eval["t2"];
   }
   return(Rcpp::List::create(Rcpp::Named("phi", phi),
                             Rcpp::Named("I", I),
-                            Rcpp::Named("J", J)));
+                            Rcpp::Named("J", J),
+                            Rcpp::Named("t1", t1),
+                            Rcpp::Named("t2", t2)));
 }
 
 // [[Rcpp::export]]
-double spectral_norm_bound_BLR(const int &dim,
-                               const arma::mat &X,
-                               const arma::vec &prior_variances,
-                               const double &C,
-                               const arma::mat &sqrt_precondition_mat,
-                               const arma::mat &precondition_mat) {
-  // ----- compute the Hessian of the transformed log sub-posterior
-  const arma::mat transformed_X = X * sqrt_precondition_mat;
-  arma::mat hessian(dim, dim, arma::fill::zeros);
+Rcpp::List spectral_radius_bound_BLR_scalable(const int &dim,
+                                              const arma::mat &X,
+                                              const arma::vec &prior_variances,
+                                              const double &C,
+                                              const arma::mat &sqrt_Lambda) {
+  // ----- compute the matrix A = Hessian of the transformed log sub-posterior
+  const arma::mat transformed_X = X * sqrt_Lambda;
+  arma::mat A(dim, dim, arma::fill::zeros);
   const int data_size = X.n_rows;
   for (int i=0; i < dim; ++i) {
-    for (int j=0; j < dim; ++j) {
-      const double col_i_max = abs(transformed_X.col(i)).max();
+    const double col_i_max = abs(transformed_X.col(i)).max();
+    for (int j=0; j <= i; ++j) {
       const double col_j_max = abs(transformed_X.col(j)).max();
-      hessian.at(i,j) -= col_i_max*col_j_max/4;
+      A.at(i,j) -= col_i_max*col_j_max/4;
       for (int k=0; k < dim; ++k) {
-        hessian.at(i,j) -= sqrt_precondition_mat.at(k,i)*sqrt_precondition_mat.at(k,j)/(data_size*C*prior_variances.at(i));
+        A.at(i,j) -= sqrt_Lambda.at(k,i)*sqrt_Lambda.at(k,j)/(data_size*C*prior_variances.at(k));
+      }
+      if (i!=j) {
+        A.at(j,i) = A.at(i,j);
       }
     }
   }
-  // ----- calculate spectral norm of A = precondition_mat * hessian
-  arma::mat A = precondition_mat * hessian;
-  // find eigenvalues of (A^{*} * A), where A^{*} is the (conjugate) transpose of A
-  arma::vec eigenvals = arma::eig_sym(arma::trans(A)*A);
-  // obtain the largest eigenvalue
-  double max_eigenval = (arma::abs(eigenvals)).max();
-  // return square root of the largest eigenvalue
-  return(sqrt(max_eigenval));
+  return(Rcpp::List::create(Named("spectral_radius", spectral_radius(A)),
+                            Named("A", A)));
 }
 
 // [[Rcpp::export]]
-double spectral_norm_BLR(const int &dim,
-                         const arma::vec &beta,
-                         const arma::mat &X,
-                         const int &index,
-                         const arma::vec &prior_variances,
-                         const double &C,
-                         const arma::mat &precondition_mat) {
+double spectral_radius_BLR_scalable(const int &dim,
+                                    const arma::vec &beta,
+                                    const arma::mat &X,
+                                    const int &index,
+                                    const arma::vec &prior_variances,
+                                    const double &C,
+                                    const arma::mat &Lambda) {
   const arma::rowvec &X_index = X.row(index-1);
   arma::mat hessian(dim, dim, arma::fill::zeros);
   const int data_size = X.n_rows;
   const double exp_X_beta = exp(arma::dot(X_index, beta));
   const double ratio = exp_X_beta/((1+exp_X_beta)*(1+exp_X_beta));
   for (int i=0; i < dim; ++i) {
-    for (int j=0; j < dim; ++j) {
+    for (int j=0; j <= i; ++j) {
       if (i==j) {
         hessian.at(i,i) = -(X_index.at(i)*X_index.at(i)*ratio)-(1/(data_size*C*prior_variances.at(i)));
       } else {
         hessian.at(i,j) = -(X_index.at(i)*X_index.at(j)*ratio);
+        hessian.at(j,i) = hessian.at(i,j);
       }
     }
   }
-  arma::mat A = precondition_mat * hessian;
-  arma::vec eigenvals = arma::eig_sym(arma::trans(A)*A);
-  double max_eigenval = (arma::abs(eigenvals)).max();
-  return(sqrt(max_eigenval));
+  return(spectral_radius(Lambda * hessian));
 }
+
+// // [[Rcpp::export]]
+// double spectral_norm_bound_BLR(const int &dim,
+//                                const arma::mat &X,
+//                                const arma::vec &prior_variances,
+//                                const double &C,
+//                                const arma::mat &sqrt_precondition_mat) {
+//   // ----- compute the matrix A = Hessian of the transformed log sub-posterior
+//   const arma::mat transformed_X = X * sqrt_precondition_mat;
+//   arma::mat A(dim, dim, arma::fill::zeros);
+//   const int data_size = X.n_rows;
+//   for (int i=0; i < dim; ++i) {
+//     for (int j=0; j < dim; ++j) {
+//       const double col_i_max = abs(transformed_X.col(i)).max();
+//       const double col_j_max = abs(transformed_X.col(j)).max();
+//       A.at(i,j) = -col_i_max*col_j_max/4;
+//       for (int k=0; k < dim; ++k) {
+//         A.at(i,j) -= sqrt_precondition_mat.at(k,i)*sqrt_precondition_mat.at(k,j)/(data_size*C*prior_variances.at(k));
+//       }
+//     }
+//   }
+//   // find eigenvalues of (A^{*} * A), where A^{*} is the (conjugate) transpose of A
+//   arma::vec eigenvals = arma::eig_sym(arma::trans(A)*A);
+//   // obtain the largest eigenvalue
+//   double max_eigenval = (arma::abs(eigenvals)).max();
+//   // return square root of the largest eigenvalue
+//   return(sqrt(max_eigenval));
+// }
+
+// // [[Rcpp::export]]
+// double spectral_norm_BLR(const int &dim,
+//                          const arma::vec &beta,
+//                          const arma::mat &X,
+//                          const int &index,
+//                          const arma::vec &prior_variances,
+//                          const double &C,
+//                          const arma::mat &precondition_mat) {
+//   const arma::rowvec &X_index = X.row(index-1);
+//   arma::mat hessian(dim, dim, arma::fill::zeros);
+//   const int data_size = X.n_rows;
+//   const double exp_X_beta = exp(arma::dot(X_index, beta));
+//   const double ratio = exp_X_beta/((1+exp_X_beta)*(1+exp_X_beta));
+//   for (int i=0; i < dim; ++i) {
+//     for (int j=0; j < dim; ++j) {
+//       if (i==j) {
+//         hessian.at(i,i) = -(X_index.at(i)*X_index.at(i)*ratio)-(1/(data_size*C*prior_variances.at(i)));
+//       } else {
+//         hessian.at(i,j) = -(X_index.at(i)*X_index.at(j)*ratio);
+//       }
+//     }
+//   }
+//   arma::mat A = precondition_mat * hessian;
+//   arma::vec eigenvals = arma::eig_sym(arma::trans(A)*A);
+//   double max_eigenval = (arma::abs(eigenvals)).max();
+//   return(sqrt(max_eigenval));
+// }

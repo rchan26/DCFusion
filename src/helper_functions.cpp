@@ -44,7 +44,7 @@ double find_min(const Rcpp::NumericVector &vect) {
 //'                          weights = rep(1, 5))
 //' #returns the same using standard mean(x) function in R
 //' mean(x)
-// [[Rcpp::export]] 
+// [[Rcpp::export]]
 double weighted_mean_univariate(const Rcpp::NumericVector &x,
                                 const Rcpp::NumericVector &weights) {
   if (x.size() != weights.size()) {
@@ -78,7 +78,7 @@ double weighted_mean_univariate(const Rcpp::NumericVector &x,
 //'                    weighted_mean = weighted_mean,
 //'                    time = 0.5,
 //'                    precondition_values = precondition_vals)
-// [[Rcpp::export]] 
+// [[Rcpp::export]]
 double log_rho_univariate(const Rcpp::NumericVector &x,
                           const double &weighted_mean,
                           const double &time,
@@ -166,7 +166,7 @@ arma::vec weighted_mean_multivariate(const arma::mat &matrix,
 //' m2 <- matrix(c(5,6,7,8), nrow = 2, ncol = 2)
 //' m3 <- matrix(c(9,10,11,12), nrow = 2, ncol = 2)
 //' calculate_proposal_cov(time = 0.5, weights = list(m1, m2, m3))
-// [[Rcpp::export]] 
+// [[Rcpp::export]]
 arma::mat calculate_proposal_cov(const double &time, const Rcpp::List &weights) {
   const arma::mat &matrix_1 = weights[0];
   arma::mat lambda_inv(matrix_1.n_cols, matrix_1.n_cols, arma::fill::zeros);
@@ -177,32 +177,84 @@ arma::mat calculate_proposal_cov(const double &time, const Rcpp::List &weights) 
   return(arma::inv(lambda_inv/time));
 }
 
-//' Euclidean distance between two vectors
+//' Scaled distance between two vectors
 //' 
-//' Calculates the Euclidean distance between two vectoirs
+//' Calculates the scaled distance between two vectors, i.e. calculates the norm of matrix*(x-y)
+//' If matrix == identity matrix, this is just the Euclidean distance
 //'
 //' @param x vector
 //' @param y vector
+//' @param matrix matrix
 //'
-//' @return the Euclidean distance between vectors x and y
+//' @return the scaled distance between vectors x and y with matrix 
 //' 
 //' @examples
 //' x <- c(0.3, 0.2, 0.5, 1.2)
 //' y <- c(-0.5, 0.8, 1.4, 0.9)
-//' Euclidean_distance(x, y)
-//' # should equal:
+//' scaled_distance(x, y, diag(1, 4))
+//' # should equal to the Euclidean distance:
 //' sqrt(0.8^2 + 0.6^2 + 0.9^2 + 0.3^2)
-// [[Rcpp::export]] 
-double Euclidean_distance(const Rcpp::NumericVector &x,
-                          const Rcpp::NumericVector &y) {
+// [[Rcpp::export]]
+double scaled_distance(const arma::vec &x, const arma::vec &y, const arma::mat &matrix) {
   if (x.size()!=y.size()) {
-    stop("Euclidean_distance: x and y must be the same size");
+    stop("scaled_distance: x and y must be the same size");
+  } else if (matrix.n_rows!=matrix.n_cols) {
+    stop("scaled_distance: matrix must be a square matrix");
+  } else if (matrix.n_rows!=x.size()) {
+    stop("scaled_distance: dimensions of x, y and matrix are not correct");
   }
-  double dist = 0;
-  for (int i=0; i < x.size(); ++i) {
-    dist += (x.at(i)-y.at(i))*(x.at(i)-y.at(i));
+  const double sum_dist = arma::sum(arma::square(matrix*(x-y)));
+  return(std::sqrt(sum_dist));
+}
+
+//' Spectral radius of a symmetric matrix
+//' 
+//' Calculates the spectral radius of a symmetric matrix A (the largest absolute eigenvalue)
+//' 
+//' @param A matrix
+//' 
+//' @return The spectral radius (largest absolute eigenvalue) of A
+//' 
+//' @examples
+//' # symmetric matrix
+//' # should equal 2.5
+//' spectral_radius(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
+//' # non-symmetrix matrix
+//' # should equal 10
+//' spectral_radius(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
+// [[Rcpp::export]]
+double spectral_radius(const arma::mat &A) {
+  if (A.is_symmetric()) {
+    arma::vec abs_eigenvals = arma::abs(arma::eig_sym(A));
+    return(abs_eigenvals.max());
+  } else {
+    arma::vec abs_eigenvals = arma::abs(arma::eig_gen(A));
+    return(abs_eigenvals.max());
   }
-  return(sqrt(dist));
+}
+
+//' Absolute eigenvalues of a matrix
+//' 
+//' Calculates the absolute eigenvalues of a matrix
+//' 
+//' @param A matrix matrix
+//' 
+//' @return The absolute eigenvalues of A
+//' 
+//' @examples
+//' # symmetric matrix
+//' # should equal 2.5, 1.5
+//' abs_eigenvals(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
+//' # non-symmetrix matrix
+//' # should equal 10, 10, 5
+//' abs_eigenvals(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
+// [[Rcpp::export]]
+arma::vec abs_eigenvals(const arma::mat &A) {
+  if (A.is_symmetric()) {
+    return(arma::abs(arma::eig_sym(A)));
+  } else {
+    return(arma::abs(arma::eig_gen(A)));
+  }
 }
 
 //' Row-wise subtraction of a vector to rows of a matrix
@@ -217,7 +269,7 @@ double Euclidean_distance(const Rcpp::NumericVector &x,
 //' @examples
 //' X <- matrix(c(1,2,3,4,5,6,7,8), nrow = 4, ncol = 2, byrow = T)
 //' row_wise_subtraction(X = X, vect = c(1,2))
-// [[Rcpp::export]] 
+// [[Rcpp::export]]
 arma::mat row_wise_subtraction(const arma::mat &X, const arma::vec &vect) {
   arma::mat new_mat(size(X), arma::fill::zeros);
   const arma::rowvec row_vect = trans(vect);
@@ -322,7 +374,6 @@ Rcpp::List particle_ESS(const Rcpp::NumericVector &log_weights) {
                             Named("normalised_weights", normalised_weights),
                             Named("ESS", 1/Rcpp::sum(Rcpp::pow(normalised_weights, 2))));
 }
-
 
 // [[Rcpp::export]]
 Rcpp::List rho_IS_univariate_(const Rcpp::List &samples_to_fuse,

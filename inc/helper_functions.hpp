@@ -23,8 +23,11 @@ arma::vec weighted_mean_multivariate(const arma::mat &matrix,
 
 arma::mat calculate_proposal_cov(const double &time, const Rcpp::List &weights);
 
-double Euclidean_distance(const Rcpp::NumericVector &x,
-                          const Rcpp::NumericVector &y);
+double scaled_distance(const arma::vec &x, const arma::vec &y, const arma::mat &matrix);
+
+double spectral_radius(const arma::mat &A);
+
+arma::vec abs_eigenvals(const arma::mat &A);
 
 arma::mat row_wise_subtraction(const arma::mat &X, const arma::vec &vect);
 
