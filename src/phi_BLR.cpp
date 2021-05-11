@@ -10,13 +10,14 @@ arma::vec log_BLR_gradient(const arma::vec &beta,
                            const arma::vec &y_labels,
                            const arma::mat &X,
                            const arma::vec &X_beta,
+                           const arma::vec &count,
                            const arma::vec &prior_means,
                            const arma::vec &prior_variances,
                            const double &C) {
   arma::vec gradient(beta.size(), arma::fill::zeros);
   for (int k=0; k < X.n_cols; ++k) {
     for (int i=0; i < X.n_rows; ++i) {
-      gradient.at(k) += X.at(i,k)*(y_labels.at(i)-(1/(1+exp(-X_beta.at(i)))));
+      gradient.at(k) += count.at(i)*X.at(i,k)*(y_labels.at(i)-(1/(1+exp(-X_beta.at(i)))));
     }
     gradient.at(k) -= (beta.at(k)-prior_means.at(k))/(C*prior_variances.at(k));
   }
@@ -26,6 +27,7 @@ arma::vec log_BLR_gradient(const arma::vec &beta,
 // [[Rcpp::export]]
 arma::mat log_BLR_hessian(const arma::mat &X,
                           const arma::vec &X_beta,
+                          const arma::vec &count,
                           const arma::vec &prior_variances,
                           const double &C) {
   arma::mat hessian(X.n_cols, X.n_cols, arma::fill::zeros);
@@ -34,7 +36,7 @@ arma::mat log_BLR_hessian(const arma::mat &X,
     const double ratio = exp_X_beta/((1+exp_X_beta)*(1+exp_X_beta));
     for (int j=0; j < X.n_cols; ++j) {
       for (int k=0; k <= j; ++k) {
-        hessian.at(j,k) -= X.at(i,j)*X.at(i,k)*ratio;
+        hessian.at(j,k) -= count.at(i)*X.at(i,j)*X.at(i,k)*ratio;
       }
     }
   }
@@ -51,22 +53,22 @@ arma::mat log_BLR_hessian(const arma::mat &X,
 Rcpp::List ea_phi_BLR_DL_vec(const arma::vec &beta,
                              const arma::vec &y_labels,
                              const arma::mat &X,
+                             const arma::vec &count,
                              const arma::vec &prior_means,
                              const arma::vec &prior_variances,
                              const double &C,
-                             const arma::mat &precondition_mat,
-                             const arma::mat &transform_mat) {
-  const arma::vec transformed_beta = transform_mat * beta;
-  const arma::vec X_beta = X * transformed_beta;
-  const arma::vec gradient = log_BLR_gradient(transformed_beta,
+                             const arma::mat &precondition_mat) {
+  const arma::vec X_beta = X * beta;
+  const arma::vec gradient = log_BLR_gradient(beta,
                                               y_labels,
                                               X,
                                               X_beta,
+                                              count,
                                               prior_means,
                                               prior_variances,
                                               C);
   const double t1 = as_scalar((arma::trans(gradient)*precondition_mat)*gradient);
-  const arma::mat hessian = log_BLR_hessian(X, X_beta, prior_variances, C);
+  const arma::mat hessian = log_BLR_hessian(X, X_beta, count, prior_variances, C);
   const double t2 = arma::trace(precondition_mat*hessian);
   return(Rcpp::List::create(Named("phi", 0.5*(t1+t2)),
                             Named("t1", t1),
@@ -77,11 +79,11 @@ Rcpp::List ea_phi_BLR_DL_vec(const arma::vec &beta,
 Rcpp::List ea_phi_BLR_DL_matrix(const arma::mat &beta,
                                 const arma::vec &y_labels,
                                 const arma::mat &X,
+                                const arma::vec &count,
                                 const arma::vec &prior_means,
                                 const arma::vec &prior_variances,
                                 const double &C,
-                                const arma::mat &precondition_mat,
-                                const arma::mat &transform_mat) {
+                                const arma::mat &precondition_mat) {
   Rcpp::NumericVector phi(beta.n_rows);
   Rcpp::NumericVector t1(beta.n_rows);
   Rcpp::NumericVector t2(beta.n_rows);
@@ -89,11 +91,11 @@ Rcpp::List ea_phi_BLR_DL_matrix(const arma::mat &beta,
     Rcpp::List phi_eval = ea_phi_BLR_DL_vec(arma::trans(beta.row(i)),
                                             y_labels,
                                             X,
+                                            count,
                                             prior_means,
                                             prior_variances,
                                             C,
-                                            precondition_mat,
-                                            transform_mat);
+                                            precondition_mat);
     phi[i] = phi_eval["phi"];
     t1[i] = phi_eval["t1"];
     t2[i] = phi_eval["t2"];
@@ -107,6 +109,7 @@ Rcpp::List ea_phi_BLR_DL_matrix(const arma::mat &beta,
 double spectral_radius_BLR(const arma::vec &beta,
                            const int &dim,
                            const arma::mat &X,
+                           const arma::vec &count,
                            const arma::vec &prior_variances,
                            const double &C,
                            const arma::mat &Lambda) {
@@ -117,7 +120,7 @@ double spectral_radius_BLR(const arma::vec &beta,
     const double ratio = exp_X_beta/((1+exp_X_beta)*(1+exp_X_beta));
     for (int j=0; j < dim; ++j) {
       for (int k=0; k <= j; ++k) {
-        hessian.at(j,k) -= X.at(i,j)*X.at(i,k)*ratio;
+        hessian.at(j,k) -= count.at(i)*X.at(i,j)*X.at(i,k)*ratio;
       }
     }
   }
@@ -131,55 +134,27 @@ double spectral_radius_BLR(const arma::vec &beta,
 }
 
 // [[Rcpp::export]]
-Rcpp::List max_multiplication(const arma::mat &matrix,
-                              const Rcpp::List &bessel_layers) {
-  if (matrix.n_cols!=bessel_layers.size()) {
-    stop("max_multiplication: number of columns of matrix must equal the length of bessel_layers");
-  }
-  arma::vec max_mult(matrix.n_rows, arma::fill::zeros);
-  arma::vec min_mult(matrix.n_rows, arma::fill::zeros);
-  for (int j=0; j < matrix.n_cols; ++j) {
-    const Rcpp::List &bes_layer = bessel_layers[j];
-    const double &lower = bes_layer["L"];
-    const double &upper = bes_layer["U"];
-    for (int i=0; i < matrix.n_rows; ++i) {
-      const double mat_lb = matrix.at(i,j) * lower;
-      const double mat_ub = matrix.at(i,j) * upper;
-      if (mat_ub > mat_lb) {
-        max_mult.at(i) += mat_ub;
-        min_mult.at(i) += mat_lb;
-      } else {
-        max_mult.at(i) += mat_lb;
-        min_mult.at(i) += mat_ub;
-      }
-    }
-  }
-  return(Rcpp::List::create(Named("max", max_mult),
-                            Named("min", min_mult),
-                            Named("max_abs", arma::abs(max_mult)),
-                            Named("min_abs", arma::abs(min_mult))));
-}
-
-// [[Rcpp::export]]
 Rcpp::List spectral_radius_bound_BLR_Z(const int &dim,
-                                       const Rcpp::List &bessel_layers,
+                                       const arma::mat &hypercube_vertices,
                                        const arma::mat &X,
+                                       const arma::vec &count,
                                        const arma::vec &prior_variances,
                                        const double &C,
                                        const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
   // obtain the lower and upper bound on X_beta
   const arma::mat transformed_X = X * sqrt_Lambda;
-  const Rcpp::List u_bound = max_multiplication(transformed_X, bessel_layers);
-  const arma::vec LB = u_bound["min_abs"];
-  const arma::vec UB = u_bound["max_abs"];
   for (int i=0; i < X.n_rows; ++i) {
+    arma::vec products(hypercube_vertices.n_rows, arma::fill::zeros);
+    for (int v=0; v < hypercube_vertices.n_rows; ++v) {
+      products.at(v) = arma::dot(transformed_X.row(i), hypercube_vertices.row(v));
+    }
     // e^u/((1+e^u)^2) is largest when x is closest to 0, hence take the smaller of the bounds
-    const double exp_u = exp(std::min(LB.at(i), UB.at(i)));
+    const double exp_u = exp(arma::abs(products).min());
     const double ratio = exp_u/((1+exp_u)*(1+exp_u));
     for (int k=0; k < dim; ++k) {
       for (int l=0; l <= k; ++l) {
-        hessian.at(k,l) -= transformed_X.at(i,k)*transformed_X.at(i,l)*ratio;
+        hessian.at(k,l) -= count.at(i)*transformed_X.at(i,k)*transformed_X.at(i,l)*ratio;
       }
     }
   }
@@ -201,6 +176,7 @@ Rcpp::List spectral_radius_bound_BLR_Z(const int &dim,
 // [[Rcpp::export]]
 Rcpp::List spectral_radius_global_bound_BLR_Z(const int &dim,
                                               const arma::mat &X,
+                                              const arma::vec &count,
                                               const arma::vec &prior_variances,
                                               const double &C,
                                               const arma::mat &sqrt_Lambda) {
@@ -210,7 +186,7 @@ Rcpp::List spectral_radius_global_bound_BLR_Z(const int &dim,
   for (int i=0; i < X.n_rows; ++i) {
     for (int k=0; k < dim; ++k) {
       for (int l=0; l <= k; ++l) {
-        hessian.at(k,l) -= transformed_X.at(i,k)*transformed_X.at(i,l)/4;
+        hessian.at(k,l) -= count.at(i)*transformed_X.at(i,k)*transformed_X.at(i,l)/4;
       }
     }
   }
@@ -234,6 +210,7 @@ Rcpp::List obtain_hypercube_centre(const Rcpp::List &bessel_layers,
                                    const arma::mat &transform_to_X,
                                    const arma::vec &y_labels,
                                    const arma::mat &X,
+                                   const arma::vec &count,
                                    const arma::vec &prior_means,
                                    const arma::vec &prior_variances,
                                    const double &C) {
@@ -253,6 +230,7 @@ Rcpp::List obtain_hypercube_centre(const Rcpp::List &bessel_layers,
                                                        y_labels,
                                                        X,
                                                        X_beta,
+                                                       count,
                                                        prior_means,
                                                        prior_variances,
                                                        C))));
@@ -276,10 +254,10 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                 const arma::vec &grad_log_hat,
                                 const int &dim,
                                 const arma::mat &X,
+                                const arma::vec &count,
                                 const arma::vec &prior_variances,
                                 const double &C,
                                 const Rcpp::List &transform_mats,
-                                const Rcpp::List &bessel_layers,
                                 const arma::mat &hypercube_vertices) {
   const arma::mat &transform_to_X = transform_mats["to_X"];
   const arma::mat &transform_to_Z = transform_mats["to_Z"];
@@ -289,13 +267,13 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                                        transform_to_X,
                                                        transform_to_Z);
   const Rcpp::List spectral_radius_bds = spectral_radius_bound_BLR_Z(dim,
-                                                                     bessel_layers,
+                                                                     hypercube_vertices,
                                                                      X,
+                                                                     count,
                                                                      prior_variances,
                                                                      C,
                                                                      transform_to_X);
   const double P_n_Lambda = spectral_radius_bds["spectral_radius"];
-  // const arma::vec abs_eigenvalues = spectral_radius_bds["abs_eigenvals"];
   return(Rcpp::List::create(Named("LB", -0.5*dim*P_n_Lambda),
                             Named("UB", 0.5*((vec_norm+dist*P_n_Lambda)*(vec_norm+dist*P_n_Lambda)+dim*P_n_Lambda)),
                             Named("dist", dist),
@@ -313,26 +291,26 @@ double gamma_NB_estimate_BLR(const arma::vec &times,
                              const arma::vec &y,
                              const arma::vec &y_labels,
                              const arma::mat &X,
+                             const arma::vec &count,
                              const arma::vec &prior_means,
                              const arma::vec &prior_variances,
                              const double &C,
-                             const arma::mat &precondition_mat,
-                             const arma::mat &transform_mat) {
+                             const arma::mat &precondition_mat) {
   if (times.size() < 2) {
     stop("gamma_NB_estimate_BLR: length of times must be at least 2"); 
   } 
   Rcpp::NumericVector phi(times.size());
   double sum_phi_eval = 0;
   for (int i=0; i < times.size(); ++i) {
-    const arma::vec eval = (x0*(t-times.at(i)) + y*times.at(i))/(t-s);
+    const arma::vec eval = (x0*(t-s-times.at(i)) + y*times.at(i))/(t-s);
     Rcpp::List phi = ea_phi_BLR_DL_vec(eval,
                                        y_labels,
                                        X,
+                                       count,
                                        prior_means,
                                        prior_variances,
                                        C,
-                                       precondition_mat,
-                                       transform_mat);
+                                       precondition_mat);
     const double &phi_eval = phi["phi"];
     if (i==0 || i==times.size()-1) {
       sum_phi_eval += phi_eval;

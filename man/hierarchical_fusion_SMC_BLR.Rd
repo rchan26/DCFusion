@@ -23,7 +23,8 @@ hierarchical_fusion_SMC_BLR(
   beta_NB = 10,
   gamma_NB_n_points = 2,
   seed = NULL,
-  n_cores = parallel::detectCores()
+  n_cores = parallel::detectCores(),
+  print_progress_iters = 100
 )
 }
 \arguments{
@@ -43,9 +44,13 @@ the samples for the c-th node in the level}
 
 \item{dim}{dimension of the predictors (= p+1)}
 
-\item{data_split}{list of length C where each item is a list of length 2 where
+\item{data_split}{list of length C where each item is a list of length 4 where
 for c=1,...,C, data[[c]]$y is the vector for y responses and
-data[[c]]$x is the design matrix for the covariates for sub-posterior c}
+data[[c]]$x is the design matrix for the covariates for
+sub-posterior c, data[[c]]$full_data_count is the unique
+rows of the full data set with their counts and 
+data[[c]]$design_count is the unique rows of the design
+matrix and their counts}
 
 \item{prior_means}{prior for means of predictors}
 
@@ -66,19 +71,28 @@ of the number of samples that ESS needs to be
 lower than for resampling (i.e. resampling is carried
 out only when ESS < N*ESS_threshold)}
 
+\item{cv_location}{string to determine what the location of the control variate
+should be. Must be either 'mode' where the MLE estimator 
+will be used or 'hypercube_centre' (default) to use the centre
+of the simualted hypercube}
+
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poission estimator
 and "NB" for Negative Binomial estimator}
 
-\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10). If Poisson
-estimator used, then this can be ignored}
+\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
+
+\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
+of the integral found in the mean of the negative
+binomial estimator (default is 2)}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
 
-\item{bounds_multiplier}{scalar value to mulitply bounds by
-(should greater than or equal to 1)}
+\item{print_progress_iters}{number of iterations between each progress update
+(default is 1000). If NULL, progress will only
+be updated when importance sampling is finished}
 }
 \value{
 A list with components:
