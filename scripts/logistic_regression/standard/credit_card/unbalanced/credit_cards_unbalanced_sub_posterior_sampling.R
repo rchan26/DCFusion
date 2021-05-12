@@ -5,9 +5,9 @@ seed <- 2016
 
 ##### Loading in Data #####
 
-data <- read.csv('data//credit_cards.csv', header = T)
-data <- data[2:nrow(data),]
-credit_cards <- data[,c(25, 3, 4)]
+original_data <- read.csv('../credit_cards.csv', header = T)
+original_data <- original_data[2:nrow(original_data),]
+credit_cards <- original_data[,c(25, 3, 4)]
 colnames(credit_cards) <- c('y', 'sex', 'education')
 
 # y (default payment): 1 for yes, 0 for no
@@ -72,8 +72,12 @@ colnames(X)[1] <- 'intercept'
 
 ##### Sampling from full posterior #####
 
-full_posterior <- hmc_sample_BLR(y = y, 
-                                 X = X, 
+credit_card_data <- list()
+credit_card_data$y <- credit_cards_full$y
+credit_card_data$X <- as.matrix(cbind(rep(1, nrow(credit_cards_full[,2:5])), credit_cards_full[,2:5]))
+colnames(credit_card_data$X)[1] <- 'intercept'
+
+full_posterior <- hmc_sample_BLR(data = credit_card_data, 
                                  C = 1, 
                                  prior_means = rep(0, 5),
                                  prior_variances = rep(1, 5), 
@@ -108,8 +112,7 @@ apply(full_posterior_mcmc, 2, mean)
 
 data_split_2 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 2, as_dataframe = F)
 sub_posteriors_2 <- hmc_base_sampler_BLR(nsamples = 30000,
-                                         y_split = data_split_2$y_split,
-                                         X_split = data_split_2$X_split,
+                                         data_split = data_split_2,
                                          C = 2, 
                                          prior_means = rep(0, 5),
                                          prior_variances = rep(1, 5),
@@ -123,8 +126,7 @@ compare_samples_bivariate(sub_posteriors_2, c('red' ,'blue'), c(-4, 4))
 
 data_split_4 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 4, as_dataframe = F)
 sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = 30000,
-                                         y_split = data_split_4$y_split,
-                                         X_split = data_split_4$X_split,
+                                         data_split = data_split_4,
                                          C = 4, 
                                          prior_means = rep(0, 5),
                                          prior_variances = rep(1, 5),
@@ -138,8 +140,7 @@ compare_samples_bivariate(sub_posteriors_4, c(rep('red', 2), rep('blue', 2)), c(
 
 data_split_8 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 8, as_dataframe = F)
 sub_posteriors_8 <- hmc_base_sampler_BLR(nsamples = 30000,
-                                         y_split = data_split_8$y_split,
-                                         X_split = data_split_8$X_split,
+                                         data_split = data_split_8,
                                          C = 8, 
                                          prior_means = rep(0, 5),
                                          prior_variances = rep(1, 5),
@@ -174,11 +175,9 @@ integrated_abs_distance(full_posterior, weierstrass_8_rejection$samples, bandwid
 
 ##### Sampling from sub-posterior C=16 #####
 
-data_split_16 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 16, as_dataframe = F)
-
+data_split_16 <- split_data(dataframe = credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 16, as_dataframe = F)
 sub_posteriors_16 <- hmc_base_sampler_BLR(nsamples = 30000,
-                                          y_split = data_split_16$y_split,
-                                          X_split = data_split_16$X_split,
+                                          data_split = data_split_16,
                                           C = 16, 
                                           prior_means = rep(0, 5),
                                           prior_variances = rep(1, 5),
@@ -192,13 +191,13 @@ integrated_abs_distance(full_posterior, consensus_mat_16$samples, bandwidths)
 integrated_abs_distance(full_posterior, consensus_sca_16$samples, bandwidths)
 
 neiswanger_16_true <- neiswanger(S = 16, 
-                                samples_to_combine = sub_posteriors_16, 
-                                bw = bandwidths, 
-                                anneal = TRUE)
-neiswanger_16_false <- neiswanger(S = 16, 
                                  samples_to_combine = sub_posteriors_16, 
                                  bw = bandwidths, 
-                                 anneal = FALSE)
+                                 anneal = TRUE)
+neiswanger_16_false <- neiswanger(S = 16, 
+                                  samples_to_combine = sub_posteriors_16, 
+                                  bw = bandwidths, 
+                                  anneal = FALSE)
 integrated_abs_distance(full_posterior, neiswanger_16_true$samples, bw = bandwidths)
 integrated_abs_distance(full_posterior, neiswanger_16_false$samples, bw = bandwidths)
 
@@ -206,14 +205,11 @@ weierstrass_16_importance <- weierstrass(Samples = sub_posteriors_16, method = '
 weierstrass_16_rejection <- weierstrass(Samples = sub_posteriors_16, method = 'reject')
 integrated_abs_distance(full_posterior, weierstrass_16_importance$samples, bandwidths)
 integrated_abs_distance(full_posterior, weierstrass_16_rejection$samples, bandwidths)
-
 ##### Sampling from sub-posterior C=32 #####
 
 data_split_32 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 32, as_dataframe = F)
-
 sub_posteriors_32 <- hmc_base_sampler_BLR(nsamples = 30000,
-                                          y_split = data_split_32$y_split,
-                                          X_split = data_split_32$X_split,
+                                          data_split = data_split_32,
                                           C = 32, 
                                           prior_means = rep(0, 5),
                                           prior_variances = rep(1, 5),
@@ -227,19 +223,19 @@ integrated_abs_distance(full_posterior, consensus_mat_32$samples, bw = bandwidth
 integrated_abs_distance(full_posterior, consensus_sca_32$samples, bw = bandwidths)
 
 neiswanger_32_true <- neiswanger(S = 32, 
-                                samples_to_combine = sub_posteriors_32, 
-                                bw = bandwidths, 
-                                anneal = TRUE)
-neiswanger_32_false <- neiswanger(S = 32, 
                                  samples_to_combine = sub_posteriors_32, 
                                  bw = bandwidths, 
-                                 anneal = FALSE)
+                                 anneal = TRUE)
+neiswanger_32_false <- neiswanger(S = 32, 
+                                  samples_to_combine = sub_posteriors_32, 
+                                  bw = bandwidths, 
+                                  anneal = FALSE)
 integrated_abs_distance(full_posterior, neiswanger_32_true$samples, bw = bandwidths)
 integrated_abs_distance(full_posterior, neiswanger_32_false$samples, bw = bandwidths)
 
 weierstrass_32_importance <- weierstrass(Samples = sub_posteriors_32,
-                                        method = 'importance')
+                                         method = 'importance')
 weierstrass_32_rejection <- weierstrass(Samples = sub_posteriors_32,
-                                       method = 'reject')
+                                        method = 'reject')
 integrated_abs_distance(full_posterior, weierstrass_32_importance$samples, bw = bandwidths)
 integrated_abs_distance(full_posterior, weierstrass_32_rejection$samples, bw = bandwidths)
