@@ -135,7 +135,7 @@ double spectral_radius_BLR(const arma::vec &beta,
 
 // [[Rcpp::export]]
 Rcpp::List spectral_radius_bound_BLR_Z(const int &dim,
-                                       const arma::mat &hypercube_vertices,
+                                       const arma::mat &V,
                                        const arma::mat &X,
                                        const arma::vec &count,
                                        const arma::vec &prior_variances,
@@ -144,10 +144,10 @@ Rcpp::List spectral_radius_bound_BLR_Z(const int &dim,
   arma::mat hessian(dim, dim, arma::fill::zeros);
   // obtain the lower and upper bound on X_beta
   const arma::mat transformed_X = X * sqrt_Lambda;
+  arma::vec products(V.n_rows, arma::fill::zeros);
   for (int i=0; i < X.n_rows; ++i) {
-    arma::vec products(hypercube_vertices.n_rows, arma::fill::zeros);
-    for (int v=0; v < hypercube_vertices.n_rows; ++v) {
-      products.at(v) = arma::dot(transformed_X.row(i), hypercube_vertices.row(v));
+    for (int v=0; v < V.n_rows; ++v) {
+      products.at(v) = arma::dot(transformed_X.row(i), V.row(v));
     }
     // e^u/((1+e^u)^2) is largest when x is closest to 0, hence take the smaller of the bounds
     const double exp_u = exp(arma::abs(products).min());
@@ -258,28 +258,44 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                 const arma::vec &prior_variances,
                                 const double &C,
                                 const Rcpp::List &transform_mats,
-                                const arma::mat &hypercube_vertices) {
+                                const Rcpp::List &hypercube_vertices) {
   const arma::mat &transform_to_X = transform_mats["to_X"];
   const arma::mat &transform_to_Z = transform_mats["to_Z"];
   const double vec_norm = std::sqrt(arma::sum(arma::square(transform_to_X*grad_log_hat)));
+  const arma::mat &vertices = hypercube_vertices["vertices"];
   const double dist = maximal_distance_hypercube_to_cv(beta_hat,
-                                                       hypercube_vertices,
+                                                       vertices,
                                                        transform_to_X,
                                                        transform_to_Z);
+  const arma::mat &V = hypercube_vertices["V"];
   const Rcpp::List spectral_radius_bds = spectral_radius_bound_BLR_Z(dim,
-                                                                     hypercube_vertices,
+                                                                     V,
                                                                      X,
                                                                      count,
                                                                      prior_variances,
                                                                      C,
                                                                      transform_to_X);
   const double P_n_Lambda = spectral_radius_bds["spectral_radius"];
+  const Rcpp::List global_spectral_radius_bds = spectral_radius_global_bound_BLR_Z(dim,
+                                                                                   X,
+                                                                                   count,
+                                                                                   prior_variances,
+                                                                                   C,
+                                                                                   transform_to_X);
+  const double P_n_Lambda_global = global_spectral_radius_bds["spectral_radius"];
   return(Rcpp::List::create(Named("LB", -0.5*dim*P_n_Lambda),
                             Named("UB", 0.5*((vec_norm+dist*P_n_Lambda)*(vec_norm+dist*P_n_Lambda)+dim*P_n_Lambda)),
                             Named("dist", dist),
                             Named("P_n_Lambda", P_n_Lambda),
+                            Named("P_n_Lambda_global", P_n_Lambda_global),
                             Named("t1_bds", (vec_norm+dist*P_n_Lambda)*(vec_norm+dist*P_n_Lambda)),
                             Named("t2_bds", dim*P_n_Lambda)));
+  // return(Rcpp::List::create(Named("LB", -0.5*dim*P_n_Lambda_global),
+  //                           Named("UB", 0.5*((vec_norm+dist*P_n_Lambda_global)*(vec_norm+dist*P_n_Lambda_global)+dim*P_n_Lambda_global)),
+  //                           Named("dist", dist),
+  //                           Named("P_n_Lambda_global", P_n_Lambda_global),
+  //                           Named("t1_bds", (vec_norm+dist*P_n_Lambda_global)*(vec_norm+dist*P_n_Lambda_global)),
+  //                           Named("t2_bds", dim*P_n_Lambda_global)));
 }
 
 // [[Rcpp::export]]

@@ -333,8 +333,8 @@ spectral_radius_BLR <- function(beta, dim, X, count, prior_variances, C, Lambda)
     .Call(`_hierarchicalFusion_spectral_radius_BLR`, beta, dim, X, count, prior_variances, C, Lambda)
 }
 
-spectral_radius_bound_BLR_Z <- function(dim, hypercube_vertices, X, count, prior_variances, C, sqrt_Lambda) {
-    .Call(`_hierarchicalFusion_spectral_radius_bound_BLR_Z`, dim, hypercube_vertices, X, count, prior_variances, C, sqrt_Lambda)
+spectral_radius_bound_BLR_Z <- function(dim, V, X, count, prior_variances, C, sqrt_Lambda) {
+    .Call(`_hierarchicalFusion_spectral_radius_bound_BLR_Z`, dim, V, X, count, prior_variances, C, sqrt_Lambda)
 }
 
 spectral_radius_global_bound_BLR_Z <- function(dim, X, count, prior_variances, C, sqrt_Lambda) {

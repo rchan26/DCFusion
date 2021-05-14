@@ -45,7 +45,7 @@ double spectral_radius_BLR(const arma::vec &beta,
                            const arma::mat &Lambda);
 
 Rcpp::List spectral_radius_bound_BLR_Z(const int &dim,
-                                       const arma::mat &hypercube_vertices,
+                                       const arma::mat &V,
                                        const arma::mat &X,
                                        const arma::vec &count,
                                        const arma::vec &prior_variances,
@@ -81,7 +81,7 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                 const arma::vec &prior_variances,
                                 const double &C,
                                 const Rcpp::List &transform_mats,
-                                const arma::mat &hypercube_vertices);
+                                const Rcpp::List &hypercube_vertices);
 
 double gamma_NB_estimate_BLR(const arma::vec &times,
                              const double &h,

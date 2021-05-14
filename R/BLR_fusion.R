@@ -35,10 +35,27 @@ obtain_hypercube_vertices <- function(bessel_layers) {
     stop("hypercube_vertices: bessel_layers must be a list")
   }
   bounds <- lapply(1:length(bessel_layers), function(d) c(bessel_layers[[d]]$L, bessel_layers[[d]]$U))
+  B <- lapply(1:length(bessel_layers), function(d) {
+    if ((bessel_layers[[d]]$L < 0) & (bessel_layers[[d]]$U > 0)) {
+      return(c(bessel_layers[[d]]$L, 0, bessel_layers[[d]]$U))
+    } else {
+      return(c(bessel_layers[[d]]$L, bessel_layers[[d]]$U))
+    }
+  })
   vertices <- as.matrix(expand.grid(bounds))
+  V <- as.matrix(expand.grid(B))
   colnames(vertices) <- c()
-  return(vertices)
+  colnames(V)
+  return(list('vertices' = vertices, 'V' = V))
 }
+
+#' #' @export
+#' surrounding_hypercube_vertices <- function(hypercube_vertices) {
+#'   bounds <- lapply(1:ncol(hypercube_vertices), function(d) c(min(hypercube_vertices[,d]), max(hypercube_vertices[,d])))
+#'   vertices <- as.matrix(expand.grid(bounds))
+#'   colnames(vertices) <- c()
+#'   return(vertices)
+#' }
 
 #' @export
 obtain_LR_MLE <- function(dim, data) {
@@ -77,15 +94,18 @@ ea_BLR_DL_PT <- function(dim,
   # calculate the lower and upper bounds of phi
   if (is.list(cv_location)) {
     if (names(cv_location)==c("beta_hat", "grad_log_hat")) {
-      bounds <- ea_phi_BLR_DL_bounds(beta_hat = cv_location$beta_hat,
-                                     grad_log_hat = cv_location$grad_log_hat,
+      hypercube_vertices <- obtain_hypercube_vertices(bes_layers)
+      # hypercube_vertices_X <- t(transform_mats$to_X %*% t(hypercube_vertices))
+      # surrounding_hypercube_vertices_X <- surrounding_hypercube_vertices(hypercube_vertices = hypercube_vertices_X)
+      bounds <- ea_phi_BLR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
+                                     grad_log_hat = as.vector(cv_location$grad_log_hat),
                                      dim = dim,
                                      X = as.matrix(subset(data$design_count, select = -count)),
                                      count = data$design_count$count,
                                      prior_variances = prior_variances,
                                      C = C,
                                      transform_mats = transform_mats,
-                                     hypercube_vertices = obtain_hypercube_vertices(bes_layers))
+                                     hypercube_vertices = hypercube_vertices)
     } else {
       stop("ea_BLR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
     }
@@ -98,6 +118,9 @@ ea_BLR_DL_PT <- function(dim,
                                            prior_means = prior_means,
                                            prior_variances = prior_variances,
                                            C = C)
+    hypercube_vertices <- obtain_hypercube_vertices(bes_layers)
+    # hypercube_vertices_X <- t(transform_mats$to_X %*% t(hypercube_vertices))
+    # surrounding_hypercube_vertices_X <- surrounding_hypercube_vertices(hypercube_vertices = hypercube_vertices_X)
     bounds <- ea_phi_BLR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                    grad_log_hat = as.vector(cv_location$grad_log_hat),
                                    dim = dim,
@@ -106,7 +129,7 @@ ea_BLR_DL_PT <- function(dim,
                                    prior_variances = prior_variances,
                                    C = C,
                                    transform_mats = transform_mats,
-                                   hypercube_vertices = obtain_hypercube_vertices(bes_layers))
+                                   hypercube_vertices = hypercube_vertices)
   } else {
     stop("ea_BLR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
   }
@@ -138,46 +161,80 @@ ea_BLR_DL_PT <- function(dim,
       if (any(terms < 0)) {
         cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi:', phi$phi, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('min(phi):', min(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(phi):', max(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('(UX-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi$t1:', phi$t1, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(abs(phi$t1)):', max(abs(phi$t1)), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$t1_bds', bounds$t1_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi$t2:', phi$t2, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(abs(phi$t2)):', max(abs(phi$t2)), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$t2_bds', bounds$t2_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        spect <- sapply(1:nrow(sim_path), function(i) {
+        max_spect <- max(abs(sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BLR(beta = sim_path[i,],
                               dim = dim,
                               X = as.matrix(subset(data$design_count, select = -count)),
                               count = data$design_count$count,
                               prior_variances = prior_variances,
                               C = C,
-                              Lambda = precondition_mat)})
-        cat('spect:', spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
+                              Lambda = precondition_mat)})))
+        cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        index <- which(terms < 0)
+        cat('sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
+        for (i in index) {
+          cat(sim_path[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+        }
+        print('sim_path[index,]'); print(sim_path[index,])
+        cat('X %*% sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
+        design <- as.matrix(subset(data$full_data_count, select = -c(y, count)))
+        for (i in 1:nrow(design)) {
+          cat('design[i,]:', design[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+          for (j in index) {
+            cat('sim_path[j,]:', sim_path[j,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+            cat(sum(design[i,] * sim_path[j,]), '\n', file = "SMC_BLR_bounds.txt", append = T)
+          }
+        }
+        print('hypercube_vertices'); print(hypercube_vertices)
         stop('Some of (UX-phi) are < 0.')
       } else if (any((phi$phi - LX) < 0)) {
         cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi:', phi$phi, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('min(phi):', min(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(phi):', max(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('(UX-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi$t1:', phi$t1, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(abs(phi$t1)):', max(abs(phi$t1)), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$t1_bds', bounds$t1_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi$t2:', phi$t2, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(abs(phi$t2)):', max(abs(phi$t2)), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$t2_bds', bounds$t2_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        spect <- sapply(1:nrow(sim_path), function(i) {
+        max_spect <- max(abs(sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BLR(beta = sim_path[i,],
                               dim = dim,
                               X = as.matrix(subset(data$design_count, select = -count)),
                               count = data$design_count$count,
                               prior_variances = prior_variances,
                               C = C,
-                              Lambda = precondition_mat)})
-        cat('spect:', spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
+                              Lambda = precondition_mat)})))
+        cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        index <- which((phi$phi - LX) < 0)
+        cat('sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
+        for (i in index) {
+          cat(sim_path[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+        }
+        print('sim_path[index,]'); print(sim_path[index,])
+        cat('X %*% sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
+        design <- as.matrix(subset(data$full_data_count, select = -c(y, count)))
+        for (i in 1:nrow(design)) {
+          cat('design[i,]:', design[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+          for (j in index) {
+            cat('sim_path[j,]:', sim_path[j,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+            cat(sum(design[i,] * sim_path[j,]), '\n', file = "SMC_BLR_bounds.txt", append = T)
+          }
+        }
+        print('hypercube_vertices'); print(hypercube_vertices)
         stop('Some of (phi-LX) are < 0.')
       }
     }
@@ -235,46 +292,80 @@ ea_BLR_DL_PT <- function(dim,
       if (any(terms < 0)) {
         cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi:', phi$phi, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('min(phi):', min(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(phi):', max(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('(UX-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi$t1:', phi$t1, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(abs(phi$t1)):', max(abs(phi$t1)), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$t1_bds', bounds$t1_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi$t2:', phi$t2, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(abs(phi$t2)):', max(abs(phi$t2)), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$t2_bds', bounds$t2_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        spect <- sapply(1:nrow(sim_path), function(i) {
+        max_spect <- max(abs(sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BLR(beta = sim_path[i,],
                               dim = dim,
                               X = as.matrix(subset(data$design_count, select = -count)),
                               count = data$design_count$count,
                               prior_variances = prior_variances,
                               C = C,
-                              Lambda = precondition_mat)})
-        cat('spect:', spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
+                              Lambda = precondition_mat)})))
+        cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        index <- which(terms < 0)
+        cat('sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
+        for (i in index) {
+          cat(sim_path[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+        }
+        print('sim_path[index,]'); print(sim_path[index,])
+        cat('X %*% sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
+        design <- as.matrix(subset(data$full_data_count, select = -c(y, count)))
+        for (i in 1:nrow(design)) {
+          cat('design[i,]:', design[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+          for (j in index) {
+            cat('sim_path[j,]:', sim_path[j,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+            cat(sum(design[i,] * sim_path[j,]), '\n', file = "SMC_BLR_bounds.txt", append = T)
+          }
+        }
+        print('hypercube_vertices'); print(hypercube_vertices)
         stop('Some of (UX-phi) are < 0.')
       } else if (any((phi$phi - LX) < 0)) {
         cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi:', phi$phi, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('min(phi):', min(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(phi):', max(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('(UX-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi$t1:', phi$t1, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(abs(phi$t1)):', max(abs(phi$t1)), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$t1_bds', bounds$t1_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('phi$t2:', phi$t2, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        cat('max(abs(phi$t2)):', max(abs(phi$t2)), '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$t2_bds', bounds$t2_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        spect <- sapply(1:nrow(sim_path), function(i) {
+        max_spect <- max(abs(sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BLR(beta = sim_path[i,],
                               dim = dim,
                               X = as.matrix(subset(data$design_count, select = -count)),
                               count = data$design_count$count,
                               prior_variances = prior_variances,
                               C = C,
-                              Lambda = precondition_mat)})
-        cat('spect:', spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
+                              Lambda = precondition_mat)})))
+        cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
+        index <- which((phi$phi - LX) < 0)
+        cat('sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
+        for (i in index) {
+          cat(sim_path[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+        }
+        print('sim_path[index,]'); print(sim_path[index,])
+        cat('X %*% sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
+        design <- as.matrix(subset(data$full_data_count, select = -c(y, count)))
+        for (i in 1:nrow(design)) {
+          cat('design[i,]:', design[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+          for (j in index) {
+            cat('sim_path[j,]:', sim_path[j,], '\n', file = "SMC_BLR_bounds.txt", append = T)
+            cat(sum(design[i,] * sim_path[j,]), '\n', file = "SMC_BLR_bounds.txt", append = T)
+          }
+        }
+        print('hypercube_vertices'); print(hypercube_vertices)
         stop('Some of (phi-LX) are < 0.')
       }
     }
