@@ -205,6 +205,7 @@ weierstrass_16_importance <- weierstrass(Samples = sub_posteriors_16, method = '
 weierstrass_16_rejection <- weierstrass(Samples = sub_posteriors_16, method = 'reject')
 integrated_abs_distance(full_posterior, weierstrass_16_importance$samples, bandwidths)
 integrated_abs_distance(full_posterior, weierstrass_16_rejection$samples, bandwidths)
+
 ##### Sampling from sub-posterior C=32 #####
 
 data_split_32 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 32, as_dataframe = F)

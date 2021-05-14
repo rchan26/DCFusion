@@ -30,17 +30,17 @@ for (i in 1:length(time_choices)) {
                                                                                         cv_location = 'mode',
                                                                                         diffusion_estimator = 'Poisson',
                                                                                         seed = seed,
-                                                                                        print_progress_iters = 625)
+                                                                                        print_progress_iters = 1250)
+  test_preconditioned_hierarchical_SMC_Poisson_mode[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_mode[[i]]$particles[[1]],
+                                                                                                       multivariate = TRUE,
+                                                                                                       resampling_method = 'resid',
+                                                                                                       seed = seed)
   compare_samples_bivariate(posteriors = list(full_posterior,
                                               test_preconditioned_hierarchical_SMC_Poisson_mode[[i]]$proposed_samples[[1]],
                                               test_preconditioned_hierarchical_SMC_Poisson_mode[[i]]$particles[[1]]$y_samples),
                             colours = c('black', 'darkgreen', 'red'),
                             common_limit = c(-4, 4),
                             title = paste('Credit Cards - C=16 || SMC Hierarchical [Poisson] (mode) || Time =', time_choices[i]))
-  test_preconditioned_hierarchical_SMC_Poisson_mode[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_mode[[i]]$particles[[1]],
-                                                                                                       multivariate = TRUE,
-                                                                                                       resampling_method = 'resid',
-                                                                                                       seed = seed)
   ##### Poisson (Hypercube Centre) #####
   print('Poisson Fusion (hypercube centre)')
   test_preconditioned_hierarchical_SMC_Poisson_hc[[i]] <- hierarchical_fusion_SMC_BLR(N_schedule = rep(30000, 4),
@@ -59,17 +59,17 @@ for (i in 1:length(time_choices)) {
                                                                                       cv_location = 'hypercube_centre',
                                                                                       diffusion_estimator = 'Poisson',
                                                                                       seed = seed,
-                                                                                      print_progress_iters = 625)
+                                                                                      print_progress_iters = 1250)
+  test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]],
+                                                                                                     multivariate = TRUE,
+                                                                                                     resampling_method = 'resid',
+                                                                                                     seed = seed)
   compare_samples_bivariate(posteriors = list(full_posterior,
                                               test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$proposed_samples[[1]],
                                               test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]]$y_samples),
                             colours = c('black', 'darkgreen', 'red'),
                             common_limit = c(-4, 4),
                             title = paste('Credit Cards - C=16 || SMC Hierarchical [Poisson] (h.c.) || Time =', time_choices[i]))
-  test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]],
-                                                                                                     multivariate = TRUE,
-                                                                                                     resampling_method = 'resid',
-                                                                                                     seed = seed)
   ##### NB (Mode) #####
   print('NB Fusion (mode)')
   test_preconditioned_hierarchical_SMC_NB_mode[[i]] <- hierarchical_fusion_SMC_BLR(N_schedule = rep(30000, 4),
@@ -88,7 +88,7 @@ for (i in 1:length(time_choices)) {
                                                                                    cv_location = 'mode',
                                                                                    diffusion_estimator = 'NB',
                                                                                    seed = seed,
-                                                                                   print_progress_iters = 625)
+                                                                                   print_progress_iters = 1250)
   test_preconditioned_hierarchical_SMC_NB_mode[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_NB_mode[[i]]$particles[[1]],
                                                                                                   multivariate = TRUE,
                                                                                                   resampling_method = 'resid',
@@ -117,7 +117,7 @@ for (i in 1:length(time_choices)) {
                                                                                  cv_location = 'hypercube_centre',
                                                                                  diffusion_estimator = 'NB',
                                                                                  seed = seed,
-                                                                                 print_progress_iters = 625)
+                                                                                 print_progress_iters = 1250)
   test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]],
                                                                                                 multivariate = TRUE,
                                                                                                 resampling_method = 'resid',
@@ -130,6 +130,7 @@ for (i in 1:length(time_choices)) {
                             title = paste('Credit Cards - C=16 || SMC Hierarchical [NB] || Time =', time_choices[i]))
 }
 
+bandwidths <- rep(0.05, 5)
 for (i in 1:length(time_choices)) {
   print(paste('Time: ', time_choices[i]))
   print('Poisson Fusion (mode)')
@@ -150,3 +151,10 @@ for (i in 1:length(time_choices)) {
                                 bandwidths))
 }
 
+integrated_abs_distance(full_posterior, consensus_mat_16$samples, bandwidths)
+integrated_abs_distance(full_posterior, consensus_sca_16$samples, bandwidths)
+integrated_abs_distance(full_posterior, neiswanger_16_true$samples, bw = bandwidths)
+integrated_abs_distance(full_posterior, neiswanger_16_false$samples, bw = bandwidths)
+integrated_abs_distance(full_posterior, weierstrass_16_importance$samples, bandwidths)
+integrated_abs_distance(full_posterior, weierstrass_16_rejection$samples, bandwidths)
+      
