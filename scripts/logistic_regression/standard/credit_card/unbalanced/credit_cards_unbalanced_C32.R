@@ -70,6 +70,7 @@ for (i in 1:length(time_choices)) {
                             title = paste('Credit Cards - C=32 || SMC Hierarchical [NB] || Time =', time_choices[i]))
 }
 
+bandwidths <- NULL
 for (i in 1:length(time_choices)) {
   print(paste('Time: ', time_choices[i]))
   print('Poisson Fusion (h.c.)')
@@ -82,3 +83,9 @@ for (i in 1:length(time_choices)) {
                                 bandwidths))
 }
 
+integrated_abs_distance(full_posterior, consensus_mat_16$samples, bandwidths)
+integrated_abs_distance(full_posterior, consensus_sca_16$samples, bandwidths)
+integrated_abs_distance(full_posterior, neiswanger_16_true$samples, bw = bandwidths)
+integrated_abs_distance(full_posterior, neiswanger_16_false$samples, bw = bandwidths)
+integrated_abs_distance(full_posterior, weierstrass_16_importance$samples, bandwidths)
+integrated_abs_distance(full_posterior, weierstrass_16_rejection$samples, bandwidths)

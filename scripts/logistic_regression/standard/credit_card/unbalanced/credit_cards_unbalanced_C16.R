@@ -71,6 +71,7 @@ for (i in 3:length(time_choices)) {
                             title = paste('Credit Cards - C=16 || SMC Hierarchical [NB] || Time =', time_choices[i]))
 }
 
+bandwidths <- NULL
 for (i in 1:length(time_choices)) {
   print(paste('Time: ', time_choices[i]))
   print('Poisson Fusion (h.c.)')

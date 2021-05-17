@@ -76,8 +76,9 @@ credit_card_data <- list()
 credit_card_data$y <- credit_cards_full$y
 credit_card_data$X <- as.matrix(cbind(rep(1, nrow(credit_cards_full[,2:5])), credit_cards_full[,2:5]))
 colnames(credit_card_data$X)[1] <- 'intercept'
+full_data_count <- unique_row_count(credit_card_data$y, credit_card_data$X)$full_data_count
 
-full_posterior <- hmc_sample_BLR(data = credit_card_data, 
+full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
                                  C = 1, 
                                  prior_means = rep(0, 5),
                                  prior_variances = rep(1, 5), 
@@ -240,3 +241,5 @@ weierstrass_32_rejection <- weierstrass(Samples = sub_posteriors_32,
                                         method = 'reject')
 integrated_abs_distance(full_posterior, weierstrass_32_importance$samples, bw = bandwidths)
 integrated_abs_distance(full_posterior, weierstrass_32_rejection$samples, bw = bandwidths)
+
+save.image('credit_cards_unbalanced_sub_posteriors.RData')
