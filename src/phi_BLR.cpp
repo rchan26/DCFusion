@@ -276,26 +276,20 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                                                      C,
                                                                      transform_to_X);
   const double P_n_Lambda = spectral_radius_bds["spectral_radius"];
-  const Rcpp::List global_spectral_radius_bds = spectral_radius_global_bound_BLR_Z(dim,
-                                                                                   X,
-                                                                                   count,
-                                                                                   prior_variances,
-                                                                                   C,
-                                                                                   transform_to_X);
-  const double P_n_Lambda_global = global_spectral_radius_bds["spectral_radius"];
+  // const Rcpp::List global_spectral_radius_bds = spectral_radius_global_bound_BLR_Z(dim,
+  //                                                                                  X,
+  //                                                                                  count,
+  //                                                                                  prior_variances,
+  //                                                                                  C,
+  //                                                                                  transform_to_X);
+  // const double P_n_Lambda_global = global_spectral_radius_bds["spectral_radius"];
   return(Rcpp::List::create(Named("LB", -0.5*dim*P_n_Lambda),
                             Named("UB", 0.5*((vec_norm+dist*P_n_Lambda)*(vec_norm+dist*P_n_Lambda)+dim*P_n_Lambda)),
                             Named("dist", dist),
                             Named("P_n_Lambda", P_n_Lambda),
-                            Named("P_n_Lambda_global", P_n_Lambda_global),
+                            // Named("P_n_Lambda_global", P_n_Lambda_global),
                             Named("t1_bds", (vec_norm+dist*P_n_Lambda)*(vec_norm+dist*P_n_Lambda)),
                             Named("t2_bds", dim*P_n_Lambda)));
-  // return(Rcpp::List::create(Named("LB", -0.5*dim*P_n_Lambda_global),
-  //                           Named("UB", 0.5*((vec_norm+dist*P_n_Lambda_global)*(vec_norm+dist*P_n_Lambda_global)+dim*P_n_Lambda_global)),
-  //                           Named("dist", dist),
-  //                           Named("P_n_Lambda_global", P_n_Lambda_global),
-  //                           Named("t1_bds", (vec_norm+dist*P_n_Lambda_global)*(vec_norm+dist*P_n_Lambda_global)),
-  //                           Named("t2_bds", dim*P_n_Lambda_global)));
 }
 
 // [[Rcpp::export]]
