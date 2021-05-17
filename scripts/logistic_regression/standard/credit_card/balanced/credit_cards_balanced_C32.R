@@ -8,7 +8,7 @@ load("~/OneDrive - The Alan Turing Institute/freefor7/2021-02-12_hierarchical_fu
 time_choices <- c(0.25, 0.5, 1, 1.5)
 test_preconditioned_hierarchical_SMC_Poisson_hc <- list()
 test_preconditioned_hierarchical_SMC_NB_hc <- list()
-for (i in 1:length(time_choices)) {
+for (i in 4:length(time_choices)) {
   print(paste('Time: ', time_choices[i]))
   ##### Poisson (Hypercube Centre) #####
   print('Poisson Fusion (hypercube centre)')
@@ -52,7 +52,7 @@ for (i in 1:length(time_choices)) {
                                                                                  prior_variances = rep(1, 5),
                                                                                  C = 32,
                                                                                  precondition = TRUE,
-                                                                                 resampling_method = 'resid',
+                                                                                     resampling_method = 'resid',
                                                                                  ESS_threshold = 0.5,
                                                                                  cv_location = 'hypercube_centre',
                                                                                  diffusion_estimator = 'NB',

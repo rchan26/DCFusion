@@ -49,7 +49,7 @@ seed <- 1920
 set.seed(seed)
 
 # simulate data set
-simulated_data <- simulate_data(N = 30000, 
+simulated_data <- simulate_data(N = 50000, 
                                 alpha = -3,
                                 frequencies = c(0.2, 0.3, 0.5, 0.01),
                                 coefficients = c(1.2, -0.5, 0.8, 3)) 
@@ -62,6 +62,8 @@ full_data <- list()
 full_data$y <- simulated_data$y
 full_data$X <- as.matrix(cbind(rep(1, nrow(simulated_data[,2:5])), simulated_data[,2:5]))
 colnames(full_data$X)[1] <- 'intercept'
+
+full_data <- split_data(simulated_data, y_col_index = 1, X_col_index = 2:5, C = 1, as_dataframe = F)[[1]]
 
 ###### Sampling from full posterier #####
 

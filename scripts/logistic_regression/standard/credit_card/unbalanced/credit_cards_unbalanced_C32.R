@@ -29,16 +29,16 @@ for (i in 1:length(time_choices)) {
                                                                                       diffusion_estimator = 'Poisson',
                                                                                       seed = seed,
                                                                                       print_progress_iters = 625)
+  test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]],
+                                                                                                     multivariate = TRUE,
+                                                                                                     resampling_method = 'resid',
+                                                                                                     seed = seed)
   compare_samples_bivariate(posteriors = list(full_posterior,
                                               test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$proposed_samples[[1]],
                                               test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]]$y_samples),
                             colours = c('black', 'darkgreen', 'red'),
                             common_limit = c(-4, 4),
                             title = paste('Credit Cards - C=32 || SMC Hierarchical [Poisson] (h.c.) || Time =', time_choices[i]))
-  test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]],
-                                                                                                     multivariate = TRUE,
-                                                                                                     resampling_method = 'resid',
-                                                                                                     seed = seed)
   ##### NB (Hypercube Centre) #####
   print('NB Fusion (hypercube centre)')
   test_preconditioned_hierarchical_SMC_NB_hc[[i]] <- hierarchical_fusion_SMC_BLR(N_schedule = rep(30000, 5),

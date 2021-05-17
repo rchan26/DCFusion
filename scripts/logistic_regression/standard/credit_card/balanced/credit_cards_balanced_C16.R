@@ -5,14 +5,14 @@ seed <- 2016
 
 load("~/OneDrive - The Alan Turing Institute/freefor7/2021-02-12_hierarchical_fusion/results/logistic_regression/credit_cards/credit_cards_sub_posterior_sampling.RData")
 
-time_choices <- c(0.25, 0.5, 1)
+time_choices <- c(0.25, 0.5, 1, 1.5)
 test_preconditioned_hierarchical_SMC_Poisson_mode <- list()
 test_preconditioned_hierarchical_SMC_Poisson_hc <- list()
 test_preconditioned_hierarchical_SMC_NB_mode <- list()
 test_preconditioned_hierarchical_SMC_NB_hc <- list()
 for (i in 1:length(time_choices)) {
   print(paste('Time: ', time_choices[i]))
-  ##### Poisson (Mode) #####
+  ##### Poisson (Mode) ##   ###
   print('Poisson Fusion (mode)')
   test_preconditioned_hierarchical_SMC_Poisson_mode[[i]] <- hierarchical_fusion_SMC_BLR(N_schedule = rep(30000, 4),
                                                                                         m_schedule = rep(2, 4),
@@ -106,7 +106,7 @@ for (i in 1:length(time_choices)) {
                                                                                  time_schedule = rep(time_choices[i], 4),
                                                                                  base_samples = sub_posteriors_16,
                                                                                  L = 5,
-                                                                                 dim = 5,
+                                                                                     dim = 5,
                                                                                  data_split = data_split_16,
                                                                                  prior_means = rep(0, 5),
                                                                                  prior_variances = rep(1, 5),
