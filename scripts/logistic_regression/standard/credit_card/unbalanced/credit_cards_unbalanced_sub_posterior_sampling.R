@@ -5,7 +5,7 @@ seed <- 2016
 
 ##### Loading in Data #####
 
-original_data <- read.csv('../credit_cards.csv', header = T)
+original_data <- read.csv('scripts/logistic_regression/standard/credit_card/credit_cards.csv')
 original_data <- original_data[2:nrow(original_data),]
 credit_cards <- original_data[,c(25, 3, 4)]
 colnames(credit_cards) <- c('y', 'sex', 'education')
@@ -82,10 +82,9 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
                                  C = 1, 
                                  prior_means = rep(0, 5),
                                  prior_variances = rep(1, 5), 
-                                 iterations = 40000, 
+                                 iterations = 110000, 
                                  warmup = 10000, 
                                  chains = 1, 
-                                 power = 1,
                                  seed = seed,
                                  output = T)
 
@@ -97,7 +96,7 @@ standard_normal_prior <- function(beta, C) {
 full_posterior_mcmc <- as.matrix(MCMCpack::MCMClogit(formula = y ~ sex + ED1 + ED2 + ED3, 
                                                      data = credit_cards_full,
                                                      burnin = 10000, 
-                                                     mcmc = 40000, 
+                                                     mcmc = 110000, 
                                                      user.prior.density = standard_normal_prior,
                                                      C = 1,
                                                      logfun = TRUE))
@@ -109,10 +108,12 @@ glm(formula = y ~ sex + ED1 + ED2 + ED3,
 apply(full_posterior, 2, mean)
 apply(full_posterior_mcmc, 2, mean)
 
+plot_fusion_matrix(full_posterior, full_posterior_mcmc, c(-4, 4))
+
 ##### Sampling from sub-posterior C=2 #####
 
 data_split_2 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 2, as_dataframe = F)
-sub_posteriors_2 <- hmc_base_sampler_BLR(nsamples = 30000,
+sub_posteriors_2 <- hmc_base_sampler_BLR(nsamples = 100000,
                                          data_split = data_split_2,
                                          C = 2, 
                                          prior_means = rep(0, 5),
@@ -126,7 +127,7 @@ compare_samples_bivariate(sub_posteriors_2, c('red' ,'blue'), c(-4, 4))
 ##### Sampling from sub-posterior C=4 #####
 
 data_split_4 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 4, as_dataframe = F)
-sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = 30000,
+sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = 100000,
                                          data_split = data_split_4,
                                          C = 4, 
                                          prior_means = rep(0, 5),
@@ -140,7 +141,7 @@ compare_samples_bivariate(sub_posteriors_4, c(rep('red', 2), rep('blue', 2)), c(
 ##### Sampling from sub-posterior C=8 #####
 
 data_split_8 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 8, as_dataframe = F)
-sub_posteriors_8 <- hmc_base_sampler_BLR(nsamples = 30000,
+sub_posteriors_8 <- hmc_base_sampler_BLR(nsamples = 100000,
                                          data_split = data_split_8,
                                          C = 8, 
                                          prior_means = rep(0, 5),
@@ -151,7 +152,7 @@ sub_posteriors_8 <- hmc_base_sampler_BLR(nsamples = 30000,
 
 compare_samples_bivariate(sub_posteriors_8, c(rep('red', 2), rep('blue', 2), rep('green', 2), rep('purple', 2)), c(-4, 4))
 
-bandwidths <- rep(0.1, 5)
+bandwidths <- NULL
 
 consensus_mat_8 <- consensus_scott(S = 8, samples_to_combine = sub_posteriors_8, indep = F)
 consensus_sca_8 <- consensus_scott(S = 8, samples_to_combine = sub_posteriors_8, indep = T)
@@ -177,7 +178,7 @@ integrated_abs_distance(full_posterior, weierstrass_8_rejection$samples, bandwid
 ##### Sampling from sub-posterior C=16 #####
 
 data_split_16 <- split_data(dataframe = credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 16, as_dataframe = F)
-sub_posteriors_16 <- hmc_base_sampler_BLR(nsamples = 30000,
+sub_posteriors_16 <- hmc_base_sampler_BLR(nsamples = 100000,
                                           data_split = data_split_16,
                                           C = 16, 
                                           prior_means = rep(0, 5),
@@ -210,7 +211,7 @@ integrated_abs_distance(full_posterior, weierstrass_16_rejection$samples, bandwi
 ##### Sampling from sub-posterior C=32 #####
 
 data_split_32 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 32, as_dataframe = F)
-sub_posteriors_32 <- hmc_base_sampler_BLR(nsamples = 30000,
+sub_posteriors_32 <- hmc_base_sampler_BLR(nsamples = 100000,
                                           data_split = data_split_32,
                                           C = 32, 
                                           prior_means = rep(0, 5),
