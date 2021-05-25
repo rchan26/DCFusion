@@ -10,7 +10,8 @@ rho_IS_univariate(
   m,
   time,
   precondition_values,
-  n_cores = parallel::detectCores()
+  n_cores = parallel::detectCores(),
+  cl = NULL
 )
 }
 \arguments{

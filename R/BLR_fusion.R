@@ -456,11 +456,11 @@ Q_IS_BLR <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
-  varlist <- c(ls(), list("ea_phi_BLR_DL_matrix",
-                          "ea_phi_BLR_DL_bounds",
-                          "ea_BLR_DL_PT"))
-  parallel::clusterExport(cl, envir = environment(), varlist = varlist)
-  # exporting functions from layeredBB package to simulate layered Brownian bridges
+  parallel::clusterExport(cl,
+                          envir = environment(),
+                          varlist = c(ls(), list("ea_phi_BLR_DL_matrix",
+                                                 "ea_phi_BLR_DL_bounds",
+                                                 "ea_BLR_DL_PT")))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
@@ -835,8 +835,6 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'                    after each step; rho and Q for level l, node i}
 #'   \item{precondition_matrices}{pre-conditioning matrices that were used}
 #'   \item{resampling_method}{method that was used in resampling}
-#'   \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
-#'                      data input for the sub-posteiror in level l, node i}
 #'   \item{diffusion_times}{vector of length (L-1), where diffusion_times[l]
 #'                          are the times for fusion in level l}
 #' }
@@ -872,7 +870,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     stop("hierarchical_fusion_SMC_BLR: base_samples must be a list of length C")
   } else if (!is.list(data_split) | length(data_split)!=C) {
     stop("hierarchical_fusion_SMC_BLR: data_split must be a list of length C")
-  }else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
+  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
     stop("parallel_fusion_SMC_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:C, function(i) is.vector(data_split[[i]]$y)))) {
     stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$y must be a vector")
@@ -983,7 +981,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
-    data_inputs[[1]] <- data_inputs[[1]][[1]]
+
   }
   return(list('particles' = particles,
               'proposed_samples' = proposed_samples,
@@ -992,6 +990,5 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
               'CESS' = CESS,
               'resampled' = resampled,
               'precondition_matrices' = precondition_matrices,
-              'data_inputs' = data_inputs,
               'diffusion_times' = time_schedule))
 }

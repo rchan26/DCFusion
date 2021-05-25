@@ -352,7 +352,7 @@ resample_particle_x_samples <- function(N = particle_set$N,
 #' @param precondition_values vector of length m, where precondition_values[[c]]
 #'                            is the precondition value for sub-posterior c
 #' @param n_cores number of cores to use
-#'
+#' 
 #' @return A importance weighted particle set
 #' 
 #' @examples
@@ -372,7 +372,8 @@ rho_IS_univariate <- function(particles_to_fuse,
                               m,
                               time,
                               precondition_values,
-                              n_cores = parallel::detectCores()) {
+                              n_cores = parallel::detectCores(),
+                              cl = NULL) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("rho_IS_univariate: particles_to_fuse must be a list of length m")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
@@ -384,8 +385,7 @@ rho_IS_univariate <- function(particles_to_fuse,
   }
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  varlist <- c(ls(), "rho_IS_univariate_")
-  parallel::clusterExport(cl, envir = environment(), varlist = varlist)
+  parallel::clusterExport(cl, envir = environment(), varlist = c(ls(), "rho_IS_univariate_"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
@@ -402,7 +402,7 @@ rho_IS_univariate <- function(particles_to_fuse,
                        time = time,
                        precondition_values = precondition_values)
   })
-  parallel::stopCluster(cl)
+  parallel::stopCluster(cl)  
   # ---------- create particle
   ps <- new.env(parent = emptyenv())
   ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
@@ -476,8 +476,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
   }
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  varlist <- c(ls(), "rho_IS_multivariate_")
-  parallel::clusterExport(cl, envir = environment(), varlist = varlist)
+  parallel::clusterExport(cl, envir = environment(), varlist = c(ls(), "rho_IS_multivariate_"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
@@ -496,7 +495,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
                          inv_precondition_matrices = inv_precondition_matrices,
                          inverse_sum_inv_precondition_matrices = inverse_sum_inv_precondition_matrices)
   })
-  parallel::stopCluster(cl)
+  parallel::stopCluster(cl)  
   # ---------- create particle
   ps <- new.env(parent = emptyenv())
   ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
