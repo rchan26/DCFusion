@@ -62,6 +62,7 @@ for (i in 1:length(n_samples)) {
                                 test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles$y_samples,
                                 bandwidths))
   test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples <- test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples[[1]]
+  save.image('credit_cards_balanced_C128_various_nsamples.RData')
 }
 
 save.image('credit_cards_balanced_C128_various_nsamples.RData')
