@@ -2,7 +2,7 @@ library(hierarchicalFusion)
 
 seed <- 2016
 
-load('credit_cards_balanced_sub_posteriors.RData')
+load('balanced_C128.RData')
 
 time_choice <- 0.5
 test_preconditioned_hierarchical_SMC_Poisson_hc <- list()
