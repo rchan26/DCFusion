@@ -93,6 +93,9 @@ binomial estimator (default is 2)}
 \item{print_progress_iters}{number of iterations between each progress update
 (default is 1000). If NULL, progress will only
 be updated when importance sampling is finished}
+
+\item{cl}{an object of class "cluster" for parallel computation in R. If none
+is passed, then one is created and used within this function}
 }
 \value{
 A list with components:
@@ -113,6 +116,8 @@ A list with components:
                    after each step; rho and Q for level l, node i}
   \item{precondition_matrices}{pre-conditioning matrices that were used}
   \item{resampling_method}{method that was used in resampling}
+  \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
+                     data input for the sub-posteiror in level l, node i}
   \item{diffusion_times}{vector of length (L-1), where diffusion_times[l]
                          are the times for fusion in level l}
 }

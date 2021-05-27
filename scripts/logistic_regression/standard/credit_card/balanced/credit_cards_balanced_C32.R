@@ -5,7 +5,7 @@ seed <- 2016
 
 load("~/OneDrive - The Alan Turing Institute/freefor7/2021-02-12_hierarchical_fusion/results/logistic_regression/credit_cards/var_10/credit_cards_balanced_sub_posteriors.RData")
 
-time_choices <- c(0.5, 1)
+time_choices <- c(0.25, 0.5, 1)
 test_preconditioned_hierarchical_SMC_Poisson_hc <- list()
 test_preconditioned_hierarchical_SMC_NB_hc <- list()
 for (i in 1:length(time_choices)) {
@@ -33,6 +33,9 @@ for (i in 1:length(time_choices)) {
                                                                                                      multivariate = TRUE,
                                                                                                      resampling_method = 'resid',
                                                                                                      seed = seed)
+  print(integrated_abs_distance(full_posterior,
+                                test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]]$y_samples,
+                                bandwidths))
   compare_samples_bivariate(posteriors = list(full_posterior,
                                               test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$proposed_samples[[1]],
                                               test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]]$y_samples),
@@ -62,6 +65,9 @@ for (i in 1:length(time_choices)) {
                                                                                                 multivariate = TRUE,
                                                                                                 resampling_method = 'resid',
                                                                                                 seed = seed)
+  print(integrated_abs_distance(full_posterior,
+                                test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]]$y_samples,
+                                bandwidths))
   compare_samples_bivariate(posteriors = list(full_posterior,
                                               test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples[[1]],
                                               test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]]$y_samples),

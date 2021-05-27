@@ -130,6 +130,7 @@ test_preconditioned_SMC_Poisson$particles <- resample_particle_y_samples(particl
                                                                          resampling_method = 'resid',
                                                                          seed = seed)
 plot_fusion_matrix(full_posterior, test_preconditioned_SMC_Poisson$particles$y_samples, c(-4, 4))
+integrated_abs_distance(full_posterior, test_preconditioned_SMC_Poisson$particles$y_samples)
 
 # preconditioned fork and join [Negative Binomial estimator]
 test_preconditioned_SMC_NB <- parallel_fusion_SMC_BLR(particles_to_fuse = particles_to_fuse,
@@ -153,8 +154,8 @@ test_preconditioned_SMC_NB$particles <- resample_particle_y_samples(particle_set
                                                                     multivariate = TRUE,
                                                                     resampling_method = 'resid',
                                                                     seed = seed)
-plot_fusion_matrix(full_posterior, test_preconditioned_SMC_Poisson$particles$y_samples, c(-4, 4))
-
+plot_fusion_matrix(full_posterior, test_preconditioned_SMC_NB$particles$y_samples, c(-4, 4))
+integrated_abs_distance(full_posterior, test_preconditioned_SMC_NB$particles$y_samples)
 compare_samples_bivariate(posteriors = list(full_posterior,
                                             test_preconditioned_SMC_Poisson$particles$y_samples,
                                             test_preconditioned_SMC_NB$particles$y_samples),
@@ -181,11 +182,13 @@ test_preconditioned_hierarchical_SMC_Poisson <- hierarchical_fusion_SMC_BLR(N_sc
                                                                             diffusion_estimator = 'Poisson',
                                                                             cv_location = 'hypercube_centre',
                                                                             seed = seed,
+                                                                            create_cluster = TRUE,
                                                                             print_progress_iters = 1000)
 test_preconditioned_hierarchical_SMC_Poisson$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson$particles[[1]],
                                                                                            multivariate = TRUE,
                                                                                            resampling_method = 'resid',
                                                                                            seed = seed)
+integrated_abs_distance(full_posterior, test_preconditioned_hierarchical_SMC_Poisson$particles[[1]]$y_samples)
 
 # preconditioned hierarchical [Negative Binomial estimator]
 test_preconditioned_hierarchical_SMC_NB <- hierarchical_fusion_SMC_BLR(N_schedule = rep(100000, 2),
@@ -204,16 +207,17 @@ test_preconditioned_hierarchical_SMC_NB <- hierarchical_fusion_SMC_BLR(N_schedul
                                                                        diffusion_estimator = 'NB',
                                                                        cv_location = 'hypercube_centre',
                                                                        seed = seed,
+                                                                       create_cluster = TRUE,
                                                                        print_progress_iters = 1000)
 test_preconditioned_hierarchical_SMC_NB$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_NB$particles[[1]],
                                                                                       multivariate = TRUE,
                                                                                       resampling_method = 'resid',
                                                                                       seed = seed)
+integrated_abs_distance(full_posterior, test_preconditioned_hierarchical_SMC_NB__$particles[[1]]$y_samples)
 
 compare_samples_bivariate(posteriors = list(full_posterior,
-                                            test_preconditioned_hierarchical_SMC_Poisson$particles[[1]]$y_samples,
-                                            test_preconditioned_hierarchical_SMC_NB$particles[[1]]$y_samples),
+                                            test_preconditioned_hierarchical_SMC_Poisson_$particles[[1]]$y_samples,
+                                            test_preconditioned_hierarchical_SMC_NB_$particles[[1]]$y_samples),
                           colours = c('black', 'red', 'blue'),
                           common_limit = c(-4, 4),
                           title = 'C = 4 || SMC Hierarchical (Precondition) || N = 100000')
-

@@ -398,6 +398,7 @@ Q_IS_BLR <- function(particle_set,
                      gamma_NB_n_points = 2,
                      seed = NULL,
                      n_cores = parallel::detectCores(),
+                     cl = NULL,
                      level = 1,
                      node = 1,
                      print_progress_iters = 1000) {
@@ -429,6 +430,8 @@ Q_IS_BLR <- function(particle_set,
     stop("Q_IS_BLR: inv_precondition_matrices must be a list of length m")
   } else if (!(diffusion_estimator %in% c('Poisson', 'NB'))) {
     stop("Q_IS_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
+  } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
+    stop("Q_IS_BLR: cl must be a \"cluster\" object or NULL")
   }
   if (cv_location == 'mode') {
     cv_location <- lapply(1:m, function(c) {
@@ -455,13 +458,17 @@ Q_IS_BLR <- function(particle_set,
   proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
   N <- particle_set$N
   # ---------- creating parallel cluster
-  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
-  parallel::clusterExport(cl,
-                          envir = environment(),
-                          varlist = c(ls(), list("ea_phi_BLR_DL_matrix",
-                                                 "ea_phi_BLR_DL_bounds",
-                                                 "ea_BLR_DL_PT")))
-  parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
+  if (is.null(cl)) {
+    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+    parallel::clusterExport(cl, envir = environment(),
+                            varlist = c("ea_phi_BLR_DL_matrix",
+                                        "ea_phi_BLR_DL_bounds",
+                                        "ea_BLR_DL_PT"))
+    parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
+    close_cluster <- TRUE
+  } else {
+    close_cluster <- FALSE
+  }
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
@@ -511,7 +518,9 @@ Q_IS_BLR <- function(particle_set,
         split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
-  parallel::stopCluster(cl)
+  if (close_cluster) {
+    parallel::stopCluster(cl)  
+  }
   # unlist the proposed samples for y and their associated log Q weights
   y_samples <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
     Q_weighted_samples[[i]]$y_samples}))
@@ -576,6 +585,8 @@ Q_IS_BLR <- function(particle_set,
 #'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
+#' @param cl an object of class "cluster" for parallel computation in R. If none
+#'           is passed, then one is created and used within other functions
 #' @param level indicates which level this is for the hierarchy (default 1)
 #' @param node indicates which node this is for the hierarchy (default 1)
 #' @param print_progress_iters number of iterations between each progress update
@@ -621,6 +632,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                     gamma_NB_n_points = 2,
                                     seed = NULL,
                                     n_cores = parallel::detectCores(),
+                                    cl = NULL,
                                     level = 1,
                                     node = 1,
                                     print_progress_iters = 1000) {
@@ -691,7 +703,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
                                    inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices),
-                                   n_cores = n_cores)
+                                   n_cores = n_cores,
+                                   cl = cl)
   # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)
   CESS <- c('rho' = particles$CESS['rho'])
@@ -725,6 +738,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                         gamma_NB_n_points = gamma_NB_n_points,
                         seed = seed,
                         n_cores = n_cores,
+                        cl = cl,
                         level = level,
                         node = node,
                         print_progress_iters = print_progress_iters)
@@ -813,6 +827,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
+#' @param cl an object of class "cluster" for parallel computation in R. If none
+#'           is passed, then one is created and used within this function
 #' @param print_progress_iters number of iterations between each progress update
 #'                             (default is 1000). If NULL, progress will only
 #'                             be updated when importance sampling is finished
@@ -835,6 +851,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'                    after each step; rho and Q for level l, node i}
 #'   \item{precondition_matrices}{pre-conditioning matrices that were used}
 #'   \item{resampling_method}{method that was used in resampling}
+#'   \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
+#'                      data input for the sub-posteiror in level l, node i}
 #'   \item{diffusion_times}{vector of length (L-1), where diffusion_times[l]
 #'                          are the times for fusion in level l}
 #' }
@@ -924,6 +942,14 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
   } else {
     precondition_matrices[[L]] <- lapply(base_samples, function(c) diag(1, dim))
   }
+  # creating parallel cluster
+  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+  parallel::clusterExport(cl, envir = environment(),
+                          varlist = c("rho_IS_multivariate_",
+                                      "ea_phi_BLR_DL_matrix",
+                                      "ea_phi_BLR_DL_bounds",
+                                      "ea_BLR_DL_PT"))
+  parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_BLR.txt')
   for (k in ((L-1):1)) {
     n_nodes <- max(C/prod(m_schedule[L:k]), 1)
@@ -958,6 +984,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                               gamma_NB_n_points = gamma_NB_n_points,
                               seed = seed,
                               n_cores = n_cores,
+                              cl = cl,
                               level = k,
                               node = i,
                               print_progress_iters = print_progress_iters)
@@ -972,6 +999,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_matrices[[1]])
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$combined_data)
   }
+  parallel::stopCluster(cl)
   cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
   if (length(particles[[1]])==1) {
     particles[[1]] <- particles[[1]][[1]]
@@ -981,7 +1009,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
-
+    data_inputs[[1]] <- data_inputs[[1]][[1]]
   }
   return(list('particles' = particles,
               'proposed_samples' = proposed_samples,
@@ -990,5 +1018,6 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
               'CESS' = CESS,
               'resampled' = resampled,
               'precondition_matrices' = precondition_matrices,
+              'data_inputs' = data_inputs,
               'diffusion_times' = time_schedule))
 }
