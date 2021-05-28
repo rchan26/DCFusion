@@ -389,6 +389,7 @@ rho_IS_univariate <- function(particles_to_fuse,
   }
   # ---------- creating parallel cluster
   if (is.null(cl)) {
+    print('Creating cluster in rho_IS_univariate')
     cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
     parallel::clusterExport(cl, envir = environment(), varlist = c("rho_IS_univariate_"))
     close_cluster <- TRUE
@@ -412,7 +413,8 @@ rho_IS_univariate <- function(particles_to_fuse,
                        precondition_values = precondition_values)
   })
   if (close_cluster) {
-    parallel::stopCluster(cl)  
+    print('Closing cluster in rho_IS_univariate')
+    parallel::stopCluster(cl)
   }
   # ---------- create particle
   ps <- new.env(parent = emptyenv())
@@ -492,6 +494,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
   }
   # ---------- creating parallel cluster
   if (is.null(cl)) {
+    print('Creating cluster in rho_IS_multivariate')
     cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
     parallel::clusterExport(cl, envir = environment(), varlist = c("rho_IS_multivariate_"))
     close_cluster <- TRUE
@@ -517,7 +520,8 @@ rho_IS_multivariate <- function(particles_to_fuse,
                          inverse_sum_inv_precondition_matrices = inverse_sum_inv_precondition_matrices)
   })
   if (close_cluster) {
-    parallel::stopCluster(cl)  
+    print('Closing cluster in rho_IS_multivariate')
+    parallel::stopCluster(cl)
   }
   # ---------- create particle
   ps <- new.env(parent = emptyenv())

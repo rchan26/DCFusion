@@ -29,16 +29,17 @@ for (i in 1:length(time_choices)) {
                                                                                       diffusion_estimator = 'Poisson',
                                                                                       seed = seed,
                                                                                       print_progress_iters = 1250)
-  test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]],
-                                                                                                     multivariate = TRUE,
-                                                                                                     resampling_method = 'resid',
-                                                                                                     seed = seed)
+  test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]],
+                                                                                                multivariate = TRUE,
+                                                                                                resampling_method = 'resid',
+                                                                                                seed = seed)
+  test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$proposed_samples <- test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$proposed_samples[[1]]
   print(integrated_abs_distance(full_posterior,
-                                test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]]$y_samples,
+                                test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles$y_samples,
                                 bandwidths))
   compare_samples_bivariate(posteriors = list(full_posterior,
-                                              test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$proposed_samples[[1]],
-                                              test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]]$y_samples),
+                                              test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$proposed_samples,
+                                              test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles$y_samples),
                             colours = c('black', 'darkgreen', 'red'),
                             common_limit = c(-4, 4),
                             title = paste('Credit Cards - C=128 || SMC Hierarchical [Poisson] (h.c.) || Time =', time_choices[i]))
@@ -61,16 +62,17 @@ for (i in 1:length(time_choices)) {
                                                                                  diffusion_estimator = 'NB',
                                                                                  seed = seed,
                                                                                  print_progress_iters = 1250)
-  test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]],
-                                                                                                multivariate = TRUE,
-                                                                                                resampling_method = 'resid',
-                                                                                                seed = seed)
+  test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]],
+                                                                                           multivariate = TRUE,
+                                                                                           resampling_method = 'resid',
+                                                                                           seed = seed)
+  test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples <- test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples[[1]]
   print(integrated_abs_distance(full_posterior,
-                                test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]]$y_samples,
+                                test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles$y_samples,
                                 bandwidths))
   compare_samples_bivariate(posteriors = list(full_posterior,
-                                              test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples[[1]],
-                                              test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]]$y_samples),
+                                              test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples,
+                                              test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles$y_samples),
                             colours = c('black', 'darkgreen', 'blue'),
                             common_limit = c(-4, 4),
                             title = paste('Credit Cards - C=128 || SMC Hierarchical [NB] || Time =', time_choices[i]))

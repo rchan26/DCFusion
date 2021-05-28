@@ -24,6 +24,7 @@ hierarchical_fusion_SMC_BLR(
   gamma_NB_n_points = 2,
   seed = NULL,
   n_cores = parallel::detectCores(),
+  create_cluster = TRUE,
   print_progress_iters = 100
 )
 }

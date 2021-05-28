@@ -459,6 +459,7 @@ Q_IS_BLR <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   if (is.null(cl)) {
+    print('Creating cluster in Q_IS_BLR')
     cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
     parallel::clusterExport(cl, envir = environment(),
                             varlist = c("ea_phi_BLR_DL_matrix",
@@ -519,7 +520,8 @@ Q_IS_BLR <- function(particle_set,
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
   if (close_cluster) {
-    parallel::stopCluster(cl)  
+    print('Closing cluster in Q_IS_BLR')
+    parallel::stopCluster(cl)
   }
   # unlist the proposed samples for y and their associated log Q weights
   y_samples <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
@@ -877,6 +879,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                                         gamma_NB_n_points = 2,
                                         seed = NULL,
                                         n_cores = parallel::detectCores(),
+                                        create_cluster = TRUE,
                                         print_progress_iters = 100) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
     stop("hierarchical_fusion_SMC_BLR: N_schedule must be a vector of length (L-1)")
@@ -943,13 +946,18 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     precondition_matrices[[L]] <- lapply(base_samples, function(c) diag(1, dim))
   }
   # creating parallel cluster
-  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
-  parallel::clusterExport(cl, envir = environment(),
-                          varlist = c("rho_IS_multivariate_",
-                                      "ea_phi_BLR_DL_matrix",
-                                      "ea_phi_BLR_DL_bounds",
-                                      "ea_BLR_DL_PT"))
-  parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
+  if (create_cluster) {
+    print('Creating cluster in hierarchical_fusion_SMC_BLR')
+    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+    parallel::clusterExport(cl, envir = environment(),
+                            varlist = c("rho_IS_multivariate_",
+                                        "ea_phi_BLR_DL_matrix",
+                                        "ea_phi_BLR_DL_bounds",
+                                        "ea_BLR_DL_PT"))
+    parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
+  } else {
+    cl <- NULL
+  }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_BLR.txt')
   for (k in ((L-1):1)) {
     n_nodes <- max(C/prod(m_schedule[L:k]), 1)
@@ -999,7 +1007,10 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_matrices[[1]])
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$combined_data)
   }
-  parallel::stopCluster(cl)
+  if (create_cluster) {
+    print('Closing cluster in hierarchical_fusion_SMC_BLR')
+    parallel::stopCluster(cl)
+  }
   cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
   if (length(particles[[1]])==1) {
     particles[[1]] <- particles[[1]][[1]]

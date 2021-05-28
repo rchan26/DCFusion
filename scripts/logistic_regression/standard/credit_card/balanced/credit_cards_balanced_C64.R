@@ -3,9 +3,9 @@ library(HMCBLR)
 
 seed <- 2016
 
-load("~/OneDrive - The Alan Turing Institute/freefor7/2021-02-12_hierarchical_fusion/results/logistic_regression/credit_cards/credit_cards_sub_posterior_sampling.RData")
+load("balanced_C64.RData")
 
-time_choices <- c(0.5, 1)
+time_choices <- c(0.5)
 test_preconditioned_hierarchical_SMC_Poisson_hc <- list()
 test_preconditioned_hierarchical_SMC_NB_hc <- list()
 for (i in 1:length(time_choices)) {
@@ -28,6 +28,7 @@ for (i in 1:length(time_choices)) {
                                                                                       cv_location = 'hypercube_centre',
                                                                                       diffusion_estimator = 'Poisson',
                                                                                       seed = seed,
+                                                                                      create_cluster = FALSE,
                                                                                       print_progress_iters = 1250)
   test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]],
                                                                                                      multivariate = TRUE,
@@ -60,6 +61,7 @@ for (i in 1:length(time_choices)) {
                                                                                  cv_location = 'hypercube_centre',
                                                                                  diffusion_estimator = 'NB',
                                                                                  seed = seed,
+                                                                                 create_cluster = FALSE,n_cores = 12,
                                                                                  print_progress_iters = 1250)
   test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]] <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]],
                                                                                                 multivariate = TRUE,

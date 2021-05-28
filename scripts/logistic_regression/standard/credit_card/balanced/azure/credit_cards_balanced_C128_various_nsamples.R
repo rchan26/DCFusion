@@ -28,6 +28,7 @@ for (i in 1:length(n_samples)) {
                                                                                       cv_location = 'hypercube_centre',
                                                                                       diffusion_estimator = 'Poisson',
                                                                                       seed = seed,
+                                                                                      create_cluster = TRUE,
                                                                                       print_progress_iters = 600)
   test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_Poisson_hc[[i]]$particles[[1]],
                                                                                                 multivariate = TRUE,
@@ -55,16 +56,18 @@ for (i in 1:length(n_samples)) {
                                                                                  cv_location = 'hypercube_centre',
                                                                                  diffusion_estimator = 'NB',
                                                                                  seed = seed,
+                                                                                 create_cluster = TRUE,
                                                                                  print_progress_iters = 600)
   test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles <- resample_particle_y_samples(particle_set = test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles[[1]],
                                                                                            multivariate = TRUE,
                                                                                            resampling_method = 'resid',
                                                                                            seed = seed)
+  test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples <- test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples[[1]]
   print(integrated_abs_distance(full_posterior,
                                 test_preconditioned_hierarchical_SMC_NB_hc[[i]]$particles$y_samples,
                                 bandwidths))
-  test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples <- test_preconditioned_hierarchical_SMC_NB_hc[[i]]$proposed_samples[[1]]
-  save.image('credit_cards_balanced_C128_various_nsamples.RData')
+  
+  save.image('credit_cards_balanced_C128_various_nsamples_v2.RData')
 }
 
-save.image('credit_cards_balanced_C128_various_nsamples.RData')
+save.image('credit_cards_balanced_C128_various_nsamples_v2.RData')
