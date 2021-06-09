@@ -9,7 +9,7 @@ weighted_mean_multivariate(matrix, weights, inverse_sum_weights)
 \arguments{
 \item{matrix}{an (m x n) matrix where the ith row is the ith sample}
 
-\item{weights}{list of m matricies of the same dimension (n x n)}
+\item{weights}{list of m matrices of the same dimension (n x n)}
 
 \item{inverse_sum_weights}{the inverse of the sum of the weights (can be 
 calculated by passing in weights to inverse_sum_matrices)}

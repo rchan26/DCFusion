@@ -78,6 +78,7 @@ ea_BLR_DL_PT <- function(dim,
                          diffusion_estimator,
                          beta_NB = 10,
                          gamma_NB_n_points = 2,
+                         local_bounds = TRUE,
                          logarithm) {
   # transform to preconditoned space
   z0 <- transform_mats$to_Z %*% x0
@@ -105,7 +106,8 @@ ea_BLR_DL_PT <- function(dim,
                                      prior_variances = prior_variances,
                                      C = C,
                                      transform_mats = transform_mats,
-                                     hypercube_vertices = hypercube_vertices)
+                                     hypercube_vertices = hypercube_vertices,
+                                     local_bounds = local_bounds)
     } else {
       stop("ea_BLR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
     }
@@ -129,7 +131,8 @@ ea_BLR_DL_PT <- function(dim,
                                    prior_variances = prior_variances,
                                    C = C,
                                    transform_mats = transform_mats,
-                                   hypercube_vertices = hypercube_vertices)
+                                   hypercube_vertices = hypercube_vertices,
+                                   local_bounds = local_bounds)
   } else {
     stop("ea_BLR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
   }
@@ -180,23 +183,7 @@ ea_BLR_DL_PT <- function(dim,
         cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        index <- which(terms < 0)
-        cat('sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
-        for (i in index) {
-          cat(sim_path[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-        }
-        print('sim_path[index,]'); print(sim_path[index,])
-        cat('X %*% sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
-        design <- as.matrix(subset(data$full_data_count, select = -c(y, count)))
-        for (i in 1:nrow(design)) {
-          cat('design[i,]:', design[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-          for (j in index) {
-            cat('sim_path[j,]:', sim_path[j,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-            cat(sum(design[i,] * sim_path[j,]), '\n', file = "SMC_BLR_bounds.txt", append = T)
-          }
-        }
-        print('hypercube_vertices'); print(hypercube_vertices)
-        stop('Some of (UX-phi) are < 0.')
+        stop('Some of (UX-phi) are < 0. Try local_bounds = FALSE to use global bounds.')
       } else if (any((phi$phi - LX) < 0)) {
         cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
@@ -219,23 +206,7 @@ ea_BLR_DL_PT <- function(dim,
         cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        index <- which((phi$phi - LX) < 0)
-        cat('sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
-        for (i in index) {
-          cat(sim_path[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-        }
-        print('sim_path[index,]'); print(sim_path[index,])
-        cat('X %*% sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
-        design <- as.matrix(subset(data$full_data_count, select = -c(y, count)))
-        for (i in 1:nrow(design)) {
-          cat('design[i,]:', design[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-          for (j in index) {
-            cat('sim_path[j,]:', sim_path[j,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-            cat(sum(design[i,] * sim_path[j,]), '\n', file = "SMC_BLR_bounds.txt", append = T)
-          }
-        }
-        print('hypercube_vertices'); print(hypercube_vertices)
-        stop('Some of (phi-LX) are < 0.')
+        stop('Some of (phi-LX) are < 0. Try local_bounds = FALSE to use global bounds.')
       }
     }
     if (logarithm) {
@@ -262,13 +233,6 @@ ea_BLR_DL_PT <- function(dim,
                                                precondition_mat = precondition_mat)
     gamma_NB <- (t-s)*UX - integral_estimate
     kap <- rnbinom(1, size = beta_NB, mu = gamma_NB)
-    if (is.na(kap)) {
-      print('gamma_NB'); print(gamma_NB)
-      print('UX:'); print(UX)
-      print('integral_estimate'); print(integral_estimate)
-      print('phi_at_x0'); print(phi_at_x0)
-      print('phi_at_y'); print(phi_at_y)
-    }
     log_acc_prob <- 0
     if (kap > 0) {
       layered_bb <- layeredBB::multi_layered_brownian_bridge(dim = dim,
@@ -311,23 +275,7 @@ ea_BLR_DL_PT <- function(dim,
         cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        index <- which(terms < 0)
-        cat('sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
-        for (i in index) {
-          cat(sim_path[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-        }
-        print('sim_path[index,]'); print(sim_path[index,])
-        cat('X %*% sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
-        design <- as.matrix(subset(data$full_data_count, select = -c(y, count)))
-        for (i in 1:nrow(design)) {
-          cat('design[i,]:', design[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-          for (j in index) {
-            cat('sim_path[j,]:', sim_path[j,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-            cat(sum(design[i,] * sim_path[j,]), '\n', file = "SMC_BLR_bounds.txt", append = T)
-          }
-        }
-        print('hypercube_vertices'); print(hypercube_vertices)
-        stop('Some of (UX-phi) are < 0.')
+        stop('Some of (UX-phi) are < 0. Try local_bounds = FALSE to use global bounds.')
       } else if (any((phi$phi - LX) < 0)) {
         cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
@@ -350,23 +298,7 @@ ea_BLR_DL_PT <- function(dim,
         cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
         cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        index <- which((phi$phi - LX) < 0)
-        cat('sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
-        for (i in index) {
-          cat(sim_path[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-        }
-        print('sim_path[index,]'); print(sim_path[index,])
-        cat('X %*% sim_path[index,]:\n', file = "SMC_BLR_bounds.txt", append = T)
-        design <- as.matrix(subset(data$full_data_count, select = -c(y, count)))
-        for (i in 1:nrow(design)) {
-          cat('design[i,]:', design[i,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-          for (j in index) {
-            cat('sim_path[j,]:', sim_path[j,], '\n', file = "SMC_BLR_bounds.txt", append = T)
-            cat(sum(design[i,] * sim_path[j,]), '\n', file = "SMC_BLR_bounds.txt", append = T)
-          }
-        }
-        print('hypercube_vertices'); print(hypercube_vertices)
-        stop('Some of (phi-LX) are < 0.')
+        stop('Some of (phi-LX) are < 0. Try local_bounds = FALSE to use global bounds.')
       }
     }
     log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) -
@@ -390,12 +322,14 @@ Q_IS_BLR <- function(particle_set,
                      prior_means,
                      prior_variances,
                      C,
+                     proposal_cov,
                      precondition_matrices,
                      inv_precondition_matrices,
                      cv_location = 'hypercube_centre',
                      diffusion_estimator,
                      beta_NB = 10,
                      gamma_NB_n_points = 2,
+                     local_bounds = TRUE,
                      seed = NULL,
                      n_cores = parallel::detectCores(),
                      cl = NULL,
@@ -455,7 +389,7 @@ Q_IS_BLR <- function(particle_set,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
-  proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
+  # proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
   N <- particle_set$N
   # ---------- creating parallel cluster
   if (is.null(cl)) {
@@ -483,7 +417,7 @@ Q_IS_BLR <- function(particle_set,
   # sample for y and importance weight in parallel to split computation
   Q_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
     split_N <- length(split_indices[[core]])
-    y_samples <- matrix(nrow = split_N, ncol = dim)
+    y_samples <- t(apply(split_x_means[[core]], 1, function(vec) mvrnormArma(N = 1, mu = vec, Sigma = proposal_cov)))
     log_Q_weights <- rep(0, split_N)
     cat('Level:', level, '|| Node:', node, '|| Core:', core, '|| START \n',
         file = 'Q_IS_BLR_progress.txt', append = T)
@@ -491,24 +425,41 @@ Q_IS_BLR <- function(particle_set,
       print_progress_iters <- split_N
     }
     for (i in 1:split_N) {
-      y_samples[i,] <- mvrnormArma(N = 1, mu = split_x_means[[core]][i,], Sigma = proposal_cov)
       log_Q_weights[i] <- sum(sapply(1:m, function(c) {
-        ea_BLR_DL_PT(dim = dim,
-                     x0 = as.vector(split_x_samples[[core]][[i]][c,]),
-                     y = as.vector(y_samples[i,]),
-                     s = 0,
-                     t = time,
-                     data = data_split[[c]][counts],
-                     prior_means = prior_means,
-                     prior_variances = prior_variances,
-                     C = C,
-                     precondition_mat = precondition_matrices[[c]],
-                     transform_mats = transform_matrices[[c]],
-                     cv_location = cv_location[[c]],
-                     diffusion_estimator = diffusion_estimator,
-                     beta_NB = beta_NB,
-                     gamma_NB_n_points = gamma_NB_n_points,
-                     logarithm = TRUE)
+        tryCatch(expr = ea_BLR_DL_PT(dim = dim,
+                                     x0 = as.vector(split_x_samples[[core]][[i]][c,]),
+                                     y = as.vector(y_samples[i,]),
+                                     s = 0,
+                                     t = time,
+                                     data = data_split[[c]][counts],
+                                     prior_means = prior_means,
+                                     prior_variances = prior_variances,
+                                     C = C,
+                                     precondition_mat = precondition_matrices[[c]],
+                                     transform_mats = transform_matrices[[c]],
+                                     cv_location = cv_location[[c]],
+                                     diffusion_estimator = diffusion_estimator,
+                                     beta_NB = beta_NB,
+                                     gamma_NB_n_points = gamma_NB_n_points,
+                                     local_bounds = local_bounds,
+                                     logarithm = TRUE),
+                 error = function(e) {ea_BLR_DL_PT(dim = dim,
+                                                   x0 = as.vector(split_x_samples[[core]][[i]][c,]),
+                                                   y = as.vector(y_samples[i,]),
+                                                   s = 0,
+                                                   t = time,
+                                                   data = data_split[[c]][counts],
+                                                   prior_means = prior_means,
+                                                   prior_variances = prior_variances,
+                                                   C = C,
+                                                   precondition_mat = precondition_matrices[[c]],
+                                                   transform_mats = transform_matrices[[c]],
+                                                   cv_location = cv_location[[c]],
+                                                   diffusion_estimator = diffusion_estimator,
+                                                   beta_NB = beta_NB,
+                                                   gamma_NB_n_points = gamma_NB_n_points,
+                                                   local_bounds = FALSE,
+                                                   logarithm = TRUE)})
       }))
       if (i%%print_progress_iters==0) {
         cat('Level:', level, '|| Node:', node, '|| Core:', core, '||', i, '/',
@@ -531,9 +482,12 @@ Q_IS_BLR <- function(particle_set,
   # ---------- update particle set
   # update the weights and return updated particle set
   particle_set$y_samples <- y_samples
-  particle_set$log_weights <- particle_set$log_weights + log_Q_weights
-  # normalise weights
-  norm_weights <- particle_ESS(log_weights = particle_set$log_weights)
+  updated_weights <- particle_set$log_weights + log_Q_weights
+  # normalise weight
+  norm_weights <- particle_ESS(log_weights = updated_weights)
+  particle_set$log_weights <- norm_weights$log_weights
+  particle_set$lw$Q <- log_Q_weights
+  particle_set$normalised_lw$Q <- particle_ESS(log_weights = log_Q_weights)$log_weights
   particle_set$normalised_weights <- norm_weights$normalised_weights
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
@@ -632,6 +586,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                     diffusion_estimator = 'Poisson',
                                     beta_NB = 10,
                                     gamma_NB_n_points = 2,
+                                    local_bounds = TRUE,
                                     seed = NULL,
                                     n_cores = parallel::detectCores(),
                                     cl = NULL,
@@ -732,12 +687,14 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                         prior_means = prior_means,
                         prior_variances = prior_variances,
                         C = C,
+                        proposal_cov = calculate_proposal_cov(time = time, weights = inv_precondition_matrices),
                         precondition_matrices = precondition_matrices,
                         inv_precondition_matrices = inv_precondition_matrices,
                         cv_location = cv_location,
                         diffusion_estimator = diffusion_estimator,
                         beta_NB = beta_NB,
                         gamma_NB_n_points = gamma_NB_n_points,
+                        local_bounds = local_bounds,
                         seed = seed,
                         n_cores = n_cores,
                         cl = cl,
@@ -877,6 +834,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                                         diffusion_estimator = 'Poisson',
                                         beta_NB = 10,
                                         gamma_NB_n_points = 2,
+                                        local_bounds = TRUE,
                                         seed = NULL,
                                         n_cores = parallel::detectCores(),
                                         create_cluster = TRUE,
@@ -940,10 +898,19 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
   CESS <- list()
   resampled <- list()
   precondition_matrices <- list()
-  if (precondition) {
-    precondition_matrices[[L]] <- lapply(base_samples, cov)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_matrices[[L]] <- lapply(base_samples, cov)
+    } else {
+      precondition_matrices[[L]] <- lapply(base_samples, function(c) diag(1, dim))
+    }
+  } else if (is.list(precondition) & length(precondition)==C & all(sapply(precondition, is.matrix))) {
+    precondition_matrices[[L]] <- precondition
   } else {
-    precondition_matrices[[L]] <- lapply(base_samples, function(c) diag(1, dim))
+    stop("hierarchical_fusion_SMC_BLR: precondition must be a logical indicating 
+          whether or not a preconditioning matrix should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning matrix for
+          the c-th sub-posterior")
   }
   # creating parallel cluster
   if (create_cluster) {
@@ -990,6 +957,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                               diffusion_estimator = diffusion_estimator,
                               beta_NB = beta_NB,
                               gamma_NB_n_points = gamma_NB_n_points,
+                              local_bounds = local_bounds,
                               seed = seed,
                               n_cores = n_cores,
                               cl = cl,

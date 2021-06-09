@@ -258,7 +258,8 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                 const arma::vec &prior_variances,
                                 const double &C,
                                 const Rcpp::List &transform_mats,
-                                const Rcpp::List &hypercube_vertices) {
+                                const Rcpp::List &hypercube_vertices,
+                                const bool &local_bounds) {
   const arma::mat &transform_to_X = transform_mats["to_X"];
   const arma::mat &transform_to_Z = transform_mats["to_Z"];
   const double vec_norm = std::sqrt(arma::sum(arma::square(transform_to_X*grad_log_hat)));
@@ -268,26 +269,30 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                                        transform_to_X,
                                                        transform_to_Z);
   const arma::mat &V = hypercube_vertices["V"];
-  const Rcpp::List spectral_radius_bds = spectral_radius_bound_BLR_Z(dim,
-                                                                     V,
-                                                                     X,
-                                                                     count,
-                                                                     prior_variances,
-                                                                     C,
-                                                                     transform_to_X);
-  const double P_n_Lambda = spectral_radius_bds["spectral_radius"];
-  // const Rcpp::List global_spectral_radius_bds = spectral_radius_global_bound_BLR_Z(dim,
-  //                                                                                  X,
-  //                                                                                  count,
-  //                                                                                  prior_variances,
-  //                                                                                  C,
-  //                                                                                  transform_to_X);
-  // const double P_n_Lambda_global = global_spectral_radius_bds["spectral_radius"];
+  Rcpp::List spectral_radius_bds;
+  double P_n_Lambda;
+  if (local_bounds) {
+    spectral_radius_bds = spectral_radius_bound_BLR_Z(dim,
+                                                      V,
+                                                      X,
+                                                      count,
+                                                      prior_variances,
+                                                      C,
+                                                      transform_to_X);
+    P_n_Lambda = spectral_radius_bds["spectral_radius"];
+  } else {
+    spectral_radius_bds = spectral_radius_global_bound_BLR_Z(dim,
+                                                             X,
+                                                             count,
+                                                             prior_variances,
+                                                             C,
+                                                             transform_to_X);
+    P_n_Lambda = spectral_radius_bds["spectral_radius"];
+  }
   return(Rcpp::List::create(Named("LB", -0.5*dim*P_n_Lambda),
                             Named("UB", 0.5*((vec_norm+dist*P_n_Lambda)*(vec_norm+dist*P_n_Lambda)+dim*P_n_Lambda)),
                             Named("dist", dist),
                             Named("P_n_Lambda", P_n_Lambda),
-                            // Named("P_n_Lambda_global", P_n_Lambda_global),
                             Named("t1_bds", (vec_norm+dist*P_n_Lambda)*(vec_norm+dist*P_n_Lambda)),
                             Named("t2_bds", dim*P_n_Lambda)));
 }

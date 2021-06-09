@@ -126,7 +126,7 @@ arma::mat inverse_sum_matrices(const Rcpp::List &matrices) {
 //' Calculation of weighted mean when the target is multivariate
 //' 
 //' @param matrix an (m x n) matrix where the ith row is the ith sample
-//' @param weights list of m matricies of the same dimension (n x n)
+//' @param weights list of m matrices of the same dimension (n x n)
 //' @param inverse_sum_weights the inverse of the sum of the weights (can be 
 //'                        calculated by passing in weights to inverse_sum_matrices)
 //'
@@ -370,9 +370,10 @@ double logsumexp(const Rcpp::NumericVector &x) {
 // [[Rcpp::export]]
 Rcpp::List particle_ESS(const Rcpp::NumericVector &log_weights) {
   const Rcpp::NumericVector normalised_weights = exp(log_weights-logsumexp(log_weights));
-  return Rcpp::List::create(Named("log_weights", log_weights),
+  return Rcpp::List::create(Named("log_weights", Rcpp::log(normalised_weights)),
                             Named("normalised_weights", normalised_weights),
-                            Named("ESS", 1/Rcpp::sum(Rcpp::pow(normalised_weights, 2))));
+                            Named("ESS", 1/Rcpp::sum(Rcpp::pow(normalised_weights, 2))),
+                            Named("input", log_weights));
 }
 
 // [[Rcpp::export]]
@@ -482,4 +483,26 @@ arma::mat mvrnormArma_tempered(const int &N,
   const arma::mat new_Sigma = Sigma/beta;
   const arma::mat Y = arma::randn(N, new_Sigma.n_cols);
   return arma::repmat(mu, 1, N).t() + Y * arma::chol(new_Sigma);
+}
+
+//////////----- testing the best covariance matrix for the double langevin -----//////////
+
+// ----- obtains the additional terms in the weights
+// [[Rcpp::export]]
+double log_rho_multivariate_additional(const arma::vec &y,
+                                       const arma::vec &x_mean,
+                                       const double &time,
+                                       const Rcpp::List &inv_precondition_matrices,
+                                       const Rcpp::List &inv_gamma_matrices) {
+  const arma::vec y_minus_x_mean = y-x_mean;
+  double numerator = 0.0;
+  for (int c=0; c < inv_precondition_matrices.size(); ++c) {
+    // term that comes from g
+    const arma::mat &inv_gamma = inv_gamma_matrices[c];
+    numerator -= as_scalar((trans(y_minus_x_mean)*inv_gamma)*y_minus_x_mean);
+    // term that comes from h
+    const arma::mat &inv_precond = inv_precondition_matrices[c];
+    numerator += as_scalar((trans(y_minus_x_mean)*inv_precond)*y_minus_x_mean);
+  }
+  return (numerator/(2*time));
 }

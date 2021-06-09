@@ -81,7 +81,8 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                 const arma::vec &prior_variances,
                                 const double &C,
                                 const Rcpp::List &transform_mats,
-                                const Rcpp::List &hypercube_vertices);
+                                const Rcpp::List &hypercube_vertices,
+                                const bool &local_bounds);
 
 double gamma_NB_estimate_BLR(const arma::vec &times,
                              const double &h,

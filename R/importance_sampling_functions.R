@@ -421,8 +421,11 @@ rho_IS_univariate <- function(particles_to_fuse,
   ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
   ps$x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
   ps$x_means <-  unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
-  ps$log_weights <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
-  norm_weights <- particle_ESS(ps$log_weights)
+  lw <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
+  norm_weights <- particle_ESS(log_weights = lw)
+  ps$log_weights <- norm_weights$log_weights
+  ps$lw$rho <- lw
+  ps$normalised_lw$rho <- norm_weights$log_weights
   ps$normalised_weights <- norm_weights$normalised_weights
   ps$ESS <- norm_weights$ESS
   ps$CESS <- c('rho' = norm_weights$ESS, 'Q' = NA)
@@ -528,8 +531,11 @@ rho_IS_multivariate <- function(particles_to_fuse,
   ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
   ps$x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
   ps$x_means <-  do.call(rbind, lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
-  ps$log_weights <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
-  norm_weights <- particle_ESS(ps$log_weights)
+  lw <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
+  norm_weights <- particle_ESS(log_weights = lw)
+  ps$log_weights <- norm_weights$log_weights
+  ps$lw$rho <- lw
+  ps$normalised_lw$rho <- norm_weights$log_weights
   ps$normalised_weights <- norm_weights$normalised_weights
   ps$ESS <- norm_weights$ESS
   ps$CESS <- c('rho' = norm_weights$ESS, 'Q' = NA)

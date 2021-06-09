@@ -210,6 +210,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_rho_multivariate_additional
+double log_rho_multivariate_additional(const arma::vec& y, const arma::vec& x_mean, const double& time, const Rcpp::List& inv_precondition_matrices, const Rcpp::List& inv_gamma_matrices);
+RcppExport SEXP _hierarchicalFusion_log_rho_multivariate_additional(SEXP ySEXP, SEXP x_meanSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP inv_gamma_matricesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x_mean(x_meanSEXP);
+    Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_gamma_matrices(inv_gamma_matricesSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_rho_multivariate_additional(y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_BLR_gradient
 arma::vec log_BLR_gradient(const arma::vec& beta, const arma::vec& y_labels, const arma::mat& X, const arma::vec& X_beta, const arma::vec& count, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C);
 RcppExport SEXP _hierarchicalFusion_log_BLR_gradient(SEXP betaSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP X_betaSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
@@ -362,8 +377,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // ea_phi_BLR_DL_bounds
-Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const int& dim, const arma::mat& X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices);
-RcppExport SEXP _hierarchicalFusion_ea_phi_BLR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP) {
+Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const int& dim, const arma::mat& X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices, const bool& local_bounds);
+RcppExport SEXP _hierarchicalFusion_ea_phi_BLR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP, SEXP local_boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -376,7 +391,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type transform_mats(transform_matsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type hypercube_vertices(hypercube_verticesSEXP);
-    rcpp_result_gen = Rcpp::wrap(ea_phi_BLR_DL_bounds(beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices));
+    Rcpp::traits::input_parameter< const bool& >::type local_bounds(local_boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(ea_phi_BLR_DL_bounds(beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -625,6 +641,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_hierarchicalFusion_rho_IS_multivariate_", (DL_FUNC) &_hierarchicalFusion_rho_IS_multivariate_, 7},
     {"_hierarchicalFusion_mvrnormArma", (DL_FUNC) &_hierarchicalFusion_mvrnormArma, 3},
     {"_hierarchicalFusion_mvrnormArma_tempered", (DL_FUNC) &_hierarchicalFusion_mvrnormArma_tempered, 4},
+    {"_hierarchicalFusion_log_rho_multivariate_additional", (DL_FUNC) &_hierarchicalFusion_log_rho_multivariate_additional, 5},
     {"_hierarchicalFusion_log_BLR_gradient", (DL_FUNC) &_hierarchicalFusion_log_BLR_gradient, 8},
     {"_hierarchicalFusion_log_BLR_hessian", (DL_FUNC) &_hierarchicalFusion_log_BLR_hessian, 5},
     {"_hierarchicalFusion_ea_phi_BLR_DL_vec", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_vec, 8},
@@ -634,7 +651,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_hierarchicalFusion_spectral_radius_global_bound_BLR_Z", (DL_FUNC) &_hierarchicalFusion_spectral_radius_global_bound_BLR_Z, 6},
     {"_hierarchicalFusion_obtain_hypercube_centre", (DL_FUNC) &_hierarchicalFusion_obtain_hypercube_centre, 8},
     {"_hierarchicalFusion_maximal_distance_hypercube_to_cv", (DL_FUNC) &_hierarchicalFusion_maximal_distance_hypercube_to_cv, 4},
-    {"_hierarchicalFusion_ea_phi_BLR_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_bounds, 9},
+    {"_hierarchicalFusion_ea_phi_BLR_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_bounds, 10},
     {"_hierarchicalFusion_gamma_NB_estimate_BLR", (DL_FUNC) &_hierarchicalFusion_gamma_NB_estimate_BLR, 13},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_vec", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_vec, 7},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_matrix", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_matrix, 7},

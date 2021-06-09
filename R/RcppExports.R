@@ -75,7 +75,7 @@ inverse_sum_matrices <- function(matrices) {
 #' Calculation of weighted mean when the target is multivariate
 #' 
 #' @param matrix an (m x n) matrix where the ith row is the ith sample
-#' @param weights list of m matricies of the same dimension (n x n)
+#' @param weights list of m matrices of the same dimension (n x n)
 #' @param inverse_sum_weights the inverse of the sum of the weights (can be 
 #'                        calculated by passing in weights to inverse_sum_matrices)
 #'
@@ -313,6 +313,10 @@ mvrnormArma_tempered <- function(N, mu, Sigma, beta) {
     .Call(`_hierarchicalFusion_mvrnormArma_tempered`, N, mu, Sigma, beta)
 }
 
+log_rho_multivariate_additional <- function(y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices) {
+    .Call(`_hierarchicalFusion_log_rho_multivariate_additional`, y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices)
+}
+
 log_BLR_gradient <- function(beta, y_labels, X, X_beta, count, prior_means, prior_variances, C) {
     .Call(`_hierarchicalFusion_log_BLR_gradient`, beta, y_labels, X, X_beta, count, prior_means, prior_variances, C)
 }
@@ -349,8 +353,8 @@ maximal_distance_hypercube_to_cv <- function(beta_hat, hypercube_vertices, trans
     .Call(`_hierarchicalFusion_maximal_distance_hypercube_to_cv`, beta_hat, hypercube_vertices, transform_to_X, transform_to_Z)
 }
 
-ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices) {
-    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices)
+ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds) {
+    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
 }
 
 gamma_NB_estimate_BLR <- function(times, h, s, t, x0, y, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
