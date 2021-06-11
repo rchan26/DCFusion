@@ -384,7 +384,7 @@ rho_IS_univariate <- function(particles_to_fuse,
     stop("rho_IS_univariate: particles in particles_to_fuse must have the same number of samples")
   } else if (!is.vector(precondition_values) | length(precondition_values)!=m) {
     stop("rho_IS_univariate: precondition_values must be a vector of length m")
-  } else if (any(class(cl)=="cluster") | is.null(cl)) {
+  } else if (any(class(cl)=="cluster") | !is.null(cl)) {
     stop("rho_IS_univariate: cl must be a \"cluster\" object or NULL")
   }
   # ---------- creating parallel cluster
@@ -418,7 +418,7 @@ rho_IS_univariate <- function(particles_to_fuse,
   }
   # ---------- create particle
   ps <- new.env(parent = emptyenv())
-  ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
+  ps$y_samples <- rep(NA, N)
   ps$x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
   ps$x_means <-  unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
   lw <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))

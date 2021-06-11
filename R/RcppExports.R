@@ -357,8 +357,8 @@ ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, X, count, prior_va
     .Call(`_hierarchicalFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
 }
 
-gamma_NB_estimate_BLR <- function(times, h, s, t, x0, y, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
-    .Call(`_hierarchicalFusion_gamma_NB_estimate_BLR`, times, h, s, t, x0, y, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
+gamma_NB_BLR <- function(times, h, s, t, x0, y, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_hierarchicalFusion_gamma_NB_BLR`, times, h, s, t, x0, y, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
 }
 
 ea_phi_biGaussian_DL_vec <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {
@@ -491,6 +491,10 @@ ea_phi_exp_4_DL_bounds <- function(mean, beta, precondition, lower, upper) {
 #'       col = 'red', lty = 2)
 ea_phi_exp_4_DL_LB <- function(mean, beta, precondition) {
     .Call(`_hierarchicalFusion_ea_phi_exp_4_DL_LB`, mean, beta, precondition)
+}
+
+gamma_NB_exp_4 <- function(times, h, x0, y, s, t, mean, beta, precondition) {
+    .Call(`_hierarchicalFusion_gamma_NB_exp_4`, times, h, x0, y, s, t, mean, beta, precondition)
 }
 
 dnorm_mix_tempered_unnormalised <- function(x, w, m, s, b) {

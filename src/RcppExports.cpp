@@ -396,9 +396,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// gamma_NB_estimate_BLR
-double gamma_NB_estimate_BLR(const arma::vec& times, const double& h, const double& s, const double& t, const arma::vec& x0, const arma::vec& y, const arma::vec& y_labels, const arma::mat& X, const arma::vec& count, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
-RcppExport SEXP _hierarchicalFusion_gamma_NB_estimate_BLR(SEXP timesSEXP, SEXP hSEXP, SEXP sSEXP, SEXP tSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
+// gamma_NB_BLR
+double gamma_NB_BLR(const arma::vec& times, const double& h, const double& s, const double& t, const arma::vec& x0, const arma::vec& y, const arma::vec& y_labels, const arma::mat& X, const arma::vec& count, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
+RcppExport SEXP _hierarchicalFusion_gamma_NB_BLR(SEXP timesSEXP, SEXP hSEXP, SEXP sSEXP, SEXP tSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -415,7 +415,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
-    rcpp_result_gen = Rcpp::wrap(gamma_NB_estimate_BLR(times, h, s, t, x0, y, y_labels, X, count, prior_means, prior_variances, C, precondition_mat));
+    rcpp_result_gen = Rcpp::wrap(gamma_NB_BLR(times, h, s, t, x0, y, y_labels, X, count, prior_means, prior_variances, C, precondition_mat));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -526,6 +526,25 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< const double& >::type precondition(preconditionSEXP);
     rcpp_result_gen = Rcpp::wrap(ea_phi_exp_4_DL_LB(mean, beta, precondition));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gamma_NB_exp_4
+double gamma_NB_exp_4(const Rcpp::NumericVector& times, const double& h, const double& x0, const double& y, const double& s, const double& t, const double& mean, const double& beta, const double& precondition);
+RcppExport SEXP _hierarchicalFusion_gamma_NB_exp_4(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP meanSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< const double& >::type h(hSEXP);
+    Rcpp::traits::input_parameter< const double& >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< const double& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const double& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const double& >::type t(tSEXP);
+    Rcpp::traits::input_parameter< const double& >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const double& >::type precondition(preconditionSEXP);
+    rcpp_result_gen = Rcpp::wrap(gamma_NB_exp_4(times, h, x0, y, s, t, mean, beta, precondition));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -652,7 +671,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_hierarchicalFusion_obtain_hypercube_centre", (DL_FUNC) &_hierarchicalFusion_obtain_hypercube_centre, 8},
     {"_hierarchicalFusion_maximal_distance_hypercube_to_cv", (DL_FUNC) &_hierarchicalFusion_maximal_distance_hypercube_to_cv, 4},
     {"_hierarchicalFusion_ea_phi_BLR_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_bounds, 10},
-    {"_hierarchicalFusion_gamma_NB_estimate_BLR", (DL_FUNC) &_hierarchicalFusion_gamma_NB_estimate_BLR, 13},
+    {"_hierarchicalFusion_gamma_NB_BLR", (DL_FUNC) &_hierarchicalFusion_gamma_NB_BLR, 13},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_vec", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_vec, 7},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_matrix", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_matrix, 7},
     {"_hierarchicalFusion_ea_phi_biGaussian_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_bounds, 9},
@@ -660,6 +679,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_hierarchicalFusion_ea_phi_exp_4_DL", (DL_FUNC) &_hierarchicalFusion_ea_phi_exp_4_DL, 4},
     {"_hierarchicalFusion_ea_phi_exp_4_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_exp_4_DL_bounds, 5},
     {"_hierarchicalFusion_ea_phi_exp_4_DL_LB", (DL_FUNC) &_hierarchicalFusion_ea_phi_exp_4_DL_LB, 3},
+    {"_hierarchicalFusion_gamma_NB_exp_4", (DL_FUNC) &_hierarchicalFusion_gamma_NB_exp_4, 9},
     {"_hierarchicalFusion_dnorm_mix_tempered_unnormalised", (DL_FUNC) &_hierarchicalFusion_dnorm_mix_tempered_unnormalised, 5},
     {"_hierarchicalFusion_ea_phi_mixG_DL", (DL_FUNC) &_hierarchicalFusion_ea_phi_mixG_DL, 7},
     {"_hierarchicalFusion_ea_phi_mixG_DL_LB", (DL_FUNC) &_hierarchicalFusion_ea_phi_mixG_DL_LB, 7},

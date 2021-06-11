@@ -118,3 +118,45 @@ double ea_phi_exp_4_DL_LB(const double &mean,
                                                       mean + std::pow(1/(2*beta), 0.25));
   return find_min(ea_phi_exp_4_DL(x, mean, beta, precondition));
 }
+
+// // [[Rcpp::export]]
+// double gamma_NB_exp_4(const double &x0,
+//                       const double &y,
+//                       const double &s,
+//                       const double &t,
+//                       const double &mean,
+//                       const double &beta,
+//                       const double &precondition) {
+//   const double diff = -x0+y;
+//   const double time_diff = t-s;
+//   const double t1 = precondition*time_diff/diff;
+//   const double t2 = x0 + (t*diff/time_diff) - mean;
+//   const double t3 = x0 + (s*diff/time_diff) - mean;
+//   return t1*((2/7)*beta*beta*(std::pow(t2, 7)-std::pow(t3, 7))+beta*(std::pow(t3, 3)-std::pow(t2, 3)));
+// }
+
+// [[Rcpp::export]]
+double gamma_NB_exp_4(const Rcpp::NumericVector &times,
+                      const double &h,
+                      const double &x0,
+                      const double &y,
+                      const double &s,
+                      const double &t,
+                      const double &mean,
+                      const double &beta,
+                      const double &precondition) {
+  if (times.size() < 2) {
+    stop("gamma_NB_exp_4: length of times must be at least 2"); 
+  } 
+  Rcpp::NumericVector eval = x0 + times*(-x0+y)/(t-s);
+  Rcpp::NumericVector phi = ea_phi_exp_4_DL(eval, mean, beta, precondition);
+  double sum_phi_eval = 0;
+  for (int i=0; i < phi.size(); ++i) {
+    if (i==0 || i==phi.size()-1) {
+      sum_phi_eval += phi[i];
+    } else {
+      sum_phi_eval += 2*phi[i];
+    }
+  }
+  return(h*sum_phi_eval/2);
+}

@@ -298,23 +298,22 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
 }
 
 // [[Rcpp::export]]
-double gamma_NB_estimate_BLR(const arma::vec &times,
-                             const double &h,
-                             const double &s,
-                             const double &t,
-                             const arma::vec &x0,
-                             const arma::vec &y,
-                             const arma::vec &y_labels,
-                             const arma::mat &X,
-                             const arma::vec &count,
-                             const arma::vec &prior_means,
-                             const arma::vec &prior_variances,
-                             const double &C,
-                             const arma::mat &precondition_mat) {
+double gamma_NB_BLR(const arma::vec &times,
+                    const double &h,
+                    const double &s,
+                    const double &t,
+                    const arma::vec &x0,
+                    const arma::vec &y,
+                    const arma::vec &y_labels,
+                    const arma::mat &X,
+                    const arma::vec &count,
+                    const arma::vec &prior_means,
+                    const arma::vec &prior_variances,
+                    const double &C,
+                    const arma::mat &precondition_mat) {
   if (times.size() < 2) {
-    stop("gamma_NB_estimate_BLR: length of times must be at least 2"); 
+    stop("gamma_NB_BLR: length of times must be at least 2"); 
   } 
-  Rcpp::NumericVector phi(times.size());
   double sum_phi_eval = 0;
   for (int i=0; i < times.size(); ++i) {
     const arma::vec eval = (x0*(t-s-times.at(i)) + y*times.at(i))/(t-s);

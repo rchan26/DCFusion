@@ -5,7 +5,19 @@
 \title{Diffusion probability for the Exact Algorithm for langevin diffusion 
 with pi = exp(-(beta*(x-mean)^4)/2)}
 \usage{
-ea_exp_4_DL_PT(x0, y, s, t, mean, beta, precondition, logarithm)
+ea_exp_4_DL_PT(
+  x0,
+  y,
+  s,
+  t,
+  mean,
+  beta,
+  precondition,
+  diffusion_estimator = "Poisson",
+  beta_NB = 10,
+  gamma_NB_n_points = 2,
+  logarithm
+)
 }
 \arguments{
 \item{x0}{start value}
@@ -22,6 +34,16 @@ ea_exp_4_DL_PT(x0, y, s, t, mean, beta, precondition, logarithm)
 
 \item{precondition}{precondition value (i.e the covariance for 
 the Langevin diffusion)}
+
+\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
+between "Poisson" (default) for Poission estimator
+and "NB" for Negative Binomial estimator}
+
+\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
+
+\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
+of the integral found in the mean of the negative
+binomial estimator (default is 2)}
 
 \item{logarithm}{logical value to determine if log probability is 
 returned (TRUE) or not (FALSE)}

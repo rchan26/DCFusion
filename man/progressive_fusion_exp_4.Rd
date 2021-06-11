@@ -11,6 +11,9 @@ progressive_fusion_exp_4(
   mean = 0,
   start_beta,
   precondition = TRUE,
+  diffusion_estimator = "Poisson",
+  beta_NB = 10,
+  gamma_NB_n_points = 2,
   seed = NULL,
   n_cores = parallel::detectCores()
 )
@@ -31,6 +34,16 @@ containg the samples for the c-th node in the level}
 
 \item{precondition}{logical value to determine if preconditioning value is 
 used (TRUE) or not (FALSE). Default is TRUE}
+
+\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
+between "Poisson" (default) for Poission estimator
+and "NB" for Negative Binomial estimator}
+
+\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
+
+\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
+of the integral found in the mean of the negative
+binomial estimator (default is 2)}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 

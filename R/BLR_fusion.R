@@ -218,19 +218,19 @@ ea_BLR_DL_PT <- function(dim,
     # integral estimate for gamma in NB estimator
     h <- (t-s)/(gamma_NB_n_points-1)
     times_to_eval <- seq(from = s, to = t, by = h)
-    integral_estimate <- gamma_NB_estimate_BLR(times = times_to_eval,
-                                               h = h,
-                                               s = s,
-                                               t = t,
-                                               x0 = x0,
-                                               y = y,
-                                               y_labels = data$full_data_count$y,
-                                               X = as.matrix(subset(data$full_data_count, select = -c(y, count))),
-                                               count = data$full_data_count$count,
-                                               prior_means = prior_means,
-                                               prior_variances = prior_variances,
-                                               C = C,
-                                               precondition_mat = precondition_mat)
+    integral_estimate <- gamma_NB_BLR(times = times_to_eval,
+                                      h = h,
+                                      s = s,
+                                      t = t,
+                                      x0 = x0,
+                                      y = y,
+                                      y_labels = data$full_data_count$y,
+                                      X = as.matrix(subset(data$full_data_count, select = -c(y, count))),
+                                      count = data$full_data_count$count,
+                                      prior_means = prior_means,
+                                      prior_variances = prior_variances,
+                                      C = C,
+                                      precondition_mat = precondition_mat)
     gamma_NB <- (t-s)*UX - integral_estimate
     kap <- rnbinom(1, size = beta_NB, mu = gamma_NB)
     log_acc_prob <- 0
