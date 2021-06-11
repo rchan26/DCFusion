@@ -69,12 +69,12 @@ Rcpp::List ea_phi_exp_4_DL_bounds(const double &mean,
   Rcpp::NumericVector x = Rcpp::NumericVector::create(lower, upper);
   if (mean > lower & mean < upper) {
     x.push_back(mean);
-  } 
+  }
   double m1 = mean - std::pow(1/(2*beta), 0.25);
   double m2 = mean + std::pow(1/(2*beta), 0.25);
   if (m1 > lower & m1 < upper) {
     x.push_back(m1);
-  } 
+  }
   if (m2 > lower & m2 < upper) {
     x.push_back(m2);
   }
@@ -119,22 +119,6 @@ double ea_phi_exp_4_DL_LB(const double &mean,
   return find_min(ea_phi_exp_4_DL(x, mean, beta, precondition));
 }
 
-// // [[Rcpp::export]]
-// double gamma_NB_exp_4(const double &x0,
-//                       const double &y,
-//                       const double &s,
-//                       const double &t,
-//                       const double &mean,
-//                       const double &beta,
-//                       const double &precondition) {
-//   const double diff = -x0+y;
-//   const double time_diff = t-s;
-//   const double t1 = precondition*time_diff/diff;
-//   const double t2 = x0 + (t*diff/time_diff) - mean;
-//   const double t3 = x0 + (s*diff/time_diff) - mean;
-//   return t1*((2/7)*beta*beta*(std::pow(t2, 7)-std::pow(t3, 7))+beta*(std::pow(t3, 3)-std::pow(t2, 3)));
-// }
-
 // [[Rcpp::export]]
 double gamma_NB_exp_4(const Rcpp::NumericVector &times,
                       const double &h,
@@ -147,7 +131,7 @@ double gamma_NB_exp_4(const Rcpp::NumericVector &times,
                       const double &precondition) {
   if (times.size() < 2) {
     stop("gamma_NB_exp_4: length of times must be at least 2"); 
-  } 
+  }
   Rcpp::NumericVector eval = x0 + times*(-x0+y)/(t-s);
   Rcpp::NumericVector phi = ea_phi_exp_4_DL(eval, mean, beta, precondition);
   double sum_phi_eval = 0;

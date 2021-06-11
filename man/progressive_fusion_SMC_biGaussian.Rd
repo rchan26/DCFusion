@@ -16,6 +16,9 @@ progressive_fusion_SMC_biGaussian(
   precondition = TRUE,
   resampling_method = "multi",
   ESS_threshold = 0.5,
+  diffusion_estimator = "Poisson",
+  beta_NB = 10,
+  gamma_NB_n_points = 2,
   seed = NULL,
   n_cores = parallel::detectCores()
 )
@@ -50,6 +53,16 @@ residual resampling ('resid')}
 of the number of samples that ESS needs to be
 lower than for resampling (i.e. resampling is carried 
 out only when ESS < N*ESS_threshold)}
+
+\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
+between "Poisson" (default) for Poission estimator
+and "NB" for Negative Binomial estimator}
+
+\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
+
+\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
+of the integral found in the mean of the negative
+binomial estimator (default is 2)}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 

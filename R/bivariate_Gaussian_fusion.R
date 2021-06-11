@@ -63,6 +63,13 @@ ea_phi_biGaussian_DL <- function(x,
 #'                       transform_mats$to_Z is the transformation matrix to Z space
 #'                       and transform_mats$to_X is the transformation matrix to 
 #'                       X space
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #' @param logarithm logical value to determine if log probability is
 #'                  returned (TRUE) or not (FALSE)
 #' 
@@ -80,6 +87,9 @@ ea_biGaussian_DL_PT <- function(x0,
                                 beta,
                                 precondition_mat,
                                 transform_mats,
+                                diffusion_estimator = 'Poisson',
+                                beta_NB = 10,
+                                gamma_NB_n_points = 2,
                                 logarithm) {
   # transform to preconditoned space
   z0 <- transform_mats$to_Z %*% x0
@@ -110,30 +120,77 @@ ea_biGaussian_DL_PT <- function(x0,
                                  corr = corr,
                                  beta = beta,
                                  precondition_mat = precondition_mat)
-  # simulate the number of points to simulate from Possion distribution
-  kap <- rpois(n = 1, lambda = (UZ-LZ)*(t-s))
-  log_acc_prob <- 0
-  if (kap > 0) {
-    layered_bb <- layeredBB::multi_layered_brownian_bridge(dim = 2,
-                                                           x = z0,
-                                                           y = zt,
-                                                           s = s,
-                                                           t = t,
-                                                           bessel_layers = bes_layers,
-                                                           times = runif(kap, s, t))
-    phi <- ea_phi_biGaussian_DL_matrix(x = t(layered_bb$simulated_path[1:2,]),
-                                       mean_vec = mean_vec,
-                                       sd_vec = sd_vec,
-                                       corr = corr,
-                                       beta = beta,
-                                       precondition_mat = precondition_mat,
-                                       transform_mat = transform_mats$to_X)
-    log_acc_prob <- sum(log(UZ-phi))
-  }
-  if (logarithm) {
-    return(-(LZ-PHI)*(t-s) - kap*log(UZ-LZ) + log_acc_prob)
+  if (diffusion_estimator=='Poisson') {
+    # simulate the number of points to simulate from Possion distribution
+    kap <- rpois(n = 1, lambda = (UZ-LZ)*(t-s))
+    log_acc_prob <- 0
+    if (kap > 0) {
+      layered_bb <- layeredBB::multi_layered_brownian_bridge(dim = 2,
+                                                             x = z0,
+                                                             y = zt,
+                                                             s = s,
+                                                             t = t,
+                                                             bessel_layers = bes_layers,
+                                                             times = runif(kap, s, t))
+      phi <- ea_phi_biGaussian_DL_matrix(x = t(layered_bb$simulated_path[1:2,]),
+                                         mean_vec = mean_vec,
+                                         sd_vec = sd_vec,
+                                         corr = corr,
+                                         beta = beta,
+                                         precondition_mat = precondition_mat,
+                                         transform_mat = transform_mats$to_X)
+      log_acc_prob <- sum(log(UZ-phi))
+    }
+    if (logarithm) {
+      return(-(LZ-PHI)*(t-s) - kap*log(UZ-LZ) + log_acc_prob)
+    } else {
+      return(exp(-(LZ-PHI)*(t-s) - kap*log(UZ-LZ) + log_acc_prob))
+    }
+  } else if (diffusion_estimator=='NB') {
+    # integral estimate for gamma in NB estimator
+    h <- (t-s)/(gamma_NB_n_points-1)
+    times_to_eval <- seq(from = s, to = t, by = h)
+    integral_estimate <- gamma_NB_biGaussian(times = times_to_eval,
+                                             h = h,
+                                             x0 = z0,
+                                             y = zt,
+                                             s = s,
+                                             t = t,
+                                             mean_vec = mean_vec,
+                                             sd_vec = sd_vec,
+                                             corr = corr,
+                                             beta = beta,
+                                             precondition_mat = precondition_mat,
+                                             transform_mat = transform_mats$to_X)
+    gamma_NB <- (t-s)*UZ - integral_estimate
+    kap <- rnbinom(1, size = beta_NB, mu = gamma_NB)
+    log_acc_prob <- 0
+    if (kap > 0) {
+      layered_bb <- layeredBB::multi_layered_brownian_bridge(dim = 2,
+                                                             x = z0,
+                                                             y = zt,
+                                                             s = s,
+                                                             t = t,
+                                                             bessel_layers = bes_layers,
+                                                             times = runif(kap, s, t))
+      phi <- ea_phi_biGaussian_DL_matrix(x = t(layered_bb$simulated_path[1:2,]),
+                                         mean_vec = mean_vec,
+                                         sd_vec = sd_vec,
+                                         corr = corr,
+                                         beta = beta,
+                                         precondition_mat = precondition_mat,
+                                         transform_mat = transform_mats$to_X)
+      log_acc_prob <- sum(log(UZ-phi))
+    }
+    log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) -
+      lgamma(beta_NB+kap) - beta_NB*log(beta_NB) - kap*log(gamma_NB)
+    if (logarithm) {
+      return(-UZ*(t-s) + log_middle_term + log_acc_prob)
+    } else {
+      return(exp(-UZ*(t-s) + log_middle_term + log_acc_prob))
+    }
   } else {
-    return(exp(-(LZ-PHI)*(t-s) - kap*log(UZ-LZ) + log_acc_prob))
+    stop("ea_biGaussian_DL_PT: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
   }
 }
 
@@ -154,6 +211,13 @@ ea_biGaussian_DL_PT <- function(x0,
 #'              at the same inverse temperature)
 #' @param precondition_matricies list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #'
 #' @return samples: fusion samples
 #' @return iters_rho: number of iterations from the first accept/reject step (rho)
@@ -169,7 +233,10 @@ fusion_biGaussian <- function(N,
                               corr,
                               betas,
                               precondition_matrices,
-                              inv_precondition_matrices) {
+                              inv_precondition_matrices,
+                              diffusion_estimator = 'Poisson',
+                              beta_NB = 10,
+                              gamma_NB_n_points = 2) {
   if (!is.list(samples_to_fuse) | (length(samples_to_fuse)!=m)) {
     stop("fusion_biGaussian: samples_to_fuse must be a list of length m")
   } else if (!all(sapply(samples_to_fuse, is.matrix)) | !all(sapply(samples_to_fuse, function(core) ncol(core)==2))) {
@@ -216,6 +283,9 @@ fusion_biGaussian <- function(N,
                             beta = betas[c],
                             precondition_mat = precondition_matrices[[c]],
                             transform_mats = transform_matrices[[c]],
+                            diffusion_estimator = diffusion_estimator,
+                            beta_NB = beta_NB,
+                            gamma_NB_n_points = gamma_NB_n_points,
                             logarithm = TRUE)
       }))
       if (log(runif(1, 0, 1)) < log_Q_prob) {
@@ -245,6 +315,13 @@ fusion_biGaussian <- function(N,
 #'              value for c-th posterior
 #' @param precondition_matricies list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -273,6 +350,9 @@ parallel_fusion_biGaussian <- function(N,
                                        corr, 
                                        betas, 
                                        precondition_matrices,
+                                       diffusion_estimator = 'Poisson',
+                                       beta_NB = 10,
+                                       gamma_NB_n_points = 2,
                                        seed = NULL,
                                        n_cores = parallel::detectCores()) {
   if (!is.list(samples_to_fuse) | (length(samples_to_fuse)!=m)) {
@@ -292,12 +372,12 @@ parallel_fusion_biGaussian <- function(N,
   }
   ######### creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  varlist <- c(ls(), list("ea_phi_biGaussian_DL_matrix",
-                          "ea_phi_biGaussian_DL_bounds",
-                          "ea_phi_biGaussian_DL_LB",
-                          "ea_biGaussian_DL_PT",
-                          "fusion_biGaussian"))
-  parallel::clusterExport(cl, envir = environment(), varlist = varlist)
+  parallel::clusterExport(cl, envir = environment(),
+                          varlist = c("ea_phi_biGaussian_DL_matrix",
+                                      "ea_phi_biGaussian_DL_bounds",
+                                      "ea_phi_biGaussian_DL_LB",
+                                      "ea_biGaussian_DL_PT",
+                                      "fusion_biGaussian"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
@@ -324,7 +404,10 @@ parallel_fusion_biGaussian <- function(N,
                       sd_vec = sd_vec,
                       corr = corr,
                       betas = betas,
-                      precondition_matrices = precondition_matrices)
+                      precondition_matrices = precondition_matrices,
+                      diffusion_estimator = diffusion_estimator,
+                      beta_NB = beta_NB,
+                      gamma_NB_n_points = gamma_NB_n_points)
   })
   final <- proc.time() - pcm
   parallel::stopCluster(cl)
@@ -376,6 +459,13 @@ parallel_fusion_biGaussian <- function(N,
 #' @param start_beta beta for the base level
 #' @param precondition boolean value to determine if preconditioning value is 
 #'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' 
@@ -416,6 +506,9 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
                                            corr, 
                                            start_beta,
                                            precondition = TRUE,
+                                           diffusion_estimator = 'Poisson',
+                                           beta_NB = 10,
+                                           gamma_NB_n_points = 2,
                                            seed = NULL,
                                            n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
@@ -493,6 +586,9 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
                                  corr = corr,
                                  betas = rep(prod(m_schedule[L:(k+1)])*(start_beta), m_schedule[k]),
                                  precondition_matrices = precondition_mats,
+                                 diffusion_estimator = diffusion_estimator,
+                                 beta_NB = beta_NB,
+                                 gamma_NB_n_points = gamma_NB_n_points,
                                  seed = seed,
                                  n_cores = n_cores)
     })
@@ -555,6 +651,13 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
 #'                     containg the samples for the c-th node in the level
 #' @param precondition boolean value to determine if preconditioning value is 
 #'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -585,6 +688,9 @@ progressive_fusion_biGaussian <- function(N_schedule,
                                           start_beta,
                                           base_samples,
                                           precondition = TRUE,
+                                          diffusion_estimator = 'Poisson',
+                                          beta_NB = 10,
+                                          gamma_NB_n_points = 2,
                                           seed = NULL,
                                           n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(1/start_beta)-1)) {
@@ -641,6 +747,9 @@ progressive_fusion_biGaussian <- function(N_schedule,
                                           corr = corr,
                                           betas = c(start_beta, start_beta),
                                           precondition_matrices = precondition_mats,
+                                          diffusion_estimator = diffusion_estimator,
+                                          beta_NB = beta_NB,
+                                          gamma_NB_n_points = gamma_NB_n_points,
                                           seed = seed,
                                           n_cores = n_cores)
     } else {
@@ -668,6 +777,9 @@ progressive_fusion_biGaussian <- function(N_schedule,
                                           corr = corr,
                                           betas = c(index*start_beta, start_beta),
                                           precondition_matrices = precondition_mats,
+                                          diffusion_estimator = diffusion_estimator,
+                                          beta_NB = beta_NB,
+                                          gamma_NB_n_points = gamma_NB_n_points,
                                           seed = seed, 
                                           n_cores = n_cores)
       index <- index + 1
@@ -705,6 +817,13 @@ progressive_fusion_biGaussian <- function(N_schedule,
 #'              value for c-th posterior
 #' @param precondition_matricies list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -720,6 +839,9 @@ Q_IS_biGaussian <- function(particle_set,
                             betas,
                             precondition_matrices,
                             inv_precondition_matrices,
+                            diffusion_estimator = 'Poisson',
+                            beta_NB = 10,
+                            gamma_NB_n_points = 2,
                             seed = NULL,
                             n_cores = parallel::detectCores()) {
   if (!("particle" %in% class(particle_set))) {
@@ -743,11 +865,11 @@ Q_IS_biGaussian <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  varlist <- c(ls(), list("ea_phi_biGaussian_DL_matrix",
-                          "ea_phi_biGaussian_DL_bounds",
-                          "ea_phi_biGaussian_DL_LB",
-                          "ea_biGaussian_DL_PT"))
-  parallel::clusterExport(cl, envir = environment(), varlist = varlist)
+  parallel::clusterExport(cl, envir = environment(),
+                          varlist = c("ea_phi_biGaussian_DL_matrix",
+                                      "ea_phi_biGaussian_DL_bounds",
+                                      "ea_phi_biGaussian_DL_LB",
+                                      "ea_biGaussian_DL_PT"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
@@ -777,6 +899,9 @@ Q_IS_biGaussian <- function(particle_set,
                             beta = betas[c],
                             precondition_mat = precondition_matrices[[c]],
                             transform_mats = transform_matrices[[c]],
+                            diffusion_estimator = diffusion_estimator,
+                            beta_NB = beta_NB,
+                            gamma_NB_n_points = gamma_NB_n_points,
                             logarithm = TRUE)
       }))
     }
@@ -830,6 +955,13 @@ Q_IS_biGaussian <- function(particle_set,
 #'                      of the number of samples that ESS needs to be
 #'                      lower than for resampling (i.e. resampling is carried 
 #'                      out only when ESS < N*ESS_threshold)
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -864,6 +996,9 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                            precondition_matrices, 
                                            resampling_method = 'multi',
                                            ESS_threshold = 0.5,
+                                           diffusion_estimator = 'Poisson',
+                                           beta_NB = 10,
+                                           gamma_NB_n_points = 2,
                                            seed = NULL,
                                            n_cores = parallel::detectCores()) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
@@ -942,6 +1077,9 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                betas = betas,
                                precondition_matrices = precondition_matrices,
                                inv_precondition_matrices = inv_precondition_matrices,
+                               diffusion_estimator = diffusion_estimator,
+                               beta_NB = beta_NB,
+                               gamma_NB_n_points = gamma_NB_n_points,
                                seed = seed,
                                n_cores = n_cores)
   # record ESS and CESS after Q step
@@ -1010,6 +1148,13 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
 #'                      of the number of samples that ESS needs to be
 #'                      lower than for resampling (i.e. resampling is carried 
 #'                      out only when ESS < N*ESS_threshold)
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -1048,6 +1193,9 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
                                                precondition = TRUE,
                                                resampling_method = 'multi',
                                                ESS_threshold = 0.5,
+                                               diffusion_estimator = 'Poisson',
+                                               beta_NB = 10,
+                                               gamma_NB_n_points = 2,
                                                seed = NULL,
                                                n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
@@ -1126,6 +1274,9 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
                                      precondition_matrices = precondition_mats,
                                      resampling_method = resampling_method,
                                      ESS_threshold = ESS_threshold,
+                                     diffusion_estimator = diffusion_estimator,
+                                     beta_NB = beta_NB,
+                                     gamma_NB_n_points = gamma_NB_n_points,
                                      seed = seed,
                                      n_cores = n_cores)
     })
@@ -1183,6 +1334,13 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
 #'                      of the number of samples that ESS needs to be
 #'                      lower than for resampling (i.e. resampling is carried 
 #'                      out only when ESS < N*ESS_threshold)
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -1220,6 +1378,9 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
                                               precondition = TRUE,
                                               resampling_method = 'multi',
                                               ESS_threshold = 0.5,
+                                              diffusion_estimator = 'Poisson',
+                                              beta_NB = 10,
+                                              gamma_NB_n_points = 2,
                                               seed = NULL,
                                               n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(1/start_beta)-1)) {
@@ -1283,6 +1444,9 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
                                               precondition_matrices = precondition_mats,
                                               resampling_method = resampling_method,
                                               ESS_threshold = ESS_threshold,
+                                              diffusion_estimator = diffusion_estimator,
+                                              beta_NB = beta_NB,
+                                              gamma_NB_n_points = gamma_NB_n_points,
                                               seed = seed,
                                               n_cores = n_cores)
       
@@ -1315,6 +1479,9 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
                                               precondition_matrices = precondition_mats,
                                               resampling_method = resampling_method,
                                               ESS_threshold = ESS_threshold,
+                                              diffusion_estimator = diffusion_estimator,
+                                              beta_NB = beta_NB,
+                                              gamma_NB_n_points = gamma_NB_n_points,
                                               seed = seed,
                                               n_cores = n_cores)
       index <- index + 1

@@ -22,4 +22,15 @@ double ea_phi_uniGaussian_DL_LB(const double &mean,
                                 const double &beta,
                                 const double &precondition);
 
+double gamma_NB_uniGaussian(const Rcpp::NumericVector &times,
+                            const double &h,
+                            const double &x0,
+                            const double &y,
+                            const double &s,
+                            const double &t,
+                            const double &mean,
+                            const double &sd,
+                            const double &beta,
+                            const double &precondition);
+
 #endif

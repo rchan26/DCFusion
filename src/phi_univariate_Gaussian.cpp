@@ -92,7 +92,7 @@ Rcpp::List ea_phi_uniGaussian_DL_bounds(const double &mean,
   Rcpp::NumericVector x = Rcpp::NumericVector::create(lower, upper);
   if (mean > lower & mean < upper) {
     x.push_back(mean);
-  } 
+  }
   Rcpp::NumericVector phi = ea_phi_uniGaussian_DL(x, mean, sd, beta, precondition);
   return Rcpp::List::create(Named("LB", find_min(phi)), Named("UB", find_max(phi)));
 }
@@ -156,4 +156,31 @@ double ea_phi_uniGaussian_DL_LB(const double &mean,
                                 const double &precondition) {
   Rcpp::NumericVector x = Rcpp::NumericVector::create(mean);
   return ea_phi_uniGaussian_DL(x, mean, sd, beta, precondition)[0];
+}
+
+// [[Rcpp::export]]
+double gamma_NB_uniGaussian(const Rcpp::NumericVector &times,
+                            const double &h,
+                            const double &x0,
+                            const double &y,
+                            const double &s,
+                            const double &t,
+                            const double &mean,
+                            const double &sd,
+                            const double &beta,
+                            const double &precondition) {
+  if (times.size() < 2) {
+    stop("gamma_NB_uniGaussian: length of times must be at least 2"); 
+  }
+  Rcpp::NumericVector eval = x0 + times*(-x0+y)/(t-s);
+  Rcpp::NumericVector phi = ea_phi_uniGaussian_DL(eval, mean, sd, beta, precondition);
+  double sum_phi_eval = 0;
+  for (int i=0; i < phi.size(); ++i) {
+    if (i==0 || i==phi.size()-1) {
+      sum_phi_eval += phi[i];
+    } else {
+      sum_phi_eval += 2*phi[i];
+    }
+  }
+  return(h*sum_phi_eval/2);
 }

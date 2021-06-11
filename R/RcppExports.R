@@ -357,8 +357,8 @@ ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, X, count, prior_va
     .Call(`_hierarchicalFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
 }
 
-gamma_NB_BLR <- function(times, h, s, t, x0, y, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
-    .Call(`_hierarchicalFusion_gamma_NB_BLR`, times, h, s, t, x0, y, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
+gamma_NB_BLR <- function(times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_hierarchicalFusion_gamma_NB_BLR`, times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
 }
 
 ea_phi_biGaussian_DL_vec <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {
@@ -407,6 +407,10 @@ ea_phi_biGaussian_DL_bounds <- function(mean_vec, sd_vec, corr, beta, preconditi
 #' @return The global lower bound of phi
 ea_phi_biGaussian_DL_LB <- function(mean_vec, sd_vec, corr, beta, precondition_mat) {
     .Call(`_hierarchicalFusion_ea_phi_biGaussian_DL_LB`, mean_vec, sd_vec, corr, beta, precondition_mat)
+}
+
+gamma_NB_biGaussian <- function(times, h, x0, y, s, t, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {
+    .Call(`_hierarchicalFusion_gamma_NB_biGaussian`, times, h, x0, y, s, t, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat)
 }
 
 #' phi-function for exp(-(((x-mean)^4)*beta)/2)
@@ -704,5 +708,9 @@ ea_phi_uniGaussian_DL_bounds <- function(mean, sd, beta, precondition, lower, up
 #'        col = 'blue', lty = 3)
 ea_phi_uniGaussian_DL_LB <- function(mean, sd, beta, precondition) {
     .Call(`_hierarchicalFusion_ea_phi_uniGaussian_DL_LB`, mean, sd, beta, precondition)
+}
+
+gamma_NB_uniGaussian <- function(times, h, x0, y, s, t, mean, sd, beta, precondition) {
+    .Call(`_hierarchicalFusion_gamma_NB_uniGaussian`, times, h, x0, y, s, t, mean, sd, beta, precondition)
 }
 

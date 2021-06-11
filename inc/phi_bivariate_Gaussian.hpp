@@ -35,4 +35,17 @@ double ea_phi_biGaussian_DL_LB(const arma::vec &mean_vec,
                                const double &beta,
                                const arma::mat &precondition_mat);
 
+double gamma_NB_biGaussian(const arma::vec &times,
+                           const double &h,
+                           const arma::vec &x0,
+                           const arma::vec &y,
+                           const double &s,
+                           const double &t,
+                           const arma::vec &mean_vec,
+                           const arma::vec &sd_vec,
+                           const double &corr,
+                           const double &beta,
+                           const arma::mat &precondition_mat,
+                           const arma::mat &transform_mat);
+
 #endif

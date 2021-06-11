@@ -300,10 +300,10 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
 // [[Rcpp::export]]
 double gamma_NB_BLR(const arma::vec &times,
                     const double &h,
-                    const double &s,
-                    const double &t,
                     const arma::vec &x0,
                     const arma::vec &y,
+                    const double &s,
+                    const double &t,
                     const arma::vec &y_labels,
                     const arma::mat &X,
                     const arma::vec &count,
@@ -316,7 +316,7 @@ double gamma_NB_BLR(const arma::vec &times,
   } 
   double sum_phi_eval = 0;
   for (int i=0; i < times.size(); ++i) {
-    const arma::vec eval = (x0*(t-s-times.at(i)) + y*times.at(i))/(t-s);
+    const arma::vec eval = x0+times.at(i)*(-x0+y)/(t-s);
     Rcpp::List phi = ea_phi_BLR_DL_vec(eval,
                                        y_labels,
                                        X,

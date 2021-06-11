@@ -131,6 +131,42 @@ double ea_phi_biGaussian_DL_LB(const arma::vec &mean_vec,
                                   arma::eye(2,2));
 }
 
+// [[Rcpp::export]]
+double gamma_NB_biGaussian(const arma::vec &times,
+                           const double &h,
+                           const arma::vec &x0,
+                           const arma::vec &y,
+                           const double &s,
+                           const double &t,
+                           const arma::vec &mean_vec,
+                           const arma::vec &sd_vec,
+                           const double &corr,
+                           const double &beta,
+                           const arma::mat &precondition_mat,
+                           const arma::mat &transform_mat) {
+  if (times.size() < 2) {
+    stop("gamma_NB_biGaussian: length of times must be at least 2"); 
+  }
+  double sum_phi_eval = 0;
+  for (int i=0; i < times.size(); ++i) {
+    const arma::vec eval = x0+times.at(i)*(-x0+y)/(t-s);
+    Rcpp::List phi = ea_phi_biGaussian_DL_vec(eval,
+                                              mean_vec,
+                                              sd_vec,
+                                              corr,
+                                              beta,
+                                              precondition_mat,
+                                              transform_mat);
+    const double &phi_eval = phi["phi"];
+    if (i==0 || i==times.size()-1) {
+      sum_phi_eval += phi_eval;
+    } else {
+      sum_phi_eval += 2*phi_eval;
+    }
+  }
+  return(h*sum_phi_eval/2);
+}
+
 // // [[Rcpp::export]]
 // Rcpp::List terms_biGaussian_X(const arma::vec &x,
 //                               const arma::vec &mean_vec,

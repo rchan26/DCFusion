@@ -72,27 +72,27 @@ ea_exp_4_DL_PT <- function(x0,
   UX <- bounds$UB
   PHI <- ea_phi_exp_4_DL_LB(mean = mean, beta = beta, precondition = precondition)
   if (diffusion_estimator=='Poisson') {
-  # simulate the number of points to simulate from Possion distribution
-  kap <- rpois(n = 1, lambda = (UX-LX)*(t-s))
-  log_acc_prob <- 0
-  if (kap > 0) {
-    layered_bb <- layeredBB::layered_brownian_bridge(x = z0,
-                                                     y = zt,
-                                                     s = s,
-                                                     t = t,
-                                                     bessel_layer = bes_layer,
-                                                     times = runif(kap, s, t))
-    phi <- ea_phi_exp_4_DL(x = sqrt(precondition) * layered_bb$simulated_path[1,],
-                           mean = mean,
-                           beta = beta,
-                           precondition = precondition)
-    log_acc_prob <- sum(log(UX-phi))
-  }
-  if (logarithm) {
-    return(-(LX-PHI)*(t-s) - kap*log(UX-LX) + log_acc_prob)
-  } else {
-    return(exp(-(LX-PHI)*(t-s) - kap*log(UX-LX) + log_acc_prob))
-  }
+    # simulate the number of points to simulate from Possion distribution
+    kap <- rpois(n = 1, lambda = (UX-LX)*(t-s))
+    log_acc_prob <- 0
+    if (kap > 0) {
+      layered_bb <- layeredBB::layered_brownian_bridge(x = z0,
+                                                       y = zt,
+                                                       s = s,
+                                                       t = t,
+                                                       bessel_layer = bes_layer,
+                                                       times = runif(kap, s, t))
+      phi <- ea_phi_exp_4_DL(x = sqrt(precondition) * layered_bb$simulated_path[1,],
+                             mean = mean,
+                             beta = beta,
+                             precondition = precondition)
+      log_acc_prob <- sum(log(UX-phi))
+    }
+    if (logarithm) {
+      return(-(LX-PHI)*(t-s) - kap*log(UX-LX) + log_acc_prob)
+    } else {
+      return(exp(-(LX-PHI)*(t-s) - kap*log(UX-LX) + log_acc_prob))
+    }
   } else if (diffusion_estimator=='NB') {
     # integral estimate for gamma in NB estimator
     h <- (t-s)/(gamma_NB_n_points-1)
@@ -140,18 +140,33 @@ ea_exp_4_DL_PT <- function(x0,
 #'
 #' @param N number of samples
 #' @param input_samples input samples for the algorithm distributed according to
-#'                       pi = exp(-(beta*(x-mean)^4)/2)
+#'                      pi = exp(-(beta*(x-mean)^4)/2)
 #' @param time time T for Exact Algorithm
 #' @param mean mean value
 #' @param beta real value
 #' @param precondition precondition value (i.e the covariance for 
 #'                     the Langevin diffusion)
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
 #'
 #' @return end points of the Exact Algorithm which should also be distributed
 #'         according to pi = exp(-(beta*(x-mean)^4)/2)
 #'
 #' @export
-ea_exp_4_DL <- function(N, input_samples, time, mean, beta, precondition) {
+ea_exp_4_DL <- function(N,
+                        input_samples,
+                        time,
+                        mean,
+                        beta,
+                        precondition,
+                        diffusion_estimator = 'Poisson',
+                        beta_NB = 10,
+                        gamma_NB_n_points = 2) {
   samples <- rep(NA, N); i <- 0
   while (i < N) {
     x <- sample(input_samples, 1)
@@ -163,6 +178,9 @@ ea_exp_4_DL <- function(N, input_samples, time, mean, beta, precondition) {
                                      mean = mean,
                                      beta = beta,
                                      precondition = precondition,
+                                     diffusion_estimator = diffusion_estimator,
+                                     beta_NB = beta_NB,
+                                     gamma_NB_n_points = gamma_NB_n_points,
                                      logarithm = TRUE)
     if (log(runif(1, 0, 1)) < log_acceptance) {
       i <- i+1
@@ -319,12 +337,12 @@ parallel_fusion_exp_4 <- function(N,
   }
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  varlist <- c(ls(), list("ea_phi_exp_4_DL",
-                          "ea_phi_exp_4_DL_bounds",
-                          "ea_phi_exp_4_DL_LB",
-                          "ea_exp_4_DL_PT",
-                          "fusion_exp_4"))
-  parallel::clusterExport(cl, envir = environment(), varlist = varlist)
+  parallel::clusterExport(cl, envir = environment(),
+                          varlist =   varlist <- c("ea_phi_exp_4_DL",
+                                                   "ea_phi_exp_4_DL_bounds",
+                                                   "ea_phi_exp_4_DL_LB",
+                                                   "ea_exp_4_DL_PT",
+                                                   "fusion_exp_4"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
@@ -761,11 +779,11 @@ Q_IS_exp_4 <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  varlist <- c(ls(), list("ea_phi_exp_4_DL",
-                          "ea_phi_exp_4_DL_bounds",
-                          "ea_phi_exp_4_DL_LB",
-                          "ea_exp_4_DL_PT"))
-  parallel::clusterExport(cl, envir = environment(), varlist = varlist)
+  parallel::clusterExport(cl, envir = environment(), 
+                          varlist = varlist <- c("ea_phi_exp_4_DL",
+                                                 "ea_phi_exp_4_DL_bounds",
+                                                 "ea_phi_exp_4_DL_LB",
+                                                 "ea_exp_4_DL_PT"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {

@@ -16,6 +16,9 @@ ea_biGaussian_DL_PT(
   beta,
   precondition_mat,
   transform_mats,
+  diffusion_estimator = "Poisson",
+  beta_NB = 10,
+  gamma_NB_n_points = 2,
   logarithm
 )
 }
@@ -42,6 +45,16 @@ ea_biGaussian_DL_PT(
 transform_mats$to_Z is the transformation matrix to Z space
 and transform_mats$to_X is the transformation matrix to 
 X space}
+
+\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
+between "Poisson" (default) for Poission estimator
+and "NB" for Negative Binomial estimator}
+
+\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
+
+\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
+of the integral found in the mean of the negative
+binomial estimator (default is 2)}
 
 \item{logarithm}{logical value to determine if log probability is
 returned (TRUE) or not (FALSE)}

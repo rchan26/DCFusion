@@ -14,6 +14,9 @@ parallel_fusion_biGaussian(
   corr,
   betas,
   precondition_matrices,
+  diffusion_estimator = "Poisson",
+  beta_NB = 10,
+  gamma_NB_n_points = 2,
   seed = NULL,
   n_cores = parallel::detectCores()
 )
@@ -36,6 +39,16 @@ contains the samples for the c-th sub-posterior}
 
 \item{betas}{vector of length c, where betas[c] is the inverse temperature 
 value for c-th posterior}
+
+\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
+between "Poisson" (default) for Poission estimator
+and "NB" for Negative Binomial estimator}
+
+\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
+
+\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
+of the integral found in the mean of the negative
+binomial estimator (default is 2)}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
