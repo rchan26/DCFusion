@@ -30,6 +30,7 @@
 #' mu <- 0.435
 #' beta <- 0.583
 #' precondition <- 1.243
+#' # Poisson estimator
 #' ea_exp_4_DL_PT(x0 = 0,
 #'                y = 0.23,
 #'                s = 0,
@@ -37,6 +38,16 @@
 #'                mean = mu,
 #'                beta = beta,
 #'                precondition = precondition,
+#'                logarithm = TRUE)
+#' # NB estimator
+#' ea_exp_4_DL_PT(x0 = 0,
+#'                y = 0.23,
+#'                s = 0,
+#'                t = 1,
+#'                mean = mu,
+#'                beta = beta,
+#'                precondition = precondition,
+#'                diffusion_estimator = 'NB',
 #'                logarithm = TRUE)
 #'
 #' @export
@@ -125,9 +136,9 @@ ea_exp_4_DL_PT <- function(x0,
     log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) -
       lgamma(beta_NB+kap) - beta_NB*log(beta_NB) - kap*log(gamma_NB)
     if (logarithm) {
-      return(-UX*(t-s) + log_middle_term + log_acc_prob)
+      return(-(UX-PHI)*(t-s) + log_middle_term + log_acc_prob)
     } else {
-      return(exp(-UX*(t-s) + log_middle_term + log_acc_prob))
+      return(exp(-(UX-PHI)*(t-s) + log_middle_term + log_acc_prob))
     }
   } else {
     stop("ea_exp_4_DL_PT: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
@@ -146,13 +157,6 @@ ea_exp_4_DL_PT <- function(x0,
 #' @param beta real value
 #' @param precondition precondition value (i.e the covariance for 
 #'                     the Langevin diffusion)
-#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
-#'                            and "NB" for Negative Binomial estimator
-#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
-#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
-#'                          of the integral found in the mean of the negative
-#'                          binomial estimator (default is 2)
 #'
 #' @return end points of the Exact Algorithm which should also be distributed
 #'         according to pi = exp(-(beta*(x-mean)^4)/2)
@@ -163,10 +167,7 @@ ea_exp_4_DL <- function(N,
                         time,
                         mean,
                         beta,
-                        precondition,
-                        diffusion_estimator = 'Poisson',
-                        beta_NB = 10,
-                        gamma_NB_n_points = 2) {
+                        precondition) {
   samples <- rep(NA, N); i <- 0
   while (i < N) {
     x <- sample(input_samples, 1)
@@ -178,9 +179,7 @@ ea_exp_4_DL <- function(N,
                                      mean = mean,
                                      beta = beta,
                                      precondition = precondition,
-                                     diffusion_estimator = diffusion_estimator,
-                                     beta_NB = beta_NB,
-                                     gamma_NB_n_points = gamma_NB_n_points,
+                                     diffusion_estimator = 'Poisson',
                                      logarithm = TRUE)
     if (log(runif(1, 0, 1)) < log_acceptance) {
       i <- i+1
@@ -205,13 +204,6 @@ ea_exp_4_DL <- function(N,
 #'              they are all at the same inverse temperature)
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
-#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
-#'                            and "NB" for Negative Binomial estimator
-#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
-#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
-#'                          of the integral found in the mean of the negative
-#'                          binomial estimator (default is 2)
 #'
 #' @return A list with components:
 #' \describe{
@@ -227,10 +219,7 @@ fusion_exp_4 <- function(N,
                          samples_to_fuse,
                          mean,
                          betas,
-                         precondition_values,
-                         diffusion_estimator = 'Poisson',
-                         beta_NB = 10,
-                         gamma_NB_n_points = 2) {
+                         precondition_values) {
   if (!is.list(samples_to_fuse) | (length(samples_to_fuse)!=m)) {
     stop("fusion_exp_4: samples_to_fuse must be a list of length m")
   } else if (!is.vector(betas) | (length(betas)!=m)) {
@@ -259,9 +248,7 @@ fusion_exp_4 <- function(N,
                        mean = mean,
                        beta = betas[c],
                        precondition = precondition_values[c],
-                       diffusion_estimator = diffusion_estimator,
-                       beta_NB = beta_NB,
-                       gamma_NB_n_points = gamma_NB_n_points,
+                       diffusion_estimator = 'Poisson',
                        logarithm = TRUE)
       }))
       if (log(runif(1, 0, 1)) < log_Q_prob) {
@@ -291,13 +278,6 @@ fusion_exp_4 <- function(N,
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
 #' @param seed seed number - default is NULL, meaning there is no seed
-#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
-#'                            and "NB" for Negative Binomial estimator
-#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
-#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
-#'                          of the integral found in the mean of the negative
-#'                          binomial estimator (default is 2)
 #' @param n_cores number of cores to use
 #'
 #' @return A list with components:
@@ -323,9 +303,6 @@ parallel_fusion_exp_4 <- function(N,
                                   mean,
                                   betas,
                                   precondition_values,
-                                  diffusion_estimator = 'Poisson',
-                                  beta_NB = 10,
-                                  gamma_NB_n_points = 2,
                                   seed = NULL,
                                   n_cores = parallel::detectCores()) {
   if (!is.list(samples_to_fuse) | (length(samples_to_fuse)!=m)) {
@@ -338,11 +315,11 @@ parallel_fusion_exp_4 <- function(N,
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
   parallel::clusterExport(cl, envir = environment(),
-                          varlist =   varlist <- c("ea_phi_exp_4_DL",
-                                                   "ea_phi_exp_4_DL_bounds",
-                                                   "ea_phi_exp_4_DL_LB",
-                                                   "ea_exp_4_DL_PT",
-                                                   "fusion_exp_4"))
+                          varlist = c("ea_phi_exp_4_DL",
+                                      "ea_phi_exp_4_DL_bounds",
+                                      "ea_phi_exp_4_DL_LB",
+                                      "ea_exp_4_DL_PT",
+                                      "fusion_exp_4"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
@@ -367,10 +344,7 @@ parallel_fusion_exp_4 <- function(N,
                  samples_to_fuse = samples_to_fuse,
                  mean = mean,
                  betas = betas,
-                 precondition_values = precondition_values,
-                 diffusion_estimator = diffusion_estimator,
-                 beta_NB = beta_NB,
-                 gamma_NB_n_points = gamma_NB_n_points)
+                 precondition_values = precondition_values)
   })
   final <- proc.time() - pcm
   parallel::stopCluster(cl)
@@ -420,13 +394,6 @@ parallel_fusion_exp_4 <- function(N,
 #' @param start_beta beta for the base level
 #' @param precondition logical value to determine if preconditioning value is 
 #'                     used (TRUE) or not (FALSE). Default is TRUE
-#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
-#'                            and "NB" for Negative Binomial estimator
-#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
-#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
-#'                          of the integral found in the mean of the negative
-#'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -465,9 +432,6 @@ hierarchical_fusion_exp_4 <- function(N_schedule,
                                       mean = 0,
                                       start_beta,
                                       precondition = TRUE,
-                                      diffusion_estimator = 'Poisson',
-                                      beta_NB = 10,
-                                      gamma_NB_n_points = 2,
                                       seed = NULL,
                                       n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
@@ -535,9 +499,6 @@ hierarchical_fusion_exp_4 <- function(N_schedule,
                             mean = mean,
                             betas = rep(prod(m_schedule[L:(k+1)])*(start_beta), m_schedule[k]),
                             precondition_values = precondition_vals,
-                            diffusion_estimator = diffusion_estimator,
-                            beta_NB = beta_NB,
-                            gamma_NB_n_points = gamma_NB_n_points,
                             seed = seed,
                             n_cores = n_cores)
     })
@@ -595,13 +556,6 @@ hierarchical_fusion_exp_4 <- function(N_schedule,
 #' @param precondition logical value to determine if preconditioning value is 
 #'                     used (TRUE) or not (FALSE). Default is TRUE
 #' @param seed seed number - default is NULL, meaning there is no seed
-#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
-#'                            and "NB" for Negative Binomial estimator
-#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
-#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
-#'                          of the integral found in the mean of the negative
-#'                          binomial estimator (default is 2) 
 #' @param n_cores number of cores to use
 #'
 #' @return A list with components:
@@ -629,9 +583,6 @@ progressive_fusion_exp_4 <- function(N_schedule,
                                      mean = 0,
                                      start_beta,
                                      precondition = TRUE,
-                                     diffusion_estimator = 'Poisson',
-                                     beta_NB = 10,
-                                     gamma_NB_n_points = 2,
                                      seed = NULL,
                                      n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(1/start_beta)-1)) {
@@ -678,9 +629,6 @@ progressive_fusion_exp_4 <- function(N_schedule,
                                      mean = mean,
                                      betas = c(start_beta, start_beta),
                                      precondition_values = precondition_vals,
-                                     diffusion_estimator = diffusion_estimator,
-                                     beta_NB = beta_NB,
-                                     gamma_NB_n_points = gamma_NB_n_points,
                                      seed = seed,
                                      n_cores = n_cores)
     } else {
@@ -705,9 +653,6 @@ progressive_fusion_exp_4 <- function(N_schedule,
                                      mean = mean,
                                      betas = c(index*start_beta, start_beta),
                                      precondition_values = precondition_vals,
-                                     diffusion_estimator = diffusion_estimator,
-                                     beta_NB = beta_NB,
-                                     gamma_NB_n_points = gamma_NB_n_points,
                                      seed = seed,
                                      n_cores = n_cores)
       index <- index + 1
@@ -780,10 +725,10 @@ Q_IS_exp_4 <- function(particle_set,
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
   parallel::clusterExport(cl, envir = environment(), 
-                          varlist = varlist <- c("ea_phi_exp_4_DL",
-                                                 "ea_phi_exp_4_DL_bounds",
-                                                 "ea_phi_exp_4_DL_LB",
-                                                 "ea_exp_4_DL_PT"))
+                          varlist = c("ea_phi_exp_4_DL",
+                                      "ea_phi_exp_4_DL_bounds",
+                                      "ea_phi_exp_4_DL_LB",
+                                      "ea_exp_4_DL_PT"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {

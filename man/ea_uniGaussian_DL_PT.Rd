@@ -64,8 +64,19 @@ mu <- 0.423
 sd <- 3.231
 beta <- 0.8693
 precondition <- 1.243
+# Poisson estimator
 ea_uniGaussian_DL_PT(x0 = 0,
-                     y = 0.5,
+                     y = 10,
+                     s = 0,
+                     t = 1,
+                     mean = mu,
+                     sd = sd,
+                     beta = beta,
+                     precondition = precondition,
+                     logarithm = TRUE)
+# NB estimator
+ea_uniGaussian_DL_PT(x0 = 0,
+                     y = 10,
                      s = 0,
                      t = 1,
                      mean = mu,

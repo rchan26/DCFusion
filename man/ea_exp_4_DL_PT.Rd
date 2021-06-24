@@ -62,6 +62,7 @@ exp(-(beta*(x-mean)^4)/2) using Poisson thinning
 mu <- 0.435
 beta <- 0.583
 precondition <- 1.243
+# Poisson estimator
 ea_exp_4_DL_PT(x0 = 0,
                y = 0.23,
                s = 0,
@@ -69,6 +70,16 @@ ea_exp_4_DL_PT(x0 = 0,
                mean = mu,
                beta = beta,
                precondition = precondition,
+               logarithm = TRUE)
+# NB estimator
+ea_exp_4_DL_PT(x0 = 0,
+               y = 0.23,
+               s = 0,
+               t = 1,
+               mean = mu,
+               beta = beta,
+               precondition = precondition,
+               diffusion_estimator = 'NB',
                logarithm = TRUE)
 
 }

@@ -12,10 +12,7 @@ fusion_uniGaussian(
   means,
   sds,
   betas,
-  precondition_values,
-  diffusion_estimator = "Poisson",
-  beta_NB = 10,
-  gamma_NB_n_points = 2
+  precondition_values
 )
 }
 \arguments{
@@ -40,16 +37,6 @@ they are all at the same inverse temperature)}
 
 \item{precondition_values}{vector of length m, where precondition_values[c]
 is the precondition value for sub-posterior c}
-
-\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
-between "Poisson" (default) for Poission estimator
-and "NB" for Negative Binomial estimator}
-
-\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
-
-\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
-of the integral found in the mean of the negative
-binomial estimator (default is 2)}
 }
 \value{
 A list with components:

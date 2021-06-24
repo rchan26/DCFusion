@@ -14,10 +14,7 @@ fusion_biGaussian(
   corr,
   betas,
   precondition_matrices,
-  inv_precondition_matrices,
-  diffusion_estimator = "Poisson",
-  beta_NB = 10,
-  gamma_NB_n_points = 2
+  inv_precondition_matrices
 )
 }
 \arguments{
@@ -39,16 +36,6 @@ the samples for the c-th sub-posterior}
 \item{betas}{vector of length m, where betas[c] is the inverse temperature (beta)
 for c-th sub-posterior (can also pass in one number if they are all
 at the same inverse temperature)}
-
-\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
-between "Poisson" (default) for Poission estimator
-and "NB" for Negative Binomial estimator}
-
-\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
-
-\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
-of the integral found in the mean of the negative
-binomial estimator (default is 2)}
 
 \item{precondition_matricies}{list of length m, where precondition_matrices[[c]]
 is the precondition matrix for sub-posterior c}

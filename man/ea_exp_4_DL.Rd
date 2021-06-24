@@ -4,17 +4,7 @@
 \alias{ea_exp_4_DL}
 \title{Exact Algorithm for langevin diffusion with pi = exp(-(beta*(x-mean)^4)/2)}
 \usage{
-ea_exp_4_DL(
-  N,
-  input_samples,
-  time,
-  mean,
-  beta,
-  precondition,
-  diffusion_estimator = "Poisson",
-  beta_NB = 10,
-  gamma_NB_n_points = 2
-)
+ea_exp_4_DL(N, input_samples, time, mean, beta, precondition)
 }
 \arguments{
 \item{N}{number of samples}
@@ -30,16 +20,6 @@ pi = exp(-(beta*(x-mean)^4)/2)}
 
 \item{precondition}{precondition value (i.e the covariance for 
 the Langevin diffusion)}
-
-\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
-between "Poisson" (default) for Poission estimator
-and "NB" for Negative Binomial estimator}
-
-\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
-
-\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
-of the integral found in the mean of the negative
-binomial estimator (default is 2)}
 }
 \value{
 end points of the Exact Algorithm which should also be distributed
