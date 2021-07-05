@@ -351,7 +351,7 @@ parallel_fusion_biGaussian <- function(N,
   ######### creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
   parallel::clusterExport(cl, envir = environment(),
-                          varlist = c("ea_phi_biGaussian_DL_matrix",
+                          varlist = c(ls(), "ea_phi_biGaussian_DL_matrix",
                                       "ea_phi_biGaussian_DL_bounds",
                                       "ea_phi_biGaussian_DL_LB",
                                       "ea_biGaussian_DL_PT",
@@ -812,10 +812,11 @@ Q_IS_biGaussian <- function(particle_set,
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
   parallel::clusterExport(cl, envir = environment(),
-                          varlist = c("ea_phi_biGaussian_DL_matrix",
+                          varlist = c(ls(), "ea_phi_biGaussian_DL_matrix",
                                       "ea_phi_biGaussian_DL_bounds",
                                       "ea_phi_biGaussian_DL_LB",
-                                      "ea_biGaussian_DL_PT"))
+                                      "ea_biGaussian_DL_PT",
+                                      "fusion_biGaussian"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {

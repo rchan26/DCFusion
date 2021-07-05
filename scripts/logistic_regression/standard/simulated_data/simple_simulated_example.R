@@ -63,9 +63,11 @@ full_data$y <- simulated_data$y
 full_data$X <- as.matrix(cbind(rep(1, nrow(simulated_data[,2:3])), simulated_data[,2:3]))
 colnames(full_data$X)[1] <- 'intercept'
 
+full_data <- split_data(simulated_data, y_col_index = 1, X_col_index = 2:3, C = 1, as_dataframe = F)[[1]]
+
 ###### Sampling from full posterier #####
 
-full_posterior <- hmc_sample_BLR(data = full_data,
+full_posterior <- hmc_sample_BLR(full_data_count = full_data$full_data_count,
                                  C = 1,
                                  prior_means = rep(0, 3),
                                  prior_variances = rep(1, 3),
@@ -87,18 +89,30 @@ sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = 100000,
                                          seed = seed,
                                          output = T)
 
-compare_samples_bivariate(posteriors = c(sub_posteriors_4, list(full_posterior)),
-                          colours = c(rep('black', 4), 'red'),
-                          common_limit = c(-4, 4),
-                          title = 'C = 4')
+# compare_samples_bivariate(posteriors = c(sub_posteriors_4, list(full_posterior)),
+#                           colours = c(rep('black', 4), 'red'),
+#                           common_limit = c(-4, 4),
+#                           title = 'C = 4')
+# 
+# sapply(sub_posteriors_4, function(sub_posterior) min(abs(cov(sub_posterior))))
 
-sapply(sub_posteriors_4, function(sub_posterior) min(abs(cov(sub_posterior))))
+##### C=16 #####
+
+data_split_16 <- split_data(simulated_data, y_col_index = 1, X_col_index = 2:3, C = 16, as_dataframe = F)
+sub_posteriors_16 <- hmc_base_sampler_BLR(nsamples = 100000,
+                                          warmup = 10000,
+                                          data_split = data_split_16,
+                                          C = 16,
+                                          prior_means = rep(0, 3),
+                                          prior_variances = rep(1, 3),
+                                          seed = seed,
+                                          output = T)
 
 ###### Consensus Monte Carlo #####
 
 # perform consensus Monte Carlo
-consensus_mat <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = T)
-consensus_scale <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = F)
+consensus_mat <- consensus_scott(S = 16, samples_to_combine = sub_posteriors_16, indep = T)
+consensus_scale <- consensus_scott(S = 16, samples_to_combine = sub_posteriors_16, indep = F)
 compare_samples_bivariate(posteriors = list(full_posterior, consensus_mat$samples, consensus_scale$samples),
                           colours = c('black', 'red', 'blue'),
                           common_limit = c(-4, 4),
@@ -120,7 +134,7 @@ test_preconditioned_SMC_Poisson <- parallel_fusion_SMC_BLR(particles_to_fuse = p
                                                            C = 4,
                                                            precondition_matrices = lapply(sub_posteriors_4, cov),
                                                            resampling_method = 'resid',
-                                                           ESS_threshold = 0.5,
+                                                           ESS_threshold = 0,
                                                            diffusion_estimator = 'Poisson',
                                                            cv_location = 'hypercube_centre',
                                                            seed = seed,
@@ -144,7 +158,7 @@ test_preconditioned_SMC_NB <- parallel_fusion_SMC_BLR(particles_to_fuse = partic
                                                       C = 4,
                                                       precondition_matrices = lapply(sub_posteriors_4, cov),
                                                       resampling_method = 'resid',
-                                                      ESS_threshold = 0.5,
+                                                      ESS_threshold = 0,
                                                       diffusion_estimator = 'NB',
                                                       cv_location = 'hypercube_centre',
                                                       gamma_NB_n_points = 5,
@@ -178,7 +192,7 @@ test_preconditioned_hierarchical_SMC_Poisson <- hierarchical_fusion_SMC_BLR(N_sc
                                                                             C = 4,
                                                                             precondition = TRUE,
                                                                             resampling_method = 'resid',
-                                                                            ESS_threshold = 0.5,
+                                                                            ESS_threshold = 1,
                                                                             diffusion_estimator = 'Poisson',
                                                                             cv_location = 'hypercube_centre',
                                                                             seed = seed,
@@ -203,7 +217,7 @@ test_preconditioned_hierarchical_SMC_NB <- hierarchical_fusion_SMC_BLR(N_schedul
                                                                        C = 4,
                                                                        precondition = TRUE,
                                                                        resampling_method = 'resid',
-                                                                       ESS_threshold = 0.5,
+                                                                       ESS_threshold = 1,
                                                                        diffusion_estimator = 'NB',
                                                                        cv_location = 'hypercube_centre',
                                                                        seed = seed,

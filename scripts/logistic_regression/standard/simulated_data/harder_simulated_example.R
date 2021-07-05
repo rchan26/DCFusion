@@ -67,7 +67,7 @@ full_data <- split_data(simulated_data, y_col_index = 1, X_col_index = 2:5, C = 
 
 ###### Sampling from full posterier #####
 
-full_posterior <- hmc_sample_BLR(data = full_data,
+full_posterior <- hmc_sample_BLR(full_data_count = full_data$full_data_count,
                                  C = 1,
                                  prior_means = rep(0, 5),
                                  prior_variances = rep(1, 5),

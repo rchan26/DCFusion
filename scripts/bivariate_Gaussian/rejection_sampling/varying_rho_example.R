@@ -92,21 +92,40 @@ for (i in 1:length(correlations)) {
 par(mai = c(1.02, 1, 0.82, 0.42))
 
 plot(correlations, sapply(1:9, function(i) fusion_standard[[i]]$rho), ylim = c(0, 1),
-     xlab = 'correlation', ylab = expression(paste('Acceptance Rate for ', rho)), col = 'black', lwd = 3)
+     xlab = 'Correlation', ylab = expression(paste('Acceptance Rate for ', rho)), col = 'black', lwd = 3)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
 lines(correlations, sapply(1:9, function(i) fusion_standard[[i]]$rho), col = 'black', lwd = 3)
 points(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$rho), col = 'black', lty = 3, lwd = 3)
 lines(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$rho), col = 'black', lwd = 3)
 legend(x = 0, y = 1, legend = c('standard', 'preconditioned'), col = c('black', 'black'), lty = c(1,3), lwd = c(3,3), bty = 'n')
 
 plot(correlations, sapply(1:9, function(i) fusion_standard[[i]]$Q), ylim = c(0, 0.4),
-     xlab = 'correlation', ylab = expression(paste('Acceptance Rate for ', hat(Q))), col = 'black', lwd = 3)
+     xlab = 'Correlation', ylab = expression(paste('Acceptance Rate for ', hat(Q))), col = 'black', lwd = 3)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
 lines(correlations, sapply(1:9, function(i) fusion_standard[[i]]$Q), col = 'black', lwd = 3)
 points(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$Q), col = 'black', lty = 3, lwd = 3)
 lines(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$Q), col = 'black', lty = 3, lwd = 3)
 legend(x = 0, y = 1, legend = c('standard', 'preconditioned'), col = c('black', 'black'), lty = c(1,3), lwd = c(3,3), bty = 'n')
 
+plot(correlations, sapply(1:9, function(i) fusion_standard[[i]]$rhoQ), ylim = c(0, 0.4),
+     xlab = 'Correlation', ylab = 'Overall Acceptance Rate', col = 'black', lwd = 3)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
+lines(correlations, sapply(1:9, function(i) fusion_standard[[i]]$rhoQ), col = 'black', lwd = 3)
+points(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$rhoQ), col = 'black', lty = 3, lwd = 3)
+lines(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$rhoQ), col = 'black', lty = 3, lwd = 3)
+legend(x = 0, y = 1, legend = c('standard', 'preconditioned'), col = c('black', 'black'), lty = c(1,3), lwd = c(3,3), bty = 'n')
+
+plot(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$rhoQ)),
+     xlab = 'Correlation', ylab = 'log(Overall Acceptance Rate)', col = 'black', lwd = 3)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
+lines(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$rhoQ)), col = 'black', lwd = 3)
+points(correlations, log(sapply(1:9, function(i) fusion_precondition[[i]]$rhoQ)), col = 'black', lty = 3, lwd = 3)
+lines(correlations, log(sapply(1:9, function(i) fusion_precondition[[i]]$rhoQ)), col = 'black', lty = 3, lwd = 3)
+legend(x = 0, y = -4.5, legend = c('standard', 'preconditioned'), col = c('black', 'black'), lty = c(1,3), lwd = c(3,3), bty = 'n')
+
 plot(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$time)),
-     xlab = 'correlation', ylab = 'Time Elapsed in log(seconds)', col = 'black', ylim = c(0, 8), lwd = 3)
+     xlab = 'Correlation', ylab = 'Time Elapsed in log(seconds)', col = 'black', ylim = c(1, 6), lwd = 3)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
 lines(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$time)), col = 'black', lwd = 3)
 points(correlations, log(sapply(1:9, function(i) fusion_precondition[[i]]$time)), col = 'black', lty = 3, lwd = 3)
 lines(correlations, log(sapply(1:9, function(i) fusion_precondition[[i]]$time)), col = 'black', lty = 3, lwd = 3)
