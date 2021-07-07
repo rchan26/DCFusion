@@ -96,8 +96,6 @@ ea_BLR_DL_PT <- function(dim,
   if (is.list(cv_location)) {
     if (names(cv_location)==c("beta_hat", "grad_log_hat")) {
       hypercube_vertices <- obtain_hypercube_vertices(bes_layers)
-      # hypercube_vertices_X <- t(transform_mats$to_X %*% t(hypercube_vertices))
-      # surrounding_hypercube_vertices_X <- surrounding_hypercube_vertices(hypercube_vertices = hypercube_vertices_X)
       bounds <- ea_phi_BLR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                      grad_log_hat = as.vector(cv_location$grad_log_hat),
                                      dim = dim,
@@ -121,8 +119,6 @@ ea_BLR_DL_PT <- function(dim,
                                            prior_variances = prior_variances,
                                            C = C)
     hypercube_vertices <- obtain_hypercube_vertices(bes_layers)
-    # hypercube_vertices_X <- t(transform_mats$to_X %*% t(hypercube_vertices))
-    # surrounding_hypercube_vertices_X <- surrounding_hypercube_vertices(hypercube_vertices = hypercube_vertices_X)
     bounds <- ea_phi_BLR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                    grad_log_hat = as.vector(cv_location$grad_log_hat),
                                    dim = dim,
@@ -162,50 +158,8 @@ ea_BLR_DL_PT <- function(dim,
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
-        cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('min(phi):', min(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(phi):', max(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(abs(phi$t1)):', max(abs(phi$t1)), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$t1_bds', bounds$t1_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(abs(phi$t2)):', max(abs(phi$t2)), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$t2_bds', bounds$t2_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        max_spect <- max(abs(sapply(1:nrow(sim_path), function(i) {
-          spectral_radius_BLR(beta = sim_path[i,],
-                              dim = dim,
-                              X = as.matrix(subset(data$design_count, select = -count)),
-                              count = data$design_count$count,
-                              prior_variances = prior_variances,
-                              C = C,
-                              Lambda = precondition_mat)})))
-        cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
         stop('Some of (UX-phi) are < 0. Try local_bounds = FALSE to use global bounds.')
       } else if (any((phi$phi - LX) < 0)) {
-        cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('min(phi):', min(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(phi):', max(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(abs(phi$t1)):', max(abs(phi$t1)), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$t1_bds', bounds$t1_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(abs(phi$t2)):', max(abs(phi$t2)), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$t2_bds', bounds$t2_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        max_spect <- max(abs(sapply(1:nrow(sim_path), function(i) {
-          spectral_radius_BLR(beta = sim_path[i,],
-                              dim = dim,
-                              X = as.matrix(subset(data$design_count, select = -count)),
-                              count = data$design_count$count,
-                              prior_variances = prior_variances,
-                              C = C,
-                              Lambda = precondition_mat)})))
-        cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
         stop('Some of (phi-LX) are < 0. Try local_bounds = FALSE to use global bounds.')
       }
     }
@@ -254,50 +208,8 @@ ea_BLR_DL_PT <- function(dim,
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
-        cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('min(phi):', min(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(phi):', max(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(abs(phi$t1)):', max(abs(phi$t1)), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$t1_bds', bounds$t1_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(abs(phi$t2)):', max(abs(phi$t2)), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$t2_bds', bounds$t2_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        max_spect <- max(abs(sapply(1:nrow(sim_path), function(i) {
-          spectral_radius_BLR(beta = sim_path[i,],
-                              dim = dim,
-                              X = as.matrix(subset(data$design_count, select = -count)),
-                              count = data$design_count$count,
-                              prior_variances = prior_variances,
-                              C = C,
-                              Lambda = precondition_mat)})))
-        cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
         stop('Some of (UX-phi) are < 0. Try local_bounds = FALSE to use global bounds.')
       } else if (any((phi$phi - LX) < 0)) {
-        cat('LX:', LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('UX:', UX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('min(phi):', min(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(phi):', max(phi$phi), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('(UX-phi):', terms, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('(phi-LX):', phi$phi-LX, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(abs(phi$t1)):', max(abs(phi$t1)), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$t1_bds', bounds$t1_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('max(abs(phi$t2)):', max(abs(phi$t2)), '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$t2_bds', bounds$t2_bds, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        max_spect <- max(abs(sapply(1:nrow(sim_path), function(i) {
-          spectral_radius_BLR(beta = sim_path[i,],
-                              dim = dim,
-                              X = as.matrix(subset(data$design_count, select = -count)),
-                              count = data$design_count$count,
-                              prior_variances = prior_variances,
-                              C = C,
-                              Lambda = precondition_mat)})))
-        cat('max_spect:', max_spect, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$P_n_Lambda', bounds$P_n_Lambda, '\n', file = "SMC_BLR_bounds.txt", append = T)
-        cat('bounds$P_n_Lambda_global', bounds$P_n_Lambda_global, '\n', file = "SMC_BLR_bounds.txt", append = T)
         stop('Some of (phi-LX) are < 0. Try local_bounds = FALSE to use global bounds.')
       }
     }
@@ -332,7 +244,6 @@ Q_IS_BLR <- function(particle_set,
                      local_bounds = TRUE,
                      seed = NULL,
                      n_cores = parallel::detectCores(),
-                     cl = NULL,
                      level = 1,
                      node = 1,
                      print_progress_iters = 1000) {
@@ -364,8 +275,6 @@ Q_IS_BLR <- function(particle_set,
     stop("Q_IS_BLR: inv_precondition_matrices must be a list of length m")
   } else if (!(diffusion_estimator %in% c('Poisson', 'NB'))) {
     stop("Q_IS_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
-  } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
-    stop("Q_IS_BLR: cl must be a \"cluster\" object or NULL")
   }
   if (cv_location == 'mode') {
     cv_location <- lapply(1:m, function(c) {
@@ -389,20 +298,14 @@ Q_IS_BLR <- function(particle_set,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
-  # proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
   N <- particle_set$N
   # ---------- creating parallel cluster
-  if (is.null(cl)) {
-    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
-    parallel::clusterExport(cl, envir = environment(),
-                            varlist = c("ea_phi_BLR_DL_matrix",
-                                        "ea_phi_BLR_DL_bounds",
-                                        "ea_BLR_DL_PT"))
-    parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
-    close_cluster <- TRUE
-  } else {
-    close_cluster <- FALSE
-  }
+  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+  parallel::clusterExport(cl, envir = environment(), 
+                          varlist = c(ls(), "ea_phi_BLR_DL_matrix",
+                                      "ea_phi_BLR_DL_bounds",
+                                      "ea_BLR_DL_PT"))
+  parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
@@ -469,9 +372,7 @@ Q_IS_BLR <- function(particle_set,
         split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
-  if (close_cluster) {
-    parallel::stopCluster(cl)
-  }
+  parallel::stopCluster(cl)
   # unlist the proposed samples for y and their associated log Q weights
   y_samples <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
     Q_weighted_samples[[i]]$y_samples}))
@@ -539,8 +440,6 @@ Q_IS_BLR <- function(particle_set,
 #'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
-#' @param cl an object of class "cluster" for parallel computation in R. If none
-#'           is passed, then one is created and used within other functions
 #' @param level indicates which level this is for the hierarchy (default 1)
 #' @param node indicates which node this is for the hierarchy (default 1)
 #' @param print_progress_iters number of iterations between each progress update
@@ -587,7 +486,6 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                     local_bounds = TRUE,
                                     seed = NULL,
                                     n_cores = parallel::detectCores(),
-                                    cl = NULL,
                                     level = 1,
                                     node = 1,
                                     print_progress_iters = 1000) {
@@ -658,8 +556,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
                                    inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices),
-                                   n_cores = n_cores,
-                                   cl = cl)
+                                   n_cores = n_cores)
   # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)
   CESS <- c('rho' = particles$CESS['rho'])
@@ -695,7 +592,6 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                         local_bounds = local_bounds,
                         seed = seed,
                         n_cores = n_cores,
-                        cl = cl,
                         level = level,
                         node = node,
                         print_progress_iters = print_progress_iters)
@@ -784,8 +680,6 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
-#' @param cl an object of class "cluster" for parallel computation in R. If none
-#'           is passed, then one is created and used within this function
 #' @param print_progress_iters number of iterations between each progress update
 #'                             (default is 1000). If NULL, progress will only
 #'                             be updated when importance sampling is finished
@@ -835,7 +729,6 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                                         local_bounds = TRUE,
                                         seed = NULL,
                                         n_cores = parallel::detectCores(),
-                                        create_cluster = TRUE,
                                         print_progress_iters = 100) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
     stop("hierarchical_fusion_SMC_BLR: N_schedule must be a vector of length (L-1)")
@@ -910,18 +803,6 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
           length C, where precondition[[c]] is the preconditioning matrix for
           the c-th sub-posterior")
   }
-  # creating parallel cluster
-  if (create_cluster) {
-    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
-    parallel::clusterExport(cl, envir = environment(),
-                            varlist = c("rho_IS_multivariate_",
-                                        "ea_phi_BLR_DL_matrix",
-                                        "ea_phi_BLR_DL_bounds",
-                                        "ea_BLR_DL_PT"))
-    parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
-  } else {
-    cl <- NULL
-  }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_BLR.txt')
   for (k in ((L-1):1)) {
     n_nodes <- max(C/prod(m_schedule[L:k]), 1)
@@ -957,7 +838,6 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                               local_bounds = local_bounds,
                               seed = seed,
                               n_cores = n_cores,
-                              cl = cl,
                               level = k,
                               node = i,
                               print_progress_iters = print_progress_iters)
@@ -971,9 +851,6 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$resampled)
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_matrices[[1]])
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$combined_data)
-  }
-  if (create_cluster) {
-    parallel::stopCluster(cl)
   }
   cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
   if (length(particles[[1]])==1) {

@@ -25,7 +25,6 @@ hierarchical_fusion_SMC_BLR(
   local_bounds = TRUE,
   seed = NULL,
   n_cores = parallel::detectCores(),
-  create_cluster = TRUE,
   print_progress_iters = 100
 )
 }
@@ -95,9 +94,6 @@ binomial estimator (default is 2)}
 \item{print_progress_iters}{number of iterations between each progress update
 (default is 1000). If NULL, progress will only
 be updated when importance sampling is finished}
-
-\item{cl}{an object of class "cluster" for parallel computation in R. If none
-is passed, then one is created and used within this function}
 }
 \value{
 A list with components:

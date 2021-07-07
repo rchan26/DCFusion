@@ -345,7 +345,7 @@ parallel_fusion_uniGaussian <- function(N,
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
   parallel::clusterExport(cl, envir = environment(),
-                          varlist = c("ea_phi_uniGaussian_DL",
+                          varlist = c(ls(), "ea_phi_uniGaussian_DL",
                                       "ea_phi_uniGaussian_DL_bounds",
                                       "ea_phi_uniGaussian_DL_LB",
                                       "ea_uniGaussian_DL_PT",
@@ -771,7 +771,7 @@ Q_IS_uniGaussian <- function(particle_set,
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
   parallel::clusterExport(cl, envir = environment(),
-                          varlist = c("ea_phi_uniGaussian_DL",
+                          varlist = c(ls(), "ea_phi_uniGaussian_DL",
                                       "ea_phi_uniGaussian_DL_bounds",
                                       "ea_phi_uniGaussian_DL_LB",
                                       "ea_uniGaussian_DL_PT",

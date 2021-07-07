@@ -24,7 +24,6 @@ parallel_fusion_SMC_BLR(
   local_bounds = TRUE,
   seed = NULL,
   n_cores = parallel::detectCores(),
-  cl = NULL,
   level = 1,
   node = 1,
   print_progress_iters = 1000
@@ -86,9 +85,6 @@ binomial estimator (default is 2)}
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
-
-\item{cl}{an object of class "cluster" for parallel computation in R. If none
-is passed, then one is created and used within other functions}
 
 \item{level}{indicates which level this is for the hierarchy (default 1)}
 

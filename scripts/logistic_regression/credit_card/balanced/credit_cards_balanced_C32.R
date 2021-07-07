@@ -28,7 +28,6 @@ for (i in 2:length(time_choices)) {
                                                     cv_location = 'hypercube_centre',
                                                     diffusion_estimator = 'Poisson',
                                                     seed = seed,
-                                                    create_cluster = FALSE,
                                                     print_progress_iters = 1250)
   Poisson_hc_32[[i]]$particles <- resample_particle_y_samples(particle_set = Poisson_hc_32[[i]]$particles[[1]],
                                                               multivariate = TRUE,
@@ -62,7 +61,6 @@ for (i in 2:length(time_choices)) {
                                                cv_location = 'hypercube_centre',
                                                diffusion_estimator = 'NB',
                                                seed = seed,
-                                               create_cluster = FALSE,
                                                print_progress_iters = 1250)
   NB_hc_32[[i]]$particles <- resample_particle_y_samples(particle_set = NB_hc_32[[i]]$particles[[1]],
                                                          multivariate = TRUE,

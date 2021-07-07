@@ -12,8 +12,7 @@ rho_IS_multivariate(
   time,
   inv_precondition_matrices,
   inverse_sum_inv_precondition_matrices,
-  n_cores = parallel::detectCores(),
-  cl = NULL
+  n_cores = parallel::detectCores()
 )
 }
 \arguments{
@@ -39,9 +38,6 @@ calculated by passing the inverse
 precondition matrices into inverse_sum_matrices())}
 
 \item{n_cores}{number of cores to use}
-
-\item{cl}{an object of class "cluster" for parallel computation in R. If none
-is passed, then one is created and used within this function}
 }
 \value{
 A importance weighted particle set

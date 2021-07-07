@@ -47,15 +47,15 @@ for (i in 1:length(different_modes)) {
         main = paste('mu =', different_modes[i]))
   curve(dnorm(x, different_modes[i], 1), -5, different_modes[i]+5, add = T)
   curve(d2product_norm(x, mu1 = 0, mu2 = different_modes[i], sd1 = 1, sd2 = 1), add = T, lty = 2)
-  lines(density(resample_particle_set(smc_fusion_samples_standard[[i]]$particles,
-                                      multivariate = FALSE,
-                                      resampling_method = 'resid',
-                                      seed = seed),
+  lines(density(resample_particle_y_samples(particle_set = smc_fusion_samples_standard[[i]]$particles,
+                                            multivariate = FALSE,
+                                            resampling_method = 'resid',
+                                            seed = seed)$y_samples,
                 adjust = 2), col = 'green')
-  lines(density(resample_particle_set(smc_fusion_samples_precondition[[i]]$particles,
-                                      multivariate = FALSE,
-                                      resampling_method = 'resid',
-                                      seed = seed), 
+  lines(density(resample_particle_y_samples(particle_set = smc_fusion_samples_precondition[[i]]$particles,
+                                            multivariate = FALSE,
+                                            resampling_method = 'resid',
+                                            seed = seed)$y_samples, 
                 adjust = 2), col = 'blue')
 }
 
