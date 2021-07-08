@@ -9,7 +9,7 @@ Poisson_hc_64 <- list()
 NB_hc_64 <- list()
 n_cores <- parallel::detectCores()
 n_samples <- n_cores*c(10, 50, 100, 200, 300, 400, 500, 1000, 2000, 2500, 3000)
-for (i in 1:length(n_samples)) {
+for (i in 11:length(n_samples)) {
   print(paste('Samples:', n_samples[i]))
   ##### Poisson (Hypercube Centre) #####
   print('Poisson Fusion (hypercube centre)')
@@ -38,6 +38,8 @@ for (i in 1:length(n_samples)) {
   print(integrated_abs_distance(full_posterior,
                                 Poisson_hc_64[[i]]$particles$y_samples,
                                 bandwidths))
+  print(sum(unlist(Poisson_hc_64[[i]]$time))/60/60)
+  
   ##### NB (Hypercube Centre) #####
   print('NB Fusion (hypercube centre)')
   NB_hc_64[[i]] <- hierarchical_fusion_SMC_BLR(N_schedule = rep(n_samples[i], 6),
@@ -65,6 +67,7 @@ for (i in 1:length(n_samples)) {
   print(integrated_abs_distance(full_posterior,
                                 NB_hc_64[[i]]$particles$y_samples,
                                 bandwidths))
+  print(sum(unlist(NB_hc_64[[i]]$time))/60/60)
   
   save.image('credit_cards_balanced_C64_various_nsamples_v2.RData')
 }
@@ -73,9 +76,9 @@ for (i in 1:length(n_samples)) {
 
 print('Samples:'); print(n_samples)
 print('Poisson time in hours:')
-print(sapply(1:length(n_samples), function(i) sum(unlist(Poisson_hc_64[[i]]$time))/60/60))
+print(sapply(1:length(n_samples), function(i) sum(unlist(Poisson_hc_64[[i]]$time))))
 print('NB time in hours:')
-print(sapply(1:length(n_samples), function(i) sum(unlist(NB_hc_64[[i]]$time))/60/60))
+print(sapply(1:length(n_samples), function(i) sum(unlist(NB_hc_64[[i]]$time))))
 
 ##### IAD #####
 

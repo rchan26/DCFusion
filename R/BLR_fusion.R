@@ -244,6 +244,7 @@ Q_IS_BLR <- function(particle_set,
                      local_bounds = TRUE,
                      seed = NULL,
                      n_cores = parallel::detectCores(),
+                     cl = NULL,
                      level = 1,
                      node = 1,
                      print_progress_iters = 1000) {
@@ -275,6 +276,8 @@ Q_IS_BLR <- function(particle_set,
     stop("Q_IS_BLR: inv_precondition_matrices must be a list of length m")
   } else if (!(diffusion_estimator %in% c('Poisson', 'NB'))) {
     stop("Q_IS_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
+  } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
+    stop("Q_IS_BLR: cl must be a \"cluster\" object or NULL")
   }
   if (cv_location == 'mode') {
     cv_location <- lapply(1:m, function(c) {
@@ -300,7 +303,12 @@ Q_IS_BLR <- function(particle_set,
   })
   N <- particle_set$N
   # ---------- creating parallel cluster
-  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+  if (is.null(cl)) {
+    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+    close_cluster <- TRUE
+  } else {
+    close_cluster <- FALSE
+  }
   parallel::clusterExport(cl, envir = environment(), 
                           varlist = c(ls(), "ea_phi_BLR_DL_matrix",
                                       "ea_phi_BLR_DL_bounds",
@@ -345,23 +353,24 @@ Q_IS_BLR <- function(particle_set,
                                      gamma_NB_n_points = gamma_NB_n_points,
                                      local_bounds = local_bounds,
                                      logarithm = TRUE),
-                 error = function(e) {ea_BLR_DL_PT(dim = dim,
-                                                   x0 = as.vector(split_x_samples[[core]][[i]][c,]),
-                                                   y = as.vector(y_samples[i,]),
-                                                   s = 0,
-                                                   t = time,
-                                                   data = data_split[[c]][counts],
-                                                   prior_means = prior_means,
-                                                   prior_variances = prior_variances,
-                                                   C = C,
-                                                   precondition_mat = precondition_matrices[[c]],
-                                                   transform_mats = transform_matrices[[c]],
-                                                   cv_location = cv_location[[c]],
-                                                   diffusion_estimator = diffusion_estimator,
-                                                   beta_NB = beta_NB,
-                                                   gamma_NB_n_points = gamma_NB_n_points,
-                                                   local_bounds = FALSE,
-                                                   logarithm = TRUE)})
+                 error = function(e) {
+                   ea_BLR_DL_PT(dim = dim,
+                                x0 = as.vector(split_x_samples[[core]][[i]][c,]),
+                                y = as.vector(y_samples[i,]),
+                                s = 0,
+                                t = time,
+                                data = data_split[[c]][counts],
+                                prior_means = prior_means,
+                                prior_variances = prior_variances,
+                                C = C,
+                                precondition_mat = precondition_matrices[[c]],
+                                transform_mats = transform_matrices[[c]],
+                                cv_location = cv_location[[c]],
+                                diffusion_estimator = diffusion_estimator,
+                                beta_NB = beta_NB,
+                                gamma_NB_n_points = gamma_NB_n_points,
+                                local_bounds = FALSE,
+                                logarithm = TRUE)})
       }))
       if (i%%print_progress_iters==0) {
         cat('Level:', level, '|| Node:', node, '|| Core:', core, '||', i, '/',
@@ -372,7 +381,9 @@ Q_IS_BLR <- function(particle_set,
         split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
-  parallel::stopCluster(cl)
+  if (close_cluster) {
+    parallel::stopCluster(cl)
+  }
   # unlist the proposed samples for y and their associated log Q weights
   y_samples <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
     Q_weighted_samples[[i]]$y_samples}))
@@ -440,6 +451,8 @@ Q_IS_BLR <- function(particle_set,
 #'                          binomial estimator (default is 2)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
+#' @param cl an object of class "cluster" for parallel computation in R. If none
+#'           is passed, then one is created and used within this function
 #' @param level indicates which level this is for the hierarchy (default 1)
 #' @param node indicates which node this is for the hierarchy (default 1)
 #' @param print_progress_iters number of iterations between each progress update
@@ -486,6 +499,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                     local_bounds = TRUE,
                                     seed = NULL,
                                     n_cores = parallel::detectCores(),
+                                    cl = NULL,
                                     level = 1,
                                     node = 1,
                                     print_progress_iters = 1000) {
@@ -525,6 +539,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_BLR: ESS_threshold must be between 0 and 1")
   } else if ((cv_location != 'mode') & (cv_location != 'hypercube_centre')) {
     stop("parallel_fusion_SMC_BLR: cv_location must be either \"mode\" or \"hypercube_centre\"")
+  } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
+    stop("parallel_fusion_SMC_BLR: cl must be a \"cluster\" object or NULL")
   }
   # set a seed if one is supplied
   if (!is.null(seed)) {
@@ -556,7 +572,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
                                    inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices),
-                                   n_cores = n_cores)
+                                   n_cores = n_cores,
+                                   cl = cl)
   # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)
   CESS <- c('rho' = particles$CESS['rho'])
@@ -592,6 +609,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                         local_bounds = local_bounds,
                         seed = seed,
                         n_cores = n_cores,
+                        cl = cl,
                         level = level,
                         node = node,
                         print_progress_iters = print_progress_iters)
@@ -803,6 +821,14 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
           length C, where precondition[[c]] is the preconditioning matrix for
           the c-th sub-posterior")
   }
+  # creating parallel cluster
+  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+  parallel::clusterExport(cl, envir = environment(),
+                          varlist = c("rho_IS_multivariate_",
+                                      "ea_phi_BLR_DL_matrix",
+                                      "ea_phi_BLR_DL_bounds",
+                                      "ea_BLR_DL_PT"))
+  parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_BLR.txt')
   for (k in ((L-1):1)) {
     n_nodes <- max(C/prod(m_schedule[L:k]), 1)
@@ -838,6 +864,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                               local_bounds = local_bounds,
                               seed = seed,
                               n_cores = n_cores,
+                              cl = cl,
                               level = k,
                               node = i,
                               print_progress_iters = print_progress_iters)
@@ -852,6 +879,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_matrices[[1]])
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$combined_data)
   }
+  parallel::stopCluster(cl)
   cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
   if (length(particles[[1]])==1) {
     particles[[1]] <- particles[[1]][[1]]

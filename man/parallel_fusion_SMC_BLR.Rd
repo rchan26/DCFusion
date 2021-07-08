@@ -24,6 +24,7 @@ parallel_fusion_SMC_BLR(
   local_bounds = TRUE,
   seed = NULL,
   n_cores = parallel::detectCores(),
+  cl = NULL,
   level = 1,
   node = 1,
   print_progress_iters = 1000

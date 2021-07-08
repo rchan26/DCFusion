@@ -10,7 +10,8 @@ rho_IS_univariate(
   m,
   time,
   precondition_values,
-  n_cores = parallel::detectCores()
+  n_cores = parallel::detectCores(),
+  cl = NULL
 )
 }
 \arguments{
@@ -29,6 +30,9 @@ initialise_particle_sets() function)}
 is the precondition value for sub-posterior c}
 
 \item{n_cores}{number of cores to use}
+
+\item{cl}{an object of class "cluster" for parallel computation in R. If none
+is passed, then one is created and used within this function}
 }
 \value{
 A importance weighted particle set
