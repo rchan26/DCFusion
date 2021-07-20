@@ -305,6 +305,7 @@ Q_IS_BLR <- function(particle_set,
   # ---------- creating parallel cluster
   if (is.null(cl)) {
     cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+    parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
     close_cluster <- TRUE
   } else {
     close_cluster <- FALSE
@@ -313,7 +314,6 @@ Q_IS_BLR <- function(particle_set,
                           varlist = c(ls(), "ea_phi_BLR_DL_matrix",
                                       "ea_phi_BLR_DL_bounds",
                                       "ea_BLR_DL_PT"))
-  parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }

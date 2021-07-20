@@ -87,6 +87,9 @@ binomial estimator (default is 2)}
 
 \item{n_cores}{number of cores to use}
 
+\item{cl}{an object of class "cluster" for parallel computation in R. If none
+is passed, then one is created and used within this function}
+
 \item{level}{indicates which level this is for the hierarchy (default 1)}
 
 \item{node}{indicates which node this is for the hierarchy (default 1)}
