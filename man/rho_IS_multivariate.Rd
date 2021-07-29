@@ -12,6 +12,7 @@ rho_IS_multivariate(
   time,
   inv_precondition_matrices,
   inverse_sum_inv_precondition_matrices,
+  resampling_method = "multi",
   n_cores = parallel::detectCores(),
   cl = NULL
 )
@@ -37,6 +38,11 @@ preconditioning matrices}
 precondition matrices (can be 
 calculated by passing the inverse 
 precondition matrices into inverse_sum_matrices())}
+
+\item{resampling_method}{method to be used in resampling, default is multinomial 
+resampling ('multi'). Other choices are stratified 
+resampling ('strat'), systematic resampling ('system'),
+residual resampling ('resid')}
 
 \item{n_cores}{number of cores to use}
 

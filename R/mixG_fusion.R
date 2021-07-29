@@ -1027,19 +1027,6 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
   if (!is.null(seed)) {
     set.seed(seed)
   }
-  # ---------- resample the particles if they do not have equal weights
-  # set a seed if one is supplied
-  # check if the resampled indicator if FALSE
-  # also check if there are enough samples
-  for (c in 1:length(particles_to_fuse)) {
-    if ((!particles_to_fuse[[c]]$resampled['Q']) | (particles_to_fuse[[c]]$N!=N)) {
-      particles_to_fuse[[c]] <- resample_particle_y_samples(N = N,
-                                                            particle_set = particles_to_fuse[[c]],
-                                                            multivariate = FALSE,
-                                                            resampling_method = resampling_method,
-                                                            seed = seed)
-    }
-  }
   # start time recording
   pcm <- proc.time()
   # ---------- first importance sampling step 
@@ -1048,6 +1035,7 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
                                  m = m,
                                  time = time,
                                  precondition_values = precondition_values,
+                                 resampling_method = resampling_method,
                                  n_cores = n_cores)
   # record ESS and CESS after rho step 
   ESS <- c('rho' = particles$ESS)

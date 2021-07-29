@@ -351,6 +351,10 @@ resample_particle_x_samples <- function(N = particle_set$N,
 #' @param time time T for fusion algorithm
 #' @param precondition_values vector of length m, where precondition_values[[c]]
 #'                            is the precondition value for sub-posterior c
+#' @param resampling_method method to be used in resampling, default is multinomial 
+#'                          resampling ('multi'). Other choices are stratified 
+#'                          resampling ('strat'), systematic resampling ('system'),
+#'                          residual resampling ('resid')
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
 #'           is passed, then one is created and used within this function
@@ -374,18 +378,27 @@ rho_IS_univariate <- function(particles_to_fuse,
                               m,
                               time,
                               precondition_values,
+                              resampling_method = 'multi',
                               n_cores = parallel::detectCores(),
                               cl = NULL) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("rho_IS_univariate: particles_to_fuse must be a list of length m")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
     stop("rho_IS_univariate: particles in particles_to_fuse must be \"particle\" objects")
-  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) sub_posterior$N==N))) {
-    stop("rho_IS_univariate: particles in particles_to_fuse must have the same number of samples")
   } else if (!is.vector(precondition_values) | length(precondition_values)!=m) {
     stop("rho_IS_univariate: precondition_values must be a vector of length m")
   } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
     stop("rho_IS_univariate: cl must be a \"cluster\" object or NULL")
+  }
+  # ---------- resample any particle sets that do not have N samples
+  for (c in 1:length(particles_to_fuse)) {
+    if (particles_to_fuse[[c]]$N!=N) {
+      particles_to_fuse[[c]] <- resample_particle_y_samples(N = N,
+                                                            particle_set = particles_to_fuse[[c]],
+                                                            multivariate = FALSE,
+                                                            resampling_method = resampling_method,
+                                                            seed = seed)
+    }
   }
   # ---------- creating parallel cluster
   if (is.null(cl)) {
@@ -398,6 +411,8 @@ rho_IS_univariate <- function(particles_to_fuse,
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
+  # obtain the sum of the log weights for the partially composed proposals
+  combined_weights <- rowSums(data.frame(lapply(1:length(particles_to_fuse), function(c) particles_to_fuse[[c]]$log_weights)))
   # split the y_samples that we want to combine
   max_samples_per_core <- ceiling(N/n_cores)
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
@@ -419,11 +434,9 @@ rho_IS_univariate <- function(particles_to_fuse,
   ps$y_samples <- rep(NA, N)
   ps$x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
   ps$x_means <-  unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
-  lw <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
+  lw <- combined_weights + unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
   norm_weights <- particle_ESS(log_weights = lw)
   ps$log_weights <- norm_weights$log_weights
-  ps$lw$rho <- lw
-  ps$normalised_lw$rho <- norm_weights$log_weights
   ps$normalised_weights <- norm_weights$normalised_weights
   ps$ESS <- norm_weights$ESS
   ps$CESS <- c('rho' = norm_weights$ESS, 'Q' = NA)
@@ -451,6 +464,10 @@ rho_IS_univariate <- function(particles_to_fuse,
 #'                                              precondition matrices (can be 
 #'                                              calculated by passing the inverse 
 #'                                              precondition matrices into inverse_sum_matrices())
+#' @param resampling_method method to be used in resampling, default is multinomial 
+#'                          resampling ('multi'). Other choices are stratified 
+#'                          resampling ('strat'), systematic resampling ('system'),
+#'                          residual resampling ('resid')
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
 #'           is passed, then one is created and used within this function
@@ -480,18 +497,27 @@ rho_IS_multivariate <- function(particles_to_fuse,
                                 time,
                                 inv_precondition_matrices,
                                 inverse_sum_inv_precondition_matrices,
+                                resampling_method = 'multi',
                                 n_cores = parallel::detectCores(),
                                 cl = NULL) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("rho_IS_multivariate: particles_to_fuse must be a list of length m")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
     stop("rho_IS_multivariate: particles in particles_to_fuse must be \"particle\" objects")
-  } else if (!all(sapply(particles_to_fuse, function(sub_posterior) sub_posterior$N==N))) {
-    stop("rho_IS_multivariate: particles in particles_to_fuse must have the same number of samples")
   } else if (!is.list(inv_precondition_matrices) | length(inv_precondition_matrices)!=m) {
     stop("rho_IS_multivariate: inv_precondition_matrices must be a list of length m")
   } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
     stop("rho_IS_multivariate: cl must be a \"cluster\" object or NULL")
+  }
+  # ---------- resample any particle sets that do not have N samples
+  for (c in 1:length(particles_to_fuse)) {
+    if (particles_to_fuse[[c]]$N!=N) {
+      particles_to_fuse[[c]] <- resample_particle_y_samples(N = N,
+                                                            particle_set = particles_to_fuse[[c]],
+                                                            multivariate = TRUE,
+                                                            resampling_method = resampling_method,
+                                                            seed = seed)
+    }
   }
   # ---------- creating parallel cluster
   if (is.null(cl)) {
@@ -504,6 +530,8 @@ rho_IS_multivariate <- function(particles_to_fuse,
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
+  # obtain the sum of the log weights for the partially composed proposals
+  combined_weights <- rowSums(data.frame(lapply(1:length(particles_to_fuse), function(c) particles_to_fuse[[c]]$log_weights)))
   # split the y_samples that we want to combine
   max_samples_per_core <- ceiling(N/n_cores)
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
@@ -527,11 +555,9 @@ rho_IS_multivariate <- function(particles_to_fuse,
   ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
   ps$x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
   ps$x_means <-  do.call(rbind, lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
-  lw <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
+  lw <- combined_weights + unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
   norm_weights <- particle_ESS(log_weights = lw)
   ps$log_weights <- norm_weights$log_weights
-  ps$lw$rho <- lw
-  ps$normalised_lw$rho <- norm_weights$log_weights
   ps$normalised_weights <- norm_weights$normalised_weights
   ps$ESS <- norm_weights$ESS
   ps$CESS <- c('rho' = norm_weights$ESS, 'Q' = NA)

@@ -392,12 +392,9 @@ Q_IS_BLR <- function(particle_set,
   # ---------- update particle set
   # update the weights and return updated particle set
   particle_set$y_samples <- y_samples
-  updated_weights <- particle_set$log_weights + log_Q_weights
   # normalise weight
-  norm_weights <- particle_ESS(log_weights = updated_weights)
+  norm_weights <- particle_ESS(log_weights = particle_set$log_weights + log_Q_weights)
   particle_set$log_weights <- norm_weights$log_weights
-  particle_set$lw$Q <- log_Q_weights
-  particle_set$normalised_lw$Q <- particle_ESS(log_weights = log_Q_weights)$log_weights
   particle_set$normalised_weights <- norm_weights$normalised_weights
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
@@ -546,19 +543,6 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
   if (!is.null(seed)) {
     set.seed(seed)
   }
-  # ---------- resample the particles if they do not have equal weights
-  # set a seed if one is supplied
-  # check if the resampled indicator if FALSE
-  # also check if there are enough samples
-  for (c in 1:length(particles_to_fuse)) {
-    if ((!particles_to_fuse[[c]]$resampled['Q']) | (particles_to_fuse[[c]]$N!=N)) {
-      particles_to_fuse[[c]] <- resample_particle_y_samples(N = N,
-                                                            particle_set = particles_to_fuse[[c]],
-                                                            multivariate = TRUE,
-                                                            resampling_method = resampling_method,
-                                                            seed = seed)
-    }
-  }
   # start time recording
   pcm <- proc.time()
   # ---------- first importance sampling step
@@ -572,6 +556,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
                                    inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices),
+                                   resampling_method = resampling_method,
                                    n_cores = n_cores,
                                    cl = cl)
   # record ESS and CESS after rho step

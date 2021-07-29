@@ -10,6 +10,7 @@ rho_IS_univariate(
   m,
   time,
   precondition_values,
+  resampling_method = "multi",
   n_cores = parallel::detectCores(),
   cl = NULL
 )
@@ -28,6 +29,11 @@ initialise_particle_sets() function)}
 
 \item{precondition_values}{vector of length m, where precondition_values[[c]]
 is the precondition value for sub-posterior c}
+
+\item{resampling_method}{method to be used in resampling, default is multinomial 
+resampling ('multi'). Other choices are stratified 
+resampling ('strat'), systematic resampling ('system'),
+residual resampling ('resid')}
 
 \item{n_cores}{number of cores to use}
 
