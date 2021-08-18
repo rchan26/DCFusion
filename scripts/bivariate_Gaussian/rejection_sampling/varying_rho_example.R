@@ -124,8 +124,12 @@ lines(correlations, log(sapply(1:9, function(i) fusion_precondition[[i]]$rhoQ)),
 legend(x = 0, y = -4.5, legend = c('standard', 'preconditioned'), col = c('black', 'black'), lty = c(1,3), lwd = c(3,3), bty = 'n')
 
 plot(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$time)),
-     xlab = 'Correlation', ylab = 'Time Elapsed in log(seconds)', col = 'black', ylim = c(1, 6), lwd = 3)
+     xlab = '', ylab = '', col = 'black', ylim = c(1, 6), lwd = 3)
+mtext('Correlation', 1, 2.75, font = 2, cex = 1.5)
+mtext('Time Elapsed in log(seconds)', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
+axis(1, at=seq(0, 0.8, 0.2), labels=c("0.0", seq(0.2, 0.8, 0.2)), font = 2, cex = 1.5)
+axis(2, at=1:6, labels=1:6, font = 2, cex = 1.5)
 lines(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$time)), col = 'black', lwd = 3)
 points(correlations, log(sapply(1:9, function(i) fusion_precondition[[i]]$time)), col = 'black', lty = 3, lwd = 3)
 lines(correlations, log(sapply(1:9, function(i) fusion_precondition[[i]]$time)), col = 'black', lty = 3, lwd = 3)

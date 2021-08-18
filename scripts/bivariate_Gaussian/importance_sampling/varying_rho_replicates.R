@@ -12,7 +12,7 @@ mean <- rep(0, 2)
 sd <- rep(1, 2)
 correlations <- c(seq(0, 0.9, 0.1), 0.95)
 fusion_time <- 1
-number_of_replicates <- 2
+number_of_replicates <- 100
 smc_fusion_standard <- list()
 smc_fusion_precondition <- list()
 for (i in 1:length(correlations)) {
@@ -79,7 +79,7 @@ lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precon
 legend('topleft', legend = c('standard', 'preconditioned'), col = c('blue', 'red'), lty = c(1,1))
 
 plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS['Q']),
-     xlab = 'correlation', ylab = 'ESS', ylim = c(0, 10000),
+     xlab = 'correlation', ylab = 'ESS', ylim = c(0, 5000),
      col = 'black', lwd = 3)
 lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS['Q']), 
       col = 'black', lwd = 3)
@@ -91,7 +91,12 @@ legend(x = 0, y = 10000, legend = c('standard', 'preconditioned'), col = c('blac
        lty = c(1,3), lwd = c(3,3), bty = 'n')
 
 plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS_per_sec['Q']), 
-     xlab = 'correlation', ylab = 'ESS/sec', ylim = c(0, 1000), col = 'black', lwd = 3)
+     xlab = '', ylab = '', xaxt = 'n', ylim = c(0, 1000), col = 'black', lwd = 3)
+mtext('Correlation', 1, 2.75, font = 2, cex = 1.5)
+mtext('ESS / second', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1000, 200), labels=seq(0, 1000, 200), font = 2, cex = 1.5)
 lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS_per_sec['Q']),
       col = 'black', lwd = 3)
 points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS_per_sec['Q']),
@@ -99,6 +104,23 @@ points(correlations, sapply(1:length(correlations), function(i) smc_fusion_preco
 lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS_per_sec['Q']),
       col = 'black', lty = 3, lwd = 3)
 legend(x = 0, y = 1000, legend = c('standard', 'preconditioned'), col = c('black', 'black'),
+       lty = c(1,3), lwd = c(3,3), bty = 'n')
+
+plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS['Q']/10000),
+     xlab = '', ylab = '', ylim = c(0, 0.5), xaxt = 'n',
+     col = 'black', lwd = 3)
+mtext('Correlation', 1, 2.75, font = 2, cex = 1.5)
+mtext('ESS / N', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(2, at=seq(0, 0.5, 0.1), labels=c("0.0", c(seq(0.1, 0.5, 0.1))), font = 2, cex = 1.5)
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS['Q']/10000), 
+      col = 'black', lwd = 3)
+points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS['Q']/10000),
+       col = 'black', lwd = 3)
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS['Q']/10000),
+      col = 'black', lty = 3, lwd = 3)
+legend(x = 0, y = 0.5, legend = c('standard', 'preconditioned'), col = c('black', 'black'),
        lty = c(1,3), lwd = c(3,3), bty = 'n')
 
 # ---------- boxplot ESS for replicates
@@ -112,6 +134,7 @@ theme_update(text = element_text(size=12),
 )
 
 par(mai = c(1.02, 1, 0.82, 0.42))
+Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
 
 # create dataframe where each column is the ESS of the replicate simulation for each correlation
 ESS <- data.frame()
@@ -120,7 +143,7 @@ for (i in 1:length(correlations)) {
                data.frame('ESS' = c(sapply(1:rep, function(rep) smc_fusion_standard[[i]][[rep]]$ESS['Q']),
                                     sapply(1:rep, function(rep) smc_fusion_precondition[[i]][[rep]]$ESS['Q'])),
                           'Correlation' = correlations[i], 
-                          'Standard' = as.factor(c(rep('Standard', 50), rep('Precondition',  50)))))
+                          'Standard' = as.factor(c(rep('MCF', number_of_replicates), rep('GMCF',  number_of_replicates)))))
 }
 rownames(ESS) <- c()
 ESS$Correlation <- as.factor(ESS$Correlation)
@@ -139,7 +162,7 @@ for (i in 1:length(correlations)) {
                           data.frame('ESS_per_sec' = c(sapply(1:rep, function(rep) smc_fusion_standard[[i]][[rep]]$ESS_per_sec['Q']),
                                                        sapply(1:rep, function(rep) smc_fusion_precondition[[i]][[rep]]$ESS_per_sec['Q'])),
                                      'Correlation' = correlations[i], 
-                                     'Standard' = as.factor(c(rep('Standard', 50), rep('Precondition',  50)))))
+                                     'Standard' = as.factor(c(rep('MCF', number_of_replicates), rep('GMCF',  number_of_replicates)))))
 }
 rownames(ESS_per_second) <- c()
 ESS_per_second$Correlation <- as.factor(ESS_per_second$Correlation)
@@ -149,6 +172,32 @@ ESS_per_second$Standard <- as.factor(ESS_per_second$Standard)
 ggplot(data = ESS_per_second, aes(x = Correlation, y = ESS_per_sec, fill = Standard)) +
   geom_boxplot(outlier.colour = 'white', position = position_dodge(0.9)) + 
   ylab('ESS / sec') +
-  theme(legend.title = element_blank()) +
+  theme(legend.title = element_blank(), 
+        legend.text = element_text(face = 'bold', size = 12),
+        axis.text = element_text(face = 'bold', size = 12),
+        axis.title = element_text(face = 'bold', size = 14)) +
+  scale_fill_manual(values = Okabe_Ito[c(4,5)])
+
+# create dataframe where each column is the ESS/sec of the replication simulation for each correlation
+ESS_over_N <- data.frame()
+for (i in 1:length(correlations)) {
+  ESS_over_N <- rbind(ESS_over_N, 
+                      data.frame('ESS_over_N' = c(sapply(1:rep, function(rep) smc_fusion_standard[[i]][[rep]]$ESS['Q']/10000),
+                                                  sapply(1:rep, function(rep) smc_fusion_precondition[[i]][[rep]]$ESS['Q']/10000)),
+                                 'Correlation' = correlations[i], 
+                                 'Standard' = as.factor(c(rep('MCF', number_of_replicates), rep('GMCF',  number_of_replicates)))))
+}
+rownames(ESS_over_N) <- c()
+ESS_over_N$Correlation <- as.factor(ESS_over_N$Correlation)
+ESS_over_N$Standard <- as.factor(ESS_over_N$Standard)
+
+# plot boxplots for ESS/sec for ESS comparison
+ggplot(data = ESS_over_N, aes(x = Correlation, y = ESS_over_N, fill = Standard)) +
+  geom_boxplot(outlier.colour = 'white', position = position_dodge(0.9)) + 
+  ylab('ESS / N') +
+  theme(legend.title = element_blank(), 
+        legend.text = element_text(face = 'bold', size = 12),
+        axis.text = element_text(face = 'bold', size = 12),
+        axis.title = element_text(face = 'bold', size = 14)) +
   scale_fill_manual(values = Okabe_Ito[c(4,5)])
 

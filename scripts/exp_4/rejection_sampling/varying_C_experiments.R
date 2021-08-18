@@ -137,28 +137,66 @@ lines(x = 2:16, y = sapply(1:15, function(i) sum(prog_results[[i]]$time)), col =
 
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
 plot(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), ylim = c(-1, 12),
-     ylab = 'Time Elapsed in log(seconds)', xlab = 'Number of Subposteriors (C)',
+     ylab = '', xlab = '', font.lab = 2,
      col = Okabe_Ito[8], pch = 1, lwd = 3)
+axis(1, at = seq(2, 16, 2), labels = seq(2, 16, 2), font = 2, cex = 1.5)
+axis(1, at=0:16, labels=rep("", 17), lwd.ticks = 0.5)
+mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 12, 2), labels = seq(0, 12, 2), font = 2, cex = 1.5)
+axis(2, at=0:12, labels=rep("", 13), lwd.ticks = 0.5)
+mtext('Time Elapsed in log(seconds)', 2, 2.75, font = 2, cex = 1.5)
 lines(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), 
       col = Okabe_Ito[8], lwd = 3)
-points(x = c(2, 4, 8, 16), y = log(c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
-                                     sum(hier_results[[7]]$time), sum(hier_results[[15]]$time))), 
-       col = Okabe_Ito[5], pch = 0, lwd = 3)
+points(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
+       col = Okabe_Ito[4], pch = 2, lwd = 3)
 lines(x = c(2, 4, 8, 16), y = log(c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
                                     sum(hier_results[[7]]$time), sum(hier_results[[15]]$time))), 
       col = Okabe_Ito[5], lty = 2, lwd = 3)
-points(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
-       col = Okabe_Ito[4], pch = 2, lwd = 3)
 lines(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
       col = Okabe_Ito[4], lty = 3, lwd = 3)
+points(x = c(2, 4, 8, 16), y = log(c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
+                                     sum(hier_results[[7]]$time), sum(hier_results[[15]]$time))), 
+       col = Okabe_Ito[5], pch = 0, lwd = 3)
 legend(x = 2, y = 12, 
        legend = c('fork-and-join', 'balanced', 'progressive'),
        lty = c(1, 2, 3), 
        lwd = c(3, 3, 3),
        pch = c(1, 0, 2), 
        col = Okabe_Ito[c(8, 5, 4)],
-       cex = 1.1,
+       cex = 1.25,
+       text.font = 2,
        bty = 'n')
+
+####################  black
+
+plot(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), ylim = c(-1, 12),
+     ylab = '', xlab = '', font.lab = 2, pch = 1, lwd = 3)
+axis(1, at = seq(2, 16, 2), labels = seq(2, 16, 2), font = 2, cex = 1.5)
+axis(1, at=0:16, labels=rep("", 17), lwd.ticks = 0.5)
+mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 12, 2), labels = seq(0, 12, 2), font = 2, cex = 1.5)
+axis(2, at=0:12, labels=rep("", 13), lwd.ticks = 0.5)
+mtext('Time Elapsed in log(seconds)', 2, 2.75, font = 2, cex = 1.5)
+lines(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), lwd = 3)
+points(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
+      pch = 2, lwd = 3)
+lines(x = c(2, 4, 8, 16), y = log(c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
+                                    sum(hier_results[[7]]$time), sum(hier_results[[15]]$time))), 
+      lty = 3, lwd = 3)
+lines(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
+      lty = 2, lwd = 3)
+points(x = c(2, 4, 8, 16), y = log(c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
+                                     sum(hier_results[[7]]$time), sum(hier_results[[15]]$time))), 
+       pch = 0, lwd = 3)
+legend(x = 2, y = 12, 
+       legend = c('fork-and-join', 'balanced', 'progressive'),
+       lty = c(1, 3, 2), 
+       lwd = c(3, 3, 3),
+       pch = c(1, 0, 2), 
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
 
 ######################################## rho acceptance
 

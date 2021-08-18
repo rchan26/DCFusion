@@ -67,12 +67,16 @@ axis(1, at=0:8, labels=0:8)
 #################### log
 
 plot(x = different_modes, y = sapply(1:length(different_modes), function(i) log(fusion_samples_standard[[i]]$time)), 
-     ylim = c(-1,12), ylab = 'Time Elapsed in log(seconds)', xlab = expression(paste('Value of ', mu)), 
+     ylim = c(-1,12), ylab = '', xlab = '', 
      col = 'black', lwd = 2, xaxt = "n")
+mtext('Difference between sub-posterior means', 1, 2.75, font = 2, cex = 1.5)
+mtext('Time Elapsed in log(seconds)', 2, 2.75, font = 2, cex = 1.5)
 lines(x = different_modes, y = sapply(1:length(different_modes), function(i) log(fusion_samples_standard[[i]]$time)),
       col = 'black', lwd = 2)
-axis(1, at=0:8, labels=0:8)
+axis(1, at=0:8, labels=0:8, font = 2, cex = 1.5)
 axis(1, at=c(0:7)+0.5, labels=rep("", 8), lwd.ticks = 0.5)
+axis(2, at=seq(0, 12, 2), labels=seq(0, 12, 2), font = 2, cex = 1.5)
+axis(2, at=0:12, labels=rep("", 13), lwd.ticks = 0.5)
 
 ######################################## rho acceptance
 

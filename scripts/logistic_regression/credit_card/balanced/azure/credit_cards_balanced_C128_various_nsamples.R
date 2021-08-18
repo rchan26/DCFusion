@@ -69,35 +69,47 @@ for (i in 10:length(n_samples)) {
   save.image('credit_cards_balanced_C128_various_nsamples_v2.RData')
 }
 
-# ##### Time taken (in hours) #####
-# 
-# print('Samples:'); print(n_samples)
-# print('Poisson time in hours:')
-# print(sapply(1:length(n_samples), function(i) sum(unlist(Poisson_hc_128[[i]]$time))/60/60))
-# print('NB time in hours:')
-# print(sapply(1:length(n_samples), function(i) sum(unlist(NB_hc_128[[i]]$time))/60/60))
-# 
-# ##### IAD #####
-# 
-# print('Poisson Fusion (h.c.)')
-# print(sapply(1:length(n_samples), function(i) {
-#   integrated_abs_distance(full_posterior, Poisson_hc_128[[i]]$particles$y_samples)}))
-# print('NB Fusion (h.c.)')
-# print(sapply(1:length(n_samples), function(i) {
-#   integrated_abs_distance(full_posterior, NB_hc_128[[i]]$particles$y_samples)}))
-# 
-# compare_samples_bivariate(posteriors = list(full_posterior,
-#                                             Poisson_hc_128[[14]]$particles$y_samples,
-#                                             NB_hc_128[[14]]$particles$y_samples),
-#                           colours = c('black', 'darkgreen', 'blue'),
-#                           common_limit = c(-4, 4),
-#                           title = paste('Credit Cards - C=32 || SMC Hierarchical [NB] || N = 100000'))
-# 
-# save.image('credit_cards_balanced_C128_various_nsamples.RData')
-# 
-# integrated_abs_distance(full_posterior, consensus_mat_128$samples)
-# integrated_abs_distance(full_posterior, consensus_sca_128$samples)
-# integrated_abs_distance(full_posterior, neiswanger_128_true$samples)
-# integrated_abs_distance(full_posterior, neiswanger_128_false$samples)
-# integrated_abs_distance(full_posterior, weierstrass_128_importance$samples)
-# integrated_abs_distance(full_posterior, weierstrass_128_rejection$samples)
+##### Time taken (in hours) #####
+
+print('Samples:'); print(n_samples)
+print('Poisson time in hours:')
+print(sapply(1:length(n_samples), function(i) sum(unlist(Poisson_hc_128[[i]]$time))/60/60))
+print('NB time in hours:')
+print(sapply(1:length(n_samples), function(i) sum(unlist(NB_hc_128[[i]]$time))/60/60))
+
+##### IAD #####
+
+print('Poisson Fusion (h.c.)')
+print(sapply(1:length(n_samples), function(i) {
+  integrated_abs_distance(full_posterior, Poisson_hc_128[[i]]$particles$y_samples)}))
+print('NB Fusion (h.c.)')
+print(sapply(1:length(n_samples), function(i) {
+  integrated_abs_distance(full_posterior, NB_hc_128[[i]]$particles$y_samples)}))
+
+plot(x = 1:length(n_samples), y = sapply(1:length(n_samples), function(i) {
+  integrated_abs_distance(full_posterior, Poisson_hc_128[[i]]$particles$y_samples)}),
+  xaxt = 'n', xlab = 'Number of Samples', ylab = 'IAD')
+axis(1, at = 1:length(n_samples), labels = n_samples, )
+lines(x = 1:length(n_samples), y = sapply(1:length(n_samples), function(i) {
+  integrated_abs_distance(full_posterior, Poisson_hc_128[[i]]$particles$y_samples)}))
+points(x = 1:length(n_samples), y = sapply(1:length(n_samples), function(i) {
+  integrated_abs_distance(full_posterior, NB_hc_128[[i]]$particles$y_samples)}), pch = 4)
+lines(x = 1:length(n_samples), y = sapply(1:length(n_samples), function(i) {
+  integrated_abs_distance(full_posterior, NB_hc_128[[i]]$particles$y_samples)}), lty = 2)
+
+
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            Poisson_hc_128[[14]]$particles$y_samples,
+                                            NB_hc_128[[14]]$particles$y_samples),
+                          colours = c('black', 'darkgreen', 'blue'),
+                          common_limit = c(-4, 4),
+                          title = paste('Credit Cards - C=32 || SMC Hierarchical [NB] || N = 100000'))
+
+save.image('credit_cards_balanced_C128_various_nsamples.RData')
+
+integrated_abs_distance(full_posterior, consensus_mat_128$samples)
+integrated_abs_distance(full_posterior, consensus_sca_128$samples)
+integrated_abs_distance(full_posterior, neiswanger_128_true$samples)
+integrated_abs_distance(full_posterior, neiswanger_128_false$samples)
+integrated_abs_distance(full_posterior, weierstrass_128_importance$samples)
+integrated_abs_distance(full_posterior, weierstrass_128_rejection$samples)

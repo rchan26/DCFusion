@@ -95,7 +95,6 @@ plot_fusion_results <- function(plot_rows,
   } else if (length(bw)!=ncol(full_post)) {
     stop('plot_fusion_results: bw must be a vector of length ncol(full_post)')
   }
-  
   if (dimensions) {
     # first plot each of the dimensions 
     par(mfrow=c(1, 2))
@@ -106,7 +105,6 @@ plot_fusion_results <- function(plot_rows,
       abline(v=mean(full_post[,i]), lty = 4)
     }
   }
-  
   par(mfrow=c(plot_rows, plot_columns))
   for (i in 1:ncol(full_post)) {
     if (is.null(ylimit)) {
@@ -120,7 +118,6 @@ plot_fusion_results <- function(plot_rows,
       lines(density(fusion_post[,i], bw = bw[i]), col = 'red', lty = 2)
     }
   }
-  
   # reset plots
   tryCatch(par(original_par), warning = function(w) {})
 }
@@ -135,7 +132,6 @@ plot_fusion_matrix <- function(full_post,
   if (ncol(full_post)!=ncol(fusion_post)) {
     stop('plot_fusion_matrix: full_post and fusion_post must be matrices of same dimension')
   }
-  
   # create dimensions of plot
   dimensions <- ncol(full_post)
   # if title is provided, we need to have more space on the top to accommodate
@@ -148,13 +144,11 @@ plot_fusion_matrix <- function(full_post,
         mai = c(0.25, 0.25, 0.25, 0.25),
         oma = c(0.75, 1, 0.75, 1))
   }
-  
   if (is.null(bw)) {
     bw <- rep("nrd0", dimensions)
   } else if (length(bw)!=dimensions) {
     stop('plot_fusion_matrix: bw must be a vector of length ncol(full_post)')
   }
-  
   for (i in 1:dimensions) {
     for (j in 1:dimensions) {
       # plot the univariate samples
@@ -181,10 +175,8 @@ plot_fusion_matrix <- function(full_post,
       }
     }
   }
-  
   # plot title if provided
   if (!is.null(title)) mtext(title, outer = TRUE, cex = 1.5)
-  
   # reset plots
   tryCatch(par(original_par), warning = function(w) {})
 }
@@ -206,7 +198,6 @@ compare_samples_univariate <- function(plot_rows,
   } else if (length(bw)!=ncol(posteriors[[1]])) {
     stop('compare_samples_univariate: bw must be a vector of length ncol(posteriors[[1]])')
   }
-  
   par(mfrow=c(plot_rows, plot_columns))
   for (i in 1:ncol(posteriors[[1]])) {
     if (is.null(ylimit)) {
@@ -225,7 +216,6 @@ compare_samples_univariate <- function(plot_rows,
       }
     }
   }
-  
   # reset plots
   tryCatch(par(original_par), warning = function(w) {})
 }
@@ -252,13 +242,11 @@ compare_samples_bivariate <- function(posteriors,
         mai = c(0.25, 0.25, 0.25, 0.25),
         oma = c(0.75, 1, 0.75, 1))
   }
-  
   if (is.null(bw)) {
     bw <- rep("nrd0", dimensions)
   } else if (length(bw)!=dimensions) {
     stop('compare_samples_bivariate: bw must be a vector of length ncol(full_post)')
   }
-  
   for (i in 1:dimensions) {
     for (j in 1:dimensions) {
       # plot the univariate samples
@@ -291,51 +279,40 @@ compare_samples_bivariate <- function(posteriors,
       }
     }
   }
-  
   # plot title if provided
   if (!is.null(title)) mtext(title, outer = TRUE, cex = 1.5)
-  
   # reset plots
   tryCatch(par(original_par), warning = function(w) {})
 }
 
 #' @export
 integrated_abs_distance <- function(full_post, fusion_post, bw = NULL) {
+  if (is.vector(full_post) & is.vector(fusion_post)) {
+    full_post <- matrix(full_post)
+    fusion_post <- matrix(fusion_post)
+  }
   if (ncol(full_post)!=ncol(fusion_post)) {
     stop('integrated_abs_distance: full_post and fusion_post must be matrices of same dimension')
   } 
-  
   dimensions <- ncol(full_post)
   if (is.null(bw)) {
     bw <- rep("nrd0", dimensions)
   } else if (length(bw)!=dimensions) {
     stop('integrated_abs_distance: bw must be a vector of length ncol(full_post)')
   }
-  
-  abs_dist <- rep(0, dimensions)
   int_abs_dist <- rep(0, dimensions)
   bandwidth_chosen <- rep(0, dimensions)
   for (i in 1:dimensions) {
     min_value <- min(c(full_post[,i], fusion_post[,i]))
     max_value <- max(c(full_post[,i], fusion_post[,i]))
     # calculate kde for ith dimension in posterior samnples
-    baseline_kde <- density(full_post[,i], 
-                            bw = bw[i], 
-                            from = min_value, 
-                            to = max_value,
-                            n = 10000)
+    baseline_kde <- density(full_post[,i], bw = bw[i], from = min_value, to = max_value, n = 10000)
     bandwidth_chosen[i] <- baseline_kde$bw
     # calculate kde for ith dimension in fusion samples
-    fusion_kde <- density(fusion_post[,i], 
-                          bw = bandwidth_chosen[i],
-                          from = min_value, 
-                          to = max_value,
-                          n = 10000)
-    
+    fusion_kde <- density(fusion_post[,i], bw = bandwidth_chosen[i], from = min_value, to = max_value, n = 10000)
     if (!identical(baseline_kde$x, fusion_kde$x)) {
       stop('integrated_abs_distance: the grid for x values are not the same')
     }
-    
     # obtain f(x) value from kdes
     baseline_y <- baseline_kde$y
     fusion_y <- fusion_kde$y
@@ -344,7 +321,52 @@ integrated_abs_distance <- function(full_post, fusion_post, bw = NULL) {
     # calculating the total variation
     int_abs_dist[i] <- sfsmisc:::integrate.xy(x = baseline_kde$x, fx = diff)
   }
-  
-  print('bandwidths chosen:'); print(bandwidth_chosen)
+  print(paste('bandwidths chosen:', bandwidth_chosen))
   return(sum(int_abs_dist)/(2*dimensions))
 }
+
+#' @export
+integrated_abs_distance_exp_4 <- function(fusion_post, mean = 0, beta = 1, bw = NULL) {
+  if (!is.vector(fusion_post) & (length(fusion_post)>= 2)) {
+    stop("integrated_abs_distance_exp_4: fusion_post must be a vector with length greater than or equal to 2")
+  }
+  if (is.null(bw)) {
+    bw <- "nrd0"
+  }
+  # calculate kde for posterior samnples
+  fusion_kde <- density(fusion_post, bw = bw, n = 10000)
+  bandwidth_chosen <- fusion_kde$bw
+  # obtain f(x) value from kde and compute the target density at the same values
+  fusion_y <- fusion_kde$y
+  baseline_y <- exp_4_density(x = fusion_kde$x, mean = mean, beta = beta)
+  # calculate differences between baseline_y and fusion_y
+  diff <- abs(baseline_y - fusion_y)
+  # calculating the total variation
+  int_abs_dist <- sfsmisc:::integrate.xy(x = fusion_kde$x, fx = diff)
+  print(paste('bandwidths chosen:', bandwidth_chosen))
+  return(0.5*int_abs_dist)
+}
+
+#' @export
+integrated_abs_distance_uniGaussian <- function(fusion_post, mean, sd, beta, bw = NULL) {
+  if (!is.vector(fusion_post) & (length(fusion_post)>= 2)) {
+    stop("integrated_abs_distance_uniGaussian: fusion_post must be a vector with length greater than or equal to 2")
+  }
+  if (is.null(bw)) {
+    bw <- "nrd0"
+  }
+  # calculate kde for posterior samnples
+  fusion_kde <- density(fusion_post, bw = bw, n = 10000)
+  bandwidth_chosen <- fusion_kde$bw
+  # obtain f(x) value from kde and compute the target density at the same values
+  fusion_y <- fusion_kde$y
+  baseline_y <- dnorm_tempered(x = fusion_kde$x, mean = mean, sd = sd, beta = beta)
+  # calculate differences between baseline_y and fusion_y
+  diff <- abs(baseline_y - fusion_y)
+  # calculating the total variation
+  int_abs_dist <- sfsmisc:::integrate.xy(x = fusion_kde$x, fx = diff)
+  print(paste('bandwidths chosen:', bandwidth_chosen))
+  return(0.5*int_abs_dist)
+}
+
+

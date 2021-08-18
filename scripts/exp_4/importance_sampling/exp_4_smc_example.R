@@ -26,7 +26,7 @@ for (samples in input_samples) {
 
 ########################################
 
-fork_and_join_standard_Poisson <- hierarchical_fusion_SMC_exp_4(N_schedule = 100000, 
+fork_and_join_standard_Poisson <- hierarchical_fusion_SMC_exp_4(N_schedule = 100000,
                                                                 m_schedule = 8, 
                                                                 time_schedule = 1,
                                                                 base_samples = input_samples, 
