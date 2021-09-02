@@ -209,7 +209,7 @@ ea_uniGaussian_DL <- function(N,
 #' @param N number of samples
 #' @param m number of sub-posteriors to combine
 #' @param time time T for fusion algorithm
-#' @param samples_to_fuse list of length m, where samples_to_fuse[c] containg 
+#' @param samples_to_fuse list of length m, where samples_to_fuse[c] contains 
 #'                        the samples for the c-th sub-posterior
 #' @param means vector of length m, where means[c] is the mean for c-th 
 #'              sub-posterior
@@ -291,7 +291,7 @@ fusion_uniGaussian <- function(N,
 #' @param N number of samples
 #' @param m number of sub-posteriors to combine
 #' @param time time T for fusion algorithm
-#' @param samples_to_fuse list of length m, where samples_to_fuse[c] containg 
+#' @param samples_to_fuse list of length m, where samples_to_fuse[c] contains 
 #'                        the samples for the c-th sub-posterior
 #' @param means vector of length m, where means[c] is the mean for c-th 
 #'              sub-posterior
@@ -419,13 +419,16 @@ parallel_fusion_uniGaussian <- function(N,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param mean mean value
 #' @param sd standard deviation value
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are 
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -501,10 +504,21 @@ hierarchical_fusion_uniGaussian <- function(N_schedule,
   overall_rhoQ <- rep(0, L-1)
   overall_time <- rep(0, L-1)
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[L]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[L]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("hierarchical_fusion_uniGaussian: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_uniGaussian.txt')
   for (k in ((L-1):1)) {
@@ -584,12 +598,15 @@ hierarchical_fusion_uniGaussian <- function(N_schedule,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param mean mean value
 #' @param sd standard deviation value
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are 
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -636,10 +653,21 @@ progressive_fusion_uniGaussian <- function(N_schedule,
   Q <- rep(0, (1/start_beta)-1)
   rhoQ <- rep(0, (1/start_beta)-1)
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("progressive_fusion_uniGaussian: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_uniGaussian.txt')
@@ -1012,13 +1040,16 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param mean mean value
 #' @param sd standard deviation value
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are 
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
 #'                          resampling ('strat'), systematic resampling ('system'),
@@ -1101,18 +1132,37 @@ hierarchical_fusion_SMC_uniGaussian <- function(N_schedule,
   m_schedule <- c(m_schedule, 1)
   # initialising results
   particles <- list()
-  particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, 
-                                             multivariate = FALSE)
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[L]] <- base_samples
+  } else if (all(sapply(base_samples, is.vector))) {
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+  } else {
+    stop("hierarchical_fusion_SMC_uniGaussian: base_samples must be a list of length
+         (1/start_beta) containing either items of class \"particle\" (representing
+         particle approximations of the sub-posteriors) or are vectors (representing
+         un-normalised sample approximations of the sub-posteriors)")
+  }
   proposed_samples <- list()
   time <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[L]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[L]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("hierarchical_fusion_SMC_uniGaussian: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_uniGaussian.txt')
   for (k in ((L-1):1)) {
@@ -1187,12 +1237,15 @@ hierarchical_fusion_SMC_uniGaussian <- function(N_schedule,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param mean mean value
 #' @param sd standard deviation value
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are 
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
 #'                          resampling ('strat'), systematic resampling ('system'),
@@ -1259,18 +1312,37 @@ progressive_fusion_SMC_uniGaussian <- function(N_schedule,
   }
   # initialising results
   particles <- list()
-  particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, 
-                                                          multivariate = FALSE)
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[(1/start_beta)]] <- base_samples
+  } else if (all(sapply(base_samples, is.vector))) {
+    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+  } else {
+    stop("progressive_fusion_SMC_uniGaussian: base_samples must be a list of length
+         (1/start_beta) containing either items of class \"particle\" (representing
+         particle approximations of the sub-posteriors) or are vectors (representing
+         un-normalised sample approximations of the sub-posteriors)")
+  }
   proposed_samples <- list()
   time <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("progressive_fusion_SMC_uniGaussian: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_SMC_uniGaussian.txt')

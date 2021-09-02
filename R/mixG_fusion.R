@@ -487,15 +487,18 @@ parallel_fusion_mixG <- function(N,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where samples_to_fuse[c]
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
 #' @param means vector: means of mixture Gaussian
 #' @param sds vector: st.devs of mixture Gaussian
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param bounds_multiplier scalar value to mulitply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param seed seed number - default is NULL, meaning there is no seed
@@ -582,10 +585,21 @@ hierarchical_fusion_mixG <- function(N_schedule,
   overall_rhoQ <- rep(0, L-1)
   overall_time <- rep(0, L-1)
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[L]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[L]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("hierarchical_fusion_mixG: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_mixG.txt')
   for (k in ((L-1):1)) {
@@ -670,14 +684,17 @@ hierarchical_fusion_mixG <- function(N_schedule,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where samples_to_fuse[c]
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
 #' @param means vector: means of mixture Gassuan
 #' @param sds vector: st.devs of mixture Gaussian
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param bounds_multiplier scalar value to mulitply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param seed seed number - default is NULL, meaning there is no seed
@@ -735,10 +752,21 @@ progressive_fusion_mixG <- function(N_schedule,
   Q <- rep(0, (1/start_beta)-1)
   rhoQ <- rep(0, (1/start_beta)-1)
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("progressive_fusion_mixG: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_mixG.txt')
@@ -1115,15 +1143,18 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
 #' @param means vector: means of mixture Gaussian
 #' @param sds vector: st.devs of mixture Gaussian
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param bounds_multiplier scalar value to mulitply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param resampling_method method to be used in resampling, default is multinomial 
@@ -1207,18 +1238,37 @@ hierarchical_fusion_SMC_mixG <- function(N_schedule,
   m_schedule <- c(m_schedule, 1)
   # initialising results
   particles <- list()
-  particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, 
-                                             multivariate = FALSE)
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[L]] <- base_samples
+  } else if (all(sapply(base_samples, is.vector))) {
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+  } else {
+    stop("hierarchical_fusion_SMC_mixG: base_samples must be a list of length 
+         (1/start_beta) containing either items of class \"particle\" (representing
+         particle approximations of the sub-posteriors) or are vectors
+         (representing un-normalised sample approximations of the sub-posteriors)")
+  }
   proposed_samples <- list()
   time <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[L]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[L]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("hierarchical_fusion_SMC_mixG: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_mixG.txt')
   for (k in ((L-1):1)) {
@@ -1294,14 +1344,17 @@ hierarchical_fusion_SMC_mixG <- function(N_schedule,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
 #' @param means vector: means of mixture Gaussian
 #' @param sds vector: st.devs of mixture Gaussian
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param bounds_multiplier scalar value to mulitply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param resampling_method method to be used in resampling, default is multinomial 
@@ -1369,18 +1422,37 @@ progressive_fusion_SMC_mixG <- function(N_schedule,
   }
   # initialising results
   particles <- list()
-  particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, 
-                                                          multivariate = FALSE)
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[(1/start_beta)]] <- base_samples
+  } else if (all(sapply(base_samples, is.vector))) {
+    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+  } else {
+    stop("progressive_fusion_SMC_mixG: base_samples must be a list of length
+         (1/start_beta) containing either items of class \"particle\" (representing
+         particle approximations of the sub-posteriors) or are vectors (representing
+         un-normalised sample approximations of the sub-posteriors)")
+  }
   proposed_samples <- list()
   time <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("progressive_fusion_SMC_mixG: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_SMC_mixG.txt')

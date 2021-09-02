@@ -432,8 +432,11 @@ parallel_fusion_biGaussian <- function(N,
 #' @param sd_vec vector of length 2 for standard deviation
 #' @param corr correlation value between component 1 and component 2
 #' @param start_beta beta for the base level
-#' @param precondition boolean value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning matrices are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be the identity matrix for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning matrix for sub-posterior c. Default is TRUE
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' 
@@ -518,10 +521,23 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
   overall_rhoQ <- rep(0, L-1)
   overall_time <- rep(0, L-1)
   precondition_matrices <- list()
-  if (precondition) {
-    precondition_matrices[[L]] <- lapply(base_samples, cov)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_matrices[[L]] <- lapply(base_samples, cov)
+    } else {
+      precondition_matrices[[L]] <- rep(list(diag(1, 2)), (1/start_beta))
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta) & all(sapply(precondition, is.matrix))) {
+      if (all(sapply(precondition, function(sub) ncol(sub)==2))) {
+        precondition_matrices[[L]] <- precondition  
+      }
+    }
   } else {
-    precondition_matrices[[L]] <- rep(list(diag(1, 2)), (1/start_beta))
+    stop("hierarchical_fusion_biGaussian: precondition must be a logical indicating 
+          whether or not a preconditioning matrix should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning matrix for
+          the c-th sub-posterior")
   }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_biGaussian.txt')
   for (k in ((L-1):1)) {
@@ -611,8 +627,11 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
 #' @param start_beta beta for the base level
 #' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
 #'                     containg the samples for the c-th node in the level
-#' @param precondition boolean value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning matrices are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be the identity matrix for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning matrix for sub-posterior c. Default is TRUE
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -668,10 +687,23 @@ progressive_fusion_biGaussian <- function(N_schedule,
   Q <- rep(0, (1/start_beta)-1)
   rhoQ <- rep(0, (1/start_beta)-1)
   precondition_matrices <- list()
-  if (precondition) {
-    precondition_matrices[[(1/start_beta)]] <- lapply(base_samples, cov)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_matrices[[(1/start_beta)]] <- lapply(base_samples, cov)
+    } else {
+      precondition_matrices[[(1/start_beta)]] <- rep(list(diag(1, 2)), (1/start_beta))
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta) & all(sapply(precondition, is.matrix))) {
+      if (all(sapply(precondition, function(sub) ncol(sub)==2))) {
+        precondition_matrices[[L]] <- precondition  
+      }
+    }
   } else {
-    precondition_matrices[[(1/start_beta)]] <- rep(list(diag(1, 2)), (1/start_beta))
+    stop("progressive_fusion_biGaussian: precondition must be a logical indicating 
+          whether or not a preconditioning matrix should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning matrix for
+          the c-th sub-posterior")
   }
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_biGaussian.txt')
@@ -1073,8 +1105,11 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
 #' @param sd_vec vector of length 2 for standard deviation
 #' @param corr correlation value between component 1 and component 2
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning matrices are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be the identity matrix for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning matrix for sub-posterior c. Default is TRUE
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
 #'                          resampling ('strat'), systematic resampling ('system'),
@@ -1141,10 +1176,6 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
     stop("hierarchical_fusion_SMC_biGaussian: time_schedule must be a vector of length (L-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("hierarchical_fusion_SMC_biGaussian: base_samples must be a list of length (1/start_beta)")
-  } else if (!all(sapply(base_samples, is.matrix))) {
-    stop("hierarchical_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices")
-  } else if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
-    stop("hierarchical_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("hierarchical_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
@@ -1166,18 +1197,42 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
   m_schedule <- c(m_schedule, 1)
   # initialising results 
   particles <- list()
-  particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, 
-                                             multivariate = TRUE)
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[L]] <- base_samples
+  } else if (all(sapply(base_samples, is.matrix))) {
+    if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
+      stop("hierarchical_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
+    }
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+  } else {
+    stop("hierarchical_fusion_SMC_biGaussian: base_samples must be a list of length
+         (1/start_beta) containing either items of class \"particle\" (representing
+         particle approximations of the sub-posteriors) or are matrices with 2 columns
+         (representing un-normalised sample approximations of the sub-posteriors)")
+  }
   proposed_samples <- list()
   time <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
   precondition_matrices <- list()
-  if (precondition) {
-    precondition_matrices[[L]] <- lapply(base_samples, cov)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_matrices[[L]] <- lapply(base_samples, cov)
+    } else {
+      precondition_matrices[[L]] <- rep(list(diag(1, 2)), (1/start_beta))
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta) & all(sapply(precondition, is.matrix))) {
+      if (all(sapply(precondition, function(sub) ncol(sub)==2))) {
+        precondition_matrices[[L]] <- precondition  
+      }
+    }
   } else {
-    precondition_matrices[[L]] <- rep(list(diag(1, 2)), (1/start_beta))
+    stop("hierarchical_fusion_SMC_biGaussian: precondition must be a logical indicating 
+          whether or not a preconditioning matrix should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning matrix for
+          the c-th sub-posterior")
   }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_biGaussian.txt')
   for (k in ((L-1):1)) {
@@ -1259,8 +1314,11 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
 #' @param sd_vec vector of length 2 for standard deviation
 #' @param corr correlation value between component 1 and component 2
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning matrices are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be the identity matrix for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning matrix for sub-posterior c. Default is TRUE
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
 #'                          resampling ('strat'), systematic resampling ('system'),
@@ -1324,10 +1382,6 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
     stop("progressive_fusion_SMC_biGaussian: time_schedule must be a vector of length ((1/start_beta)-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("progressive_fusion_SMC_biGaussian: base_samples must be a list of length (1/start_beta)")
-  } else if (!all(sapply(base_samples, is.matrix))) {
-    stop("progressive_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices")
-  } else if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
-    stop("progressive_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("progressive_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
@@ -1337,18 +1391,42 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
   }
   # initialising results
   particles <- list()
-  particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, 
-                                                          multivariate = TRUE)
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[(1/start_beta)]] <- base_samples
+  } else if (all(sapply(base_samples, is.matrix))) {
+    if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
+      stop("progressive_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
+    }
+    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+  } else {
+    stop("progressive_fusion_SMC_biGaussian: base_samples must be a list of length
+         (1/start_beta) containing either items of class \"particle\" (representing
+         particle approximations of the sub-posteriors) zor are matrices (representing
+         un-normalised sample approximations of the sub-posteriors)")
+  }
   proposed_samples <- list()
   time <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
   precondition_matrices <- list()
-  if (precondition) {
-    precondition_matrices[[(1/start_beta)]] <- lapply(base_samples, cov)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_matrices[[(1/start_beta)]] <- lapply(base_samples, cov)
+    } else {
+      precondition_matrices[[(1/start_beta)]] <- rep(list(diag(1, 2)), (1/start_beta))
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta) & all(sapply(precondition, is.matrix))) {
+      if (all(sapply(precondition, function(sub) ncol(sub)==2))) {
+        precondition_matrices[[L]] <- precondition  
+      }
+    }
   } else {
-    precondition_matrices[[(1/start_beta)]] <- rep(list(diag(1, 2)), (1/start_beta))
+    stop("progressive_fusion_SMC_biGaussian: precondition must be a logical indicating 
+          whether or not a preconditioning matrix should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning matrix for
+          the c-th sub-posterior")
   }
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_SMC_biGaussian.txt')

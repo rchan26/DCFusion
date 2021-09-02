@@ -286,7 +286,7 @@ compare_samples_bivariate <- function(posteriors,
 }
 
 #' @export
-integrated_abs_distance <- function(full_post, fusion_post, bw = NULL) {
+integrated_abs_distance <- function(full_post, fusion_post, bw = NULL, print_res = TRUE) {
   if (is.vector(full_post) & is.vector(fusion_post)) {
     full_post <- matrix(full_post)
     fusion_post <- matrix(fusion_post)
@@ -305,7 +305,7 @@ integrated_abs_distance <- function(full_post, fusion_post, bw = NULL) {
   for (i in 1:dimensions) {
     min_value <- min(c(full_post[,i], fusion_post[,i]))
     max_value <- max(c(full_post[,i], fusion_post[,i]))
-    # calculate kde for ith dimension in posterior samnples
+    # calculate kde for ith dimension in posterior samples
     baseline_kde <- density(full_post[,i], bw = bw[i], from = min_value, to = max_value, n = 10000)
     bandwidth_chosen[i] <- baseline_kde$bw
     # calculate kde for ith dimension in fusion samples
@@ -321,20 +321,26 @@ integrated_abs_distance <- function(full_post, fusion_post, bw = NULL) {
     # calculating the total variation
     int_abs_dist[i] <- sfsmisc:::integrate.xy(x = baseline_kde$x, fx = diff)
   }
-  print(paste('bandwidths chosen:', bandwidth_chosen))
-  return(sum(int_abs_dist)/(2*dimensions))
+  IAD <- sum(int_abs_dist)/(2*dimensions)
+  if (print_res) {
+    print(paste('bandwidths chosen:', bandwidth_chosen))
+    print(paste('IAD:', IAD))
+  }
+  return(IAD)
 }
 
 #' @export
-integrated_abs_distance_exp_4 <- function(fusion_post, mean = 0, beta = 1, bw = NULL) {
+integrated_abs_distance_exp_4 <- function(fusion_post, mean = 0, beta = 1, bw = NULL, print_res = TRUE) {
   if (!is.vector(fusion_post) & (length(fusion_post)>= 2)) {
     stop("integrated_abs_distance_exp_4: fusion_post must be a vector with length greater than or equal to 2")
   }
   if (is.null(bw)) {
     bw <- "nrd0"
   }
-  # calculate kde for posterior samnples
-  fusion_kde <- density(fusion_post, bw = bw, n = 10000)
+  # calculate kde for posterior samples
+  min_value <- min(c(fusion_post, mean-2/sqrt(beta)))
+  max_value <- max(c(fusion_post, mean+2/sqrt(beta)))
+  fusion_kde <- density(fusion_post, bw = bw, from = min_value, to = max_value, n = 10000)
   bandwidth_chosen <- fusion_kde$bw
   # obtain f(x) value from kde and compute the target density at the same values
   fusion_y <- fusion_kde$y
@@ -342,21 +348,26 @@ integrated_abs_distance_exp_4 <- function(fusion_post, mean = 0, beta = 1, bw = 
   # calculate differences between baseline_y and fusion_y
   diff <- abs(baseline_y - fusion_y)
   # calculating the total variation
-  int_abs_dist <- sfsmisc:::integrate.xy(x = fusion_kde$x, fx = diff)
-  print(paste('bandwidths chosen:', bandwidth_chosen))
-  return(0.5*int_abs_dist)
+  IAD <- 0.5*sfsmisc:::integrate.xy(x = fusion_kde$x, fx = diff)
+  if (print_res) {
+    print(paste('bandwidths chosen:', bandwidth_chosen))
+    print(paste('IAD:', IAD)) 
+  }
+  return(IAD)
 }
 
 #' @export
-integrated_abs_distance_uniGaussian <- function(fusion_post, mean, sd, beta, bw = NULL) {
+integrated_abs_distance_uniGaussian <- function(fusion_post, mean = 0, sd = 1, beta, bw = NULL, print_res = TRUE) {
   if (!is.vector(fusion_post) & (length(fusion_post)>= 2)) {
     stop("integrated_abs_distance_uniGaussian: fusion_post must be a vector with length greater than or equal to 2")
   }
   if (is.null(bw)) {
     bw <- "nrd0"
   }
-  # calculate kde for posterior samnples
-  fusion_kde <- density(fusion_post, bw = bw, n = 10000)
+  # calculate kde for posterior samples
+  min_value <- min(c(fusion_post, mean-4*sd/sqrt(beta)))
+  max_value <- max(c(fusion_post, mean+4*sd/sqrt(beta)))
+  fusion_kde <- density(fusion_post, bw = bw, from = min_value, to = max_value, n = 10000)
   bandwidth_chosen <- fusion_kde$bw
   # obtain f(x) value from kde and compute the target density at the same values
   fusion_y <- fusion_kde$y
@@ -364,9 +375,38 @@ integrated_abs_distance_uniGaussian <- function(fusion_post, mean, sd, beta, bw 
   # calculate differences between baseline_y and fusion_y
   diff <- abs(baseline_y - fusion_y)
   # calculating the total variation
-  int_abs_dist <- sfsmisc:::integrate.xy(x = fusion_kde$x, fx = diff)
-  print(paste('bandwidths chosen:', bandwidth_chosen))
-  return(0.5*int_abs_dist)
+  IAD <- 0.5*sfsmisc:::integrate.xy(x = fusion_kde$x, fx = diff)
+  if (print_res) {
+    print(paste('bandwidths chosen:', bandwidth_chosen))
+    print(paste('IAD:', IAD)) 
+  }
+  return(IAD)
 }
 
-
+#' @export
+integrated_abs_distance_biGaussian <- function(fusion_post, marg_means, marg_sds, bw) {
+  dimensions <- ncol(fusion_post)
+  if (is.null(bw)) {
+    bw <- rep("nrd0", 2)
+  } else if (length(bw)!=2) {
+    stop('integrated_abs_distance_biGaussian: bw must be a vector of length 2')
+  }
+  if (is.null(bw)) {
+    bw <- "nrd0"
+  }
+  d1_IAD <- integrated_abs_distance_uniGaussian(fusion_post = fusion_post[,1],
+                                                mean = marg_means[1],
+                                                sd = marg_sds[1],
+                                                beta = 1,
+                                                bw = bw[1],
+                                                print_res = FALSE)
+  d2_IAD <- integrated_abs_distance_uniGaussian(fusion_post = fusion_post[,2],
+                                                mean = marg_means[2],
+                                                sd = marg_sds[2],
+                                                beta = 1,
+                                                bw = bw[2],
+                                                print_res = FALSE)
+  IAD <- mean(c(d1_IAD, d2_IAD))
+  print(paste('IAD:', IAD))
+  return(IAD)
+}

@@ -22,7 +22,7 @@ fusion_uniGaussian(
 
 \item{time}{time T for fusion algorithm}
 
-\item{samples_to_fuse}{list of length m, where samples_to_fuse[c] containg 
+\item{samples_to_fuse}{list of length m, where samples_to_fuse[c] contains 
 the samples for the c-th sub-posterior}
 
 \item{means}{vector of length m, where means[c] is the mean for c-th 

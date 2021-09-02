@@ -35,8 +35,11 @@ time chosen for Fusion at level l}
 \item{base_samples}{list of length (1/start_beta), where samples_to_fuse[c] 
 containg the samples for the c-th node in the level}
 
-\item{precondition}{boolean value to determine if preconditioning value is 
-used (TRUE) or not (FALSE). Default is TRUE}
+\item{precondition}{either a logical value to determine if preconditioning matrices are
+used (TRUE - and is set to be the variance of the sub-posterior samples)
+or not (FALSE - and is set to be the identity matrix for all sub-posteriors),
+or a list of length (1/start_beta) where precondition[[c]]
+is the preconditioning matrix for sub-posterior c. Default is TRUE}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 

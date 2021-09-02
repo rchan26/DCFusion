@@ -660,8 +660,11 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C number of sub-posteriors at the base level
-#' @param precondition logical value determining whether or not a
-#'                     preconditioning matrix is to be used
+#' @param precondition either a logical value to determine if preconditioning matrices are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be the identity matrix for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning matrix for sub-posterior c. Default is TRUE
 #' @param resampling_method method to be used in resampling, default is
 #'                          multinomial resampling ('multi'). Other choices are
 #'                          stratified ('strat'), systematic ('system'),
@@ -757,10 +760,6 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$full_data_count must be a data frame")
   } else if (!all(sapply(1:C, function(i) is.data.frame(data_split[[i]]$design_count)))) {
     stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$design_count must be a data frame")
-  } else if (!all(sapply(base_samples, is.matrix))) {
-    stop("hierarchical_fusion_SMC_BLR: the sub-posterior samples in base_samples must be matrices")
-  } else if (!all(sapply(base_samples, function(core) ncol(core)==dim))) {
-    stop("hierarchical_fusion_SMC_BLR: the sub-posterior samples in base_samples must be matrices with dim columns")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("hierarchical_fusion_SMC_BLR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -782,8 +781,19 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
   m_schedule <- c(m_schedule, 1)
   # initialising results that we want to keep
   particles <- list()
-  particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples,
-                                             multivariate = TRUE)
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[L]] <- base_samples
+  } else if (all(sapply(base_samples, is.matrix))) {
+    if (!all(sapply(base_samples, function(core) ncol(core)==dim))) {
+      stop("hierarchical_fusion_SMC_BLR: the sub-posterior samples in base_samples must be matrices with dim columns")
+    }
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+  } else {
+    stop("hierarchical_fusion_SMC_BLR: base_samples must be a list of length C
+         containing either items of class \"particle\" (representing particle 
+         approximations of the sub-posteriors) or are matrices with dim columns
+         (representing un-normalised sample approximations of the sub-posteriors)")
+  }
   proposed_samples <- list()
   data_inputs <- list()
   data_inputs[[L]] <- data_split
@@ -798,8 +808,12 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     } else {
       precondition_matrices[[L]] <- lapply(base_samples, function(c) diag(1, dim))
     }
-  } else if (is.list(precondition) & length(precondition)==C & all(sapply(precondition, is.matrix))) {
-    precondition_matrices[[L]] <- precondition
+  } else if (is.list(precondition)) {
+    if (length(precondition)==C & all(sapply(precondition, is.matrix))) {
+      if (all(sapply(precondition, function(sub) ncol(sub)==dim))) {
+        precondition_matrices[[L]] <- precondition  
+      }
+    }
   } else {
     stop("hierarchical_fusion_SMC_BLR: precondition must be a logical indicating 
           whether or not a preconditioning matrix should be used, or a list of

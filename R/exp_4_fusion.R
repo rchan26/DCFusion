@@ -217,13 +217,6 @@ ea_exp_4_DL <- function(N,
 #'              they are all at the same inverse temperature)
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
-#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
-#'                            and "NB" for Negative Binomial estimator
-#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
-#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
-#'                          of the integral found in the mean of the negative
-#'                          binomial estimator (default is 2)
 #'
 #' @return A list with components:
 #' \describe{
@@ -239,10 +232,7 @@ fusion_exp_4 <- function(N,
                          samples_to_fuse,
                          mean,
                          betas,
-                         precondition_values,
-                         diffusion_estimator = 'Poisson',
-                         beta_NB = 10,
-                         gamma_NB_n_points = 2) {
+                         precondition_values) {
   if (!is.list(samples_to_fuse) | (length(samples_to_fuse)!=m)) {
     stop("fusion_exp_4: samples_to_fuse must be a list of length m")
   } else if (!is.vector(betas) | (length(betas)!=m)) {
@@ -271,9 +261,7 @@ fusion_exp_4 <- function(N,
                        mean = mean,
                        beta = betas[c],
                        precondition = precondition_values[c],
-                       diffusion_estimator = diffusion_estimator,
-                       beta_NB = beta_NB,
-                       gamma_NB_n_points = gamma_NB_n_points,
+                       diffusion_estimator = 'Poisson',
                        logarithm = TRUE)
       }))
       if (log(runif(1, 0, 1)) < log_Q_prob) {
@@ -303,13 +291,6 @@ fusion_exp_4 <- function(N,
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
 #' @param seed seed number - default is NULL, meaning there is no seed
-#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
-#'                            and "NB" for Negative Binomial estimator
-#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
-#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
-#'                          of the integral found in the mean of the negative
-#'                          binomial estimator (default is 2)
 #' @param n_cores number of cores to use
 #'
 #' @return A list with components:
@@ -335,9 +316,6 @@ parallel_fusion_exp_4 <- function(N,
                                   mean,
                                   betas,
                                   precondition_values,
-                                  diffusion_estimator = 'Poisson',
-                                  beta_NB = 10,
-                                  gamma_NB_n_points = 2,
                                   seed = NULL,
                                   n_cores = parallel::detectCores()) {
   if (!is.list(samples_to_fuse) | (length(samples_to_fuse)!=m)) {
@@ -379,10 +357,7 @@ parallel_fusion_exp_4 <- function(N,
                  samples_to_fuse = samples_to_fuse,
                  mean = mean,
                  betas = betas,
-                 precondition_values = precondition_values,
-                 diffusion_estimator = diffusion_estimator,
-                 beta_NB = beta_NB,
-                 gamma_NB_n_points = gamma_NB_n_points)
+                 precondition_values = precondition_values)
   })
   final <- proc.time() - pcm
   parallel::stopCluster(cl)
@@ -426,19 +401,15 @@ parallel_fusion_exp_4 <- function(N,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param mean mean value of target distribution
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
-#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
-#'                            and "NB" for Negative Binomial estimator
-#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
-#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
-#'                          of the integral found in the mean of the negative
-#'                          binomial estimator (default is 2)
+#' @param precondition either a logical value to determine if preconditioning values are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
@@ -477,9 +448,6 @@ hierarchical_fusion_exp_4 <- function(N_schedule,
                                       mean = 0,
                                       start_beta,
                                       precondition = TRUE,
-                                      diffusion_estimator = 'Poisson',
-                                      beta_NB = 10,
-                                      gamma_NB_n_points = 2,
                                       seed = NULL,
                                       n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
@@ -516,10 +484,21 @@ hierarchical_fusion_exp_4 <- function(N_schedule,
   overall_rhoQ <- rep(0, L-1)
   overall_time <- rep(0, L-1)
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[L]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[L]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("hierarchical_fusion_exp_4: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_exp_4.txt')
   for (k in ((L-1):1)) {
@@ -601,19 +580,15 @@ hierarchical_fusion_exp_4 <- function(N_schedule,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param mean mean value of target distribution
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param seed seed number - default is NULL, meaning there is no seed
-#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
-#'                            and "NB" for Negative Binomial estimator
-#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
-#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
-#'                          of the integral found in the mean of the negative
-#'                          binomial estimator (default is 2) 
 #' @param n_cores number of cores to use
 #'
 #' @return A list with components:
@@ -641,9 +616,6 @@ progressive_fusion_exp_4 <- function(N_schedule,
                                      mean = 0,
                                      start_beta,
                                      precondition = TRUE,
-                                     diffusion_estimator = 'Poisson',
-                                     beta_NB = 10,
-                                     gamma_NB_n_points = 2,
                                      seed = NULL,
                                      n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(1/start_beta)-1)) {
@@ -661,10 +633,21 @@ progressive_fusion_exp_4 <- function(N_schedule,
   Q <- rep(0, (1/start_beta)-1)
   rhoQ <- rep(0, (1/start_beta)-1)
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("progressive_fusion_exp_4: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_exp_4.txt')
@@ -690,9 +673,6 @@ progressive_fusion_exp_4 <- function(N_schedule,
                                      mean = mean,
                                      betas = c(start_beta, start_beta),
                                      precondition_values = precondition_vals,
-                                     diffusion_estimator = diffusion_estimator,
-                                     beta_NB = beta_NB,
-                                     gamma_NB_n_points = gamma_NB_n_points,
                                      seed = seed,
                                      n_cores = n_cores)
     } else {
@@ -717,9 +697,6 @@ progressive_fusion_exp_4 <- function(N_schedule,
                                      mean = mean,
                                      betas = c(index*start_beta, start_beta),
                                      precondition_values = precondition_vals,
-                                     diffusion_estimator = diffusion_estimator,
-                                     beta_NB = beta_NB,
-                                     gamma_NB_n_points = gamma_NB_n_points,
                                      seed = seed,
                                      n_cores = n_cores)
       index <- index + 1
@@ -1022,12 +999,15 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param mean mean value
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
 #'                          resampling ('strat'), systematic resampling ('system'),
@@ -1109,18 +1089,37 @@ hierarchical_fusion_SMC_exp_4 <- function(N_schedule,
   m_schedule <- c(m_schedule, 1)
   # initialising results
   particles <- list()
-  particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, 
-                                             multivariate = FALSE)
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[L]] <- base_samples
+  } else if (all(sapply(base_samples, is.vector))) {
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+  } else {
+    stop("hierarchical_fusion_SMC_exp_4: base_samples must be a list of length
+         (1/start_beta) containing either items of class \"particle\" (representing
+         particle approximations of the sub-posteriors) or are vectors (representing
+         un-normalised sample approximations of the sub-posteriors)")
+  }
   proposed_samples <- list()
   time <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[L]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[L]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[L]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("hierarchical_fusion_SMC_exp_4: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_exp_4.txt')
   for (k in ((L-1):1)) {
@@ -1195,11 +1194,14 @@ hierarchical_fusion_SMC_exp_4 <- function(N_schedule,
 #' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
-#'                     containg the samples for the c-th node in the level
+#'                     contains the samples for the c-th node in the level
 #' @param mean mean value
 #' @param start_beta beta for the base level
-#' @param precondition logical value to determine if preconditioning value is 
-#'                     used (TRUE) or not (FALSE). Default is TRUE
+#' @param precondition either a logical value to determine if preconditioning values are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning value for sub-posterior c. Default is TRUE
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
 #'                          resampling ('strat'), systematic resampling ('system'),
@@ -1265,18 +1267,37 @@ progressive_fusion_SMC_exp_4 <- function(N_schedule,
   }
   # initialising results
   particles <- list()
-  particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, 
-                                                          multivariate = FALSE)
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[(1/start_beta)]] <- base_samples
+  } else if (all(sapply(base_samples, is.vector))) {
+    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+  } else {
+    stop("progressive_fusion_SMC_exp_4: base_samples must be a list of length
+         (1/start_beta) containing either items of class \"particle\" (representing
+         particle approximations of the sub-posteriors) or are vectors (representing
+         un-normalised sample approximations of the sub-posteriors)")
+  }
   proposed_samples <- list()
   time <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
   precondition_values <- list()
-  if (precondition) {
-    precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_values[[(1/start_beta)]] <- lapply(base_samples, var)
+    } else {
+      precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==(1/start_beta)) {
+      precondition_values[[L]] <- precondition
+    }
   } else {
-    precondition_values[[(1/start_beta)]] <- lapply(1:length(base_samples), function(i) 1)
+    stop("progressive_fusion_SMC_exp_4: precondition must be a logical indicating 
+          whether or not a preconditioning value should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning value for
+          the c-th sub-posterior")
   }
   index <- 2
   cat('Starting progressive fusion \n', file = 'progressive_fusion_SMC_exp_4.txt')

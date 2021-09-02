@@ -29,7 +29,7 @@ of samples per node at level l}
 chosen for Fusion at level l}
 
 \item{base_samples}{list of length (1/start_beta), where base_samples[[c]] 
-containg the samples for the c-th node in the level}
+contains the samples for the c-th node in the level}
 
 \item{mean}{mean value}
 
@@ -37,8 +37,11 @@ containg the samples for the c-th node in the level}
 
 \item{start_beta}{beta for the base level}
 
-\item{precondition}{logical value to determine if preconditioning value is 
-used (TRUE) or not (FALSE). Default is TRUE}
+\item{precondition}{either a logical value to determine if preconditioning values are 
+used (TRUE - and is set to be the variance of the sub-posterior samples)
+or not (FALSE - and is set to be 1 for all sub-posteriors),
+or a list of length (1/start_beta) where precondition[[c]]
+is the preconditioning value for sub-posterior c. Default is TRUE}
 
 \item{resampling_method}{method to be used in resampling, default is multinomial 
 resampling ('multi'). Other choices are stratified 

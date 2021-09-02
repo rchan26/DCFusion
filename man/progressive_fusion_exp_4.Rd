@@ -11,9 +11,6 @@ progressive_fusion_exp_4(
   mean = 0,
   start_beta,
   precondition = TRUE,
-  diffusion_estimator = "Poisson",
-  beta_NB = 10,
-  gamma_NB_n_points = 2,
   seed = NULL,
   n_cores = parallel::detectCores()
 )
@@ -26,24 +23,17 @@ of samples per node at level l}
 time chosen for Fusion at level l}
 
 \item{base_samples}{list of length (1/start_beta), where base_samples[[c]] 
-containg the samples for the c-th node in the level}
+contains the samples for the c-th node in the level}
 
 \item{mean}{mean value of target distribution}
 
 \item{start_beta}{beta for the base level}
 
-\item{precondition}{logical value to determine if preconditioning value is 
-used (TRUE) or not (FALSE). Default is TRUE}
-
-\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
-between "Poisson" (default) for Poission estimator
-and "NB" for Negative Binomial estimator}
-
-\item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
-
-\item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
-of the integral found in the mean of the negative
-binomial estimator (default is 2)}
+\item{precondition}{either a logical value to determine if preconditioning values are
+used (TRUE - and is set to be the variance of the sub-posterior samples)
+or not (FALSE - and is set to be 1 for all sub-posteriors),
+or a list of length (1/start_beta) where precondition[[c]]
+is the preconditioning value for sub-posterior c. Default is TRUE}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
