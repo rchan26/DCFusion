@@ -760,7 +760,7 @@ progressive_fusion_mixG <- function(N_schedule,
     }
   } else if (is.list(precondition)) {
     if (length(precondition)==(1/start_beta)) {
-      precondition_values[[L]] <- precondition
+      precondition_values[[(1/start_beta)]] <- precondition
     }
   } else {
     stop("progressive_fusion_mixG: precondition must be a logical indicating 
@@ -1446,7 +1446,7 @@ progressive_fusion_SMC_mixG <- function(N_schedule,
     }
   } else if (is.list(precondition)) {
     if (length(precondition)==(1/start_beta)) {
-      precondition_values[[L]] <- precondition
+      precondition_values[[(1/start_beta)]] <- precondition
     }
   } else {
     stop("progressive_fusion_SMC_mixG: precondition must be a logical indicating 

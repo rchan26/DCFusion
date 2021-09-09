@@ -661,7 +661,7 @@ progressive_fusion_uniGaussian <- function(N_schedule,
     }
   } else if (is.list(precondition)) {
     if (length(precondition)==(1/start_beta)) {
-      precondition_values[[L]] <- precondition
+      precondition_values[[(1/start_beta)]] <- precondition
     }
   } else {
     stop("progressive_fusion_uniGaussian: precondition must be a logical indicating 
@@ -1024,7 +1024,7 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
                 'ESS' = ESS,
                 'CESS' = CESS,
                 'resampled' = resampled,
-                'precondition_values' = list(1/sum(1/precondition_values), 
+                'precondition_values' = list(1/sum(1/precondition_values),
                                              precondition_values)))
   }
 }
@@ -1336,7 +1336,7 @@ progressive_fusion_SMC_uniGaussian <- function(N_schedule,
     }
   } else if (is.list(precondition)) {
     if (length(precondition)==(1/start_beta)) {
-      precondition_values[[L]] <- precondition
+      precondition_values[[(1/start_beta)]] <- precondition
     }
   } else {
     stop("progressive_fusion_SMC_uniGaussian: precondition must be a logical indicating 
