@@ -7,12 +7,13 @@ input_samples <- list()
 fnj_results <- list()
 hier_results <- list()
 prog_results <- list()
-time_choice <- 0.5
+time_choice <- 1
+nsamples <- 10000
 
 for (i in 1:length(denominator)) {
   print(denominator[i])
   input_samples[[i]] <- base_rejection_sampler_exp_4(beta = 1/denominator[i],
-                                                     nsamples = 10000,
+                                                     nsamples = nsamples,
                                                      proposal_mean = 0,
                                                      proposal_sd = 1.5,
                                                      dominating_M = 1.75)
@@ -25,7 +26,7 @@ for (i in 1:length(denominator)) {
   
   # standard fork and join
   print('performing preconditioned fork-and-join MC fusion')
-  fnj_fused <- hierarchical_fusion_exp_4(N_schedule = 10000,
+  fnj_fused <- hierarchical_fusion_exp_4(N_schedule = nsamples,
                                          m_schedule = denominator[i],
                                          time_schedule = time_choice,
                                          base_samples = input_samples[[i]],
@@ -43,7 +44,7 @@ for (i in 1:length(denominator)) {
   # hierarchical if denominator[i] is 2, 4, 8, or 16
   if (denominator[i]==2) {
     print('performing preconditioned hierarchical MC fusion')
-    hier_fused <- hierarchical_fusion_exp_4(N_schedule = 10000,
+    hier_fused <- hierarchical_fusion_exp_4(N_schedule = nsamples,
                                             m_schedule = 2,
                                             time_schedule = time_choice,
                                             base_samples = input_samples[[i]],
@@ -54,7 +55,7 @@ for (i in 1:length(denominator)) {
                                             seed = seed)
   } else if (denominator[i]==4) {
     print('performing preconditioned hierarchical MC fusion')
-    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(10000, 2),
+    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(nsamples, 2),
                                             m_schedule = rep(2, 2),
                                             time_schedule = rep(time_choice, 2),
                                             base_samples = input_samples[[i]],
@@ -65,7 +66,7 @@ for (i in 1:length(denominator)) {
                                             seed = seed)
   } else if (denominator[i]==8) {
     print('performing preconditioned hierarchical MC fusion')
-    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(10000, 3),
+    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(nsamples, 3),
                                             m_schedule = rep(2, 3),
                                             time_schedule = rep(time_choice, 3),
                                             base_samples = input_samples[[i]],
@@ -76,7 +77,7 @@ for (i in 1:length(denominator)) {
                                             seed = seed)
   } else if (denominator[i]==16) {
     print('performing preconditioned hierarchical MC fusion')
-    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(10000, 4),
+    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(nsamples, 4),
                                             m_schedule = rep(2, 4),
                                             time_schedule = rep(time_choice, 4),
                                             base_samples = input_samples[[i]], 
@@ -98,7 +99,7 @@ for (i in 1:length(denominator)) {
   
   # progressive
   print('performing preconditioned progressive MC fusion')
-  prog_fused <- progressive_fusion_exp_4(N_schedule = rep(10000, denominator[i]-1),
+  prog_fused <- progressive_fusion_exp_4(N_schedule = rep(nsamples, denominator[i]-1),
                                          time_schedule = rep(time_choice, denominator[i]-1),
                                          base_samples = input_samples[[i]], 
                                          mean = 0,

@@ -29,7 +29,8 @@ for (i in 1:length(denominator)) {
     lines(density(input_samples[[i]][[j]]), col = 'blue')
   }
   
-  # standard fork and join (with no resampling)
+  # standard fork and join
+  # we have no preconditioning here since we want to compare with the standard MCF approach
   print('performing standard MC fusion')
   smc_fnj_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = 30000,
                                                  m_schedule = denominator[i],
@@ -38,9 +39,9 @@ for (i in 1:length(denominator)) {
                                                  L = 2,
                                                  mean = 0,
                                                  start_beta = 1/denominator[i], 
-                                                 precondition = TRUE,
+                                                 precondition = FALSE,
                                                  resampling_method = 'resid',
-                                                 ESS_threshold = 0,
+                                                 ESS_threshold = 0.5,
                                                  diffusion_estimator = 'NB',
                                                  seed = seed)
   
@@ -139,7 +140,7 @@ for (i in 1:length(denominator)) {
     smc_hier_results[[i]] <- NA
   }
   
-  # progressive (with no resampling)
+  # progressive
   print('performing progressive MC fusion')
   smc_prog_fused <- progressive_fusion_SMC_exp_4(N_schedule = rep(30000, denominator[i]-1),
                                                  time_schedule = rep(time_choice, denominator[i]-1),
