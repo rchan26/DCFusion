@@ -13,6 +13,8 @@ sd <- rep(1, 2)
 correlations <- c(seq(0, 0.9, 0.1), 0.95)
 fusion_time <- 1
 number_of_replicates <- 100
+nsamples <- 10000
+bw <- rep((4/(3*nsamples))^(1/5), 2)
 smc_fusion_standard <- list()
 smc_fusion_precondition <- list()
 for (i in 1:length(correlations)) {
@@ -24,11 +26,11 @@ for (i in 1:length(correlations)) {
     print(paste('rep:', rep))
     # sampling from the sub-posteriors
     set.seed(seed*rep*i)
-    input_samples <- lapply(1:2, function(sub) mvrnormArma(N = 10000, mu = mean, Sigma = cov_mat))
+    input_samples <- lapply(1:2, function(sub) mvrnormArma(N = nsamples, mu = mean, Sigma = cov_mat))
     input_particles <- initialise_particle_sets(samples_to_fuse = input_samples, multivariate = TRUE)
     print('### performing standard fusion')
     standard <- parallel_fusion_SMC_biGaussian(particles = input_particles,
-                                               N = 10000,
+                                               N = nsamples,
                                                m = 2,
                                                time = fusion_time,
                                                mean_vec = mean,
@@ -41,10 +43,18 @@ for (i in 1:length(correlations)) {
     smc_fusion_standard[[i]][[rep]] <- list('ESS' = standard$ESS, 
                                             'CESS' = standard$CESS,
                                             'time' = standard$time, 
-                                            'ESS_per_sec' = standard$ESS / standard$time)
+                                            'ESS_per_sec' = standard$ESS / standard$time,
+                                            'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
+                                              particle_set = standard$particles,
+                                              multivariate = TRUE,
+                                              resampling_method = 'resid',
+                                              seed = seed*rep*i)$y_samples,
+                                              marg_means = mean,
+                                              marg_sds = rep(1/sqrt(2), 2),
+                                              bw = bw))
     print('### performing fusion with a preconditioning matrix')
     precondition <- parallel_fusion_SMC_biGaussian(particles = input_particles,
-                                                   N = 10000,
+                                                   N = nsamples,
                                                    m = 2,
                                                    time = fusion_time,
                                                    mean_vec = mean,
@@ -57,26 +67,34 @@ for (i in 1:length(correlations)) {
     smc_fusion_precondition[[i]][[rep]] <- list('ESS' = precondition$ESS, 
                                                 'CESS' = precondition$CESS,
                                                 'time' = precondition$time,
-                                                'ESS_per_sec' = precondition$ESS / precondition$time)
+                                                'ESS_per_sec' = precondition$ESS / precondition$time,
+                                                'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
+                                                  particle_set = precondition$particles,
+                                                  multivariate = TRUE,
+                                                  resampling_method = 'resid',
+                                                  seed = seed*rep*i)$y_samples,
+                                                  marg_means = mean,
+                                                  marg_sds = rep(1/sqrt(2), 2),
+                                                  bw = bw))
   }
 }
 
 # ---------- plot ESS for particular simulation
 
-plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$CESS['rho']), ylim = c(0, 10000),
+plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$CESS['rho']), ylim = c(0, nsamples),
      xlab = 'correlation', ylab = 'rho CESS', col = 'blue', xaxt='n')
 axis(1, at=seq(0, 1, 0.25))
 lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$CESS['rho']), col = 'blue')
 points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$CESS['rho']), col = 'red')
 lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$CESS['rho']), col = 'red')
-legend('topleft', legend = c('standard', 'preconditioned'), col = c('blue', 'red'), lty = c(1,1))
+legend('topleft', legend = c('Identity', 'Est. Cov.'), col = c('blue', 'red'), lty = c(1,1))
 
-plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$CESS['Q']), ylim = c(0, 10000),
+plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$CESS['Q']), ylim = c(0, nsamples),
      xlab = 'correlation', ylab = 'Q CESS', col = 'blue')
 lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$CESS['Q']), col = 'blue')
 points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$CESS['Q']), col = 'red')
 lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$CESS['Q']), col = 'red')
-legend('topleft', legend = c('standard', 'preconditioned'), col = c('blue', 'red'), lty = c(1,1))
+legend('topleft', legend = c('Identity', 'Est. Cov.'), col = c('blue', 'red'), lty = c(1,1))
 
 plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS['Q']),
      xlab = 'correlation', ylab = 'ESS', ylim = c(0, 5000),
@@ -87,7 +105,7 @@ points(correlations, sapply(1:length(correlations), function(i) smc_fusion_preco
        col = 'black', lwd = 3)
 lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS['Q']),
       col = 'black', lty = 3, lwd = 3)
-legend(x = 0, y = 10000, legend = c('standard', 'preconditioned'), col = c('black', 'black'),
+legend(x = 0, y = nsamples, legend = c('Identity', 'Est. Cov.'), col = c('black', 'black'),
        lty = c(1,3), lwd = c(3,3), bty = 'n')
 
 plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS_per_sec['Q']), 
@@ -103,10 +121,10 @@ points(correlations, sapply(1:length(correlations), function(i) smc_fusion_preco
        col = 'black', lwd = 3)
 lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS_per_sec['Q']),
       col = 'black', lty = 3, lwd = 3)
-legend(x = 0, y = 1000, legend = c('standard', 'preconditioned'), col = c('black', 'black'),
+legend(x = 0, y = 1000, legend = c('Identity', 'Est. Cov.'), col = c('black', 'black'),
        lty = c(1,3), lwd = c(3,3), bty = 'n')
 
-plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS['Q']/10000),
+plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS['Q']/nsamples),
      xlab = '', ylab = '', ylim = c(0, 0.5), xaxt = 'n',
      col = 'black', lwd = 3)
 mtext('Correlation', 1, 2.75, font = 2, cex = 1.5)
@@ -114,14 +132,106 @@ mtext('ESS / N', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
 axis(2, at=seq(0, 0.5, 0.1), labels=c("0.0", c(seq(0.1, 0.5, 0.1))), font = 2, cex = 1.5)
-lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS['Q']/10000), 
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]][[1]]$ESS['Q']/nsamples), 
       col = 'black', lwd = 3)
-points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS['Q']/10000),
+points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS['Q']/nsamples),
        col = 'black', lwd = 3)
-lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS['Q']/10000),
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]][[1]]$ESS['Q']/nsamples),
       col = 'black', lty = 3, lwd = 3)
-legend(x = 0, y = 0.5, legend = c('standard', 'preconditioned'), col = c('black', 'black'),
+legend(x = 0, y = 0.5, legend = c('Identity', 'Est. Cov.'), col = c('black', 'black'),
        lty = c(1,3), lwd = c(3,3), bty = 'n')
+
+# averaged over number of runs (ESS per sec)
+
+set.seed(seed)
+indices <- sample(100, 50) # take a sample of 10 of the runs
+plot(correlations, sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_standard[[i]][[j]]$ESS_per_sec['Q']))
+}), xlab = '', ylab = '', xaxt = 'n', ylim = c(0, 1000), col = 'black', lwd = 3, type = 'l')
+mtext('Correlation', 1, 2.75, font = 2, cex = 1.5)
+mtext('ESS / second', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1000, 200), labels=seq(0, 1000, 200), font = 2, cex = 1.5)
+lines(correlations, sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_standard[[i]][[j]]$ESS_per_sec['Q']))
+}), col = 'black', lwd = 3)
+# points(correlations, sapply(1:length(correlations), function(i) {
+#   mean(sapply(indices, function(j) smc_fusion_precondition[[i]][[j]]$ESS_per_sec['Q']))
+# }), col = 'black', lwd = 3)
+lines(correlations, sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_precondition[[i]][[j]]$ESS_per_sec['Q']))
+}), col = 'black', lty = 3, lwd = 3)
+legend(x = 0, y = 1000, legend = c('MCF', 'GMCF'),
+       lty = c(1,3), lwd = c(3,3), cex = 1.25, text.font = 2, bty = 'n')
+
+# averaged over number of runs (log ESS per sec)
+
+set.seed(seed)
+indices <- sample(100, 10) # take a sample of 10 of the runs
+plot(correlations, log(sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_standard[[i]][[j]]$ESS_per_sec['Q']))
+})), xlab = '', ylab = '', xaxt = 'n', ylim = c(-5, 10), col = 'black', lwd = 3)
+mtext('Correlation', 1, 2.75, font = 2, cex = 1.5)
+mtext('log(ESS / second)', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1000, 200), labels=seq(0, 1000, 200), font = 2, cex = 1.5)
+lines(correlations, log(sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_standard[[i]][[j]]$ESS_per_sec['Q']))
+})), col = 'black', lwd = 3)
+points(correlations, log(sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_precondition[[i]][[j]]$ESS_per_sec['Q']))
+})), col = 'black', lwd = 3)
+lines(correlations, log(sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_precondition[[i]][[j]]$ESS_per_sec['Q']))
+})), col = 'black', lty = 3, lwd = 3)
+legend(x = 0, y = 1000, legend = c('Identity', 'Est. Cov.'),
+       lty = c(1,3), lwd = c(3,3), cex = 1.25, text.font = 2, bty = 'n')
+
+######################################## IAD (overall)
+
+plot(correlations, sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_standard[[i]][[j]]$IAD))
+}), xlab = '', ylab = '', xaxt = 'n', ylim = c(0, 0.5), col = 'black', lwd = 3)
+mtext('Correlation', 1, 2.75, font = 2, cex = 1.5)
+mtext('IAD', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1000, 200), labels=seq(0, 1000, 200), font = 2, cex = 1.5)
+lines(correlations, sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_standard[[i]][[j]]$IAD))
+}), col = 'black', lwd = 3)
+points(correlations, sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_precondition[[i]][[j]]$IAD))
+}), col = 'black', lwd = 3)
+lines(correlations, sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_precondition[[i]][[j]]$IAD))
+}), col = 'black', lty = 3, lwd = 3)
+legend(x = 0, y = 1000, legend = c('Identity', 'Est. Cov.'),
+       lty = c(1,3), lwd = c(3,3), cex = 1.25, text.font = 2, bty = 'n')
+
+######################################## IAD (overall)
+
+plot(correlations, log(sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_standard[[i]][[j]]$IAD))
+})), xlab = '', ylab = '', xaxt = 'n', ylim = c(-5, 0), col = 'black', lwd = 3)
+mtext('Correlation', 1, 2.75, font = 2, cex = 1.5)
+mtext('log(IAD)', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1000, 200), labels=seq(0, 1000, 200), font = 2, cex = 1.5)
+lines(correlations, log(sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_standard[[i]][[j]]$IAD))
+})), col = 'black', lwd = 3)
+points(correlations, log(sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_precondition[[i]][[j]]$IAD))
+})), col = 'black', lwd = 3)
+lines(correlations, log(sapply(1:length(correlations), function(i) {
+  mean(sapply(indices, function(j) smc_fusion_precondition[[i]][[j]]$IAD))
+})), col = 'black', lty = 3, lwd = 3)
+legend(x = 0, y = 1000, legend = c('Identity', 'Est. Cov.'),
+       lty = c(1,3), lwd = c(3,3), cex = 1.25, text.font = 2, bty = 'n')
 
 # ---------- boxplot ESS for replicates
 
@@ -182,8 +292,8 @@ ggplot(data = ESS_per_second, aes(x = Correlation, y = ESS_per_sec, fill = Stand
 ESS_over_N <- data.frame()
 for (i in 1:length(correlations)) {
   ESS_over_N <- rbind(ESS_over_N, 
-                      data.frame('ESS_over_N' = c(sapply(1:rep, function(rep) smc_fusion_standard[[i]][[rep]]$ESS['Q']/10000),
-                                                  sapply(1:rep, function(rep) smc_fusion_precondition[[i]][[rep]]$ESS['Q']/10000)),
+                      data.frame('ESS_over_N' = c(sapply(1:rep, function(rep) smc_fusion_standard[[i]][[rep]]$ESS['Q']/nsamples),
+                                                  sapply(1:rep, function(rep) smc_fusion_precondition[[i]][[rep]]$ESS['Q']/nsamples)),
                                  'Correlation' = correlations[i], 
                                  'Standard' = as.factor(c(rep('MCF', number_of_replicates), rep('GMCF',  number_of_replicates)))))
 }
