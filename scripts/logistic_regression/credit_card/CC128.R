@@ -42,7 +42,7 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
                                  seed = seed,
                                  output = T)
 
-##### Sampling from sub-posterior C=64 #####
+##### Sampling from sub-posterior C=128 #####
 
 data_split_128 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 128, as_dataframe = F)
 sub_posteriors_128_1 <- hmc_base_sampler_BLR(nsamples = nsamples,
@@ -85,27 +85,27 @@ rm(sub_posteriors_128_1, sub_posteriors_128_2)
 ##### Poisson (Hypercube Centre) #####
 print('Poisson Fusion (hypercube centre)')
 Poisson_hc_128 <- hierarchical_fusion_SMC_BLR(N_schedule = rep(nsamples, 7),
-                                             m_schedule = rep(2, 7),
-                                             time_schedule = rep(time_choice, 7),
-                                             base_samples = sub_posteriors_128,
-                                             L = 8,
-                                             dim = 5,
-                                             data_split = data_split_128,
-                                             prior_means = rep(0, 5),
-                                             prior_variances = rep(1, 5),
-                                             C = 128,
-                                             precondition = TRUE,
-                                             resampling_method = 'resid',
-                                             ESS_threshold = 0.5,
-                                             cv_location = 'hypercube_centre',
-                                             diffusion_estimator = 'Poisson',
-                                             seed = seed,
-                                             n_cores = n_cores,
-                                             print_progress_iters = 500)
+                                              m_schedule = rep(2, 7),
+                                              time_schedule = rep(time_choice, 7),
+                                              base_samples = sub_posteriors_128,
+                                              L = 8,
+                                              dim = 5,
+                                              data_split = data_split_128,
+                                              prior_means = rep(0, 5),
+                                              prior_variances = rep(1, 5),
+                                              C = 128,
+                                              precondition = TRUE,
+                                              resampling_method = 'resid',
+                                              ESS_threshold = 0.5,
+                                              cv_location = 'hypercube_centre',
+                                              diffusion_estimator = 'Poisson',
+                                              seed = seed,
+                                              n_cores = n_cores,
+                                              print_progress_iters = 500)
 Poisson_hc_128$particles <- resample_particle_y_samples(particle_set = Poisson_hc_128$particles[[1]],
-                                                       multivariate = TRUE,
-                                                       resampling_method = 'resid',
-                                                       seed = seed)
+                                                        multivariate = TRUE,
+                                                        resampling_method = 'resid',
+                                                        seed = seed)
 Poisson_hc_128$proposed_samples <- Poisson_hc_128$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior,
                               Poisson_hc_128$particles$y_samples))
@@ -113,27 +113,27 @@ print(integrated_abs_distance(full_posterior,
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
 NB_hc_128 <- hierarchical_fusion_SMC_BLR(N_schedule = rep(nsamples, 7),
-                                        m_schedule = rep(2, 7),
-                                        time_schedule = rep(time_choice, 7),
-                                        base_samples = sub_posteriors_128,
-                                        L = 8,
-                                        dim = 5,
-                                        data_split = data_split_128,
-                                        prior_means = rep(0, 5),
-                                        prior_variances = rep(1, 5),
-                                        C = 128,
-                                        precondition = TRUE,
-                                        resampling_method = 'resid',
-                                        ESS_threshold = 0.5,
-                                        cv_location = 'hypercube_centre',
-                                        diffusion_estimator = 'NB',
-                                        seed = seed,
-                                        n_cores = n_cores,
-                                        print_progress_iters = 500)
+                                         m_schedule = rep(2, 7),
+                                         time_schedule = rep(time_choice, 7),
+                                         base_samples = sub_posteriors_128,
+                                         L = 8,
+                                         dim = 5,
+                                         data_split = data_split_128,
+                                         prior_means = rep(0, 5),
+                                         prior_variances = rep(1, 5),
+                                         C = 128,
+                                         precondition = TRUE,
+                                         resampling_method = 'resid',
+                                         ESS_threshold = 0.5,
+                                         cv_location = 'hypercube_centre',
+                                         diffusion_estimator = 'NB',
+                                         seed = seed,
+                                         n_cores = n_cores,
+                                         print_progress_iters = 500)
 NB_hc_128$particles <- resample_particle_y_samples(particle_set = NB_hc_128$particles[[1]],
-                                                  multivariate = TRUE,
-                                                  resampling_method = 'resid',
-                                                  seed = seed)
+                                                   multivariate = TRUE,
+                                                   resampling_method = 'resid',
+                                                   seed = seed)
 NB_hc_128$proposed_samples <- NB_hc_128$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior,
                               NB_hc_128$particles$y_samples))
@@ -150,7 +150,5 @@ integrated_abs_distance(full_posterior, NB_hc_128$particles$y_samples)
 # integrated_abs_distance(full_posterior, weierstrass_rejection_128$samples)
 
 ##### Save data #####
-
-save.image('CC128.RData')
 
 
