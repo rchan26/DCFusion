@@ -15,7 +15,8 @@ Depends:
     layeredBB,
     HMCBLR,
     dplyr,
-    expm
+    expm,
+    sfsmisc
 LinkingTo: 
     Rcpp,
     RcppArmadillo,
