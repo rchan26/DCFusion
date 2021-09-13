@@ -25,7 +25,6 @@ for (i in 1:length(mu_choices)) {
     input_samples <- list(rnorm(n = nsamples, mean = -mu_choices[i], sd = sd),
                           rnorm(n = nsamples, mean = mu_choices[i], sd = sd))
     input_particles <- initialise_particle_sets(input_samples, multivariate = FALSE)
-    
     # fusion without preconditioning
     print('fusion without preconditioning')
     standard <- parallel_fusion_SMC_uniGaussian(particles_to_fuse = input_particles, 
@@ -56,7 +55,6 @@ for (i in 1:length(mu_choices)) {
                                                                                             sd = target_param['sd'],
                                                                                             beta = 1,
                                                                                             bw = opt_bw))
-    
     # fusion with preconditioning
     print('fusion with preconditioning')
     precondition <- parallel_fusion_SMC_uniGaussian(particles_to_fuse = input_particles, 
@@ -87,66 +85,46 @@ for (i in 1:length(mu_choices)) {
                                                                                                 sd = target_param['sd'],
                                                                                                 beta = 1,
                                                                                                 bw = opt_bw))
-    
-    curve(dnorm(x, -mu_choices[i], 1), -(mu_choices[i]+5), mu_choices[i]+5,
-          ylim = c(0,1), ylab = 'pdf', main = paste('Difference in means =', 2*mu_choices[i], '|| rep:', rep))
-    curve(dnorm(x, mu_choices[i], 1), add = T)
-    curve(dnorm(x, 0, sqrt(1/2)), add = T, lty = 2, lwd = 3)
-    lines(density(resampled_precondition, bw = opt_bw), col = 'green')
-    lines(density(resampled_standard, bw = opt_bw), col = 'blue')
+    print('saving progress')
+    save.image('separate_modes_smc_uniG.RData')
+    # curve(dnorm(x, -mu_choices[i], 1), -(mu_choices[i]+5), mu_choices[i]+5,
+    #       ylim = c(0,1), ylab = 'pdf', main = paste('Difference in means =', 2*mu_choices[i], '|| rep:', rep))
+    # curve(dnorm(x, mu_choices[i], 1), add = T)
+    # curve(dnorm(x, 0, sqrt(1/2)), add = T, lty = 2, lwd = 3)
+    # lines(density(resampled_precondition, bw = opt_bw), col = 'green')
+    # lines(density(resampled_standard, bw = opt_bw), col = 'blue')
   }
 }
 
 ######################################## running time
 
-plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) standard_results[[i]]$time), 
-     ylim = c(0, 10), ylab = 'Running time in seconds', xlab = 'Difference between sub-posterior means',
+plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$time))),
+     ylim = c(0, 40), ylab = 'Running time in seconds', xlab = 'Difference between sub-posterior means',
      col = 'black', lwd = 3, xaxt = "n")
-lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) standard_results[[i]]$time),
+lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$time))),
       col = 'black', lwd = 3)
-axis(1, at=0:(2*mu_choices[length(mu_choices)]), labels=0:(2*mu_choices[length(mu_choices)]))
+axis(1, at=2*mu_choices, labels=2*mu_choices)
 
 #################### log running time
 
-plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) log(standard_results[[i]]$time)), 
-     ylim = c(-1, 3), ylab = 'Time Elapsed in log(seconds)', xlab = 'Difference between sub-posterior means',
+plot(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$time)))),
+     ylim = c(1, 4), ylab = 'log(Time elapsed in seconds)', xlab = 'Difference between sub-posterior means',
      col = 'black', lwd = 3, xaxt = "n")
-lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) log(standard_results[[i]]$time)),
+lines(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$time)))),
       col = 'black', lwd = 3)
-axis(1, at=0:(2*mu_choices[length(mu_choices)]), labels=0:(2*mu_choices[length(mu_choices)]))
+axis(1, at=2*mu_choices, labels=2*mu_choices)
 
-######################################## rho CESS
+######################################## IAD (with preconditioning)
 
-plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) standard_results[[i]]$CESS['rho']), ylim = c(0, 10000),
-     ylab = expression(paste('CESS after ', rho)), xlab = 'Difference between sub-posterior means',
+plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$IAD_bw))),
+     ylim = c(0, 1), ylab = 'IAD', xlab = 'Difference between sub-posterior means',
      col = 'black', lwd = 3, xaxt = "n")
-lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) standard_results[[i]]$CESS['rho']), 
+lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$IAD_bw))),
       col = 'black', lwd = 3)
-axis(1, at=0:(2*mu_choices[length(mu_choices)]), labels=0:(2*mu_choices[length(mu_choices)]))
+points(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$IAD_opt_bw))),
+       lwd = 3)
+lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$IAD_opt_bw))),
+      col = 'black', lwd = 3, lty = 2)
+axis(1, at=2*mu_choices, labels=2*mu_choices)
 
-######################################## Q CESS
-
-plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) standard_results[[i]]$CESS['Q']), ylim = c(0, 10000),
-     ylab = expression(paste('CESS after ', tilde(Q))), xlab = 'Difference between sub-posterior means',
-     col = 'black', lwd = 3, xaxt = "n")
-lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) standard_results[[i]]$CESS['Q']),
-      col = 'black', lwd = 3)
-axis(1, at=0:(2*mu_choices[length(mu_choices)]), labels=0:(2*mu_choices[length(mu_choices)]))
-
-######################################## rho*Q ESS (note there is resampling done after rho step if ESS < N*ESS_threshold = 0.5*N)
-
-plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) standard_results[[i]]$ESS['Q']), ylim = c(0, 10000),
-     ylab = 'ESS', xlab = 'Difference between sub-posterior means',
-     col = 'black', lwd = 3, xaxt = "n")
-lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) standard_results[[i]]$ESS['Q']), 
-      col = 'black', lwd = 3)
-axis(1, at=0:(2*mu_choices[length(mu_choices)]), labels=0:(2*mu_choices[length(mu_choices)]))
-
-######################################## IAD (without preconditioning)
-
-plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) standard_results[[i]][[j]]$IAD))),
-     ylim = c(0, 0.6), ylab = 'IAD', xlab = 'Difference between sub-posterior means',
-     col = 'black', lwd = 3, xaxt = "n")
-lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) standard_results[[i]][[j]]$IAD))), 
-      col = 'black', lwd = 3)
-axis(1, at=0:(2*mu_choices[length(mu_choices)]), labels=0:(2*mu_choices[length(mu_choices)]))
+par(mfrow=c(1, 2))
