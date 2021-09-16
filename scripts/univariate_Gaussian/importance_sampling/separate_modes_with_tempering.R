@@ -144,7 +144,7 @@ for (b in 1:length(beta_choices)) {
 # beta = 1/16
 plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[4]][[i]][[j]]$IAD_bw))),
      ylim = c(0, 1), xlab = '', ylab = '', col = 'black', lty = 3, lwd = 3, xaxt = "n", yaxt = 'n', type = 'l')
-axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
+axis(1, at = 2*mu_choices, labels = 2*mu_choices, font = 2, cex = 1.5)
 mtext('Difference in sub-posterior means', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.2), labels=c(seq(0, 0.8, 0.2), "1.0"), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
@@ -200,7 +200,7 @@ legend(x = 160, y = 1,
 # beta = 1/16
 plot(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[4]][[i]][[j]]$time)))),
      ylim = c(0, 10), xlab = '', ylab = '', col = 'black', lty = 3, lwd = 3, xaxt = "n", yaxt = 'n', type = 'l')
-axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
+axis(1, at = 2*mu_choices, labels = 2*mu_choices, font = 2, cex = 1.5)
 mtext('Difference in sub-posterior means', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at=seq(0, 10, 2), labels=seq(0, 10, 2), font = 2, cex = 1.5)
 axis(2, at=0:10, labels=rep("", 11), lwd.ticks = 0.5)
@@ -249,4 +249,3 @@ legend(x = 0, y = 10,
        cex = 1.25,
        text.font = 2,
        bty = 'n')
-

@@ -115,7 +115,7 @@ lines(x = c(2, 4, 8, 16), y = c(sum(hier_results[[1]]$time), sum(hier_results[[3
 points(x = 2:16, y = sapply(1:15, function(i) sum(prog_results[[i]]$time)), col = 'black', pch = 4)
 lines(x = 2:16, y = sapply(1:15, function(i) sum(prog_results[[i]]$time)), col = 'black')
 
-#################### log
+######################################## log running time
 
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
 plot(x = 2:16, y = sapply(1:15, function(i) log(fnj_standard_results[[i]][[1]])), ylim = c(-1, 12),
@@ -153,7 +153,7 @@ legend(x = 2, y = 12,
        text.font = 2,
        bty = 'n')
 
-####################  black
+######################################## black
 
 plot(x = 2:16, y = sapply(1:15, function(i) log(fnj_precondition_results[[i]][[1]])), ylim = c(-1, 7),
      ylab = '', xlab = '', font.lab = 2, pch = 1, lwd = 3, xaxt='n', yaxt='n')

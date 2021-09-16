@@ -126,5 +126,3 @@ points(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sappl
 lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$IAD_opt_bw))),
       col = 'black', lwd = 3, lty = 2)
 axis(1, at=2*mu_choices, labels=2*mu_choices)
-
-par(mfrow=c(1, 2))

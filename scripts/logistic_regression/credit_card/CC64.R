@@ -1,7 +1,7 @@
 library(hierarchicalFusion)
 library(HMCBLR)
 
-seed <- 2021
+seed <- 2016
 nsamples <- 30000
 time_choice <- 0.5
 n_cores <- parallel::detectCores()
@@ -56,19 +56,19 @@ sub_posteriors_64 <- hmc_base_sampler_BLR(nsamples = nsamples,
 
 ##### Applying other methodologies #####
 
-# print('Applying other methodologies')
-# consensus_mat_64 <- consensus_scott(S = 64, samples_to_combine = sub_posteriors_64, indep = F)
-# consensus_sca_64 <- consensus_scott(S = 64, samples_to_combine = sub_posteriors_64, indep = T)
-# neiswanger_true_64 <- neiswanger(S = 64,
-#                                  samples_to_combine = sub_posteriors_64,
-#                                  anneal = TRUE)
-# neiswanger_false_64 <- neiswanger(S = 64,
-#                                   samples_to_combine = sub_posteriors_64,
-#                                   anneal = FALSE)
-# weierstrass_importance_64 <- weierstrass(Samples = sub_posteriors_64,
-#                                          method = 'importance')
-# weierstrass_rejection_64 <- weierstrass(Samples = sub_posteriors_64,
-#                                         method = 'reject')
+print('Applying other methodologies')
+consensus_mat_64 <- consensus_scott(S = 64, samples_to_combine = sub_posteriors_64, indep = F)
+consensus_sca_64 <- consensus_scott(S = 64, samples_to_combine = sub_posteriors_64, indep = T)
+neiswanger_true_64 <- neiswanger(S = 64,
+                                 samples_to_combine = sub_posteriors_64,
+                                 anneal = TRUE)
+neiswanger_false_64 <- neiswanger(S = 64,
+                                  samples_to_combine = sub_posteriors_64,
+                                  anneal = FALSE)
+weierstrass_importance_64 <- weierstrass(Samples = sub_posteriors_64,
+                                         method = 'importance')
+weierstrass_rejection_64 <- weierstrass(Samples = sub_posteriors_64,
+                                        method = 'reject')
 
 ##### Applying Fusion #####
 
@@ -132,12 +132,12 @@ print(integrated_abs_distance(full_posterior,
 
 integrated_abs_distance(full_posterior, Poisson_hc_64$particles$y_samples)
 integrated_abs_distance(full_posterior, NB_hc_64$particles$y_samples)
-# integrated_abs_distance(full_posterior, consensus_mat_64$samples)
-# integrated_abs_distance(full_posterior, consensus_sca_64$samples)
-# integrated_abs_distance(full_posterior, neiswanger_true_64$samples)
-# integrated_abs_distance(full_posterior, neiswanger_false_64$samples)
-# integrated_abs_distance(full_posterior, weierstrass_importance_64$samples)
-# integrated_abs_distance(full_posterior, weierstrass_rejection_64$samples)
+integrated_abs_distance(full_posterior, consensus_mat_64$samples)
+integrated_abs_distance(full_posterior, consensus_sca_64$samples)
+integrated_abs_distance(full_posterior, neiswanger_true_64$samples)
+integrated_abs_distance(full_posterior, neiswanger_false_64$samples)
+integrated_abs_distance(full_posterior, weierstrass_importance_64$samples)
+integrated_abs_distance(full_posterior, weierstrass_rejection_64$samples)
 
 ##### Save data #####
 

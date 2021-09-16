@@ -88,6 +88,8 @@ for (i in 1:length(correlations)) {
   # lines(density(fusion_precondition[[i]]$samples[,2]), col = 'red')
 }
 
+######################################## rho acceptance
+
 plot(correlations, sapply(1:9, function(i) fusion_standard[[i]]$rho), ylim = c(0, 1),
      xlab = 'Correlation', ylab = expression(paste('Acceptance Rate for ', rho)), col = 'black', lwd = 3)
 axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
@@ -95,6 +97,8 @@ lines(correlations, sapply(1:9, function(i) fusion_standard[[i]]$rho), col = 'bl
 points(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$rho), col = 'black', lty = 3, lwd = 3)
 lines(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$rho), col = 'black', lwd = 3)
 legend(x = 0, y = 1, legend = c('standard', 'preconditioned'), col = c('black', 'black'), lty = c(1,3), lwd = c(3,3), bty = 'n')
+
+######################################## Q acceptance
 
 plot(correlations, sapply(1:9, function(i) fusion_standard[[i]]$Q), ylim = c(0, 0.4),
      xlab = 'Correlation', ylab = expression(paste('Acceptance Rate for ', hat(Q))), col = 'black', lwd = 3)
@@ -104,6 +108,8 @@ points(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$Q), col = 
 lines(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$Q), col = 'black', lty = 3, lwd = 3)
 legend(x = 0, y = 0.4, legend = c('standard', 'preconditioned'), col = c('black', 'black'), lty = c(1,3), lwd = c(3,3), bty = 'n')
 
+######################################## overall acceptance
+
 plot(correlations, sapply(1:9, function(i) fusion_standard[[i]]$rhoQ), ylim = c(0, 0.4),
      xlab = 'Correlation', ylab = 'Overall Acceptance Rate', col = 'black', lwd = 3)
 axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
@@ -112,6 +118,8 @@ points(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$rhoQ), col
 lines(correlations, sapply(1:9, function(i) fusion_precondition[[i]]$rhoQ), col = 'black', lty = 3, lwd = 3)
 legend(x = 0, y = 1, legend = c('standard', 'preconditioned'), col = c('black', 'black'), lty = c(1,3), lwd = c(3,3), bty = 'n')
 
+######################################## log(overall acceptance)
+
 plot(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$rhoQ)),
      xlab = 'Correlation', ylab = 'log(Overall Acceptance Rate)', col = 'black', lwd = 3)
 axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
@@ -119,6 +127,8 @@ lines(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$rhoQ)), col
 points(correlations, log(sapply(1:9, function(i) fusion_precondition[[i]]$rhoQ)), col = 'black', lty = 3, lwd = 3)
 lines(correlations, log(sapply(1:9, function(i) fusion_precondition[[i]]$rhoQ)), col = 'black', lty = 3, lwd = 3)
 legend(x = 0, y = -4.5, legend = c('standard', 'preconditioned'), col = c('black', 'black'), lty = c(1,3), lwd = c(3,3), bty = 'n')
+
+######################################## log running time
 
 plot(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$time)),
      xlab = '', ylab = '', col = 'black', ylim = c(1, 5), lwd = 3)

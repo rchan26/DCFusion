@@ -1,7 +1,7 @@
 library(hierarchicalFusion)
 library(HMCBLR)
 
-seed <- 2021
+seed <- 2016
 nsamples <- 30000
 time_choice <- 0.5
 n_cores <- parallel::detectCores()
@@ -82,19 +82,19 @@ rm(sub_posteriors_256_1, sub_posteriors_256_2, sub_posteriors_256_3, sub_posteri
 
 ##### Applying other methodologies #####
 
-# print('Applying other methodologies')
-# consensus_mat_256 <- consensus_scott(S = 256, samples_to_combine = sub_posteriors_256, indep = F)
-# consensus_sca_256 <- consensus_scott(S = 256, samples_to_combine = sub_posteriors_256, indep = T)
-# neiswanger_true_256 <- neiswanger(S = 256,
-#                                  samples_to_combine = sub_posteriors_256,
-#                                  anneal = TRUE)
-# neiswanger_false_256 <- neiswanger(S = 256,
-#                                   samples_to_combine = sub_posteriors_256,
-#                                   anneal = FALSE)
-# weierstrass_importance_256 <- weierstrass(Samples = sub_posteriors_256,
-#                                          method = 'importance')
-# weierstrass_rejection_256 <- weierstrass(Samples = sub_posteriors_256,
-#                                         method = 'reject')
+print('Applying other methodologies')
+consensus_mat_256 <- consensus_scott(S = 256, samples_to_combine = sub_posteriors_256, indep = F)
+consensus_sca_256 <- consensus_scott(S = 256, samples_to_combine = sub_posteriors_256, indep = T)
+neiswanger_true_256 <- neiswanger(S = 256,
+                                 samples_to_combine = sub_posteriors_256,
+                                 anneal = TRUE)
+neiswanger_false_256 <- neiswanger(S = 256,
+                                  samples_to_combine = sub_posteriors_256,
+                                  anneal = FALSE)
+weierstrass_importance_256 <- weierstrass(Samples = sub_posteriors_256,
+                                         method = 'importance')
+weierstrass_rejection_256 <- weierstrass(Samples = sub_posteriors_256,
+                                        method = 'reject')
 
 ##### Applying Fusion #####
 
@@ -156,12 +156,12 @@ print(integrated_abs_distance(full_posterior, NB_hc_256$particles$y_samples))
 
 integrated_abs_distance(full_posterior, Poisson_hc_256$particles$y_samples)
 integrated_abs_distance(full_posterior, NB_hc_256$particles$y_samples)
-# integrated_abs_distance(full_posterior, consensus_mat_256$samples)
-# integrated_abs_distance(full_posterior, consensus_sca_256$samples)
-# integrated_abs_distance(full_posterior, neiswanger_true_256$samples)
-# integrated_abs_distance(full_posterior, neiswanger_false_256$samples)
-# integrated_abs_distance(full_posterior, weierstrass_importance_256$samples)
-# integrated_abs_distance(full_posterior, weierstrass_rejection_256$samples)
+integrated_abs_distance(full_posterior, consensus_mat_256$samples)
+integrated_abs_distance(full_posterior, consensus_sca_256$samples)
+integrated_abs_distance(full_posterior, neiswanger_true_256$samples)
+integrated_abs_distance(full_posterior, neiswanger_false_256$samples)
+integrated_abs_distance(full_posterior, weierstrass_importance_256$samples)
+integrated_abs_distance(full_posterior, weierstrass_rejection_256$samples)
 
 ##### Save data #####
 
