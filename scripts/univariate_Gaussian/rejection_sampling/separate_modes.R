@@ -75,7 +75,7 @@ plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) log(fusion_s
      ylim = c(-1,10), ylab = '', xlab = '',
      col = 'black', lwd = 3, xaxt = "n")
 mtext('Difference in sub-posterior means', 1, 2.75, font = 2, cex = 1.5)
-mtext('log(Time Elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
 lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) log(fusion_samples_standard[[i]]$time)),
       col = 'black', lwd = 3)
 axis(1, at=0:8, labels=0:8, font = 2, cex = 1.5)

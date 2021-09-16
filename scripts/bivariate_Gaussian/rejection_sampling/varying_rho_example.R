@@ -123,7 +123,7 @@ legend(x = 0, y = -4.5, legend = c('standard', 'preconditioned'), col = c('black
 plot(correlations, log(sapply(1:9, function(i) fusion_standard[[i]]$time)),
      xlab = '', ylab = '', col = 'black', ylim = c(1, 5), lwd = 3)
 mtext('Sub-posterior correlation', 1, 2.75, font = 2, cex = 1.5)
-mtext('log(Time Elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=correlations, labels=rep("", length(correlations)), lwd.ticks = 0.5)
 axis(1, at=seq(0, 0.8, 0.2), labels=c("0.0", seq(0.2, 0.8, 0.2)), font = 2, cex = 1.5)
 axis(2, at=1:6, labels=1:6, font = 2, cex = 1.5)

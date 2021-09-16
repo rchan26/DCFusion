@@ -141,82 +141,112 @@ for (b in 1:length(beta_choices)) {
 
 ######################################## IAD
 
-# # beta = 1/16
-# plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:7, function(j) precondition_hier_results[[4]][[i]][[j]]$IAD_bw))),
-#      ylim = c(0, 1), ylab = 'IAD', xlab = 'Difference between sub-posterior means',
-#      col = 'orange', lty = 1, lwd = 3, xaxt = "n", type = 'l')
-# lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:7, function(j) precondition_prog_results[[4]][[i]][[j]]$IAD_bw))),
+# beta = 1/16
+plot(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[4]][[i]][[j]]$IAD_bw))),
+     ylim = c(0, 1), xlab = '', ylab = '', col = 'black', lty = 3, lwd = 3, xaxt = "n", yaxt = 'n', type = 'l')
+axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
+mtext('Difference in sub-posterior means', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.2), labels=c(seq(0, 0.8, 0.2), "1.0"), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+# lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_prog_results[[4]][[i]][[j]]$IAD_bw))),
 #       col = 'orange', lty = 2, lwd = 3)
-# # beta = 1/8
-# lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) c))),
-#       col = 'red', lty = 1, lwd = 3)
+# beta = 1/8
+lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[3]][[i]][[j]]$IAD_bw))),
+      col = 'black', lty = 2, lwd = 3)
 # lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_prog_results[[3]][[i]][[j]]$IAD_bw))),
 #       col = 'red', lty = 2, lwd = 3)
-# # beta = 1/4
-# lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[2]][[i]][[j]]$IAD_bw))),
-#       col = 'green', lty = 1, lwd = 3)
+# beta = 1/4
+lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[2]][[i]][[j]]$IAD_bw))),
+      col = 'black', lty = 4, lwd = 3)
 # lines(x = 2*mu_choices, y = sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_prog_results[[2]][[i]][[j]]$IAD_bw))),
 #       col = 'green', lty = 2, lwd = 3)
-# # beta = 1/2
-# lines(x = 2*mu_choices[1:7], y = sapply(1:length(mu_choices[1:7]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[1]][[i]][[j]]$IAD_bw))),
-#       col = 'blue', lty = 1, lwd = 3)
+# beta = 1/2
+lines(x = 2*mu_choices[1:7], y = c(sapply(1:length(mu_choices[1:6]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[1]][[i]][[j]]$IAD_bw))), 0.3200),
+      col = 'black', lty = 5, lwd = 3)
 # lines(x = 2*mu_choices[1:7], y = sapply(1:length(mu_choices[1:7]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_prog_results[[1]][[i]][[j]]$IAD_bw))),
 #       col = 'blue', lty = 2, lwd = 3)
-# # beta = 1
-# lines(x = 2*mu_choices[1:6], y = sapply(1:length(mu_choices[1:6]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$IAD_bw))),
-#       col = 'black', lwd = 3)
-# axis(1, at=2*mu_choices, labels=2*mu_choices)
-# legend(x = 128, y = 1, 
+# beta = 1
+lines(x = 2*mu_choices[1:6], y = sapply(1:length(mu_choices[1:6]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$IAD_bw))),
+      col = 'black', lwd = 3)
+axis(1, at=2*mu_choices, labels=2*mu_choices)
+# legend(x = 128, y = 1,
 #        legend = c('direct combination',
 #                   'balanced (beta=1/2)', 'progressive (beta=1/2)',
 #                   'balanced (beta=1/4)', 'progressive (beta=1/4)',
 #                   'balanced (beta=1/8)', 'progressive (beta=1/8)',
 #                   'balanced (beta=1/16)', 'progressive (beta=1/16)'),
-#        lty = c(1, 1, 2, 1, 2, 1, 2, 1, 2), 
+#        lty = c(1, 1, 2, 1, 2, 1, 2, 1, 2),
 #        lwd = c(3, 3, 3, 3, 3, 3, 3, 3, 3),
-#        # pch = c(1, 0, 2), 
 #        col = c('black', 'blue', 'blue', 'green', 'green', 'red', 'red', 'orange', 'orange'),
 #        cex = 1.25,
 #        text.font = 2,
 #        bty = 'n')
-# 
-# ######################################## time
-# 
-# # beta = 1/16
-# plot(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:7, function(j) precondition_hier_results[[4]][[i]][[j]]$time)))),
-#      ylim = c(0, 10), ylab = 'log(Time elapsed in seconds)', xlab = 'Difference between sub-posterior means',
-#      col = 'orange', lty = 1, lwd = 3, xaxt = "n", type = 'l')
-# lines(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:7, function(j) precondition_prog_results[[4]][[i]][[j]]$time)))),
+legend(x = 160, y = 1,
+       legend = c(bquote(bold('direct combination')),
+                  as.expression(bquote(bold(paste(beta, ' = 1/2')))),
+                  as.expression(bquote(bold(paste(beta, ' = 1/4')))),
+                  as.expression(bquote(bold(paste(beta, ' = 1/8')))),
+                  as.expression(bquote(bold(paste(beta, ' = 1/16'))))),
+       lty = c(1, 5, 4, 2, 3),
+       lwd = rep(3, 5),
+       col = rep('black', 5),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+######################################## time
+
+# beta = 1/16
+plot(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[4]][[i]][[j]]$time)))),
+     ylim = c(0, 10), xlab = '', ylab = '', col = 'black', lty = 3, lwd = 3, xaxt = "n", yaxt = 'n', type = 'l')
+axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
+mtext('Difference in sub-posterior means', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at=seq(0, 10, 2), labels=seq(0, 10, 2), font = 2, cex = 1.5)
+axis(2, at=0:10, labels=rep("", 11), lwd.ticks = 0.5)
+mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
+# lines(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_prog_results[[4]][[i]][[j]]$time)))),
 #       col = 'orange', lty = 2, lwd = 3)
-# # beta = 1/8
-# lines(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[3]][[i]][[j]]$time)))),
-#       col = 'red', lty = 1, lwd = 3)
+# beta = 1/8
+lines(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[3]][[i]][[j]]$time)))),
+      col = 'black', lty = 2, lwd = 3)
 # lines(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_prog_results[[3]][[i]][[j]]$time)))),
 #       col = 'red', lty = 2, lwd = 3)
-# # beta = 1/4
-# lines(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[2]][[i]][[j]]$time)))),
-#       col = 'green', lty = 1, lwd = 3)
+# beta = 1/4
+lines(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[2]][[i]][[j]]$time)))),
+      col = 'black', lty = 4, lwd = 3)
 # lines(x = 2*mu_choices, y = log(sapply(1:length(mu_choices), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_prog_results[[2]][[i]][[j]]$time)))),
 #       col = 'green', lty = 2, lwd = 3)
-# # beta = 1/2
-# lines(x = 2*mu_choices[1:7], y = log(sapply(1:length(mu_choices[1:7]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[1]][[i]][[j]]$time)))),
-#       col = 'blue', lty = 1, lwd = 3)
+# beta = 1/2
+lines(x = 2*mu_choices[1:7], y = log(sapply(1:length(mu_choices[1:7]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_hier_results[[1]][[i]][[j]]$time)))),
+      col = 'black', lty = 5, lwd = 3)
 # lines(x = 2*mu_choices[1:7], y = log(sapply(1:length(mu_choices[1:7]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_prog_results[[1]][[i]][[j]]$time)))),
 #       col = 'blue', lty = 2, lwd = 3)
-# # beta = 1
-# lines(x = 2*mu_choices[1:6], y = log(sapply(1:length(mu_choices[1:6]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$time)))),
-#       col = 'black', lwd = 3)
-# axis(1, at=2*mu_choices, labels=2*mu_choices)
-# legend(x = 128, y = 1, 
+# beta = 1
+lines(x = 2*mu_choices[1:6], y = log(sapply(1:length(mu_choices[1:6]), function(i) mean(sapply(1:number_of_replicates, function(j) precondition_results[[i]][[j]]$time)))),
+      col = 'black', lwd = 3)
+axis(1, at=2*mu_choices, labels=2*mu_choices)
+# legend(x = 128, y = 1,
 #        legend = c('direct combination',
 #                   'balanced (beta=1/2)', 'progressive (beta=1/2)',
 #                   'balanced (beta=1/4)', 'progressive (beta=1/4)',
 #                   'balanced (beta=1/8)', 'progressive (beta=1/8)',
 #                   'balanced (beta=1/16)', 'progressive (beta=1/16)'),
-#        lty = c(1, 1, 2, 1, 2, 1, 2, 1, 2), 
+#        lty = c(1, 1, 2, 1, 2, 1, 2, 1, 2),
 #        lwd = c(3, 3, 3, 3, 3, 3, 3, 3, 3),
-#        # pch = c(1, 0, 2), 
 #        col = c('black', 'blue', 'blue', 'green', 'green', 'red', 'red', 'orange', 'orange'),
 #        cex = 1.25,
 #        text.font = 2,
 #        bty = 'n')
+legend(x = 0, y = 10,
+       legend = c(bquote(bold('direct combination')),
+                  as.expression(bquote(bold(paste(beta, ' = 1/2')))),
+                  as.expression(bquote(bold(paste(beta, ' = 1/4')))),
+                  as.expression(bquote(bold(paste(beta, ' = 1/8')))),
+                  as.expression(bquote(bold(paste(beta, ' = 1/16'))))),
+       lty = c(1, 5, 4, 2, 3),
+       lwd = rep(3, 5),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+

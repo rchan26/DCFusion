@@ -163,7 +163,7 @@ mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at=-1:7, labels=-1:7, font = 2, cex = 1.5)
 # axis(2, at = seq(0, 8, 2), labels = seq(0, 8, 2), font = 2, cex = 1.5)
 # axis(2, at=0:8, labels=rep("", 9), lwd.ticks = 0.5)
-mtext('log(Time Elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
 lines(x = 2:16, y = sapply(1:15, function(i) log(fnj_precondition_results[[i]][[1]])), lwd = 3)
 points(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))),
        pch = 2, lwd = 3)
