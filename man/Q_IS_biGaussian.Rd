@@ -2,7 +2,7 @@
 % Please edit documentation in R/bivariate_Gaussian_fusion.R
 \name{Q_IS_biGaussian}
 \alias{Q_IS_biGaussian}
-\title{Q Importance Sampling Step for tempered bivariate Gaussian distributions}
+\title{Q Importance Sampling Step}
 \usage{
 Q_IS_biGaussian(
   particle_set,
@@ -58,5 +58,5 @@ is the precondition matrix for sub-posterior c}
 An updated particle set
 }
 \description{
-Q Importance Sampling weighting for tempered bivariate Gaussian distributions
+Q Importance Sampling weighting for bivariate Gaussian distributions
 }

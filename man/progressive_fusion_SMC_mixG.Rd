@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixG_fusion.R
 \name{progressive_fusion_SMC_mixG}
 \alias{progressive_fusion_SMC_mixG}
-\title{Progressive SMC Fusion}
+\title{(Progressive) D&C Monte Carlo Fusion using SMC}
 \usage{
 progressive_fusion_SMC_mixG(
   N_schedule,
@@ -88,5 +88,5 @@ A list with components:
 }
 }
 \description{
-Progressive SMC Fusion with base level of the form exp(-((x^4)*beta)/2)
+(Progressive) D&C Monte Carlo Fusion with mixture Gaussian target
 }

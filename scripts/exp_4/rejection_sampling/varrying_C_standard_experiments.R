@@ -4,7 +4,7 @@ seed <- 408
 denominator <- 2:16
 input_samples <- list()
 fnj_results <- list()
-hier_results <- list()
+bal_results <- list()
 prog_results <- list()
 time_choice <- 1
 
@@ -25,75 +25,75 @@ for (i in 1:length(denominator)) {
   
   # standard fork and join
   print('performing standard fork-and-join MC fusion')
-  fnj_fused <- hierarchical_fusion_exp_4(N_schedule = 10000,
-                                         m_schedule = denominator[i],
-                                         time_schedule = time_choice,
-                                         base_samples = input_samples[[i]],
-                                         mean = 0,
-                                         start_beta = 1/denominator[i],
-                                         L = 2,
-                                         precondition = FALSE,
-                                         seed = seed)
+  fnj_fused <- bal_binary_fusion_exp_4(N_schedule = 10000,
+                                       m_schedule = denominator[i],
+                                       time_schedule = time_choice,
+                                       base_samples = input_samples[[i]],
+                                       mean = 0,
+                                       start_beta = 1/denominator[i],
+                                       L = 2,
+                                       precondition = FALSE,
+                                       seed = seed)
   
   fnj_results[[i]] <- list('time' = fnj_fused$overall_time,
                            'overall_rho' = fnj_fused$overall_rho,
                            'overall_Q' = fnj_fused$overall_Q,
                            'overall_rhoQ' = fnj_fused$overall_rhoQ)
   
-  # hierarchical if denominator[i] is 2, 4, 8, or 16
+  # balanced binary if denominator[i] is 2, 4, 8, or 16
   if (denominator[i]==2) {
-    print('performing standard hierarchical MC fusion')
-    hier_fused <- hierarchical_fusion_exp_4(N_schedule = 10000,
-                                            m_schedule = 2,
-                                            time_schedule = time_choice,
-                                            base_samples = input_samples[[i]],
-                                            mean = 0,
-                                            start_beta = 1/2,
-                                            L = 2,
-                                            precondition = FALSE,
-                                            seed = seed)
+    print('performing standard balanced binary MC fusion')
+    bal_fused <- bal_binary_fusion_exp_4(N_schedule = 10000,
+                                         m_schedule = 2,
+                                         time_schedule = time_choice,
+                                         base_samples = input_samples[[i]],
+                                         mean = 0,
+                                         start_beta = 1/2,
+                                         L = 2,
+                                         precondition = FALSE,
+                                         seed = seed)
   } else if (denominator[i]==4) {
-    print('performing standard hierarchical MC fusion')
-    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(10000, 2),
-                                            m_schedule = rep(2, 2),
-                                            time_schedule = rep(time_choice, 2),
-                                            base_samples = input_samples[[i]],
-                                            mean = 0,
-                                            start_beta = 1/4,
-                                            L = 3,
-                                            precondition = FALSE,
-                                            seed = seed)
+    print('performing standard balanced binary MC fusion')
+    bal_fused <- bal_binary_fusion_exp_4(N_schedule = rep(10000, 2),
+                                         m_schedule = rep(2, 2),
+                                         time_schedule = rep(time_choice, 2),
+                                         base_samples = input_samples[[i]],
+                                         mean = 0,
+                                         start_beta = 1/4,
+                                         L = 3,
+                                         precondition = FALSE,
+                                         seed = seed)
   } else if (denominator[i]==8) {
-    print('performing standard hierarchical MC fusion')
-    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(10000, 3),
-                                            m_schedule = rep(2, 3),
-                                            time_schedule = rep(time_choice, 3),
-                                            base_samples = input_samples[[i]],
-                                            mean = 0,
-                                            start_beta = 1/8,
-                                            L = 4,
-                                            precondition = FALSE,
-                                            seed = seed)
+    print('performing standard balanced binary MC fusion')
+    bal_fused <- bal_binary_fusion_exp_4(N_schedule = rep(10000, 3),
+                                         m_schedule = rep(2, 3),
+                                         time_schedule = rep(time_choice, 3),
+                                         base_samples = input_samples[[i]],
+                                         mean = 0,
+                                         start_beta = 1/8,
+                                         L = 4,
+                                         precondition = FALSE,
+                                         seed = seed)
   } else if (denominator[i]==16) {
-    print('performing standard hierarchical MC fusion')
-    hier_fused <- hierarchical_fusion_exp_4(N_schedule = rep(10000, 4),
-                                            m_schedule = rep(2, 4),
-                                            time_schedule = rep(time_choice, 4),
-                                            base_samples = input_samples[[i]], 
-                                            mean = 0,
-                                            start_beta = 1/16,
-                                            L = 5,
-                                            precondition = FALSE,
-                                            seed = seed)
+    print('performing standard balanced binary MC fusion')
+    bal_fused <- bal_binary_fusion_exp_4(N_schedule = rep(10000, 4),
+                                         m_schedule = rep(2, 4),
+                                         time_schedule = rep(time_choice, 4),
+                                         base_samples = input_samples[[i]], 
+                                         mean = 0,
+                                         start_beta = 1/16,
+                                         L = 5,
+                                         precondition = FALSE,
+                                         seed = seed)
   }
   
   if (denominator[i] %in% c(2, 4, 8, 16)) {
-    hier_results[[i]] <- list('time' = hier_fused$overall_time,
-                              'overall_rho' = hier_fused$overall_rho,
-                              'overall_Q' = hier_fused$overall_Q,
-                              'overall_rhoQ' = hier_fused$overall_rhoQ)
+    bal_results[[i]] <- list('time' = bal_fused$overall_time,
+                             'overall_rho' = bal_fused$overall_rho,
+                             'overall_Q' = bal_fused$overall_Q,
+                             'overall_rhoQ' = bal_fused$overall_rhoQ)
   } else {
-    hier_results[[i]] <- NA
+    bal_results[[i]] <- NA
   }
   
   # progressive
@@ -113,8 +113,8 @@ for (i in 1:length(denominator)) {
   
   curve(exp_4_density(x), -4, 4, ylim = c(0, 0.5), main = denominator[i])
   lines(density(fnj_fused$samples[[1]]), col = 'orange', lty = 2)
-  if (!any(is.na(hier_results[[i]]))) {
-    lines(density(hier_fused$samples[[1]]), col = 'blue', lty = 2)
+  if (!any(is.na(bal_results[[i]]))) {
+    lines(density(bal_fused$samples[[1]]), col = 'blue', lty = 2)
   }
   lines(density(prog_fused$samples[[1]]), col = 'darkgreen', lty = 2)
 }
@@ -126,10 +126,10 @@ par(mai = c(1.02, 1, 0.82, 0.42))
 plot(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]][[1]]), ylim = c(0, 10),
      ylab = 'Running time in seconds', xlab = 'Number of Subposteriors (C)', col = 'black', pch = 4)
 lines(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]][[1]]), col = 'black')
-points(x = c(2, 4, 8, 16), y = c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
-                                 sum(hier_results[[7]]$time), sum(hier_results[[15]]$time)), col = 'black', pch = 4)
-lines(x = c(2, 4, 8, 16), y = c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
-                                sum(hier_results[[7]]$time), sum(hier_results[[15]]$time)), col = 'black')
+points(x = c(2, 4, 8, 16), y = c(sum(bal_results[[1]]$time), sum(bal_results[[3]]$time),
+                                 sum(bal_results[[7]]$time), sum(bal_results[[15]]$time)), col = 'black', pch = 4)
+lines(x = c(2, 4, 8, 16), y = c(sum(bal_results[[1]]$time), sum(bal_results[[3]]$time),
+                                sum(bal_results[[7]]$time), sum(bal_results[[15]]$time)), col = 'black')
 points(x = 2:16, y = sapply(1:15, function(i) sum(prog_results[[i]]$time)), col = 'black', pch = 4)
 lines(x = 2:16, y = sapply(1:15, function(i) sum(prog_results[[i]]$time)), col = 'black')
 
@@ -142,11 +142,11 @@ plot(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), ylim = 
      col = Okabe_Ito[8], pch = 1, lwd = 3)
 lines(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), 
       col = Okabe_Ito[8], lwd = 3)
-points(x = c(2, 4, 8, 16), y = log(c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
-                                     sum(hier_results[[7]]$time), sum(hier_results[[15]]$time))), 
+points(x = c(2, 4, 8, 16), y = log(c(sum(bal_results[[1]]$time), sum(bal_results[[3]]$time),
+                                     sum(bal_results[[7]]$time), sum(bal_results[[15]]$time))), 
        col = Okabe_Ito[5], pch = 0, lwd = 3)
-lines(x = c(2, 4, 8, 16), y = log(c(sum(hier_results[[1]]$time), sum(hier_results[[3]]$time),
-                                    sum(hier_results[[7]]$time), sum(hier_results[[15]]$time))), 
+lines(x = c(2, 4, 8, 16), y = log(c(sum(bal_results[[1]]$time), sum(bal_results[[3]]$time),
+                                    sum(bal_results[[7]]$time), sum(bal_results[[15]]$time))), 
       col = Okabe_Ito[5], lty = 2, lwd = 3)
 points(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
        col = Okabe_Ito[4], pch = 2, lwd = 3)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/univariate_Gaussian_fusion.R
 \name{progressive_fusion_SMC_uniGaussian}
 \alias{progressive_fusion_SMC_uniGaussian}
-\title{Progressive SMC Fusion}
+\title{(Progressive) D&C Monte Carlo Fusion using SMC}
 \usage{
 progressive_fusion_SMC_uniGaussian(
   N_schedule,
@@ -91,5 +91,5 @@ A list with components:
 }
 }
 \description{
-Progressive SMC Fusion with base tempered Gaussians with same mean and standard deviation
+(Progressive) D&C Monte Carlo Fusion with univariate Gaussian target
 }

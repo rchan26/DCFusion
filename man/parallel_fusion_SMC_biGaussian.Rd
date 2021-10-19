@@ -2,7 +2,7 @@
 % Please edit documentation in R/bivariate_Gaussian_fusion.R
 \name{parallel_fusion_SMC_biGaussian}
 \alias{parallel_fusion_SMC_biGaussian}
-\title{SMC Fusion for tempered Bivariate Normal distribution}
+\title{Generalised Monte Carlo Fusion [parallel]}
 \usage{
 parallel_fusion_SMC_biGaussian(
   particles_to_fuse,
@@ -92,5 +92,5 @@ A list with components:
 }
 }
 \description{
-SMC Fusion for sub-posteriors that are tempered bivariate Gaussian distributions
+Generalised Monte Carlo Fusion with bivariate Gaussian target
 }

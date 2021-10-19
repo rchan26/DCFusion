@@ -2,7 +2,7 @@
 % Please edit documentation in R/univariate_Gaussian_fusion.R
 \name{ea_uniGaussian_DL_PT}
 \alias{ea_uniGaussian_DL_PT}
-\title{Diffusion probability for the Exact Algorithm for langevin diffusion for 
+\title{Diffusion probability for the Exact Algorithm for Langevin diffusion for 
 tempered Gaussian distribution}
 \usage{
 ea_uniGaussian_DL_PT(
@@ -56,7 +56,7 @@ acceptance probability of simulating langevin diffusion with pi =
         tempered Gaussian distribution
 }
 \description{
-Simulate langevin diffusion using the Exact Algorithm where pi = 
+Simulate Langevin diffusion using the Exact Algorithm where pi = 
 tempered Gaussian distribution
 }
 \examples{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixG_fusion.R
 \name{Q_IS_mixG}
 \alias{Q_IS_mixG}
-\title{Q Importance Sampling Step for sub-posteriors of the form exp(-((x^4)*beta)/2)}
+\title{Q Importance Sampling Step}
 \usage{
 Q_IS_mixG(
   particle_set,
@@ -40,7 +40,7 @@ value for c-th posterior}
 \item{precondition_values}{vector of length m, where precondition_values[c]
 is the precondition value for sub-posterior c}
 
-\item{bounds_multiplier}{scalar value to mulitply bounds by 
+\item{bounds_multiplier}{scalar value to multiply bounds by 
 (should greater than or equal to 1)}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
@@ -51,5 +51,5 @@ is the precondition value for sub-posterior c}
 An updated particle set
 }
 \description{
-Q Importance Sampling weighting for sub-posteriors of the form exp(-((x^4)*beta)/2)
+Q Importance Sampling weighting for mixture Gaussian distributions
 }

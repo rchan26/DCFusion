@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_4_fusion.R
 \name{progressive_fusion_exp_4}
 \alias{progressive_fusion_exp_4}
-\title{Progressive Monte Carlo Fusion}
+\title{(Progressive) D&C Monte Carlo Fusion (rejection sampling)}
 \usage{
 progressive_fusion_exp_4(
   N_schedule,
@@ -59,5 +59,5 @@ A list with components:
 }
 }
 \description{
-Progressive Monte Carlo Fusion with base level of the form exp(-beta*((x-mean)^4)/2)
+(Progressive) D&C Monte Carlo Fusion with target of the form exp(-beta*((x-mean)^4)/2)
 }

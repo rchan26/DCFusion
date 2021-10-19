@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_4_fusion.R
 \name{parallel_fusion_exp_4}
 \alias{parallel_fusion_exp_4}
-\title{Preconditioned Monte Carlo Fusion [parallel]}
+\title{Generalised Monte Carlo Fusion (rejection sampling) [parallel]}
 \usage{
 parallel_fusion_exp_4(
   N,
@@ -56,5 +56,5 @@ A list with components:
 }
 }
 \description{
-Monte Carlo Fusion for sub-posteriors of the form exp(-beta*((x-mean)^4)/2)
+Generalised Monte Carlo Fusion with target of the form exp(-((x^4)*beta)/2)
 }

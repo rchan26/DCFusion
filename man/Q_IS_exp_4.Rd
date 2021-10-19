@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_4_fusion.R
 \name{Q_IS_exp_4}
 \alias{Q_IS_exp_4}
-\title{Q Importance Sampling Step for sub-posteriors of the form exp(-((x^4)*beta)/2)}
+\title{Q Importance Sampling Step}
 \usage{
 Q_IS_exp_4(
   particle_set,

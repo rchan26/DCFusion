@@ -2,7 +2,7 @@
 % Please edit documentation in R/univariate_Gaussian_fusion.R
 \name{Q_IS_uniGaussian}
 \alias{Q_IS_uniGaussian}
-\title{Q Importance Sampling Step for tempered bivariate Gaussian distributions}
+\title{Q Importance Sampling Step}
 \usage{
 Q_IS_uniGaussian(
   particle_set,
@@ -56,5 +56,5 @@ binomial estimator (default is 2)}
 An updated particle set
 }
 \description{
-Q Importance Sampling weighting for tempered bivariate Gaussian distributions
+Q Importance Sampling weighting for univariate Gaussian distributions
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bivariate_Gaussian_fusion.R
 \name{fusion_biGaussian}
 \alias{fusion_biGaussian}
-\title{Preconditioned Monte Carlo Fusion [on a single core]}
+\title{Generalised Monte Carlo Fusion (rejection sampling) [on a single core]}
 \usage{
 fusion_biGaussian(
   N,
@@ -48,5 +48,5 @@ iters_rho: number of iterations from the first accept/reject step (rho)
 iters_Q: number of iterations from the second (diffusion) accept/reject step (Q)
 }
 \description{
-Monte Carlo Fusion for sub-posteriors that are tempered bivariate Gaussian distributions
+Generalised Monte Carlo Fusion with bivariate Gaussian target
 }

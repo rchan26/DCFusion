@@ -2,7 +2,7 @@
 % Please edit documentation in R/bivariate_Gaussian_fusion.R
 \name{progressive_fusion_SMC_biGaussian}
 \alias{progressive_fusion_SMC_biGaussian}
-\title{Progressive SMC Fusion}
+\title{(Progressive) D&C Monte Carlo Fusion using SMC}
 \usage{
 progressive_fusion_SMC_biGaussian(
   N_schedule,
@@ -95,6 +95,5 @@ A list with components:
 }
 }
 \description{
-Progressive SMC Fusion with base tempered bivariate Gaussians with 
-same mean and standard deviation
+(Progressive) D&C Monte Carlo Fusion with bivariate Gaussian target
 }

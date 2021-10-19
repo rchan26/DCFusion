@@ -2,7 +2,7 @@
 % Please edit documentation in R/bivariate_Gaussian_fusion.R
 \name{progressive_fusion_biGaussian}
 \alias{progressive_fusion_biGaussian}
-\title{Progressive Monte Carlo Fusion for tempered Bivariate Normal distribution}
+\title{(Progressive) D&C Monte Carlo Fusion (rejection sampling)}
 \usage{
 progressive_fusion_biGaussian(
   N_schedule,
@@ -65,5 +65,5 @@ A list with components:
 }
 }
 \description{
-Progressive Monte Carlo Fusion with base level that are tempered Bivariate Normal distributions
+(Progressive) D&C Monte Carlo Fusion with bivariate Gaussian target
 }

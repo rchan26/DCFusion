@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_4_fusion.R
 \name{fusion_exp_4}
 \alias{fusion_exp_4}
-\title{Preconditioned Monte Carlo Fusion [on a single core]}
+\title{Generalised Monte Carlo Fusion (rejection sampling) [on a single core]}
 \usage{
 fusion_exp_4(N, m, time, samples_to_fuse, mean, betas, precondition_values)
 }
@@ -34,5 +34,5 @@ A list with components:
 }
 }
 \description{
-Monte Carlo Fusion for sub-posteriors of the form exp(-((x^4)*beta)/2)
+Generalised Monte Carlo Fusion with target of the form exp(-((x^4)*beta)/2)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_4_fusion.R
 \name{parallel_fusion_SMC_exp_4}
 \alias{parallel_fusion_SMC_exp_4}
-\title{SMC Fusion for sub-posteriors of the form exp(-((x^4)*beta)/2)}
+\title{Generalised Monte Carlo Fusion [parallel]}
 \usage{
 parallel_fusion_SMC_exp_4(
   particles_to_fuse,
@@ -86,5 +86,5 @@ A list with components:
 }
 }
 \description{
-SMC Fusion for sub-posteriors of the form exp(-((x^4)*beta)/2)
+Generalised Monte Carlo Fusion with target of the form exp(-((x^4)*beta)/2)
 }

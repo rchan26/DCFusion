@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixG_fusion.R
 \name{parallel_fusion_SMC_mixG}
 \alias{parallel_fusion_SMC_mixG}
-\title{SMC Fusion for sub-posteriors of the form exp(-((x^4)*beta)/2)}
+\title{Generalised Monte Carlo Fusion [parallel]}
 \usage{
 parallel_fusion_SMC_mixG(
   particles_to_fuse,
@@ -86,5 +86,5 @@ A list with components:
 }
 }
 \description{
-SMC Fusion for sub-posteriors of the form exp(-((x^4)*beta)/2)
+Generalised Monte Carlo Fusion with mixture Gaussian target
 }

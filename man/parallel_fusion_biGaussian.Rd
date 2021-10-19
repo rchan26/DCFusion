@@ -2,7 +2,7 @@
 % Please edit documentation in R/bivariate_Gaussian_fusion.R
 \name{parallel_fusion_biGaussian}
 \alias{parallel_fusion_biGaussian}
-\title{Preconditioned Monte Carlo Fusion [parallel]}
+\title{Generalised Monte Carlo Fusion (rejection sampling) [parallel]}
 \usage{
 parallel_fusion_biGaussian(
   N,
@@ -61,5 +61,5 @@ A list with components:
 }
 }
 \description{
-Monte Carlo Fusion for sub-posteriors that are tempered bivariate Gaussian distributions
+Generalised Monte Carlo Fusion with bivariate Gaussian target
 }

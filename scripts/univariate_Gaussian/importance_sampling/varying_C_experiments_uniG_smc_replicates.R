@@ -25,19 +25,19 @@ for (i in 1:length(denominator)) {
       rnorm_tempered(N = nsamples, mean = 0, sd = 1, beta = 1/denominator[i])})
     # preconditioned fork and join
     print('performing preconditioned MC fusion')
-    smc_fnj_fused <-  hierarchical_fusion_SMC_uniGaussian(N_schedule = nsamples,
-                                                          m_schedule = denominator[i],
-                                                          time_schedule = time_choice,
-                                                          base_samples = input_samples,
-                                                          L = 2,
-                                                          mean = 0,
-                                                          sd = 1,
-                                                          start_beta = 1/denominator[i], 
-                                                          precondition = TRUE,
-                                                          resampling_method = 'resid',
-                                                          ESS_threshold = 0.5,
-                                                          diffusion_estimator = 'NB',
-                                                          seed = seed*rep*i)
+    smc_fnj_fused <- bal_binary_fusion_SMC_uniGaussian(N_schedule = nsamples,
+                                                       m_schedule = denominator[i],
+                                                       time_schedule = time_choice,
+                                                       base_samples = input_samples,
+                                                       L = 2,
+                                                       mean = 0,
+                                                       sd = 1,
+                                                       start_beta = 1/denominator[i], 
+                                                       precondition = TRUE,
+                                                       resampling_method = 'resid',
+                                                       ESS_threshold = 0.5,
+                                                       diffusion_estimator = 'NB',
+                                                       seed = seed*rep*i)
     resampled_fnj <- resample_particle_y_samples(particle_set = smc_fnj_fused$particles[[1]],
                                                  multivariate = FALSE,
                                                  resampling_method = 'resid',
@@ -61,22 +61,22 @@ for (i in 1:length(denominator)) {
       smc_bal_results[[i]][[rep]] <- smc_fnj_results[[i]][[rep]]
       smc_prog_results[[i]][[rep]] <- smc_fnj_results[[i]][[rep]]
     } else {
-      # hierarchical
+      # balanced binary
       if (log(denominator[i], 2)%%1==0) {
-        print('performing hierarchical MC fusion')
-        smc_bal_fused <- hierarchical_fusion_SMC_uniGaussian(N_schedule = rep(nsamples, log(denominator[i], 2)),
-                                                             m_schedule = rep(2, log(denominator[i], 2)),
-                                                             time_schedule = rep(time_choice, log(denominator[i], 2)),
-                                                             base_samples = input_samples,
-                                                             L = log(denominator[i], 2)+1,
-                                                             mean = 0,
-                                                             sd = 1,
-                                                             start_beta = 1/denominator[i],
-                                                             precondition = TRUE,
-                                                             resampling_method = 'resid',
-                                                             ESS_threshold = 0.5,
-                                                             diffusion_estimator = 'NB',
-                                                             seed = seed*rep*i)
+        print('performing balanced binary MC fusion')
+        smc_bal_fused <- bal_binary_fusion_SMC_uniGaussian(N_schedule = rep(nsamples, log(denominator[i], 2)),
+                                                           m_schedule = rep(2, log(denominator[i], 2)),
+                                                           time_schedule = rep(time_choice, log(denominator[i], 2)),
+                                                           base_samples = input_samples,
+                                                           L = log(denominator[i], 2)+1,
+                                                           mean = 0,
+                                                           sd = 1,
+                                                           start_beta = 1/denominator[i],
+                                                           precondition = TRUE,
+                                                           resampling_method = 'resid',
+                                                           ESS_threshold = 0.5,
+                                                           diffusion_estimator = 'NB',
+                                                           seed = seed*rep*i)
         resampled_bal <- resample_particle_y_samples(particle_set = smc_bal_fused$particles[[1]],
                                                      multivariate = FALSE,
                                                      resampling_method = 'resid',
@@ -147,7 +147,7 @@ for (i in 1:length(denominator)) {
     #   }
     #   lines(density(smc_prog_fused$particles[[1]]$y_samples, bw = bw), col = 'blue')
     # }
-
+    
     print('saving progress')
     save.image('varying_C_experiments_uniG_smc_replicates.RData')
   }

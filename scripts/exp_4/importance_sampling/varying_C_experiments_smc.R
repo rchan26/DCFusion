@@ -5,7 +5,7 @@ set.seed(seed)
 denominator <- 2:32
 input_samples <- list()
 smc_fnj_results <- list()
-smc_hier_results <- list()
+smc_bal_results <- list()
 smc_prog_results <- list()
 target_mc <- sample_exp_4(N = 30000,
                           proposal_mean = 0,
@@ -32,18 +32,18 @@ for (i in 1:length(denominator)) {
   # standard fork and join
   # we have no preconditioning here since we want to compare with the standard MCF approach
   print('performing standard MC fusion')
-  smc_fnj_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = 30000,
-                                                 m_schedule = denominator[i],
-                                                 time_schedule = time_choice,
-                                                 base_samples = input_samples[[i]],
-                                                 L = 2,
-                                                 mean = 0,
-                                                 start_beta = 1/denominator[i], 
-                                                 precondition = FALSE,
-                                                 resampling_method = 'resid',
-                                                 ESS_threshold = 0.5,
-                                                 diffusion_estimator = 'NB',
-                                                 seed = seed)
+  smc_fnj_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = 30000,
+                                               m_schedule = denominator[i],
+                                               time_schedule = time_choice,
+                                               base_samples = input_samples[[i]],
+                                               L = 2,
+                                               mean = 0,
+                                               start_beta = 1/denominator[i], 
+                                               precondition = FALSE,
+                                               resampling_method = 'resid',
+                                               ESS_threshold = 0.5,
+                                               diffusion_estimator = 'NB',
+                                               seed = seed)
   
   smc_fnj_results[[i]] <- list('time' = smc_fnj_fused$time[[1]],
                                'ESS' = smc_fnj_fused$ESS[[1]],
@@ -54,90 +54,90 @@ for (i in 1:length(denominator)) {
                                  resampling_method = 'resid',
                                  seed = seed)$y_samples))
   
-  # hierarchical if denominator[i] is 2, 4, 8, 16 or 32
+  # balanced binary if denominator[i] is 2, 4, 8, 16 or 32
   if (denominator[i]==2) {
-    print('performing hierarchical MC fusion')
-    smc_hier_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = 30000,
-                                                    m_schedule = 2,
-                                                    time_schedule = time_choice,
-                                                    base_samples = input_samples[[i]],
-                                                    L = 2,
-                                                    mean = 0,
-                                                    start_beta = 1/2,
-                                                    precondition = TRUE, 
-                                                    resampling_method = 'resid',
-                                                    ESS_threshold = 0.5,
-                                                    diffusion_estimator = 'NB',
-                                                    seed = seed)
+    print('performing balanced binary MC fusion')
+    smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = 30000,
+                                                 m_schedule = 2,
+                                                 time_schedule = time_choice,
+                                                 base_samples = input_samples[[i]],
+                                                 L = 2,
+                                                 mean = 0,
+                                                 start_beta = 1/2,
+                                                 precondition = TRUE, 
+                                                 resampling_method = 'resid',
+                                                 ESS_threshold = 0.5,
+                                                 diffusion_estimator = 'NB',
+                                                 seed = seed)
   } else if (denominator[i]==4) {
-    print('performing hierarchical MC fusion')
-    smc_hier_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = rep(30000, 2),
-                                                    m_schedule = rep(2, 2),
-                                                    time_schedule = rep(time_choice, 2),
-                                                    base_samples = input_samples[[i]],
-                                                    L = 3,
-                                                    mean = 0,
-                                                    start_beta = 1/4,
-                                                    precondition = TRUE,
-                                                    resampling_method = 'resid',
-                                                    ESS_threshold = 0.5,
-                                                    diffusion_estimator = 'NB',
-                                                    seed = seed)
+    print('performing balanced binary MC fusion')
+    smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = rep(30000, 2),
+                                                 m_schedule = rep(2, 2),
+                                                 time_schedule = rep(time_choice, 2),
+                                                 base_samples = input_samples[[i]],
+                                                 L = 3,
+                                                 mean = 0,
+                                                 start_beta = 1/4,
+                                                 precondition = TRUE,
+                                                 resampling_method = 'resid',
+                                                 ESS_threshold = 0.5,
+                                                 diffusion_estimator = 'NB',
+                                                 seed = seed)
   } else if (denominator[i]==8) {
-    print('performing hierarchical MC fusion')
-    smc_hier_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = rep(30000, 3),
-                                                    m_schedule = rep(2, 3),
-                                                    time_schedule = rep(time_choice, 3),
-                                                    base_samples = input_samples[[i]],
-                                                    L = 4,
-                                                    mean = 0,
-                                                    start_beta = 1/8,
-                                                    precondition = TRUE,
-                                                    resampling_method = 'resid',
-                                                    ESS_threshold = 0.5,
-                                                    diffusion_estimator = 'NB',
-                                                    seed = seed)
+    print('performing balanced binary MC fusion')
+    smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = rep(30000, 3),
+                                                 m_schedule = rep(2, 3),
+                                                 time_schedule = rep(time_choice, 3),
+                                                 base_samples = input_samples[[i]],
+                                                 L = 4,
+                                                 mean = 0,
+                                                 start_beta = 1/8,
+                                                 precondition = TRUE,
+                                                 resampling_method = 'resid',
+                                                 ESS_threshold = 0.5,
+                                                 diffusion_estimator = 'NB',
+                                                 seed = seed)
   } else if (denominator[i]==16) {
-    print('performing hierarchical MC fusion')
-    smc_hier_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = rep(30000, 4),
-                                                    m_schedule = rep(2, 4),
-                                                    time_schedule = rep(time_choice, 4),
-                                                    base_samples = input_samples[[i]], 
-                                                    L = 5,
-                                                    mean = 0,
-                                                    start_beta = 1/16,
-                                                    precondition = TRUE,
-                                                    resampling_method = 'resid',
-                                                    ESS_threshold = 0.5,
-                                                    diffusion_estimator = 'NB',
-                                                    seed = seed)
+    print('performing balanced binary MC fusion')
+    smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = rep(30000, 4),
+                                                 m_schedule = rep(2, 4),
+                                                 time_schedule = rep(time_choice, 4),
+                                                 base_samples = input_samples[[i]], 
+                                                 L = 5,
+                                                 mean = 0,
+                                                 start_beta = 1/16,
+                                                 precondition = TRUE,
+                                                 resampling_method = 'resid',
+                                                 ESS_threshold = 0.5,
+                                                 diffusion_estimator = 'NB',
+                                                 seed = seed)
   } else if (denominator[i]==32) {
-    print('performing hierarchical MC fusion')
-    smc_hier_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = rep(30000, 5),
-                                                    m_schedule = rep(2, 5),
-                                                    time_schedule = rep(time_choice, 5),
-                                                    base_samples = input_samples[[i]], 
-                                                    L = 6,
-                                                    mean = 0,
-                                                    start_beta = 1/32,
-                                                    precondition = TRUE,
-                                                    resampling_method = 'resid',
-                                                    ESS_threshold = 0.5,
-                                                    diffusion_estimator = 'NB',
-                                                    seed = seed)
+    print('performing balanced binary MC fusion')
+    smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = rep(30000, 5),
+                                                 m_schedule = rep(2, 5),
+                                                 time_schedule = rep(time_choice, 5),
+                                                 base_samples = input_samples[[i]], 
+                                                 L = 6,
+                                                 mean = 0,
+                                                 start_beta = 1/32,
+                                                 precondition = TRUE,
+                                                 resampling_method = 'resid',
+                                                 ESS_threshold = 0.5,
+                                                 diffusion_estimator = 'NB',
+                                                 seed = seed)
   }
   
   if (denominator[i] %in% c(2, 4, 8, 16, 32)) {
-    smc_hier_results[[i]] <- list('time' = smc_hier_fused$time[[1]],
-                                  'ESS' = smc_hier_fused$ESS[[1]],
-                                  'CESS' = smc_hier_fused$CESS[[1]],
-                                  'IAD' = integrated_abs_distance_exp_4(fusion_post = resample_particle_y_samples(
-                                    particle_set = smc_hier_fused$particles[[1]],
-                                    multivariate = FALSE,
-                                    resampling_method = 'resid',
-                                    seed = seed)$y_samples))
+    smc_bal_results[[i]] <- list('time' = smc_bal_fused$time[[1]],
+                                 'ESS' = smc_bal_fused$ESS[[1]],
+                                 'CESS' = smc_bal_fused$CESS[[1]],
+                                 'IAD' = integrated_abs_distance_exp_4(fusion_post = resample_particle_y_samples(
+                                   particle_set = smc_bal_fused$particles[[1]],
+                                   multivariate = FALSE,
+                                   resampling_method = 'resid',
+                                   seed = seed)$y_samples))
   } else {
-    smc_hier_results[[i]] <- NA
+    smc_bal_results[[i]] <- NA
   }
   
   # progressive
@@ -166,7 +166,7 @@ for (i in 1:length(denominator)) {
   curve(exp_4_density(x, mean = 0), -4, 4, ylim = c(0, 0.5), main = denominator[i])
   lines(density(target_mc))
   lines(density(smc_fnj_fused$particles[[1]]$y_samples), col = 'orange')
-  lines(density(smc_hier_fused$particles[[1]]$y_samples), col = 'green')
+  lines(density(smc_bal_fused$particles[[1]]$y_samples), col = 'green')
   lines(density(smc_prog_fused$particles[[1]]$y_samples), col = 'blue')
 }
 
@@ -177,10 +177,10 @@ par(mai = c(1.02, 1, 0.82, 0.42))
 plot(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$time), ylim = c(0, 20),
      ylab = 'Running time in seconds', xlab = 'Number of Subposteriors (C)', col = 'orange', pch = 4)
 lines(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$time), col = 'orange')
-points(x = c(2, 4, 8, 16), y = c(sum(smc_hier_results[[1]]$time), sum(smc_hier_results[[3]]$time),
-                                 sum(smc_hier_results[[7]]$time), sum(smc_hier_results[[15]]$time)), col = 'blue', pch = 4)
-lines(x = c(2, 4, 8, 16), y = c(sum(smc_hier_results[[1]]$time), sum(smc_hier_results[[3]]$time),
-                                sum(smc_hier_results[[7]]$time), sum(smc_hier_results[[15]]$time)), col = 'blue')
+points(x = c(2, 4, 8, 16), y = c(sum(smc_bal_results[[1]]$time), sum(smc_bal_results[[3]]$time),
+                                 sum(smc_bal_results[[7]]$time), sum(smc_bal_results[[15]]$time)), col = 'blue', pch = 4)
+lines(x = c(2, 4, 8, 16), y = c(sum(smc_bal_results[[1]]$time), sum(smc_bal_results[[3]]$time),
+                                sum(smc_bal_results[[7]]$time), sum(smc_bal_results[[15]]$time)), col = 'blue')
 points(x = 2:16, y = sapply(1:15, function(i) sum(smc_prog_results[[i]]$time)), col = 'green', pch = 4)
 lines(x = 2:16, y = sapply(1:15, function(i) sum(smc_prog_results[[i]]$time)), col = 'green')
 
@@ -189,15 +189,15 @@ lines(x = 2:16, y = sapply(1:15, function(i) sum(smc_prog_results[[i]]$time)), c
 plot(x = 2:32, y = sapply(1:31, function(i) log(smc_fnj_results[[i]][[1]])), ylim = c(-1, 10),
      ylab = '(logarithm) Running time in seconds', xlab = 'Number of Subposteriors (C)', col = 'red', pch = 4, lwd = 3)
 lines(x = 2:32, y = sapply(1:31, function(i) log(smc_fnj_results[[i]][[1]])), col = 'red')
-points(x = c(2, 4, 8, 16, 32), y = log(c(sum(smc_hier_results[[1]]$time), sum(smc_hier_results[[3]]$time),
-                                     sum(smc_hier_results[[7]]$time), sum(smc_hier_results[[15]]$time),
-                                     sum(smc_hier_results[[31]]$time))), col = 'blue', pch = 0, lwd = 3)
-lines(x = c(2, 4, 8, 16, 32), y = log(c(sum(smc_hier_results[[1]]$time), sum(smc_hier_results[[3]]$time),
-                                    sum(smc_hier_results[[7]]$time), sum(smc_hier_results[[15]]$time),
-                                    sum(smc_hier_results[[31]]$time))), col = 'blue', lty = 2)
+points(x = c(2, 4, 8, 16, 32), y = log(c(sum(smc_bal_results[[1]]$time), sum(smc_bal_results[[3]]$time),
+                                         sum(smc_bal_results[[7]]$time), sum(smc_bal_results[[15]]$time),
+                                         sum(smc_bal_results[[31]]$time))), col = 'blue', pch = 0, lwd = 3)
+lines(x = c(2, 4, 8, 16, 32), y = log(c(sum(smc_bal_results[[1]]$time), sum(smc_bal_results[[3]]$time),
+                                        sum(smc_bal_results[[7]]$time), sum(smc_bal_results[[15]]$time),
+                                        sum(smc_bal_results[[31]]$time))), col = 'blue', lty = 2)
 points(x = 2:32, y = sapply(1:31, function(i) log(sum(smc_prog_results[[i]]$time))), col = 'darkgreen', pch = 1, lwd = 3)
 lines(x = 2:32, y = sapply(1:31, function(i) log(sum(smc_prog_results[[i]]$time))), col = 'darkgreen', lty = 3)
-legend(x = 2, y = 10, legend = c('standard', 'hierarchical', 'progressive'),
+legend(x = 2, y = 10, legend = c('standard', 'balanced binary', 'progressive'),
        lty = c(1, 2, 3), pch = c(4, 0, 1), col = c('red', 'blue', 'darkgreen'))
 
 ######################################## ESS (overall)
@@ -208,11 +208,11 @@ plot(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS['Q']), ylim
      col = Okabe_Ito[8], pch = 1, lwd = 3)
 lines(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS['Q']),
       col = Okabe_Ito[8], lwd = 3)
-points(x = c(2, 4, 8, 16), y = c(smc_hier_results[[1]]$ESS['Q'], smc_hier_results[[3]]$ESS['Q'],
-                                 smc_hier_results[[7]]$ESS['Q'], smc_hier_results[[15]]$ESS['Q']), 
+points(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS['Q'], smc_bal_results[[3]]$ESS['Q'],
+                                 smc_bal_results[[7]]$ESS['Q'], smc_bal_results[[15]]$ESS['Q']), 
        col = Okabe_Ito[5], pch = 0, lwd = 3)
-lines(x = c(2, 4, 8, 16), y = c(smc_hier_results[[1]]$ESS['Q'], smc_hier_results[[3]]$ESS['Q'],
-                                smc_hier_results[[7]]$ESS['Q'], smc_hier_results[[15]]$ESS['Q']),
+lines(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS['Q'], smc_bal_results[[3]]$ESS['Q'],
+                                smc_bal_results[[7]]$ESS['Q'], smc_bal_results[[15]]$ESS['Q']),
       col = Okabe_Ito[5], lty = 2, lwd = 3)
 points(x = 2:16, y = sapply(1:15, function(i) smc_prog_results[[i]]$ESS['Q']), 
        col = Okabe_Ito[4], pch = 2, lwd = 3)
@@ -239,13 +239,13 @@ axis(2, at = seq(0, 0.6, 0.05),
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
 lines(x = 2:32, y = sapply(1:31, function(i) smc_fnj_results[[i]]$IAD), lwd = 3)
-points(x = c(2, 4, 8, 16, 32), y = c(smc_hier_results[[1]]$IAD, smc_hier_results[[3]]$IAD,
-                                     smc_hier_results[[7]]$IAD, smc_hier_results[[15]]$IAD,
-                                     smc_hier_results[[31]]$IAD), 
+points(x = c(2, 4, 8, 16, 32), y = c(smc_bal_results[[1]]$IAD, smc_bal_results[[3]]$IAD,
+                                     smc_bal_results[[7]]$IAD, smc_bal_results[[15]]$IAD,
+                                     smc_bal_results[[31]]$IAD), 
        pch = 0, lwd = 3)
-lines(x = c(2, 4, 8, 16, 32), y =c(smc_hier_results[[1]]$IAD, smc_hier_results[[3]]$IAD,
-                                   smc_hier_results[[7]]$IAD, smc_hier_results[[15]]$IAD,
-                                   smc_hier_results[[31]]$IAD),
+lines(x = c(2, 4, 8, 16, 32), y =c(smc_bal_results[[1]]$IAD, smc_bal_results[[3]]$IAD,
+                                   smc_bal_results[[7]]$IAD, smc_bal_results[[15]]$IAD,
+                                   smc_bal_results[[31]]$IAD),
       lty = 3, lwd = 3)
 points(x = 2:32, y = sapply(1:31, function(i) smc_prog_results[[i]]$IAD), 
        pch = 2, lwd = 3)
@@ -259,7 +259,5 @@ legend(x = 2, y = 0.625,
        cex = 1.25,
        text.font = 2,
        bty = 'n')
-
-
 
 save.image('varying_C_experiments.RData')

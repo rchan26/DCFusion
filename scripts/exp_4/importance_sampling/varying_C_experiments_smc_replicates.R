@@ -39,18 +39,18 @@ for (i in 1:length(denominator)) {
     
     # standard fork and join
     print('performing standard MC fusion')
-    smc_fnj_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = nsamples,
-                                                   m_schedule = denominator[i],
-                                                   time_schedule = time_choice,
-                                                   base_samples = input_samples,
-                                                   L = 2,
-                                                   mean = 0,
-                                                   start_beta = 1/denominator[i], 
-                                                   precondition = TRUE,
-                                                   resampling_method = 'resid',
-                                                   ESS_threshold = 0.5,
-                                                   diffusion_estimator = 'NB',
-                                                   seed = seed*rep*i)
+    smc_fnj_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = nsamples,
+                                                 m_schedule = denominator[i],
+                                                 time_schedule = time_choice,
+                                                 base_samples = input_samples,
+                                                 L = 2,
+                                                 mean = 0,
+                                                 start_beta = 1/denominator[i], 
+                                                 precondition = TRUE,
+                                                 resampling_method = 'resid',
+                                                 ESS_threshold = 0.5,
+                                                 diffusion_estimator = 'NB',
+                                                 seed = seed*rep*i)
     smc_fnj_results[[i]][[rep]] <- list('time' = smc_fnj_fused$time[[1]],
                                         'ESS' = smc_fnj_fused$ESS[[1]],
                                         'CESS' = smc_fnj_fused$CESS[[1]],
@@ -61,77 +61,77 @@ for (i in 1:length(denominator)) {
                                           seed = seed*rep*i)$y_samples,
                                           bw = bw))
     
-    # hierarchical if denominator[i] is 2, 4, 8, 16 or 32
+    # balanced binary if denominator[i] is 2, 4, 8, 16 or 32
     if (denominator[i]==2) {
-      print('performing hierarchical MC fusion')
-      smc_bal_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = nsamples,
-                                                     m_schedule = 2,
-                                                     time_schedule = time_choice,
-                                                     base_samples = input_samples,
-                                                     L = 2,
-                                                     mean = 0,
-                                                     start_beta = 1/2,
-                                                     precondition = TRUE, 
-                                                     resampling_method = 'resid',
-                                                     ESS_threshold = 0.5,
-                                                     diffusion_estimator = 'NB',
-                                                     seed = seed*rep*i)
+      print('performing balanced binary MC fusion')
+      smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = nsamples,
+                                                   m_schedule = 2,
+                                                   time_schedule = time_choice,
+                                                   base_samples = input_samples,
+                                                   L = 2,
+                                                   mean = 0,
+                                                   start_beta = 1/2,
+                                                   precondition = TRUE, 
+                                                   resampling_method = 'resid',
+                                                   ESS_threshold = 0.5,
+                                                   diffusion_estimator = 'NB',
+                                                   seed = seed*rep*i)
     } else if (denominator[i]==4) {
-      print('performing hierarchical MC fusion')
-      smc_bal_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = rep(nsamples, 2),
-                                                     m_schedule = rep(2, 2),
-                                                     time_schedule = rep(time_choice, 2),
-                                                     base_samples = input_samples,
-                                                     L = 3,
-                                                     mean = 0,
-                                                     start_beta = 1/4,
-                                                     precondition = TRUE,
-                                                     resampling_method = 'resid',
-                                                     ESS_threshold = 0.5,
-                                                     diffusion_estimator = 'NB',
-                                                     seed = seed*rep*i)
+      print('performing balanced binary MC fusion')
+      smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = rep(nsamples, 2),
+                                                   m_schedule = rep(2, 2),
+                                                   time_schedule = rep(time_choice, 2),
+                                                   base_samples = input_samples,
+                                                   L = 3,
+                                                   mean = 0,
+                                                   start_beta = 1/4,
+                                                   precondition = TRUE,
+                                                   resampling_method = 'resid',
+                                                   ESS_threshold = 0.5,
+                                                   diffusion_estimator = 'NB',
+                                                   seed = seed*rep*i)
     } else if (denominator[i]==8) {
-      print('performing hierarchical MC fusion')
-      smc_bal_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = rep(nsamples, 3),
-                                                     m_schedule = rep(2, 3),
-                                                     time_schedule = rep(time_choice, 3),
-                                                     base_samples = input_samples,
-                                                     L = 4,
-                                                     mean = 0,
-                                                     start_beta = 1/8,
-                                                     precondition = TRUE,
-                                                     resampling_method = 'resid',
-                                                     ESS_threshold = 0.5,
-                                                     diffusion_estimator = 'NB',
-                                                     seed = seed*rep*i)
+      print('performing balanced binary MC fusion')
+      smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = rep(nsamples, 3),
+                                                   m_schedule = rep(2, 3),
+                                                   time_schedule = rep(time_choice, 3),
+                                                   base_samples = input_samples,
+                                                   L = 4,
+                                                   mean = 0,
+                                                   start_beta = 1/8,
+                                                   precondition = TRUE,
+                                                   resampling_method = 'resid',
+                                                   ESS_threshold = 0.5,
+                                                   diffusion_estimator = 'NB',
+                                                   seed = seed*rep*i)
     } else if (denominator[i]==16) {
-      print('performing hierarchical MC fusion')
-      smc_bal_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = rep(nsamples, 4),
-                                                     m_schedule = rep(2, 4),
-                                                     time_schedule = rep(time_choice, 4),
-                                                     base_samples = input_samples, 
-                                                     L = 5,
-                                                     mean = 0,
-                                                     start_beta = 1/16,
-                                                     precondition = TRUE,
-                                                     resampling_method = 'resid',
-                                                     ESS_threshold = 0.5,
-                                                     diffusion_estimator = 'NB',
-                                                     seed = seed*rep*i)
+      print('performing balanced binary MC fusion')
+      smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = rep(nsamples, 4),
+                                                   m_schedule = rep(2, 4),
+                                                   time_schedule = rep(time_choice, 4),
+                                                   base_samples = input_samples, 
+                                                   L = 5,
+                                                   mean = 0,
+                                                   start_beta = 1/16,
+                                                   precondition = TRUE,
+                                                   resampling_method = 'resid',
+                                                   ESS_threshold = 0.5,
+                                                   diffusion_estimator = 'NB',
+                                                   seed = seed*rep*i)
     } else if (denominator[i]==32) {
-      print('performing hierarchical MC fusion')
-      smc_bal_fused <- hierarchical_fusion_SMC_exp_4(N_schedule = rep(nsamples, 5),
-                                                     m_schedule = rep(2, 5),
-                                                     time_schedule = rep(time_choice, 5),
-                                                     base_samples = input_samples, 
-                                                     L = 6,
-                                                     mean = 0,
-                                                     start_beta = 1/32,
-                                                     precondition = TRUE,
-                                                     resampling_method = 'resid',
-                                                     ESS_threshold = 0.5,
-                                                     diffusion_estimator = 'NB',
-                                                     seed = seed*rep*i)
+      print('performing balanced binary MC fusion')
+      smc_bal_fused <- bal_binary_fusion_SMC_exp_4(N_schedule = rep(nsamples, 5),
+                                                   m_schedule = rep(2, 5),
+                                                   time_schedule = rep(time_choice, 5),
+                                                   base_samples = input_samples, 
+                                                   L = 6,
+                                                   mean = 0,
+                                                   start_beta = 1/32,
+                                                   precondition = TRUE,
+                                                   resampling_method = 'resid',
+                                                   ESS_threshold = 0.5,
+                                                   diffusion_estimator = 'NB',
+                                                   seed = seed*rep*i)
     }
     if (denominator[i] %in% c(2, 4, 8, 16, 32)) {
       smc_bal_results[[i]][[rep]] <- list('time' = sum(unlist(smc_bal_fused$time)),

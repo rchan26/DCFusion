@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixG_fusion.R
 \name{fusion_mixG}
 \alias{fusion_mixG}
-\title{Preconditioned Monte Carlo Fusion [on a single core]}
+\title{Generalised Monte Carlo Fusion (rejection sampling) [on a single core]}
 \usage{
 fusion_mixG(
   N,
@@ -66,5 +66,5 @@ A list with components:
 }
 }
 \description{
-Monte Carlo Fusion for sub-posteriors which are tempered mixture Gaussians
+Generalised Monte Carlo Fusion with mixture Gaussian target
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixG_fusion.R
 \name{progressive_fusion_mixG}
 \alias{progressive_fusion_mixG}
-\title{Progressive Monte Carlo Fusion}
+\title{(Progressive) D&C Monte Carlo Fusion (rejection sampling)}
 \usage{
 progressive_fusion_mixG(
   N_schedule,
@@ -72,6 +72,5 @@ A list with components:
 }
 }
 \description{
-Progressive Monte Carlo Fusion with base level with nodes that are
-tempered mixture Gaussians
+(Progressive) D&C Monte Carlo Fusion with mixture Gaussian target
 }

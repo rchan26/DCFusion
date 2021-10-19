@@ -2,7 +2,7 @@
 % Please edit documentation in R/BLR_fusion.R
 \name{parallel_fusion_SMC_BLR}
 \alias{parallel_fusion_SMC_BLR}
-\title{Parallel Sequential Monte Carlo Fusion for Bayesian Logistic Regression model}
+\title{Generalised Monte Carlo Fusion [parallel]}
 \usage{
 parallel_fusion_SMC_BLR(
   particles_to_fuse,
@@ -123,5 +123,5 @@ A list with components:
 }
 }
 \description{
-Parallel Sequential Monte Carlo Fusion for Bayesian Logistic Regression model
+Generalised Monte Carlo Fusion for Bayesian Logistic Regression
 }

@@ -86,38 +86,38 @@ print('Applying other methodologies')
 consensus_mat_256 <- consensus_scott(S = 256, samples_to_combine = sub_posteriors_256, indep = F)
 consensus_sca_256 <- consensus_scott(S = 256, samples_to_combine = sub_posteriors_256, indep = T)
 neiswanger_true_256 <- neiswanger(S = 256,
-                                 samples_to_combine = sub_posteriors_256,
-                                 anneal = TRUE)
-neiswanger_false_256 <- neiswanger(S = 256,
                                   samples_to_combine = sub_posteriors_256,
-                                  anneal = FALSE)
+                                  anneal = TRUE)
+neiswanger_false_256 <- neiswanger(S = 256,
+                                   samples_to_combine = sub_posteriors_256,
+                                   anneal = FALSE)
 weierstrass_importance_256 <- weierstrass(Samples = sub_posteriors_256,
-                                         method = 'importance')
+                                          method = 'importance')
 weierstrass_rejection_256 <- weierstrass(Samples = sub_posteriors_256,
-                                        method = 'reject')
+                                         method = 'reject')
 
 ##### Applying Fusion #####
 
 ##### Poisson (Hypercube Centre) #####
 print('Poisson Fusion (hypercube centre)')
-Poisson_hc_256 <- hierarchical_fusion_SMC_BLR(N_schedule = rep(nsamples, 8),
-                                              m_schedule = rep(2, 8),
-                                              time_schedule = rep(time_choice, 8),
-                                              base_samples = sub_posteriors_256,
-                                              L = 9,
-                                              dim = 5,
-                                              data_split = data_split_256,
-                                              prior_means = rep(0, 5),
-                                              prior_variances = rep(1, 5),
-                                              C = 256,
-                                              precondition = TRUE,
-                                              resampling_method = 'resid',
-                                              ESS_threshold = 0.5,
-                                              cv_location = 'hypercube_centre',
-                                              diffusion_estimator = 'Poisson',
-                                              seed = seed,
-                                              n_cores = n_cores,
-                                              print_progress_iters = 500)
+Poisson_hc_256 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 8),
+                                            m_schedule = rep(2, 8),
+                                            time_schedule = rep(time_choice, 8),
+                                            base_samples = sub_posteriors_256,
+                                            L = 9,
+                                            dim = 5,
+                                            data_split = data_split_256,
+                                            prior_means = rep(0, 5),
+                                            prior_variances = rep(1, 5),
+                                            C = 256,
+                                            precondition = TRUE,
+                                            resampling_method = 'resid',
+                                            ESS_threshold = 0.5,
+                                            cv_location = 'hypercube_centre',
+                                            diffusion_estimator = 'Poisson',
+                                            seed = seed,
+                                            n_cores = n_cores,
+                                            print_progress_iters = 500)
 Poisson_hc_256$particles <- resample_particle_y_samples(particle_set = Poisson_hc_256$particles[[1]],
                                                         multivariate = TRUE,
                                                         resampling_method = 'resid',
@@ -127,24 +127,24 @@ print(integrated_abs_distance(full_posterior, Poisson_hc_256$particles$y_samples
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
-NB_hc_256 <- hierarchical_fusion_SMC_BLR(N_schedule = rep(nsamples, 8),
-                                         m_schedule = rep(2, 8),
-                                         time_schedule = rep(time_choice, 8),
-                                         base_samples = sub_posteriors_256,
-                                         L = 9,
-                                         dim = 5,
-                                         data_split = data_split_256,
-                                         prior_means = rep(0, 5),
-                                         prior_variances = rep(1, 5),
-                                         C = 256,
-                                         precondition = TRUE,
-                                         resampling_method = 'resid',
-                                         ESS_threshold = 0.5,
-                                         cv_location = 'hypercube_centre',
-                                         diffusion_estimator = 'NB',
-                                         seed = seed,
-                                         n_cores = n_cores,
-                                         print_progress_iters = 500)
+NB_hc_256 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 8),
+                                       m_schedule = rep(2, 8),
+                                       time_schedule = rep(time_choice, 8),
+                                       base_samples = sub_posteriors_256,
+                                       L = 9,
+                                       dim = 5,
+                                       data_split = data_split_256,
+                                       prior_means = rep(0, 5),
+                                       prior_variances = rep(1, 5),
+                                       C = 256,
+                                       precondition = TRUE,
+                                       resampling_method = 'resid',
+                                       ESS_threshold = 0.5,
+                                       cv_location = 'hypercube_centre',
+                                       diffusion_estimator = 'NB',
+                                       seed = seed,
+                                       n_cores = n_cores,
+                                       print_progress_iters = 500)
 NB_hc_256$particles <- resample_particle_y_samples(particle_set = NB_hc_256$particles[[1]],
                                                    multivariate = TRUE,
                                                    resampling_method = 'resid',

@@ -2,7 +2,7 @@
 % Please edit documentation in R/univariate_Gaussian_fusion.R
 \name{progressive_fusion_uniGaussian}
 \alias{progressive_fusion_uniGaussian}
-\title{Progressive Monte Carlo Fusion}
+\title{(Progressive) D&C Monte Carlo Fusion (rejection sampling)}
 \usage{
 progressive_fusion_uniGaussian(
   N_schedule,
@@ -62,5 +62,5 @@ A list with components:
 }
 }
 \description{
-Progressive Monte Carlo Fusion with base level of tempered Gaussians with same mean and standard deviation
+(Progressive) D&C Monte Carlo Fusion with univariate Gaussian target
 }

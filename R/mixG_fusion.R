@@ -866,7 +866,7 @@ progressive_fusion_mixG <- function(N_schedule,
 #'              value for c-th posterior
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use

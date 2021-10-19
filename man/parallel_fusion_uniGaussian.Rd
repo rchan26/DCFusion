@@ -2,7 +2,7 @@
 % Please edit documentation in R/univariate_Gaussian_fusion.R
 \name{parallel_fusion_uniGaussian}
 \alias{parallel_fusion_uniGaussian}
-\title{Preconditioned Monte Carlo Fusion [parallel]}
+\title{Generalised Monte Carlo Fusion (rejection sampling) [parallel]}
 \usage{
 parallel_fusion_uniGaussian(
   N,
@@ -61,5 +61,5 @@ A list with components:
 }
 }
 \description{
-Monte Carlo Fusion for sub-posteriors that are tempered Gaussian distributions
+Generalised Monte Carlo Fusion with univariate Gaussian target
 }
