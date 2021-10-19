@@ -526,9 +526,6 @@ bal_binary_fusion_exp_4 <- function(N_schedule,
                             mean = mean,
                             betas = rep(prod(m_schedule[L:(k+1)])*(start_beta), m_schedule[k]),
                             precondition_values = precondition_vals,
-                            diffusion_estimator = diffusion_estimator,
-                            beta_NB = beta_NB,
-                            gamma_NB_n_points = gamma_NB_n_points,
                             seed = seed,
                             n_cores = n_cores)
     })

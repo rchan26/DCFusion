@@ -113,24 +113,59 @@ double spectral_radius_BLR(const arma::vec &beta,
                            const arma::vec &prior_variances,
                            const double &C,
                            const arma::mat &Lambda) {
-  arma::mat hessian(dim, dim, arma::fill::zeros);
   const arma::vec X_beta = X * beta;
-  for (int i=0; i < X.n_rows; ++i) {
-    const double exp_X_beta = exp(X_beta.at(i));
-    const double ratio = exp_X_beta/((1+exp_X_beta)*(1+exp_X_beta));
-    for (int j=0; j < dim; ++j) {
-      for (int k=0; k <= j; ++k) {
-        hessian.at(j,k) -= count.at(i)*X.at(i,j)*X.at(i,k)*ratio;
-      }
-    }
+  // arma::mat hessian(dim, dim, arma::fill::zeros);
+  // for (int i=0; i < X.n_rows; ++i) {
+  //   const double exp_X_beta = exp(X_beta.at(i));
+  //   const double ratio = exp_X_beta/((1+exp_X_beta)*(1+exp_X_beta));
+  //   for (int j=0; j < dim; ++j) {
+  //     for (int k=0; k <= j; ++k) {
+  //       hessian.at(j,k) -= count.at(i)*X.at(i,j)*X.at(i,k)*ratio;
+  //     }
+  //   }
+  // }
+  // for (int j=0; j < dim; ++j) {
+  //   hessian.at(j,j) -= 1/(C*prior_variances.at(j));
+  //   for (int k=0; k < j; ++k) {
+  //     hessian.at(k,j) = hessian.at(j,k);
+  //   }
+  // }
+  return(spectral_radius(Lambda * log_BLR_hessian(X,
+                                                  X_beta,
+                                                  count,
+                                                  prior_variances,
+                                                  C)));
+}
+
+// [[Rcpp::export]]
+Rcpp::List obtain_hypercube_centre_BLR(const Rcpp::List &bessel_layers,
+                                       const arma::mat &transform_to_X,
+                                       const arma::vec &y_labels,
+                                       const arma::mat &X,
+                                       const arma::vec &count,
+                                       const arma::vec &prior_means,
+                                       const arma::vec &prior_variances,
+                                       const double &C) {
+  // calculate the hypercube centre
+  arma::vec centre(bessel_layers.size(), arma::fill::zeros);
+  for (int i=0; i < bessel_layers.size(); ++i) {
+    const Rcpp::List &b_layer = bessel_layers[i];
+    const double &L = b_layer["L"];
+    const double &U = b_layer["U"];
+    centre.at(i) = 0.5*(L+U);
   }
-  for (int j=0; j < dim; ++j) {
-    hessian.at(j,j) -= 1/(C*prior_variances.at(j));
-    for (int k=0; k < j; ++k) {
-      hessian.at(k,j) = hessian.at(j,k);
-    }
-  }
-  return(spectral_radius(Lambda * hessian));
+  const arma::vec beta_hat = transform_to_X*centre;
+  // evaluate the gradient of the log posterior at the hypercube centre
+  const arma::vec X_beta = X * beta_hat;
+  return(Rcpp::List::create(Named("beta_hat", beta_hat),
+                            Named("grad_log_hat", log_BLR_gradient(beta_hat,
+                                                       y_labels,
+                                                       X,
+                                                       X_beta,
+                                                       count,
+                                                       prior_means,
+                                                       prior_variances,
+                                                       C))));
 }
 
 // [[Rcpp::export]]
@@ -203,50 +238,6 @@ Rcpp::List spectral_radius_global_bound_BLR_Z(const int &dim,
   const arma::vec abs_eigen = abs_eigenvals(hessian);
   return(Rcpp::List::create(Named("spectral_radius", abs_eigen.max()),
                             Named("abs_eigenvals", abs_eigen)));
-}
-
-// [[Rcpp::export]]
-Rcpp::List obtain_hypercube_centre(const Rcpp::List &bessel_layers,
-                                   const arma::mat &transform_to_X,
-                                   const arma::vec &y_labels,
-                                   const arma::mat &X,
-                                   const arma::vec &count,
-                                   const arma::vec &prior_means,
-                                   const arma::vec &prior_variances,
-                                   const double &C) {
-  // calculate the hypercube centre
-  arma::vec centre(bessel_layers.size(), arma::fill::zeros);
-  for (int i=0; i < bessel_layers.size(); ++i) {
-    const Rcpp::List &b_layer = bessel_layers[i];
-    const double &L = b_layer["L"];
-    const double &U = b_layer["U"];
-    centre.at(i) = 0.5*(L+U);
-  }
-  const arma::vec beta_hat = transform_to_X*centre;
-  // evaluate the gradient of the log posterior at the hypercube centre
-  const arma::vec X_beta = X * beta_hat;
-  return(Rcpp::List::create(Named("beta_hat", beta_hat),
-                            Named("grad_log_hat", log_BLR_gradient(beta_hat,
-                                                       y_labels,
-                                                       X,
-                                                       X_beta,
-                                                       count,
-                                                       prior_means,
-                                                       prior_variances,
-                                                       C))));
-}
-
-// [[Rcpp::export]]
-double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
-                                        const arma::mat &hypercube_vertices,
-                                        const arma::mat &transform_to_X,
-                                        const arma::mat &transform_to_Z) {
-  const arma::mat hypercube_X = arma::trans(transform_to_X * arma::trans(hypercube_vertices));
-  arma::vec distances(hypercube_vertices.n_rows, arma::fill::zeros);
-  for (int i=0; i < hypercube_X.n_rows; ++i) {
-    distances.at(i) = scaled_distance(arma::trans(hypercube_X.row(i)), beta_hat, transform_to_Z);
-  }
-  return(distances.max());
 }
 
 // [[Rcpp::export]]

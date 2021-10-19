@@ -63,4 +63,9 @@ arma::mat mvrnormArma_tempered(const int &N,
                                const arma::mat &Sigma,
                                const double &beta);
 
+double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
+                                        const arma::mat &hypercube_vertices,
+                                        const arma::mat &transform_to_X,
+                                        const arma::mat &transform_to_Z);
+
 #endif

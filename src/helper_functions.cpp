@@ -485,6 +485,19 @@ arma::mat mvrnormArma_tempered(const int &N,
   return arma::repmat(mu, 1, N).t() + Y * arma::chol(new_Sigma);
 }
 
+// [[Rcpp::export]]
+double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
+                                        const arma::mat &hypercube_vertices,
+                                        const arma::mat &transform_to_X,
+                                        const arma::mat &transform_to_Z) {
+  const arma::mat hypercube_X = arma::trans(transform_to_X * arma::trans(hypercube_vertices));
+  arma::vec distances(hypercube_vertices.n_rows, arma::fill::zeros);
+  for (int i=0; i < hypercube_X.n_rows; ++i) {
+    distances.at(i) = scaled_distance(arma::trans(hypercube_X.row(i)), beta_hat, transform_to_Z);
+  }
+  return(distances.max());
+}
+
 //////////----- testing the best covariance matrix for the double langevin -----//////////
 
 // ----- obtains the additional terms in the weights

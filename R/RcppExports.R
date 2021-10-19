@@ -313,6 +313,10 @@ mvrnormArma_tempered <- function(N, mu, Sigma, beta) {
     .Call(`_DCFusion_mvrnormArma_tempered`, N, mu, Sigma, beta)
 }
 
+maximal_distance_hypercube_to_cv <- function(beta_hat, hypercube_vertices, transform_to_X, transform_to_Z) {
+    .Call(`_DCFusion_maximal_distance_hypercube_to_cv`, beta_hat, hypercube_vertices, transform_to_X, transform_to_Z)
+}
+
 log_rho_multivariate_additional <- function(y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices) {
     .Call(`_DCFusion_log_rho_multivariate_additional`, y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices)
 }
@@ -337,6 +341,10 @@ spectral_radius_BLR <- function(beta, dim, X, count, prior_variances, C, Lambda)
     .Call(`_DCFusion_spectral_radius_BLR`, beta, dim, X, count, prior_variances, C, Lambda)
 }
 
+obtain_hypercube_centre_BLR <- function(bessel_layers, transform_to_X, y_labels, X, count, prior_means, prior_variances, C) {
+    .Call(`_DCFusion_obtain_hypercube_centre_BLR`, bessel_layers, transform_to_X, y_labels, X, count, prior_means, prior_variances, C)
+}
+
 spectral_radius_bound_BLR_Z <- function(dim, V, X, count, prior_variances, C, sqrt_Lambda) {
     .Call(`_DCFusion_spectral_radius_bound_BLR_Z`, dim, V, X, count, prior_variances, C, sqrt_Lambda)
 }
@@ -345,20 +353,56 @@ spectral_radius_global_bound_BLR_Z <- function(dim, X, count, prior_variances, C
     .Call(`_DCFusion_spectral_radius_global_bound_BLR_Z`, dim, X, count, prior_variances, C, sqrt_Lambda)
 }
 
-obtain_hypercube_centre <- function(bessel_layers, transform_to_X, y_labels, X, count, prior_means, prior_variances, C) {
-    .Call(`_DCFusion_obtain_hypercube_centre`, bessel_layers, transform_to_X, y_labels, X, count, prior_means, prior_variances, C)
-}
-
-maximal_distance_hypercube_to_cv <- function(beta_hat, hypercube_vertices, transform_to_X, transform_to_Z) {
-    .Call(`_DCFusion_maximal_distance_hypercube_to_cv`, beta_hat, hypercube_vertices, transform_to_X, transform_to_Z)
-}
-
 ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds) {
     .Call(`_DCFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
 }
 
 gamma_NB_BLR <- function(times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
     .Call(`_DCFusion_gamma_NB_BLR`, times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
+}
+
+log_BRR_gradient <- function(beta, y_resp, X, X_beta, nu, sigma, prior_means, prior_variances, C) {
+    .Call(`_DCFusion_log_BRR_gradient`, beta, y_resp, X, X_beta, nu, sigma, prior_means, prior_variances, C)
+}
+
+log_BRR_hessian <- function(y_resp, X, X_beta, nu, sigma, prior_variances, C) {
+    .Call(`_DCFusion_log_BRR_hessian`, y_resp, X, X_beta, nu, sigma, prior_variances, C)
+}
+
+ea_phi_BRR_DL_vec <- function(beta, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_ea_phi_BRR_DL_vec`, beta, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat)
+}
+
+ea_phi_BRR_DL_matrix <- function(beta, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_ea_phi_BRR_DL_matrix`, beta, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat)
+}
+
+spectral_radius_BRR <- function(beta, dim, y_resp, X, nu, sigma, prior_variances, C, Lambda) {
+    .Call(`_DCFusion_spectral_radius_BRR`, beta, dim, y_resp, X, nu, sigma, prior_variances, C, Lambda)
+}
+
+obtain_hypercube_centre_BRR <- function(bessel_layers, transform_to_X, y_resp, X, nu, sigma, prior_means, prior_variances, C) {
+    .Call(`_DCFusion_obtain_hypercube_centre_BRR`, bessel_layers, transform_to_X, y_resp, X, nu, sigma, prior_means, prior_variances, C)
+}
+
+gamma_NB_BRR <- function(times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_gamma_NB_BRR`, times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat)
+}
+
+log_BRR_gradient_Z <- function(beta, y_resp, X_beta, transformed_X, nu, sigma, prior_means, prior_variances, C, sqrt_precondition_mat) {
+    .Call(`_DCFusion_log_BRR_gradient_Z`, beta, y_resp, X_beta, transformed_X, nu, sigma, prior_means, prior_variances, C, sqrt_precondition_mat)
+}
+
+term2_Z <- function(y_resp, X_beta, transformed_X, nu, sigma, prior_variances, C, precondition_mat, sqrt_precondition_mat) {
+    .Call(`_DCFusion_term2_Z`, y_resp, X_beta, transformed_X, nu, sigma, prior_variances, C, precondition_mat, sqrt_precondition_mat)
+}
+
+ea_phi_BRR_DL_vec_Z <- function(beta, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat, sqrt_precondition_mat) {
+    .Call(`_DCFusion_ea_phi_BRR_DL_vec_Z`, beta, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat, sqrt_precondition_mat)
+}
+
+term2_X <- function(y_resp, X, X_beta, nu, sigma, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_term2_X`, y_resp, X, X_beta, nu, sigma, prior_variances, C, precondition_mat)
 }
 
 ea_phi_biGaussian_DL_vec <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {
