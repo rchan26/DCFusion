@@ -1,4 +1,4 @@
-library(hierarchicalFusion)
+library(DCFusion)
 
 seed <- 408
 denominator <- 2:16

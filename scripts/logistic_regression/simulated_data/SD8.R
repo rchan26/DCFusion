@@ -1,4 +1,4 @@
-library(hierarchicalFusion)
+library(DCFusion)
 library(HMCBLR)
 
 # function to simulate data given frequencies of the coefficients and the coefficients themselves

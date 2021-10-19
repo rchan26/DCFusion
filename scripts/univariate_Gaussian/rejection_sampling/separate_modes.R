@@ -1,4 +1,4 @@
-library(hierarchicalFusion)
+library(DCFusion)
 
 seed <- 1994
 set.seed(seed)

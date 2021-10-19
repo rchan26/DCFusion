@@ -1,4 +1,4 @@
-library(hierarchicalFusion)
+library(DCFusion)
 library(HMCBLR)
 
 seed <- 2016

@@ -1,4 +1,4 @@
-library(hierarchicalFusion)
+library(DCFusion)
 library(ggplot2)
 
 seed <- 1983

@@ -1,4 +1,4 @@
-library(hierarchicalFusion)
+library(DCFusion)
 load('CC32.RData')
 load('CC64.RData')
 load('CC128.RData')

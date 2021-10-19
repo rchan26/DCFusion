@@ -1,4 +1,4 @@
-library(hierarchicalFusion)
+library(DCFusion)
 
 ######################################## examples ########################################
 

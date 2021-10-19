@@ -1,4 +1,4 @@
-library(hierarchicalFusion)
+library(DCFusion)
 load('SD4.RData')
 load('SD8.RData')
 load('SD16.RData')
