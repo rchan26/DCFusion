@@ -232,9 +232,9 @@ ea_mixG_DL_PT <- function(x0,
   }
 }
 
-#' Preconditioned Monte Carlo Fusion [on a single core]
+#' Generalised Monte Carlo Fusion (rejection sampling) [on a single core]
 #'
-#' Monte Carlo Fusion for sub-posteriors which are tempered mixture Gaussians
+#' Generalised Monte Carlo Fusion with mixture Gaussian target
 #'
 #' @param N number of samples
 #' @param m number of sub-posteriors to combine
@@ -333,9 +333,9 @@ fusion_mixG <- function(N,
               'iters_Q' = iters_Q))
 }
 
-#' Preconditioned Monte Carlo Fusion [parallel]
+#' Generalised Monte Carlo Fusion (rejection sampling) [parallel]
 #'
-#' Monte Carlo Fusion for sub-posteriors which are tempered mixture Gaussians
+#' Generalised Monte Carlo Fusion with mixture Gaussian target
 #'
 #' @param N number of samples
 #' @param m number of sub-posteriors to combine
@@ -475,10 +475,9 @@ parallel_fusion_mixG <- function(N,
   }
 }
 
-#' Hierarchical Monte Carlo Fusion
+#' (Balanced Binary) D&C Monte Carlo Fusion (rejection sampling)
 #'
-#' Hierarchical Monte Carlo Fusion with base level with nodes that are
-#' tempered mixture Gaussians
+#' (Balanced Binary) D&C Monte Carlo Fusion with mixture Gaussian target
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number
 #'                   of samples per node at level l
@@ -531,44 +530,44 @@ parallel_fusion_mixG <- function(N,
 #' }
 #'
 #' @export
-hierarchical_fusion_mixG <- function(N_schedule,
-                                     m_schedule,
-                                     time_schedule,
-                                     base_samples,
-                                     L,
-                                     n_comp,
-                                     weights,
-                                     means,
-                                     sds,
-                                     start_beta,
-                                     precondition = TRUE,
-                                     bounds_multiplier = 1.1,
-                                     seed = NULL,
-                                     n_cores = parallel::detectCores()) {
+bal_binary_fusion_mixG <- function(N_schedule,
+                                   m_schedule,
+                                   time_schedule,
+                                   base_samples,
+                                   L,
+                                   n_comp,
+                                   weights,
+                                   means,
+                                   sds,
+                                   start_beta,
+                                   precondition = TRUE,
+                                   bounds_multiplier = 1.1,
+                                   seed = NULL,
+                                   n_cores = parallel::detectCores()) {
   if (length(weights)!=n_comp) {
-    stop("hierarchical_fusion_mixG: weights must be a vector of length n_comp")
+    stop("bal_binary_fusion_mixG: weights must be a vector of length n_comp")
   } else if (length(means)!=n_comp) {
-    stop("hierarchical_fusion_mixG: means must be a vector of length n_comp")
+    stop("bal_binary_fusion_mixG: means must be a vector of length n_comp")
   } else if (length(sds)!=n_comp) {
-    stop("hierarchical_fusion_mixG: sds must be a vector of length n_comp")
+    stop("bal_binary_fusion_mixG: sds must be a vector of length n_comp")
   } else if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_mixG: N_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_mixG: N_schedule must be a vector of length (L-1)")
   } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_mixG: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_mixG: m_schedule must be a vector of length (L-1)")
   } else if (!is.vector(time_schedule) | (length(time_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_mixG: time_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_mixG: time_schedule must be a vector of length (L-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
-    stop("hierarchical_fusion_mixG: base_samples must be a list of length (1/start_beta)")
+    stop("bal_binary_fusion_mixG: base_samples must be a list of length (1/start_beta)")
   }
   if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
     for (l in (L-1):1) {
       if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1!=0) {
-        stop("hierarchical_fusion_mixG: check that (1/start_beta)/prod(m_schedule[(L-1):l])
+        stop("bal_binary_fusion_mixG: check that (1/start_beta)/prod(m_schedule[(L-1):l])
              is an integer for l=L-1,...,1")
       }
     }
   } else {
-    stop("hierarchical_fusion_mixG: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_mixG: m_schedule must be a vector of length (L-1)")
   }
   # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   # we need this so that we can set the right value for beta when fusing up the levels
@@ -596,25 +595,25 @@ hierarchical_fusion_mixG <- function(N_schedule,
       precondition_values[[L]] <- precondition
     }
   } else {
-    stop("hierarchical_fusion_mixG: precondition must be a logical indicating 
+    stop("bal_binary_fusion_mixG: precondition must be a logical indicating 
           whether or not a preconditioning value should be used, or a list of
           length C, where precondition[[c]] is the preconditioning value for
           the c-th sub-posterior")
   }
-  cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_mixG.txt')
+  cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_mixG.txt')
   for (k in ((L-1):1)) {
     # since previous level has (1/beta)/prod(m_schedule[L:(k-1)]) nodes and we 
     # fuse m_schedule[k] of these
     n_nodes <- max((1/start_beta)/prod(m_schedule[L:k]), 1)
-    cat('########################\n', file = 'hierarchical_fusion_mixG.txt',
+    cat('########################\n', file = 'bal_binary_fusion_mixG.txt',
         append = T)
     cat('Starting to fuse', m_schedule[k], 'densities for level', k, 'with time',
         time_schedule[k], '- using', parallel::detectCores(), 'cores\n',
-        file = 'hierarchical_fusion_mixG.txt', append = T)
+        file = 'bal_binary_fusion_mixG.txt', append = T)
     cat('There are', n_nodes, 'nodes at this level each giving', N_schedule[k],
         'samples for beta =', prod(m_schedule[L:k]), '/', (1/start_beta),
-        '\n', file = 'hierarchical_fusion_mixG.txt', append = T)
-    cat('########################\n', file = 'hierarchical_fusion_mixG.txt',
+        '\n', file = 'bal_binary_fusion_mixG.txt', append = T)
+    cat('########################\n', file = 'bal_binary_fusion_mixG.txt',
         append = T)
     fused <- lapply(X = 1:n_nodes, FUN = function(i) {
       previous_nodes <- ((m_schedule[k]*i)-(m_schedule[k]-1)):(m_schedule[k]*i)
@@ -652,7 +651,7 @@ hierarchical_fusion_mixG <- function(N_schedule,
     overall_time[k] <- sum(unlist(time[[k]]))
     precondition_values[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_values[[1]])
   }
-  cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_mixG.txt',
+  cat('Completed bal_binary fusion\n', file = 'bal_binary_fusion_mixG.txt',
       append = T)
   if (length(hier_samples[[1]])==1) {
     hier_samples[[1]] <- hier_samples[[1]][[1]]
@@ -674,10 +673,9 @@ hierarchical_fusion_mixG <- function(N_schedule,
               'overall_time' = overall_time))
 }
 
-#' Progressive Monte Carlo Fusion
+#' (Progressive) D&C Monte Carlo Fusion (rejection sampling)
 #'
-#' Progressive Monte Carlo Fusion with base level with nodes that are
-#' tempered mixture Gaussians
+#' (Progressive) D&C Monte Carlo Fusion with mixture Gaussian target
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number
 #'                   of samples per node at level l
@@ -853,9 +851,9 @@ progressive_fusion_mixG <- function(N_schedule,
               'precondition_values' = precondition_values))
 }
 
-#' Q Importance Sampling Step for sub-posteriors of the form exp(-((x^4)*beta)/2)
+#' Q Importance Sampling Step
 #'
-#' Q Importance Sampling weighting for sub-posteriors of the form exp(-((x^4)*beta)/2)
+#' Q Importance Sampling weighting for mixture Gaussian distributions
 #'
 #' @param particle_set particles set prior to Q importance sampling step
 #' @param m number of sub-posteriors to combine
@@ -967,9 +965,9 @@ Q_IS_mixG <- function(particle_set,
   return(particle_set)
 }
 
-#' SMC Fusion for sub-posteriors of the form exp(-((x^4)*beta)/2)
+#' Generalised Monte Carlo Fusion [parallel]
 #'
-#' SMC Fusion for sub-posteriors of the form exp(-((x^4)*beta)/2)
+#' Generalised Monte Carlo Fusion with mixture Gaussian target
 #'
 #' @param particles_to_fuse list of length m, where particles_to_fuse[[c]]
 #'                          contains the particles for the c-th sub-posterior
@@ -1132,9 +1130,9 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
   }
 }
 
-#' Hierarchical SMC Fusion 
+#' (Balanced Binary) D&C Monte Carlo Fusion using SMC
 #'
-#' Hierarchical SMC Fusion with base level of the form exp(-((x^4)*beta)/2)
+#' (Balanced Binary) D&C Monte Carlo Fusion with mixture Gaussian target
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
@@ -1191,48 +1189,48 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
 #' }
 #'
 #' @export
-hierarchical_fusion_SMC_mixG <- function(N_schedule,
-                                         m_schedule,
-                                         time_schedule,
-                                         base_samples,
-                                         L,
-                                         n_comp,
-                                         weights,
-                                         means,
-                                         sds,
-                                         start_beta,
-                                         precondition = TRUE,
-                                         bounds_multiplier = 1.1,
-                                         resampling_method = 'multi',
-                                         ESS_threshold = 0.5,
-                                         seed = NULL,
-                                         n_cores = parallel::detectCores()) {
+bal_binary_fusion_SMC_mixG <- function(N_schedule,
+                                       m_schedule,
+                                       time_schedule,
+                                       base_samples,
+                                       L,
+                                       n_comp,
+                                       weights,
+                                       means,
+                                       sds,
+                                       start_beta,
+                                       precondition = TRUE,
+                                       bounds_multiplier = 1.1,
+                                       resampling_method = 'multi',
+                                       ESS_threshold = 0.5,
+                                       seed = NULL,
+                                       n_cores = parallel::detectCores()) {
   if (length(weights)!=n_comp) {
-    stop("hierarchical_fusion_SMC_mixG: weights must be a vector of length n_comp")
+    stop("bal_binary_fusion_SMC_mixG: weights must be a vector of length n_comp")
   } else if (length(means)!=n_comp) {
-    stop("hierarchical_fusion_SMC_mixG: means must be a vector of length n_comp")
+    stop("bal_binary_fusion_SMC_mixG: means must be a vector of length n_comp")
   } else if (length(sds)!=n_comp) {
-    stop("hierarchical_fusion_SMC_mixG: sds must be a vector of length n_comp")
+    stop("bal_binary_fusion_SMC_mixG: sds must be a vector of length n_comp")
   } else if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_SMC_mixG: N_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_mixG: N_schedule must be a vector of length (L-1)")
   } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_SMC_mixG: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_mixG: m_schedule must be a vector of length (L-1)")
   } else if (!is.vector(time_schedule) | (length(time_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_SMC_mixG: time_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_mixG: time_schedule must be a vector of length (L-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
-    stop("hierarchical_fusion_SMC_mixG: base_samples must be a list of length (1/start_beta)")
+    stop("bal_binary_fusion_SMC_mixG: base_samples must be a list of length (1/start_beta)")
   } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
-    stop("hierarchical_fusion_SMC_mixG: ESS_threshold must be between 0 and 1")
+    stop("bal_binary_fusion_SMC_mixG: ESS_threshold must be between 0 and 1")
   }
   if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
     for (l in (L-1):1) {
       if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1!=0) {
-        stop("hierarchical_fusion_SMC_mixG: check that (1/start_beta)/prod(m_schedule[(L-1):l])
+        stop("bal_binary_fusion_SMC_mixG: check that (1/start_beta)/prod(m_schedule[(L-1):l])
              is an integer for l=L-1,...,1")
       }
     }
   } else {
-    stop("hierarchical_fusion_SMC_mixG: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_mixG: m_schedule must be a vector of length (L-1)")
   }
   # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   m_schedule <- c(m_schedule, 1)
@@ -1243,7 +1241,7 @@ hierarchical_fusion_SMC_mixG <- function(N_schedule,
   } else if (all(sapply(base_samples, is.vector))) {
     particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
   } else {
-    stop("hierarchical_fusion_SMC_mixG: base_samples must be a list of length 
+    stop("bal_binary_fusion_SMC_mixG: base_samples must be a list of length 
          (1/start_beta) containing either items of class \"particle\" (representing
          particle approximations of the sub-posteriors) or are vectors
          (representing un-normalised sample approximations of the sub-posteriors)")
@@ -1265,26 +1263,26 @@ hierarchical_fusion_SMC_mixG <- function(N_schedule,
       precondition_values[[L]] <- precondition
     }
   } else {
-    stop("hierarchical_fusion_SMC_mixG: precondition must be a logical indicating 
+    stop("bal_binary_fusion_SMC_mixG: precondition must be a logical indicating 
           whether or not a preconditioning value should be used, or a list of
           length C, where precondition[[c]] is the preconditioning value for
           the c-th sub-posterior")
   }
-  cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_mixG.txt')
+  cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_SMC_mixG.txt')
   for (k in ((L-1):1)) {
     # since previous level has (1/beta)/prod(m_schedule[L:(k-1)]) nodes and we 
     # fuse m_schedule[k] of these
     n_nodes <- max((1/start_beta)/prod(m_schedule[L:k]), 1)
-    cat('########################\n', file = 'hierarchical_fusion_SMC_mixG.txt',
+    cat('########################\n', file = 'bal_binary_fusion_SMC_mixG.txt',
         append = T)
     cat('Starting to fuse', m_schedule[k], 'densities of pi^beta, where beta =',
         prod(m_schedule[L:(k+1)]), '/', (1/start_beta), 'for level', k, 'with time',
         time_schedule[k], ', which is using', parallel::detectCores(), 'cores\n',
-        file = 'hierarchical_fusion_SMC_mixG.txt', append = T)
+        file = 'bal_binary_fusion_SMC_mixG.txt', append = T)
     cat('There are', n_nodes, 'nodes at this level each giving', N_schedule[k],
         'samples for beta =', prod(m_schedule[L:k]), '/', (1/start_beta),
-        '\n', file = 'hierarchical_fusion_SMC_mixG.txt', append = T)
-    cat('########################\n', file = 'hierarchical_fusion_SMC_mixG.txt', 
+        '\n', file = 'bal_binary_fusion_SMC_mixG.txt', append = T)
+    cat('########################\n', file = 'bal_binary_fusion_SMC_mixG.txt', 
         append = T)
     fused <- lapply(X = 1:n_nodes, FUN = function(i) {
       previous_nodes <- ((m_schedule[k]*i)-(m_schedule[k]-1)):(m_schedule[k]*i)
@@ -1314,7 +1312,7 @@ hierarchical_fusion_SMC_mixG <- function(N_schedule,
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$resampled)
     precondition_values[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_values[[1]])
   }
-  cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_SMC_mixG.txt', 
+  cat('Completed bal_binary fusion\n', file = 'bal_binary_fusion_SMC_mixG.txt', 
       append = T)
   if (length(particles[[1]])==1) {
     particles[[1]] <- particles[[1]][[1]]
@@ -1335,9 +1333,9 @@ hierarchical_fusion_SMC_mixG <- function(N_schedule,
               'diffusion_times' = time_schedule))
 }
 
-#' Progressive SMC Fusion
+#' (Progressive) D&C Monte Carlo Fusion using SMC
 #'
-#' Progressive SMC Fusion with base level of the form exp(-((x^4)*beta)/2)
+#' (Progressive) D&C Monte Carlo Fusion with mixture Gaussian target
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l

@@ -30,34 +30,6 @@ ea_phi_BLR_DL <- function(beta,
 }
 
 #' @export
-obtain_hypercube_vertices <- function(bessel_layers) {
-  if (!is.list(bessel_layers)) {
-    stop("hypercube_vertices: bessel_layers must be a list")
-  }
-  bounds <- lapply(1:length(bessel_layers), function(d) c(bessel_layers[[d]]$L, bessel_layers[[d]]$U))
-  B <- lapply(1:length(bessel_layers), function(d) {
-    if ((bessel_layers[[d]]$L < 0) & (bessel_layers[[d]]$U > 0)) {
-      return(c(bessel_layers[[d]]$L, 0, bessel_layers[[d]]$U))
-    } else {
-      return(c(bessel_layers[[d]]$L, bessel_layers[[d]]$U))
-    }
-  })
-  vertices <- as.matrix(expand.grid(bounds))
-  V <- as.matrix(expand.grid(B))
-  colnames(vertices) <- c()
-  colnames(V)
-  return(list('vertices' = vertices, 'V' = V))
-}
-
-#' #' @export
-#' surrounding_hypercube_vertices <- function(hypercube_vertices) {
-#'   bounds <- lapply(1:ncol(hypercube_vertices), function(d) c(min(hypercube_vertices[,d]), max(hypercube_vertices[,d])))
-#'   vertices <- as.matrix(expand.grid(bounds))
-#'   colnames(vertices) <- c()
-#'   return(vertices)
-#' }
-
-#' @export
 obtain_LR_MLE <- function(dim, data) {
   return(as.vector(unname(glm(formula = data$y ~ data$X[,2:dim], family = 'binomial')$coeff)))
 }
@@ -405,7 +377,9 @@ Q_IS_BLR <- function(particle_set,
   return(particle_set)
 }
 
-#' Parallel Sequential Monte Carlo Fusion for Bayesian Logistic Regression model
+#' Generalised Monte Carlo Fusion [parallel]
+#' 
+#' Generalised Monte Carlo Fusion for Bayesian Logistic Regression
 #'
 #' @param particles_to_fuse list of length m, where particles_to_fuse[c] contains
 #'                          the particles for the c-th sub-posterior. Can
@@ -638,7 +612,9 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
   }
 }
 
-#' Hierarchical Monte Carlo Fusion using SMC for Bayesian Logistic Regression model
+#' (Balanced Binary) D&C Monte Carlo Fusion using SMC
+#' 
+#' (Balanced Binary) D&C Monte Carlo Fusion using SMC for Bayesian Logistic Regression
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the
 #'                   number of samples per node at level l
@@ -715,7 +691,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #' }
 #'
 #' @export
-hierarchical_fusion_SMC_BLR <- function(N_schedule,
+bal_binary_fusion_SMC_BLR <- function(N_schedule,
                                         m_schedule,
                                         time_schedule,
                                         base_samples,
@@ -737,45 +713,45 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                                         n_cores = parallel::detectCores(),
                                         print_progress_iters = 100) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_SMC_BLR: N_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_BLR: N_schedule must be a vector of length (L-1)")
   } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_SMC_BLR: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_BLR: m_schedule must be a vector of length (L-1)")
   } else if (!is.vector(time_schedule) | (length(time_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_SMC_BLR: time_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_BLR: time_schedule must be a vector of length (L-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=C)) {
-    stop("hierarchical_fusion_SMC_BLR: base_samples must be a list of length C")
+    stop("bal_binary_fusion_SMC_BLR: base_samples must be a list of length C")
   } else if (!is.list(data_split) | length(data_split)!=C) {
-    stop("hierarchical_fusion_SMC_BLR: data_split must be a list of length C")
+    stop("bal_binary_fusion_SMC_BLR: data_split must be a list of length C")
   } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
-    stop("parallel_fusion_SMC_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
+    stop("bal_binary_fusion_SMC_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:C, function(i) is.vector(data_split[[i]]$y)))) {
-    stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$y must be a vector")
+    stop("bal_binary_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:C, function(i) is.matrix(data_split[[i]]$X)))) {
-    stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$X must be a matrix")
+    stop("bal_binary_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$X must be a matrix")
   } else if (!all(sapply(1:C, function(i) ncol(data_split[[i]]$X)==dim))) {
-    stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$X must be a matrix with dim columns")
+    stop("bal_binary_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$X must be a matrix with dim columns")
   } else if (!all(sapply(1:C, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
-    stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
+    stop("bal_binary_fusion_SMC_BLR: for each i in 1:C, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
   } else if (!all(sapply(1:C, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$full_data_count must be a data frame")
+    stop("bal_binary_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$full_data_count must be a data frame")
   } else if (!all(sapply(1:C, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("hierarchical_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$design_count must be a data frame")
+    stop("bal_binary_fusion_SMC_BLR: for each i in 1:C, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
-    stop("hierarchical_fusion_SMC_BLR: prior_means must be vectors of length dim")
+    stop("bal_binary_fusion_SMC_BLR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
-    stop("hierarchical_fusion_SMC_BLR: prior_variances must be vectors of length dim")
+    stop("bal_binary_fusion_SMC_BLR: prior_variances must be vectors of length dim")
   } else if (ESS_threshold < 0 | ESS_threshold > 1) {
-    stop("hierarchical_fusion_SMC_BLR: ESS_threshold must be between 0 and 1")
+    stop("bal_binary_fusion_SMC_BLR: ESS_threshold must be between 0 and 1")
   }
   if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
     for (l in (L-1):1) {
       if ((C/prod(m_schedule[(L-1):l]))%%1!=0) {
-        stop("hierarchical_fusion_SMC_BLR: check that C/prod(m_schedule[(L-1):l])
+        stop("bal_binary_fusion_SMC_BLR: check that C/prod(m_schedule[(L-1):l])
               is an integer for l=L-1,...,1")
       }
     }
   } else {
-    stop("hierarchical_fusion_SMC_BLR: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_BLR: m_schedule must be a vector of length (L-1)")
   }
   # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   m_schedule <- c(m_schedule, 1)
@@ -785,11 +761,11 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     particles[[L]] <- base_samples
   } else if (all(sapply(base_samples, is.matrix))) {
     if (!all(sapply(base_samples, function(core) ncol(core)==dim))) {
-      stop("hierarchical_fusion_SMC_BLR: the sub-posterior samples in base_samples must be matrices with dim columns")
+      stop("bal_binary_fusion_SMC_BLR: the sub-posterior samples in base_samples must be matrices with dim columns")
     }
     particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
   } else {
-    stop("hierarchical_fusion_SMC_BLR: base_samples must be a list of length C
+    stop("bal_binary_fusion_SMC_BLR: base_samples must be a list of length C
          containing either items of class \"particle\" (representing particle 
          approximations of the sub-posteriors) or are matrices with dim columns
          (representing un-normalised sample approximations of the sub-posteriors)")
@@ -815,7 +791,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
       }
     }
   } else {
-    stop("hierarchical_fusion_SMC_BLR: precondition must be a logical indicating 
+    stop("bal_binary_fusion_SMC_BLR: precondition must be a logical indicating 
           whether or not a preconditioning matrix should be used, or a list of
           length C, where precondition[[c]] is the preconditioning matrix for
           the c-th sub-posterior")
@@ -828,18 +804,18 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
                                       "ea_phi_BLR_DL_bounds",
                                       "ea_BLR_DL_PT"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
-  cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_BLR.txt')
+  cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_SMC_BLR.txt')
   for (k in ((L-1):1)) {
     n_nodes <- max(C/prod(m_schedule[L:k]), 1)
-    cat('########################\n', file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
+    cat('########################\n', file = 'bal_binary_fusion_SMC_BLR.txt', append = T)
     cat('Starting to fuse', m_schedule[k], 'sub-posteriors for level', k, 'with time',
         time_schedule[k], ', which is using', n_cores, 'cores\n',
-        file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
+        file = 'bal_binary_fusion_SMC_BLR.txt', append = T)
     cat('At this level, the data is split up into', (C/prod(m_schedule[L:(k+1)])), 'subsets\n',
-        file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
+        file = 'bal_binary_fusion_SMC_BLR.txt', append = T)
     cat('There are', n_nodes, 'nodes at the next level each giving', N_schedule[k],
-        'samples \n', file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
-    cat('########################\n', file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
+        'samples \n', file = 'bal_binary_fusion_SMC_BLR.txt', append = T)
+    cat('########################\n', file = 'bal_binary_fusion_SMC_BLR.txt', append = T)
     fused <- lapply(X = 1:n_nodes, FUN = function(i) {
       previous_nodes <- ((m_schedule[k]*i)-(m_schedule[k]-1)):(m_schedule[k]*i)
       particles_to_fuse <- particles[[k+1]][previous_nodes]
@@ -879,7 +855,7 @@ hierarchical_fusion_SMC_BLR <- function(N_schedule,
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$combined_data)
   }
   parallel::stopCluster(cl)
-  cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_SMC_BLR.txt', append = T)
+  cat('Completed bal_binary fusion\n', file = 'bal_binary_fusion_SMC_BLR.txt', append = T)
   if (length(particles[[1]])==1) {
     particles[[1]] <- particles[[1]][[1]]
     proposed_samples[[1]] <- proposed_samples[[1]][[1]]

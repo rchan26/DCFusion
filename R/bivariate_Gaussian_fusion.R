@@ -194,9 +194,9 @@ ea_biGaussian_DL_PT <- function(x0,
   }
 }
 
-#' Preconditioned Monte Carlo Fusion [on a single core]
+#' Generalised Monte Carlo Fusion (rejection sampling) [on a single core]
 #'
-#' Monte Carlo Fusion for sub-posteriors that are tempered bivariate Gaussian distributions
+#' Generalised Monte Carlo Fusion with bivariate Gaussian target
 #'
 #' @param N number of samples
 #' @param m number of sub-posteriors to combine
@@ -287,9 +287,9 @@ fusion_biGaussian <- function(N,
               'iters_Q' = iters_Q))
 }
 
-#' Preconditioned Monte Carlo Fusion [parallel]
+#' Generalised Monte Carlo Fusion (rejection sampling) [parallel]
 #'
-#' Monte Carlo Fusion for sub-posteriors that are tempered bivariate Gaussian distributions
+#' Generalised Monte Carlo Fusion with bivariate Gaussian target
 #'
 #' @param N number of samples
 #' @param m number of sub-posteriors to combine
@@ -415,9 +415,9 @@ parallel_fusion_biGaussian <- function(N,
   }
 }
 
-#' Hierarchical Monte Carlo Fusion for tempered Bivariate Normal distribution
+#' (Balanced Binary) D&C Monte Carlo Fusion (rejection sampling)
 #'
-#' Hierarchical Monte Carlo Fusion with base level that are tempered Bivariate Normal distributions
+#' (Balanced Binary) D&C Monte Carlo Fusion with bivariate Gaussian target
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
@@ -467,44 +467,44 @@ parallel_fusion_biGaussian <- function(N,
 #' }
 #' 
 #' @export
-hierarchical_fusion_biGaussian <- function(N_schedule,
-                                           m_schedule,
-                                           time_schedule,
-                                           base_samples,
-                                           L,
-                                           mean_vec,
-                                           sd_vec,
-                                           corr, 
-                                           start_beta,
-                                           precondition = TRUE,
-                                           seed = NULL,
-                                           n_cores = parallel::detectCores()) {
+bal_binary_fusion_biGaussian <- function(N_schedule,
+                                         m_schedule,
+                                         time_schedule,
+                                         base_samples,
+                                         L,
+                                         mean_vec,
+                                         sd_vec,
+                                         corr, 
+                                         start_beta,
+                                         precondition = TRUE,
+                                         seed = NULL,
+                                         n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_biGaussian: N_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_biGaussian: N_schedule must be a vector of length (L-1)")
   } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_biGaussian: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_biGaussian: m_schedule must be a vector of length (L-1)")
   } else if (!is.vector(time_schedule) | (length(time_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_biGaussian: time_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_biGaussian: time_schedule must be a vector of length (L-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
-    stop("hierarchical_fusion_biGaussian: base_samples must be a list of length (1/start_beta)")
+    stop("bal_binary_fusion_biGaussian: base_samples must be a list of length (1/start_beta)")
   } else if (!all(sapply(base_samples, is.matrix))) {
-    stop("hierarchical_fusion_biGaussian: the sub-posterior samples in base_samples must be matrices")
+    stop("bal_binary_fusion_biGaussian: the sub-posterior samples in base_samples must be matrices")
   } else if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
-    stop("hierarchical_fusion_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
+    stop("bal_binary_fusion_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
-    stop("hierarchical_fusion_biGaussian: mean_vec must be a vector of length 2")
+    stop("bal_binary_fusion_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
-    stop("hierarchical_fusion_biGaussian: sd_vec must be a vector of length 2")
+    stop("bal_binary_fusion_biGaussian: sd_vec must be a vector of length 2")
   }
   if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
     for (l in (L-1):1) {
       if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1!=0) {
-        stop("hierarchical_fusion_biGaussian: check that (1/start_beta)/prod(m_schedule[(L-1):l])
+        stop("bal_binary_fusion_biGaussian: check that (1/start_beta)/prod(m_schedule[(L-1):l])
               is an integer for l=L-1,...,1")
       }
     }
   } else {
-    stop("hierarchical_fusion_biGaussian: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_biGaussian: m_schedule must be a vector of length (L-1)")
   }
   # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   # we need this so that we can set the right value for beta when fusing up the levels
@@ -534,26 +534,26 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
       }
     }
   } else {
-    stop("hierarchical_fusion_biGaussian: precondition must be a logical indicating 
+    stop("bal_binary_fusion_biGaussian: precondition must be a logical indicating 
           whether or not a preconditioning matrix should be used, or a list of
           length C, where precondition[[c]] is the preconditioning matrix for
           the c-th sub-posterior")
   }
-  cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_biGaussian.txt')
+  cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_biGaussian.txt')
   for (k in ((L-1):1)) {
     # since previous level has (1/beta)/prod(m_schedule[L:(k-1)]) nodes and we 
     # fuse m_schedule[k] of these
     n_nodes <- max((1/start_beta)/prod(m_schedule[L:k]), 1)
-    cat('########################\n', file = 'hierarchical_fusion_biGaussian.txt', 
+    cat('########################\n', file = 'bal_binary_fusion_biGaussian.txt', 
         append = T)
     cat('Starting to fuse', m_schedule[k], 'densities of pi^beta, where beta =', 
         prod(m_schedule[L:(k+1)]), '/', (1/start_beta), 'for level', k, 'with time', 
         time_schedule[k], ', which is using', parallel::detectCores(), 'cores\n',
-        file = 'hierarchical_fusion_biGaussian.txt', append = T)
+        file = 'bal_binary_fusion_biGaussian.txt', append = T)
     cat('There are', n_nodes, 'nodes at this level each giving', N_schedule[k],
         'samples for beta =', prod(m_schedule[L:k]), '/', (1/start_beta),
-        '\n', file = 'hierarchical_fusion_biGaussian.txt', append = T)
-    cat('########################\n', file = 'hierarchical_fusion_biGaussian.txt', 
+        '\n', file = 'bal_binary_fusion_biGaussian.txt', append = T)
+    cat('########################\n', file = 'bal_binary_fusion_biGaussian.txt', 
         append = T)
     fused <- lapply(X = 1:n_nodes, FUN = function(i) {
       previous_nodes <- ((m_schedule[k]*i)-(m_schedule[k]-1)):(m_schedule[k]*i)
@@ -570,9 +570,9 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
                                  seed = seed,
                                  n_cores = n_cores)
     })
-    cat('Completed fusion for level', k, '\n', file = 'hierarchical_fusion_biGaussian.txt', 
+    cat('Completed fusion for level', k, '\n', file = 'bal_binary_fusion_biGaussian.txt', 
         append = T)
-    cat('########################\n', file = 'hierarchical_fusion_biGaussian.txt', 
+    cat('########################\n', file = 'bal_binary_fusion_biGaussian.txt', 
         append = T)
     # need to combine the correct samples
     hier_samples[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$samples)
@@ -591,7 +591,7 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
     overall_time[k] <- sum(unlist(time[[k]]))
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_matrices[[1]])
   }
-  cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_biGaussian.txt', append = T)
+  cat('Completed bal_binary fusion\n', file = 'bal_binary_fusion_biGaussian.txt', append = T)
   if (length(hier_samples[[1]])==1) {
     hier_samples[[1]] <- hier_samples[[1]][[1]]
     time[[1]] <- time[[1]][[1]]
@@ -613,9 +613,9 @@ hierarchical_fusion_biGaussian <- function(N_schedule,
               'overall_time' = overall_time))
 }
 
-#' Progressive Monte Carlo Fusion for tempered Bivariate Normal distribution
+#' (Progressive) D&C Monte Carlo Fusion (rejection sampling)
 #'
-#' Progressive Monte Carlo Fusion with base level that are tempered Bivariate Normal distributions
+#' (Progressive) D&C Monte Carlo Fusion with bivariate Gaussian target
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
@@ -781,9 +781,9 @@ progressive_fusion_biGaussian <- function(N_schedule,
               'precondition_matrices' = precondition_matrices))
 }
 
-#' Q Importance Sampling Step for tempered bivariate Gaussian distributions
+#' Q Importance Sampling Step
 #'
-#' Q Importance Sampling weighting for tempered bivariate Gaussian distributions
+#' Q Importance Sampling weighting for bivariate Gaussian distributions
 #'
 #' @param particle_set particles set prior to Q importance sampling step
 #' @param m number of sub-posteriors to combine
@@ -908,9 +908,9 @@ Q_IS_biGaussian <- function(particle_set,
   return(particle_set)
 }
 
-#' SMC Fusion for tempered Bivariate Normal distribution
+#' Generalised Monte Carlo Fusion [parallel]
 #'
-#' SMC Fusion for sub-posteriors that are tempered bivariate Gaussian distributions
+#' Generalised Monte Carlo Fusion with bivariate Gaussian target
 #'
 #' @param particles_to_fuse list of length m, where particles_to_fuse[[c]]
 #'                          contains the particles for the c-th sub-posterior
@@ -1087,10 +1087,9 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
   }
 }
 
-#' Hierarchical SMC Fusion 
+#' (Balanced Binary) D&C Monte Carlo Fusion using SMC
 #'
-#' Hierarchical SMC Fusion with base tempered bivariate Gaussians with 
-#' same mean and covariance
+#' (Balanced Binary) D&C Monte Carlo Fusion with bivariate Gaussian target
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
@@ -1151,47 +1150,47 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
 #' }
 #'
 #' @export
-hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
-                                               m_schedule,
-                                               time_schedule,
-                                               base_samples,
-                                               L,
-                                               mean_vec,
-                                               sd_vec,
-                                               corr,
-                                               start_beta,
-                                               precondition = TRUE,
-                                               resampling_method = 'multi',
-                                               ESS_threshold = 0.5,
-                                               diffusion_estimator = 'Poisson',
-                                               beta_NB = 10,
-                                               gamma_NB_n_points = 2,
-                                               seed = NULL,
-                                               n_cores = parallel::detectCores()) {
+bal_binary_fusion_SMC_biGaussian <- function(N_schedule,
+                                             m_schedule,
+                                             time_schedule,
+                                             base_samples,
+                                             L,
+                                             mean_vec,
+                                             sd_vec,
+                                             corr,
+                                             start_beta,
+                                             precondition = TRUE,
+                                             resampling_method = 'multi',
+                                             ESS_threshold = 0.5,
+                                             diffusion_estimator = 'Poisson',
+                                             beta_NB = 10,
+                                             gamma_NB_n_points = 2,
+                                             seed = NULL,
+                                             n_cores = parallel::detectCores()) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_SMC_biGaussian: N_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_biGaussian: N_schedule must be a vector of length (L-1)")
   } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_SMC_biGaussian: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_biGaussian: m_schedule must be a vector of length (L-1)")
   } else if (!is.vector(time_schedule) | (length(time_schedule)!=(L-1))) {
-    stop("hierarchical_fusion_SMC_biGaussian: time_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_biGaussian: time_schedule must be a vector of length (L-1)")
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
-    stop("hierarchical_fusion_SMC_biGaussian: base_samples must be a list of length (1/start_beta)")
+    stop("bal_binary_fusion_SMC_biGaussian: base_samples must be a list of length (1/start_beta)")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
-    stop("hierarchical_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
+    stop("bal_binary_fusion_SMC_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
-    stop("hierarchical_fusion_SMC_biGaussian: sd_vec must be a vector of length 2")
+    stop("bal_binary_fusion_SMC_biGaussian: sd_vec must be a vector of length 2")
   } else if (ESS_threshold < 0 | ESS_threshold > 1) {
-    stop("hierarchical_fusion_SMC_biGaussian: ESS_threshold must be between 0 and 1")
+    stop("bal_binary_fusion_SMC_biGaussian: ESS_threshold must be between 0 and 1")
   }
   if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
     for (l in (L-1):1) {
       if (((1/start_beta)/prod(m_schedule[(L-1):l]))%%1!=0) {
-        stop("hierarchical_fusion_SMC_biGaussian: check that (1/start_beta)/prod(m_schedule[(L-1):l])
+        stop("bal_binary_fusion_SMC_biGaussian: check that (1/start_beta)/prod(m_schedule[(L-1):l])
               is an integer for l=L-1,...,1")
       }
     }
   } else {
-    stop("hierarchical_fusion_SMC_biGaussian: m_schedule must be a vector of length (L-1)")
+    stop("bal_binary_fusion_SMC_biGaussian: m_schedule must be a vector of length (L-1)")
   }
   # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   m_schedule <- c(m_schedule, 1)
@@ -1201,11 +1200,11 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
     particles[[L]] <- base_samples
   } else if (all(sapply(base_samples, is.matrix))) {
     if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
-      stop("hierarchical_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
+      stop("bal_binary_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
     }
     particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
   } else {
-    stop("hierarchical_fusion_SMC_biGaussian: base_samples must be a list of length
+    stop("bal_binary_fusion_SMC_biGaussian: base_samples must be a list of length
          (1/start_beta) containing either items of class \"particle\" (representing
          particle approximations of the sub-posteriors) or are matrices with 2 columns
          (representing un-normalised sample approximations of the sub-posteriors)")
@@ -1229,25 +1228,25 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
       }
     }
   } else {
-    stop("hierarchical_fusion_SMC_biGaussian: precondition must be a logical indicating 
+    stop("bal_binary_fusion_SMC_biGaussian: precondition must be a logical indicating 
           whether or not a preconditioning matrix should be used, or a list of
           length C, where precondition[[c]] is the preconditioning matrix for
           the c-th sub-posterior")
   }
-  cat('Starting hierarchical fusion \n', file = 'hierarchical_fusion_SMC_biGaussian.txt')
+  cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_SMC_biGaussian.txt')
   for (k in ((L-1):1)) {
     # fuse m_schedule[k] of these
     n_nodes <- max((1/start_beta)/prod(m_schedule[L:k]), 1)
-    cat('########################\n', file = 'hierarchical_fusion_SMC_biGaussian.txt',
+    cat('########################\n', file = 'bal_binary_fusion_SMC_biGaussian.txt',
         append = T)
     cat('Starting to fuse', m_schedule[k], 'densities of pi^beta, where beta =',
         prod(m_schedule[L:(k+1)]), '/', (1/start_beta), 'for level', k, 'with time',
         time_schedule[k], ', which is using', parallel::detectCores(), 'cores\n',
-        file = 'hierarchical_fusion_SMC_biGaussian.txt', append = T)
+        file = 'bal_binary_fusion_SMC_biGaussian.txt', append = T)
     cat('There are', n_nodes, 'nodes at this level each giving', N_schedule[k],
         'samples for beta =', prod(m_schedule[L:k]), '/', (1/start_beta),
-        '\n', file = 'hierarchical_fusion_SMC_biGaussian.txt', append = T)
-    cat('########################\n', file = 'hierarchical_fusion_SMC_biGaussian.txt', 
+        '\n', file = 'bal_binary_fusion_SMC_biGaussian.txt', append = T)
+    cat('########################\n', file = 'bal_binary_fusion_SMC_biGaussian.txt', 
         append = T)
     fused <- lapply(X = 1:n_nodes, FUN = function(i) {
       previous_nodes <- ((m_schedule[k]*i)-(m_schedule[k]-1)):(m_schedule[k]*i)
@@ -1279,7 +1278,7 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$resampled)
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_matrices[[1]])
   }
-  cat('Completed hierarchical fusion\n', file = 'hierarchical_fusion_SMC_biGaussian.txt', append = T)
+  cat('Completed bal_binary fusion\n', file = 'bal_binary_fusion_SMC_biGaussian.txt', append = T)
   if (length(particles[[1]])==1) {
     particles[[1]] <- particles[[1]][[1]]
     proposed_samples[[1]] <- proposed_samples[[1]][[1]]
@@ -1299,10 +1298,9 @@ hierarchical_fusion_SMC_biGaussian <- function(N_schedule,
               'diffusion_times' = time_schedule))
 }
 
-#' Progressive SMC Fusion
+#' (Progressive) D&C Monte Carlo Fusion using SMC
 #'
-#' Progressive SMC Fusion with base tempered bivariate Gaussians with 
-#' same mean and standard deviation
+#' (Progressive) D&C Monte Carlo Fusion with bivariate Gaussian target
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
