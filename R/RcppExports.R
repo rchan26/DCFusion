@@ -23,7 +23,7 @@
 #' #returns the same using standard mean(x) function in R
 #' mean(x)
 weighted_mean_univariate <- function(x, weights) {
-    .Call(`_hierarchicalFusion_weighted_mean_univariate`, x, weights)
+    .Call(`_DCFusion_weighted_mean_univariate`, x, weights)
 }
 
 #' Calculate the logarithm of rho (univariate)
@@ -48,7 +48,7 @@ weighted_mean_univariate <- function(x, weights) {
 #'                    time = 0.5,
 #'                    precondition_values = precondition_vals)
 log_rho_univariate <- function(x, weighted_mean, time, precondition_values) {
-    .Call(`_hierarchicalFusion_log_rho_univariate`, x, weighted_mean, time, precondition_values)
+    .Call(`_DCFusion_log_rho_univariate`, x, weighted_mean, time, precondition_values)
 }
 
 #' Calculate the inverse of a sum of matrices
@@ -67,7 +67,7 @@ log_rho_univariate <- function(x, weighted_mean, time, precondition_values) {
 #' # returns the same as using solve() in R
 #' solve(m1+m2+m3)
 inverse_sum_matrices <- function(matrices) {
-    .Call(`_hierarchicalFusion_inverse_sum_matrices`, matrices)
+    .Call(`_DCFusion_inverse_sum_matrices`, matrices)
 }
 
 #' Calculate the weighted mean (multivariate)
@@ -90,7 +90,7 @@ inverse_sum_matrices <- function(matrices) {
 #'                            weights = list(m1, m2, m3),
 #'                            inverse_sum_weights = inverse_sum_matrices(list(m1, m2, m3)))
 weighted_mean_multivariate <- function(matrix, weights, inverse_sum_weights) {
-    .Call(`_hierarchicalFusion_weighted_mean_multivariate`, matrix, weights, inverse_sum_weights)
+    .Call(`_DCFusion_weighted_mean_multivariate`, matrix, weights, inverse_sum_weights)
 }
 
 #' Calculate the proposal covariance matrix
@@ -108,7 +108,7 @@ weighted_mean_multivariate <- function(matrix, weights, inverse_sum_weights) {
 #' m3 <- matrix(c(9,10,11,12), nrow = 2, ncol = 2)
 #' calculate_proposal_cov(time = 0.5, weights = list(m1, m2, m3))
 calculate_proposal_cov <- function(time, weights) {
-    .Call(`_hierarchicalFusion_calculate_proposal_cov`, time, weights)
+    .Call(`_DCFusion_calculate_proposal_cov`, time, weights)
 }
 
 #' Scaled distance between two vectors
@@ -129,7 +129,7 @@ calculate_proposal_cov <- function(time, weights) {
 #' # should equal to the Euclidean distance:
 #' sqrt(0.8^2 + 0.6^2 + 0.9^2 + 0.3^2)
 scaled_distance <- function(x, y, matrix) {
-    .Call(`_hierarchicalFusion_scaled_distance`, x, y, matrix)
+    .Call(`_DCFusion_scaled_distance`, x, y, matrix)
 }
 
 #' Spectral radius of a symmetric matrix
@@ -148,7 +148,7 @@ scaled_distance <- function(x, y, matrix) {
 #' # should equal 10
 #' spectral_radius(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
 spectral_radius <- function(A) {
-    .Call(`_hierarchicalFusion_spectral_radius`, A)
+    .Call(`_DCFusion_spectral_radius`, A)
 }
 
 #' Absolute eigenvalues of a matrix
@@ -167,7 +167,7 @@ spectral_radius <- function(A) {
 #' # should equal 10, 10, 5
 #' abs_eigenvals(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
 abs_eigenvals <- function(A) {
-    .Call(`_hierarchicalFusion_abs_eigenvals`, A)
+    .Call(`_DCFusion_abs_eigenvals`, A)
 }
 
 #' Row-wise subtraction of a vector to rows of a matrix
@@ -183,7 +183,7 @@ abs_eigenvals <- function(A) {
 #' X <- matrix(c(1,2,3,4,5,6,7,8), nrow = 4, ncol = 2, byrow = T)
 #' row_wise_subtraction(X = X, vect = c(1,2))
 row_wise_subtraction <- function(X, vect) {
-    .Call(`_hierarchicalFusion_row_wise_subtraction`, X, vect)
+    .Call(`_DCFusion_row_wise_subtraction`, X, vect)
 }
 
 #' Calculate the logarithm of rho (multivariate)
@@ -223,7 +223,7 @@ row_wise_subtraction <- function(X, vect) {
 #'                      time = 0.5,
 #'                      inv_precondition_matrices = inv_precondition_matrices)
 log_rho_multivariate <- function(x, x_mean, time, inv_precondition_matrices) {
-    .Call(`_hierarchicalFusion_log_rho_multivariate`, x, x_mean, time, inv_precondition_matrices)
+    .Call(`_DCFusion_log_rho_multivariate`, x, x_mean, time, inv_precondition_matrices)
 }
 
 #' Calculate the logarithm of the sum of the exponentials of the arguments
@@ -243,7 +243,7 @@ log_rho_multivariate <- function(x, x_mean, time, inv_precondition_matrices) {
 #' y2 <- logsumexp(x)
 #' print(y2) 
 logsumexp <- function(x) {
-    .Call(`_hierarchicalFusion_logsumexp`, x)
+    .Call(`_DCFusion_logsumexp`, x)
 }
 
 #' Calculate the ESS
@@ -263,15 +263,15 @@ logsumexp <- function(x) {
 #' @examples
 #' particle_ESS(log_weights = c(1000.01, 1000.02, 1000.03))
 particle_ESS <- function(log_weights) {
-    .Call(`_hierarchicalFusion_particle_ESS`, log_weights)
+    .Call(`_DCFusion_particle_ESS`, log_weights)
 }
 
 rho_IS_univariate_ <- function(samples_to_fuse, N, m, time, precondition_values) {
-    .Call(`_hierarchicalFusion_rho_IS_univariate_`, samples_to_fuse, N, m, time, precondition_values)
+    .Call(`_DCFusion_rho_IS_univariate_`, samples_to_fuse, N, m, time, precondition_values)
 }
 
 rho_IS_multivariate_ <- function(samples_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices) {
-    .Call(`_hierarchicalFusion_rho_IS_multivariate_`, samples_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices)
+    .Call(`_DCFusion_rho_IS_multivariate_`, samples_to_fuse, dim, N, m, time, inv_precondition_matrices, inverse_sum_inv_precondition_matrices)
 }
 
 #' Simulate from a Multivariate Gaussian Distribution
@@ -287,7 +287,7 @@ rho_IS_multivariate_ <- function(samples_to_fuse, dim, N, m, time, inv_precondit
 #' @examples
 #' samples <- mvrnormArma(N = 10000, mu = c(0, 0), Sigma = diag(2))
 mvrnormArma <- function(N, mu, Sigma) {
-    .Call(`_hierarchicalFusion_mvrnormArma`, N, mu, Sigma)
+    .Call(`_DCFusion_mvrnormArma`, N, mu, Sigma)
 }
 
 #' Simulate from a tempered Multivariate Gaussian Distribution
@@ -310,63 +310,63 @@ mvrnormArma <- function(N, mu, Sigma) {
 #'                                          Sigma = diag(2),
 #'                                          beta = 2)
 mvrnormArma_tempered <- function(N, mu, Sigma, beta) {
-    .Call(`_hierarchicalFusion_mvrnormArma_tempered`, N, mu, Sigma, beta)
+    .Call(`_DCFusion_mvrnormArma_tempered`, N, mu, Sigma, beta)
 }
 
 log_rho_multivariate_additional <- function(y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices) {
-    .Call(`_hierarchicalFusion_log_rho_multivariate_additional`, y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices)
+    .Call(`_DCFusion_log_rho_multivariate_additional`, y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices)
 }
 
 log_BLR_gradient <- function(beta, y_labels, X, X_beta, count, prior_means, prior_variances, C) {
-    .Call(`_hierarchicalFusion_log_BLR_gradient`, beta, y_labels, X, X_beta, count, prior_means, prior_variances, C)
+    .Call(`_DCFusion_log_BLR_gradient`, beta, y_labels, X, X_beta, count, prior_means, prior_variances, C)
 }
 
 log_BLR_hessian <- function(X, X_beta, count, prior_variances, C) {
-    .Call(`_hierarchicalFusion_log_BLR_hessian`, X, X_beta, count, prior_variances, C)
+    .Call(`_DCFusion_log_BLR_hessian`, X, X_beta, count, prior_variances, C)
 }
 
 ea_phi_BLR_DL_vec <- function(beta, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
-    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_vec`, beta, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
+    .Call(`_DCFusion_ea_phi_BLR_DL_vec`, beta, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
 }
 
 ea_phi_BLR_DL_matrix <- function(beta, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
-    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_matrix`, beta, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
+    .Call(`_DCFusion_ea_phi_BLR_DL_matrix`, beta, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
 }
 
 spectral_radius_BLR <- function(beta, dim, X, count, prior_variances, C, Lambda) {
-    .Call(`_hierarchicalFusion_spectral_radius_BLR`, beta, dim, X, count, prior_variances, C, Lambda)
+    .Call(`_DCFusion_spectral_radius_BLR`, beta, dim, X, count, prior_variances, C, Lambda)
 }
 
 spectral_radius_bound_BLR_Z <- function(dim, V, X, count, prior_variances, C, sqrt_Lambda) {
-    .Call(`_hierarchicalFusion_spectral_radius_bound_BLR_Z`, dim, V, X, count, prior_variances, C, sqrt_Lambda)
+    .Call(`_DCFusion_spectral_radius_bound_BLR_Z`, dim, V, X, count, prior_variances, C, sqrt_Lambda)
 }
 
 spectral_radius_global_bound_BLR_Z <- function(dim, X, count, prior_variances, C, sqrt_Lambda) {
-    .Call(`_hierarchicalFusion_spectral_radius_global_bound_BLR_Z`, dim, X, count, prior_variances, C, sqrt_Lambda)
+    .Call(`_DCFusion_spectral_radius_global_bound_BLR_Z`, dim, X, count, prior_variances, C, sqrt_Lambda)
 }
 
 obtain_hypercube_centre <- function(bessel_layers, transform_to_X, y_labels, X, count, prior_means, prior_variances, C) {
-    .Call(`_hierarchicalFusion_obtain_hypercube_centre`, bessel_layers, transform_to_X, y_labels, X, count, prior_means, prior_variances, C)
+    .Call(`_DCFusion_obtain_hypercube_centre`, bessel_layers, transform_to_X, y_labels, X, count, prior_means, prior_variances, C)
 }
 
 maximal_distance_hypercube_to_cv <- function(beta_hat, hypercube_vertices, transform_to_X, transform_to_Z) {
-    .Call(`_hierarchicalFusion_maximal_distance_hypercube_to_cv`, beta_hat, hypercube_vertices, transform_to_X, transform_to_Z)
+    .Call(`_DCFusion_maximal_distance_hypercube_to_cv`, beta_hat, hypercube_vertices, transform_to_X, transform_to_Z)
 }
 
 ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds) {
-    .Call(`_hierarchicalFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
+    .Call(`_DCFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
 }
 
 gamma_NB_BLR <- function(times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
-    .Call(`_hierarchicalFusion_gamma_NB_BLR`, times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
+    .Call(`_DCFusion_gamma_NB_BLR`, times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
 }
 
 ea_phi_biGaussian_DL_vec <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {
-    .Call(`_hierarchicalFusion_ea_phi_biGaussian_DL_vec`, x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat)
+    .Call(`_DCFusion_ea_phi_biGaussian_DL_vec`, x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat)
 }
 
 ea_phi_biGaussian_DL_matrix <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {
-    .Call(`_hierarchicalFusion_ea_phi_biGaussian_DL_matrix`, x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat)
+    .Call(`_DCFusion_ea_phi_biGaussian_DL_matrix`, x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat)
 }
 
 #' Obtain bounds for phi function
@@ -389,7 +389,7 @@ ea_phi_biGaussian_DL_matrix <- function(x, mean_vec, sd_vec, corr, beta, precond
 #'   \item{UB}{upper bound of phi}
 #' }
 ea_phi_biGaussian_DL_bounds <- function(mean_vec, sd_vec, corr, beta, precondition_mat, transform_to_Z, transform_to_X, lower, upper) {
-    .Call(`_hierarchicalFusion_ea_phi_biGaussian_DL_bounds`, mean_vec, sd_vec, corr, beta, precondition_mat, transform_to_Z, transform_to_X, lower, upper)
+    .Call(`_DCFusion_ea_phi_biGaussian_DL_bounds`, mean_vec, sd_vec, corr, beta, precondition_mat, transform_to_Z, transform_to_X, lower, upper)
 }
 
 #' Obtain the global lower bound for phi function
@@ -406,11 +406,11 @@ ea_phi_biGaussian_DL_bounds <- function(mean_vec, sd_vec, corr, beta, preconditi
 #'
 #' @return The global lower bound of phi
 ea_phi_biGaussian_DL_LB <- function(mean_vec, sd_vec, corr, beta, precondition_mat) {
-    .Call(`_hierarchicalFusion_ea_phi_biGaussian_DL_LB`, mean_vec, sd_vec, corr, beta, precondition_mat)
+    .Call(`_DCFusion_ea_phi_biGaussian_DL_LB`, mean_vec, sd_vec, corr, beta, precondition_mat)
 }
 
 gamma_NB_biGaussian <- function(times, h, x0, y, s, t, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {
-    .Call(`_hierarchicalFusion_gamma_NB_biGaussian`, times, h, x0, y, s, t, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat)
+    .Call(`_DCFusion_gamma_NB_biGaussian`, times, h, x0, y, s, t, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat)
 }
 
 #' phi-function for exp(-(((x-mean)^4)*beta)/2)
@@ -427,7 +427,7 @@ gamma_NB_biGaussian <- function(times, h, x0, y, s, t, mean_vec, sd_vec, corr, b
 #' @examples
 #' curve(ea_phi_exp_4_DL(x, 0, 1, 1), from = -4, to = 4)
 ea_phi_exp_4_DL <- function(x, mean, beta, precondition) {
-    .Call(`_hierarchicalFusion_ea_phi_exp_4_DL`, x, mean, beta, precondition)
+    .Call(`_DCFusion_ea_phi_exp_4_DL`, x, mean, beta, precondition)
 }
 
 #' Obtain bounds for phi function
@@ -462,7 +462,7 @@ ea_phi_exp_4_DL <- function(x, mean, beta, precondition) {
 #'                                 upper = upper)
 #'        col = 'red', lty = 2)
 ea_phi_exp_4_DL_bounds <- function(mean, beta, precondition, lower, upper) {
-    .Call(`_hierarchicalFusion_ea_phi_exp_4_DL_bounds`, mean, beta, precondition, lower, upper)
+    .Call(`_DCFusion_ea_phi_exp_4_DL_bounds`, mean, beta, precondition, lower, upper)
 }
 
 #' Obtain the global lower bound for phi function
@@ -494,15 +494,15 @@ ea_phi_exp_4_DL_bounds <- function(mean, beta, precondition, lower, upper) {
 #'                                 precondition = precondition), 
 #'       col = 'red', lty = 2)
 ea_phi_exp_4_DL_LB <- function(mean, beta, precondition) {
-    .Call(`_hierarchicalFusion_ea_phi_exp_4_DL_LB`, mean, beta, precondition)
+    .Call(`_DCFusion_ea_phi_exp_4_DL_LB`, mean, beta, precondition)
 }
 
 gamma_NB_exp_4 <- function(times, h, x0, y, s, t, mean, beta, precondition) {
-    .Call(`_hierarchicalFusion_gamma_NB_exp_4`, times, h, x0, y, s, t, mean, beta, precondition)
+    .Call(`_DCFusion_gamma_NB_exp_4`, times, h, x0, y, s, t, mean, beta, precondition)
 }
 
 dnorm_mix_tempered_unnormalised <- function(x, w, m, s, b) {
-    .Call(`_hierarchicalFusion_dnorm_mix_tempered_unnormalised`, x, w, m, s, b)
+    .Call(`_DCFusion_dnorm_mix_tempered_unnormalised`, x, w, m, s, b)
 }
 
 #' phi-function for a tempered mixture Gaussian
@@ -541,7 +541,7 @@ dnorm_mix_tempered_unnormalised <- function(x, w, m, s, b) {
 #'                      precondition = precondition),
 #'       add = T, n = 100000, col = 'red')
 ea_phi_mixG_DL <- function(x, n_comp, weights, means, sds, beta, precondition) {
-    .Call(`_hierarchicalFusion_ea_phi_mixG_DL`, x, n_comp, weights, means, sds, beta, precondition)
+    .Call(`_DCFusion_ea_phi_mixG_DL`, x, n_comp, weights, means, sds, beta, precondition)
 }
 
 #' Obtain the global lower bound for phi function
@@ -581,7 +581,7 @@ ea_phi_mixG_DL <- function(x, n_comp, weights, means, sds, beta, precondition) {
 #'                          bounds_multiplier = 1)
 #' abline(h = PHI, col = 'red')
 ea_phi_mixG_DL_LB <- function(n_comp, weights, means, sds, beta, precondition, bounds_multiplier) {
-    .Call(`_hierarchicalFusion_ea_phi_mixG_DL_LB`, n_comp, weights, means, sds, beta, precondition, bounds_multiplier)
+    .Call(`_DCFusion_ea_phi_mixG_DL_LB`, n_comp, weights, means, sds, beta, precondition, bounds_multiplier)
 }
 
 #' phi-function for tempered Gaussian distribution
@@ -599,7 +599,7 @@ ea_phi_mixG_DL_LB <- function(n_comp, weights, means, sds, beta, precondition, b
 #' @examples
 #' curve(ea_phi_uniGaussian_DL(x, 0, 1, 1, 1), from = -4, to = 4)
 ea_phi_uniGaussian_DL <- function(x, mean, sd, beta, precondition) {
-    .Call(`_hierarchicalFusion_ea_phi_uniGaussian_DL`, x, mean, sd, beta, precondition)
+    .Call(`_DCFusion_ea_phi_uniGaussian_DL`, x, mean, sd, beta, precondition)
 }
 
 #' Obtain bounds for phi function
@@ -651,7 +651,7 @@ ea_phi_uniGaussian_DL <- function(x, mean, sd, beta, precondition) {
 #'                                       upper = upper),
 #'        col = 'red', lty = 2)
 ea_phi_uniGaussian_DL_bounds <- function(mean, sd, beta, precondition, lower, upper) {
-    .Call(`_hierarchicalFusion_ea_phi_uniGaussian_DL_bounds`, mean, sd, beta, precondition, lower, upper)
+    .Call(`_DCFusion_ea_phi_uniGaussian_DL_bounds`, mean, sd, beta, precondition, lower, upper)
 }
 
 #' Obtain the global lower bound for phi function
@@ -707,10 +707,10 @@ ea_phi_uniGaussian_DL_bounds <- function(mean, sd, beta, precondition, lower, up
 #'                                   precondition = precondition),
 #'        col = 'blue', lty = 3)
 ea_phi_uniGaussian_DL_LB <- function(mean, sd, beta, precondition) {
-    .Call(`_hierarchicalFusion_ea_phi_uniGaussian_DL_LB`, mean, sd, beta, precondition)
+    .Call(`_DCFusion_ea_phi_uniGaussian_DL_LB`, mean, sd, beta, precondition)
 }
 
 gamma_NB_uniGaussian <- function(times, h, x0, y, s, t, mean, sd, beta, precondition) {
-    .Call(`_hierarchicalFusion_gamma_NB_uniGaussian`, times, h, x0, y, s, t, mean, sd, beta, precondition)
+    .Call(`_DCFusion_gamma_NB_uniGaussian`, times, h, x0, y, s, t, mean, sd, beta, precondition)
 }
 

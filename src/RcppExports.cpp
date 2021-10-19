@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // weighted_mean_univariate
 double weighted_mean_univariate(const Rcpp::NumericVector& x, const Rcpp::NumericVector& weights);
-RcppExport SEXP _hierarchicalFusion_weighted_mean_univariate(SEXP xSEXP, SEXP weightsSEXP) {
+RcppExport SEXP _DCFusion_weighted_mean_univariate(SEXP xSEXP, SEXP weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -25,7 +25,7 @@ END_RCPP
 }
 // log_rho_univariate
 double log_rho_univariate(const Rcpp::NumericVector& x, const double& weighted_mean, const double& time, const Rcpp::NumericVector& precondition_values);
-RcppExport SEXP _hierarchicalFusion_log_rho_univariate(SEXP xSEXP, SEXP weighted_meanSEXP, SEXP timeSEXP, SEXP precondition_valuesSEXP) {
+RcppExport SEXP _DCFusion_log_rho_univariate(SEXP xSEXP, SEXP weighted_meanSEXP, SEXP timeSEXP, SEXP precondition_valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -39,7 +39,7 @@ END_RCPP
 }
 // inverse_sum_matrices
 arma::mat inverse_sum_matrices(const Rcpp::List& matrices);
-RcppExport SEXP _hierarchicalFusion_inverse_sum_matrices(SEXP matricesSEXP) {
+RcppExport SEXP _DCFusion_inverse_sum_matrices(SEXP matricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -50,7 +50,7 @@ END_RCPP
 }
 // weighted_mean_multivariate
 arma::vec weighted_mean_multivariate(const arma::mat& matrix, const Rcpp::List& weights, const arma::mat& inverse_sum_weights);
-RcppExport SEXP _hierarchicalFusion_weighted_mean_multivariate(SEXP matrixSEXP, SEXP weightsSEXP, SEXP inverse_sum_weightsSEXP) {
+RcppExport SEXP _DCFusion_weighted_mean_multivariate(SEXP matrixSEXP, SEXP weightsSEXP, SEXP inverse_sum_weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -63,7 +63,7 @@ END_RCPP
 }
 // calculate_proposal_cov
 arma::mat calculate_proposal_cov(const double& time, const Rcpp::List& weights);
-RcppExport SEXP _hierarchicalFusion_calculate_proposal_cov(SEXP timeSEXP, SEXP weightsSEXP) {
+RcppExport SEXP _DCFusion_calculate_proposal_cov(SEXP timeSEXP, SEXP weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,7 +75,7 @@ END_RCPP
 }
 // scaled_distance
 double scaled_distance(const arma::vec& x, const arma::vec& y, const arma::mat& matrix);
-RcppExport SEXP _hierarchicalFusion_scaled_distance(SEXP xSEXP, SEXP ySEXP, SEXP matrixSEXP) {
+RcppExport SEXP _DCFusion_scaled_distance(SEXP xSEXP, SEXP ySEXP, SEXP matrixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,7 +88,7 @@ END_RCPP
 }
 // spectral_radius
 double spectral_radius(const arma::mat& A);
-RcppExport SEXP _hierarchicalFusion_spectral_radius(SEXP ASEXP) {
+RcppExport SEXP _DCFusion_spectral_radius(SEXP ASEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -99,7 +99,7 @@ END_RCPP
 }
 // abs_eigenvals
 arma::vec abs_eigenvals(const arma::mat& A);
-RcppExport SEXP _hierarchicalFusion_abs_eigenvals(SEXP ASEXP) {
+RcppExport SEXP _DCFusion_abs_eigenvals(SEXP ASEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -110,7 +110,7 @@ END_RCPP
 }
 // row_wise_subtraction
 arma::mat row_wise_subtraction(const arma::mat& X, const arma::vec& vect);
-RcppExport SEXP _hierarchicalFusion_row_wise_subtraction(SEXP XSEXP, SEXP vectSEXP) {
+RcppExport SEXP _DCFusion_row_wise_subtraction(SEXP XSEXP, SEXP vectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -122,7 +122,7 @@ END_RCPP
 }
 // log_rho_multivariate
 double log_rho_multivariate(const arma::mat& x, const arma::vec& x_mean, const double& time, const Rcpp::List& inv_precondition_matrices);
-RcppExport SEXP _hierarchicalFusion_log_rho_multivariate(SEXP xSEXP, SEXP x_meanSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP) {
+RcppExport SEXP _DCFusion_log_rho_multivariate(SEXP xSEXP, SEXP x_meanSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -136,7 +136,7 @@ END_RCPP
 }
 // logsumexp
 double logsumexp(const Rcpp::NumericVector& x);
-RcppExport SEXP _hierarchicalFusion_logsumexp(SEXP xSEXP) {
+RcppExport SEXP _DCFusion_logsumexp(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -147,7 +147,7 @@ END_RCPP
 }
 // particle_ESS
 Rcpp::List particle_ESS(const Rcpp::NumericVector& log_weights);
-RcppExport SEXP _hierarchicalFusion_particle_ESS(SEXP log_weightsSEXP) {
+RcppExport SEXP _DCFusion_particle_ESS(SEXP log_weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -158,7 +158,7 @@ END_RCPP
 }
 // rho_IS_univariate_
 Rcpp::List rho_IS_univariate_(const Rcpp::List& samples_to_fuse, const int& N, const int& m, const double& time, const Rcpp::NumericVector& precondition_values);
-RcppExport SEXP _hierarchicalFusion_rho_IS_univariate_(SEXP samples_to_fuseSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP precondition_valuesSEXP) {
+RcppExport SEXP _DCFusion_rho_IS_univariate_(SEXP samples_to_fuseSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP precondition_valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -173,7 +173,7 @@ END_RCPP
 }
 // rho_IS_multivariate_
 Rcpp::List rho_IS_multivariate_(const Rcpp::List& samples_to_fuse, const int& dim, const int& N, const int& m, const double& time, const Rcpp::List& inv_precondition_matrices, const arma::mat& inverse_sum_inv_precondition_matrices);
-RcppExport SEXP _hierarchicalFusion_rho_IS_multivariate_(SEXP samples_to_fuseSEXP, SEXP dimSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP inverse_sum_inv_precondition_matricesSEXP) {
+RcppExport SEXP _DCFusion_rho_IS_multivariate_(SEXP samples_to_fuseSEXP, SEXP dimSEXP, SEXP NSEXP, SEXP mSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP inverse_sum_inv_precondition_matricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -190,7 +190,7 @@ END_RCPP
 }
 // mvrnormArma
 arma::mat mvrnormArma(const int& N, const arma::vec& mu, const arma::mat& Sigma);
-RcppExport SEXP _hierarchicalFusion_mvrnormArma(SEXP NSEXP, SEXP muSEXP, SEXP SigmaSEXP) {
+RcppExport SEXP _DCFusion_mvrnormArma(SEXP NSEXP, SEXP muSEXP, SEXP SigmaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -203,7 +203,7 @@ END_RCPP
 }
 // mvrnormArma_tempered
 arma::mat mvrnormArma_tempered(const int& N, const arma::vec& mu, const arma::mat& Sigma, const double& beta);
-RcppExport SEXP _hierarchicalFusion_mvrnormArma_tempered(SEXP NSEXP, SEXP muSEXP, SEXP SigmaSEXP, SEXP betaSEXP) {
+RcppExport SEXP _DCFusion_mvrnormArma_tempered(SEXP NSEXP, SEXP muSEXP, SEXP SigmaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -217,7 +217,7 @@ END_RCPP
 }
 // log_rho_multivariate_additional
 double log_rho_multivariate_additional(const arma::vec& y, const arma::vec& x_mean, const double& time, const Rcpp::List& inv_precondition_matrices, const Rcpp::List& inv_gamma_matrices);
-RcppExport SEXP _hierarchicalFusion_log_rho_multivariate_additional(SEXP ySEXP, SEXP x_meanSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP inv_gamma_matricesSEXP) {
+RcppExport SEXP _DCFusion_log_rho_multivariate_additional(SEXP ySEXP, SEXP x_meanSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP inv_gamma_matricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -232,7 +232,7 @@ END_RCPP
 }
 // log_BLR_gradient
 arma::vec log_BLR_gradient(const arma::vec& beta, const arma::vec& y_labels, const arma::mat& X, const arma::vec& X_beta, const arma::vec& count, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C);
-RcppExport SEXP _hierarchicalFusion_log_BLR_gradient(SEXP betaSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP X_betaSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
+RcppExport SEXP _DCFusion_log_BLR_gradient(SEXP betaSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP X_betaSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -250,7 +250,7 @@ END_RCPP
 }
 // log_BLR_hessian
 arma::mat log_BLR_hessian(const arma::mat& X, const arma::vec& X_beta, const arma::vec& count, const arma::vec& prior_variances, const double& C);
-RcppExport SEXP _hierarchicalFusion_log_BLR_hessian(SEXP XSEXP, SEXP X_betaSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
+RcppExport SEXP _DCFusion_log_BLR_hessian(SEXP XSEXP, SEXP X_betaSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -265,7 +265,7 @@ END_RCPP
 }
 // ea_phi_BLR_DL_vec
 Rcpp::List ea_phi_BLR_DL_vec(const arma::vec& beta, const arma::vec& y_labels, const arma::mat& X, const arma::vec& count, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
-RcppExport SEXP _hierarchicalFusion_ea_phi_BLR_DL_vec(SEXP betaSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_BLR_DL_vec(SEXP betaSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -283,7 +283,7 @@ END_RCPP
 }
 // ea_phi_BLR_DL_matrix
 Rcpp::List ea_phi_BLR_DL_matrix(const arma::mat& beta, const arma::vec& y_labels, const arma::mat& X, const arma::vec& count, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
-RcppExport SEXP _hierarchicalFusion_ea_phi_BLR_DL_matrix(SEXP betaSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_BLR_DL_matrix(SEXP betaSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -301,7 +301,7 @@ END_RCPP
 }
 // spectral_radius_BLR
 double spectral_radius_BLR(const arma::vec& beta, const int& dim, const arma::mat& X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const arma::mat& Lambda);
-RcppExport SEXP _hierarchicalFusion_spectral_radius_BLR(SEXP betaSEXP, SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP LambdaSEXP) {
+RcppExport SEXP _DCFusion_spectral_radius_BLR(SEXP betaSEXP, SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP LambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -318,7 +318,7 @@ END_RCPP
 }
 // spectral_radius_bound_BLR_Z
 Rcpp::List spectral_radius_bound_BLR_Z(const int& dim, const arma::mat& V, const arma::mat& X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const arma::mat& sqrt_Lambda);
-RcppExport SEXP _hierarchicalFusion_spectral_radius_bound_BLR_Z(SEXP dimSEXP, SEXP VSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_LambdaSEXP) {
+RcppExport SEXP _DCFusion_spectral_radius_bound_BLR_Z(SEXP dimSEXP, SEXP VSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_LambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -335,7 +335,7 @@ END_RCPP
 }
 // spectral_radius_global_bound_BLR_Z
 Rcpp::List spectral_radius_global_bound_BLR_Z(const int& dim, const arma::mat& X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const arma::mat& sqrt_Lambda);
-RcppExport SEXP _hierarchicalFusion_spectral_radius_global_bound_BLR_Z(SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_LambdaSEXP) {
+RcppExport SEXP _DCFusion_spectral_radius_global_bound_BLR_Z(SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_LambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -351,7 +351,7 @@ END_RCPP
 }
 // obtain_hypercube_centre
 Rcpp::List obtain_hypercube_centre(const Rcpp::List& bessel_layers, const arma::mat& transform_to_X, const arma::vec& y_labels, const arma::mat& X, const arma::vec& count, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C);
-RcppExport SEXP _hierarchicalFusion_obtain_hypercube_centre(SEXP bessel_layersSEXP, SEXP transform_to_XSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
+RcppExport SEXP _DCFusion_obtain_hypercube_centre(SEXP bessel_layersSEXP, SEXP transform_to_XSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -369,7 +369,7 @@ END_RCPP
 }
 // maximal_distance_hypercube_to_cv
 double maximal_distance_hypercube_to_cv(const arma::vec& beta_hat, const arma::mat& hypercube_vertices, const arma::mat& transform_to_X, const arma::mat& transform_to_Z);
-RcppExport SEXP _hierarchicalFusion_maximal_distance_hypercube_to_cv(SEXP beta_hatSEXP, SEXP hypercube_verticesSEXP, SEXP transform_to_XSEXP, SEXP transform_to_ZSEXP) {
+RcppExport SEXP _DCFusion_maximal_distance_hypercube_to_cv(SEXP beta_hatSEXP, SEXP hypercube_verticesSEXP, SEXP transform_to_XSEXP, SEXP transform_to_ZSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -383,7 +383,7 @@ END_RCPP
 }
 // ea_phi_BLR_DL_bounds
 Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const int& dim, const arma::mat& X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices, const bool& local_bounds);
-RcppExport SEXP _hierarchicalFusion_ea_phi_BLR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP, SEXP local_boundsSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_BLR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP, SEXP local_boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -403,7 +403,7 @@ END_RCPP
 }
 // gamma_NB_BLR
 double gamma_NB_BLR(const arma::vec& times, const double& h, const arma::vec& x0, const arma::vec& y, const double& s, const double& t, const arma::vec& y_labels, const arma::mat& X, const arma::vec& count, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat);
-RcppExport SEXP _hierarchicalFusion_gamma_NB_BLR(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
+RcppExport SEXP _DCFusion_gamma_NB_BLR(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -426,7 +426,7 @@ END_RCPP
 }
 // ea_phi_biGaussian_DL_vec
 double ea_phi_biGaussian_DL_vec(const arma::vec& x, const arma::vec& mean_vec, const arma::vec& sd_vec, const double& corr, const double& beta, const arma::mat& precondition_mat, const arma::mat& transform_mat);
-RcppExport SEXP _hierarchicalFusion_ea_phi_biGaussian_DL_vec(SEXP xSEXP, SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP transform_matSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_biGaussian_DL_vec(SEXP xSEXP, SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP transform_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -443,7 +443,7 @@ END_RCPP
 }
 // ea_phi_biGaussian_DL_matrix
 Rcpp::NumericVector ea_phi_biGaussian_DL_matrix(const arma::mat& x, const arma::vec& mean_vec, const arma::vec& sd_vec, const double& corr, const double& beta, const arma::mat& precondition_mat, const arma::mat& transform_mat);
-RcppExport SEXP _hierarchicalFusion_ea_phi_biGaussian_DL_matrix(SEXP xSEXP, SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP transform_matSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_biGaussian_DL_matrix(SEXP xSEXP, SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP transform_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -460,7 +460,7 @@ END_RCPP
 }
 // ea_phi_biGaussian_DL_bounds
 Rcpp::List ea_phi_biGaussian_DL_bounds(const arma::vec& mean_vec, const arma::vec& sd_vec, const double& corr, const double& beta, const arma::mat& precondition_mat, const arma::mat& transform_to_Z, const arma::mat& transform_to_X, const Rcpp::NumericVector& lower, const Rcpp::NumericVector& upper);
-RcppExport SEXP _hierarchicalFusion_ea_phi_biGaussian_DL_bounds(SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP transform_to_ZSEXP, SEXP transform_to_XSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_biGaussian_DL_bounds(SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP transform_to_ZSEXP, SEXP transform_to_XSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -479,7 +479,7 @@ END_RCPP
 }
 // ea_phi_biGaussian_DL_LB
 double ea_phi_biGaussian_DL_LB(const arma::vec& mean_vec, const arma::vec& sd_vec, const double& corr, const double& beta, const arma::mat& precondition_mat);
-RcppExport SEXP _hierarchicalFusion_ea_phi_biGaussian_DL_LB(SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_biGaussian_DL_LB(SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -494,7 +494,7 @@ END_RCPP
 }
 // gamma_NB_biGaussian
 double gamma_NB_biGaussian(const arma::vec& times, const double& h, const arma::vec& x0, const arma::vec& y, const double& s, const double& t, const arma::vec& mean_vec, const arma::vec& sd_vec, const double& corr, const double& beta, const arma::mat& precondition_mat, const arma::mat& transform_mat);
-RcppExport SEXP _hierarchicalFusion_gamma_NB_biGaussian(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP transform_matSEXP) {
+RcppExport SEXP _DCFusion_gamma_NB_biGaussian(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP transform_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -516,7 +516,7 @@ END_RCPP
 }
 // ea_phi_exp_4_DL
 Rcpp::NumericVector ea_phi_exp_4_DL(const Rcpp::NumericVector& x, const double& mean, const double& beta, const double& precondition);
-RcppExport SEXP _hierarchicalFusion_ea_phi_exp_4_DL(SEXP xSEXP, SEXP meanSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_exp_4_DL(SEXP xSEXP, SEXP meanSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -530,7 +530,7 @@ END_RCPP
 }
 // ea_phi_exp_4_DL_bounds
 Rcpp::List ea_phi_exp_4_DL_bounds(const double& mean, const double& beta, const double& precondition, const double& lower, const double& upper);
-RcppExport SEXP _hierarchicalFusion_ea_phi_exp_4_DL_bounds(SEXP meanSEXP, SEXP betaSEXP, SEXP preconditionSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_exp_4_DL_bounds(SEXP meanSEXP, SEXP betaSEXP, SEXP preconditionSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -545,7 +545,7 @@ END_RCPP
 }
 // ea_phi_exp_4_DL_LB
 double ea_phi_exp_4_DL_LB(const double& mean, const double& beta, const double& precondition);
-RcppExport SEXP _hierarchicalFusion_ea_phi_exp_4_DL_LB(SEXP meanSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_exp_4_DL_LB(SEXP meanSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -558,7 +558,7 @@ END_RCPP
 }
 // gamma_NB_exp_4
 double gamma_NB_exp_4(const Rcpp::NumericVector& times, const double& h, const double& x0, const double& y, const double& s, const double& t, const double& mean, const double& beta, const double& precondition);
-RcppExport SEXP _hierarchicalFusion_gamma_NB_exp_4(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP meanSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
+RcppExport SEXP _DCFusion_gamma_NB_exp_4(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP meanSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -577,7 +577,7 @@ END_RCPP
 }
 // dnorm_mix_tempered_unnormalised
 Rcpp::NumericVector dnorm_mix_tempered_unnormalised(const Rcpp::NumericVector& x, const Rcpp::NumericVector& w, const Rcpp::NumericVector& m, const Rcpp::NumericVector& s, const double& b);
-RcppExport SEXP _hierarchicalFusion_dnorm_mix_tempered_unnormalised(SEXP xSEXP, SEXP wSEXP, SEXP mSEXP, SEXP sSEXP, SEXP bSEXP) {
+RcppExport SEXP _DCFusion_dnorm_mix_tempered_unnormalised(SEXP xSEXP, SEXP wSEXP, SEXP mSEXP, SEXP sSEXP, SEXP bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -592,7 +592,7 @@ END_RCPP
 }
 // ea_phi_mixG_DL
 Rcpp::NumericVector ea_phi_mixG_DL(const Rcpp::NumericVector& x, const int& n_comp, const Rcpp::NumericVector& weights, const Rcpp::NumericVector& means, const Rcpp::NumericVector& sds, const double& beta, const double& precondition);
-RcppExport SEXP _hierarchicalFusion_ea_phi_mixG_DL(SEXP xSEXP, SEXP n_compSEXP, SEXP weightsSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_mixG_DL(SEXP xSEXP, SEXP n_compSEXP, SEXP weightsSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -609,7 +609,7 @@ END_RCPP
 }
 // ea_phi_mixG_DL_LB
 double ea_phi_mixG_DL_LB(const int& n_comp, const Rcpp::NumericVector& weights, const Rcpp::NumericVector& means, const Rcpp::NumericVector& sds, const double& beta, const double& precondition, const double& bounds_multiplier);
-RcppExport SEXP _hierarchicalFusion_ea_phi_mixG_DL_LB(SEXP n_compSEXP, SEXP weightsSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP betaSEXP, SEXP preconditionSEXP, SEXP bounds_multiplierSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_mixG_DL_LB(SEXP n_compSEXP, SEXP weightsSEXP, SEXP meansSEXP, SEXP sdsSEXP, SEXP betaSEXP, SEXP preconditionSEXP, SEXP bounds_multiplierSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -626,7 +626,7 @@ END_RCPP
 }
 // ea_phi_uniGaussian_DL
 Rcpp::NumericVector ea_phi_uniGaussian_DL(const Rcpp::NumericVector& x, const double& mean, const double& sd, const double& beta, const double& precondition);
-RcppExport SEXP _hierarchicalFusion_ea_phi_uniGaussian_DL(SEXP xSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_uniGaussian_DL(SEXP xSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -641,7 +641,7 @@ END_RCPP
 }
 // ea_phi_uniGaussian_DL_bounds
 Rcpp::List ea_phi_uniGaussian_DL_bounds(const double& mean, const double& sd, const double& beta, const double& precondition, const double& lower, const double& upper);
-RcppExport SEXP _hierarchicalFusion_ea_phi_uniGaussian_DL_bounds(SEXP meanSEXP, SEXP sdSEXP, SEXP betaSEXP, SEXP preconditionSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_uniGaussian_DL_bounds(SEXP meanSEXP, SEXP sdSEXP, SEXP betaSEXP, SEXP preconditionSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -657,7 +657,7 @@ END_RCPP
 }
 // ea_phi_uniGaussian_DL_LB
 double ea_phi_uniGaussian_DL_LB(const double& mean, const double& sd, const double& beta, const double& precondition);
-RcppExport SEXP _hierarchicalFusion_ea_phi_uniGaussian_DL_LB(SEXP meanSEXP, SEXP sdSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
+RcppExport SEXP _DCFusion_ea_phi_uniGaussian_DL_LB(SEXP meanSEXP, SEXP sdSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -671,7 +671,7 @@ END_RCPP
 }
 // gamma_NB_uniGaussian
 double gamma_NB_uniGaussian(const Rcpp::NumericVector& times, const double& h, const double& x0, const double& y, const double& s, const double& t, const double& mean, const double& sd, const double& beta, const double& precondition);
-RcppExport SEXP _hierarchicalFusion_gamma_NB_uniGaussian(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
+RcppExport SEXP _DCFusion_gamma_NB_uniGaussian(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -691,54 +691,54 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_hierarchicalFusion_weighted_mean_univariate", (DL_FUNC) &_hierarchicalFusion_weighted_mean_univariate, 2},
-    {"_hierarchicalFusion_log_rho_univariate", (DL_FUNC) &_hierarchicalFusion_log_rho_univariate, 4},
-    {"_hierarchicalFusion_inverse_sum_matrices", (DL_FUNC) &_hierarchicalFusion_inverse_sum_matrices, 1},
-    {"_hierarchicalFusion_weighted_mean_multivariate", (DL_FUNC) &_hierarchicalFusion_weighted_mean_multivariate, 3},
-    {"_hierarchicalFusion_calculate_proposal_cov", (DL_FUNC) &_hierarchicalFusion_calculate_proposal_cov, 2},
-    {"_hierarchicalFusion_scaled_distance", (DL_FUNC) &_hierarchicalFusion_scaled_distance, 3},
-    {"_hierarchicalFusion_spectral_radius", (DL_FUNC) &_hierarchicalFusion_spectral_radius, 1},
-    {"_hierarchicalFusion_abs_eigenvals", (DL_FUNC) &_hierarchicalFusion_abs_eigenvals, 1},
-    {"_hierarchicalFusion_row_wise_subtraction", (DL_FUNC) &_hierarchicalFusion_row_wise_subtraction, 2},
-    {"_hierarchicalFusion_log_rho_multivariate", (DL_FUNC) &_hierarchicalFusion_log_rho_multivariate, 4},
-    {"_hierarchicalFusion_logsumexp", (DL_FUNC) &_hierarchicalFusion_logsumexp, 1},
-    {"_hierarchicalFusion_particle_ESS", (DL_FUNC) &_hierarchicalFusion_particle_ESS, 1},
-    {"_hierarchicalFusion_rho_IS_univariate_", (DL_FUNC) &_hierarchicalFusion_rho_IS_univariate_, 5},
-    {"_hierarchicalFusion_rho_IS_multivariate_", (DL_FUNC) &_hierarchicalFusion_rho_IS_multivariate_, 7},
-    {"_hierarchicalFusion_mvrnormArma", (DL_FUNC) &_hierarchicalFusion_mvrnormArma, 3},
-    {"_hierarchicalFusion_mvrnormArma_tempered", (DL_FUNC) &_hierarchicalFusion_mvrnormArma_tempered, 4},
-    {"_hierarchicalFusion_log_rho_multivariate_additional", (DL_FUNC) &_hierarchicalFusion_log_rho_multivariate_additional, 5},
-    {"_hierarchicalFusion_log_BLR_gradient", (DL_FUNC) &_hierarchicalFusion_log_BLR_gradient, 8},
-    {"_hierarchicalFusion_log_BLR_hessian", (DL_FUNC) &_hierarchicalFusion_log_BLR_hessian, 5},
-    {"_hierarchicalFusion_ea_phi_BLR_DL_vec", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_vec, 8},
-    {"_hierarchicalFusion_ea_phi_BLR_DL_matrix", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_matrix, 8},
-    {"_hierarchicalFusion_spectral_radius_BLR", (DL_FUNC) &_hierarchicalFusion_spectral_radius_BLR, 7},
-    {"_hierarchicalFusion_spectral_radius_bound_BLR_Z", (DL_FUNC) &_hierarchicalFusion_spectral_radius_bound_BLR_Z, 7},
-    {"_hierarchicalFusion_spectral_radius_global_bound_BLR_Z", (DL_FUNC) &_hierarchicalFusion_spectral_radius_global_bound_BLR_Z, 6},
-    {"_hierarchicalFusion_obtain_hypercube_centre", (DL_FUNC) &_hierarchicalFusion_obtain_hypercube_centre, 8},
-    {"_hierarchicalFusion_maximal_distance_hypercube_to_cv", (DL_FUNC) &_hierarchicalFusion_maximal_distance_hypercube_to_cv, 4},
-    {"_hierarchicalFusion_ea_phi_BLR_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_BLR_DL_bounds, 10},
-    {"_hierarchicalFusion_gamma_NB_BLR", (DL_FUNC) &_hierarchicalFusion_gamma_NB_BLR, 13},
-    {"_hierarchicalFusion_ea_phi_biGaussian_DL_vec", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_vec, 7},
-    {"_hierarchicalFusion_ea_phi_biGaussian_DL_matrix", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_matrix, 7},
-    {"_hierarchicalFusion_ea_phi_biGaussian_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_bounds, 9},
-    {"_hierarchicalFusion_ea_phi_biGaussian_DL_LB", (DL_FUNC) &_hierarchicalFusion_ea_phi_biGaussian_DL_LB, 5},
-    {"_hierarchicalFusion_gamma_NB_biGaussian", (DL_FUNC) &_hierarchicalFusion_gamma_NB_biGaussian, 12},
-    {"_hierarchicalFusion_ea_phi_exp_4_DL", (DL_FUNC) &_hierarchicalFusion_ea_phi_exp_4_DL, 4},
-    {"_hierarchicalFusion_ea_phi_exp_4_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_exp_4_DL_bounds, 5},
-    {"_hierarchicalFusion_ea_phi_exp_4_DL_LB", (DL_FUNC) &_hierarchicalFusion_ea_phi_exp_4_DL_LB, 3},
-    {"_hierarchicalFusion_gamma_NB_exp_4", (DL_FUNC) &_hierarchicalFusion_gamma_NB_exp_4, 9},
-    {"_hierarchicalFusion_dnorm_mix_tempered_unnormalised", (DL_FUNC) &_hierarchicalFusion_dnorm_mix_tempered_unnormalised, 5},
-    {"_hierarchicalFusion_ea_phi_mixG_DL", (DL_FUNC) &_hierarchicalFusion_ea_phi_mixG_DL, 7},
-    {"_hierarchicalFusion_ea_phi_mixG_DL_LB", (DL_FUNC) &_hierarchicalFusion_ea_phi_mixG_DL_LB, 7},
-    {"_hierarchicalFusion_ea_phi_uniGaussian_DL", (DL_FUNC) &_hierarchicalFusion_ea_phi_uniGaussian_DL, 5},
-    {"_hierarchicalFusion_ea_phi_uniGaussian_DL_bounds", (DL_FUNC) &_hierarchicalFusion_ea_phi_uniGaussian_DL_bounds, 6},
-    {"_hierarchicalFusion_ea_phi_uniGaussian_DL_LB", (DL_FUNC) &_hierarchicalFusion_ea_phi_uniGaussian_DL_LB, 4},
-    {"_hierarchicalFusion_gamma_NB_uniGaussian", (DL_FUNC) &_hierarchicalFusion_gamma_NB_uniGaussian, 10},
+    {"_DCFusion_weighted_mean_univariate", (DL_FUNC) &_DCFusion_weighted_mean_univariate, 2},
+    {"_DCFusion_log_rho_univariate", (DL_FUNC) &_DCFusion_log_rho_univariate, 4},
+    {"_DCFusion_inverse_sum_matrices", (DL_FUNC) &_DCFusion_inverse_sum_matrices, 1},
+    {"_DCFusion_weighted_mean_multivariate", (DL_FUNC) &_DCFusion_weighted_mean_multivariate, 3},
+    {"_DCFusion_calculate_proposal_cov", (DL_FUNC) &_DCFusion_calculate_proposal_cov, 2},
+    {"_DCFusion_scaled_distance", (DL_FUNC) &_DCFusion_scaled_distance, 3},
+    {"_DCFusion_spectral_radius", (DL_FUNC) &_DCFusion_spectral_radius, 1},
+    {"_DCFusion_abs_eigenvals", (DL_FUNC) &_DCFusion_abs_eigenvals, 1},
+    {"_DCFusion_row_wise_subtraction", (DL_FUNC) &_DCFusion_row_wise_subtraction, 2},
+    {"_DCFusion_log_rho_multivariate", (DL_FUNC) &_DCFusion_log_rho_multivariate, 4},
+    {"_DCFusion_logsumexp", (DL_FUNC) &_DCFusion_logsumexp, 1},
+    {"_DCFusion_particle_ESS", (DL_FUNC) &_DCFusion_particle_ESS, 1},
+    {"_DCFusion_rho_IS_univariate_", (DL_FUNC) &_DCFusion_rho_IS_univariate_, 5},
+    {"_DCFusion_rho_IS_multivariate_", (DL_FUNC) &_DCFusion_rho_IS_multivariate_, 7},
+    {"_DCFusion_mvrnormArma", (DL_FUNC) &_DCFusion_mvrnormArma, 3},
+    {"_DCFusion_mvrnormArma_tempered", (DL_FUNC) &_DCFusion_mvrnormArma_tempered, 4},
+    {"_DCFusion_log_rho_multivariate_additional", (DL_FUNC) &_DCFusion_log_rho_multivariate_additional, 5},
+    {"_DCFusion_log_BLR_gradient", (DL_FUNC) &_DCFusion_log_BLR_gradient, 8},
+    {"_DCFusion_log_BLR_hessian", (DL_FUNC) &_DCFusion_log_BLR_hessian, 5},
+    {"_DCFusion_ea_phi_BLR_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_vec, 8},
+    {"_DCFusion_ea_phi_BLR_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_matrix, 8},
+    {"_DCFusion_spectral_radius_BLR", (DL_FUNC) &_DCFusion_spectral_radius_BLR, 7},
+    {"_DCFusion_spectral_radius_bound_BLR_Z", (DL_FUNC) &_DCFusion_spectral_radius_bound_BLR_Z, 7},
+    {"_DCFusion_spectral_radius_global_bound_BLR_Z", (DL_FUNC) &_DCFusion_spectral_radius_global_bound_BLR_Z, 6},
+    {"_DCFusion_obtain_hypercube_centre", (DL_FUNC) &_DCFusion_obtain_hypercube_centre, 8},
+    {"_DCFusion_maximal_distance_hypercube_to_cv", (DL_FUNC) &_DCFusion_maximal_distance_hypercube_to_cv, 4},
+    {"_DCFusion_ea_phi_BLR_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_bounds, 10},
+    {"_DCFusion_gamma_NB_BLR", (DL_FUNC) &_DCFusion_gamma_NB_BLR, 13},
+    {"_DCFusion_ea_phi_biGaussian_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_biGaussian_DL_vec, 7},
+    {"_DCFusion_ea_phi_biGaussian_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_biGaussian_DL_matrix, 7},
+    {"_DCFusion_ea_phi_biGaussian_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_biGaussian_DL_bounds, 9},
+    {"_DCFusion_ea_phi_biGaussian_DL_LB", (DL_FUNC) &_DCFusion_ea_phi_biGaussian_DL_LB, 5},
+    {"_DCFusion_gamma_NB_biGaussian", (DL_FUNC) &_DCFusion_gamma_NB_biGaussian, 12},
+    {"_DCFusion_ea_phi_exp_4_DL", (DL_FUNC) &_DCFusion_ea_phi_exp_4_DL, 4},
+    {"_DCFusion_ea_phi_exp_4_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_exp_4_DL_bounds, 5},
+    {"_DCFusion_ea_phi_exp_4_DL_LB", (DL_FUNC) &_DCFusion_ea_phi_exp_4_DL_LB, 3},
+    {"_DCFusion_gamma_NB_exp_4", (DL_FUNC) &_DCFusion_gamma_NB_exp_4, 9},
+    {"_DCFusion_dnorm_mix_tempered_unnormalised", (DL_FUNC) &_DCFusion_dnorm_mix_tempered_unnormalised, 5},
+    {"_DCFusion_ea_phi_mixG_DL", (DL_FUNC) &_DCFusion_ea_phi_mixG_DL, 7},
+    {"_DCFusion_ea_phi_mixG_DL_LB", (DL_FUNC) &_DCFusion_ea_phi_mixG_DL_LB, 7},
+    {"_DCFusion_ea_phi_uniGaussian_DL", (DL_FUNC) &_DCFusion_ea_phi_uniGaussian_DL, 5},
+    {"_DCFusion_ea_phi_uniGaussian_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_uniGaussian_DL_bounds, 6},
+    {"_DCFusion_ea_phi_uniGaussian_DL_LB", (DL_FUNC) &_DCFusion_ea_phi_uniGaussian_DL_LB, 4},
+    {"_DCFusion_gamma_NB_uniGaussian", (DL_FUNC) &_DCFusion_gamma_NB_uniGaussian, 10},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_hierarchicalFusion(DllInfo *dll) {
+RcppExport void R_init_DCFusion(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

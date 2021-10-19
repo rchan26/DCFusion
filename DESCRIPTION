@@ -1,12 +1,12 @@
-Package: hierarchicalFusion
+Package: DCFusion
 Type: Package
-Title: Hierarchical Monte Carlo Fusion
+Title: Divide-and-Conquer Monte Carlo Fusion
 Version: 1.0
 Date: 2021-02-12
 Author: Ryan Chan
 Maintainer: Ryan Chan <ryanchan2607@gmail.com>
 Description: Functions for Importance Sampling and Rejection Sampling 
-  Preconditioned Monte Carlo Fusion for Hierarchical Monte Carlo Fusion paper
+  Generalised Monte Carlo Fusion for Divide-and-Conquer Monte Carlo Fusion paper
 License: GPL (>= 2)
 Depends: 
     R (>= 3.6.3),
@@ -14,6 +14,7 @@ Depends:
     RcppArmadillo,
     layeredBB,
     HMCBLR,
+    HMCBRR,
     dplyr,
     expm,
     sfsmisc
@@ -22,6 +23,7 @@ LinkingTo:
     RcppArmadillo,
     layeredBB,
     HMCBLR,
+    HMCBRR,
     dplyr,
     expm,
     MASS,
@@ -31,6 +33,7 @@ Imports:
     RcppArmadillo,
     layeredBB,
     HMCBLR,
+    HMCBRR,
     dplyr,
     expm,
     MASS,
