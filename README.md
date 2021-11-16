@@ -18,6 +18,11 @@ The experiments were ran on [Microsoft Azure](https://azure.microsoft.com/en-gb/
 * Section 5.1: [logistic_regression/simulated_data/](https://github.com/rchan26/hierarchicalFusion/tree/main/scripts/logistic_regression/simulated_data)
 * Section 5.2: [logistic_regression/credit_card/](https://github.com/rchan26/hierarchicalFusion/tree/main/scripts/logistic_regression/credit_card)
 
+## Related material
+
+* [Divide-and-Conquer Monte Carlo Fusion](https://arxiv.org/abs/2110.07265)
+* [Monte Carlo Fusion](https://www.cambridge.org/core/journals/journal-of-applied-probability/article/abs/monte-carlo-fusion/2C7099791C6073E37F98A7FFD91C331E)
+
 ## License
 
 Shield: [![CC BY 4.0][cc-by-shield]][cc-by]
