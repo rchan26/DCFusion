@@ -4,6 +4,12 @@ Code to implement experiments from [Divide-and-Conquer Monte Carlo Fusion](https
 
 Note: package has been renamed to 'DCFusion' but the repo is still called 'hierarchicalFusion' for now since that is what the current arxiv and submitted version has linked to. Will change when this gets updated.
 
+## Installation
+
+Simply run: ```devtools::install_github('rchan26/hierarchicalFusion')```
+
+## License
+
 Shield: [![CC BY 4.0][cc-by-shield]][cc-by]
 
 This work is licensed under a
