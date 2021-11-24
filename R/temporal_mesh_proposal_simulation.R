@@ -11,11 +11,11 @@ construct_V_vanilla <- function(s, t, end_time, C, d) {
     }
   }
   V <- kronecker(Sigma, diag(1, d))
-  return(list('V' = solve(V_inv), 'V_inv' = V_inv))
+  return(list('V' = V, 'V_inv' = solve(V)))
 }
 
-construct_M_vanilla <- function(s, t, ent_time, C, d, sub_posterior_samples) {
-  sum_vec <- sub_posterior_samples[[C]])
+construct_M_vanilla <- function(s, t, end_time, C, d, sub_posterior_samples) {
+  sum_vec <- sub_posterior_samples[[C]]
   for (i in 1:(C-1)) {
     sum_vec <- sum_vec + sub_posterior_samples[[i]]
   }
@@ -23,11 +23,22 @@ construct_M_vanilla <- function(s, t, ent_time, C, d, sub_posterior_samples) {
   C1 <- (end_time-t)/(end_time-s)
   C2 <- (t-s)/(end_time-s)
   M <- rep(NA, C*d)
+  M_list <- rep(list(rep(NA, d)), C)
   for (i in 1:C) {
     i_fill <- d*(i-1)+(1:d)
     M[i_fill] <- C1*sub_posterior_samples[[i]] + C2*x_bar
+    M_list[[i]] <- M[i_fill]
   }
-  return(M)
+  return(list('M' = M, 'M_list' = M_list))
+}
+
+long_vec_to_list_of_vec <- function(C, d, vec) {
+  list_of_vec <- rep(list(rep(NA, d)), C)
+  for (c in 1:C) {
+    indices <- d*(c-1)+(1:d)
+    list_of_vec[[c]] <- vec[indices]
+  }
+  return(list_of_vec)
 }
 
 construct_V <- function(s, t, end_time, C, d, Lambda, inv_precondition_matrices) {
@@ -48,7 +59,7 @@ construct_V <- function(s, t, end_time, C, d, Lambda, inv_precondition_matrices)
 }
 
 construct_L_inv <- function(inv_precondition_matrices) {
-  L_inv <- matrix(data = NA, nrow = C*d, ncol = C*d)
+  L_inv <- matrix(data = 0, nrow = C*d, ncol = C*d)
   for (i in 1:C) {
     i_fill <- d*(i-1)+(1:d)
     L_inv[i_fill,i_fill] <- inv_precondition_matrices[[i]]
@@ -61,5 +72,6 @@ construct_M <- function(s, t, end_time, C, d, Lambda, inv_precondition_matrices,
   V <- covariance_mat$V
   L_inv <- construct_L_inv(inv_precondition_matrices)
   x <- unlist(sub_posterior_samples)
-  return(V%*%L_inv%*%x / (t-s))
+  M <- as.vector(V%*%L_inv%*%x / (t-s))
+  return(list('M' = M, 'M_list' = long_vec_to_list_of_vec(C, d, M)))
 }
