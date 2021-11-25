@@ -172,7 +172,7 @@ double gamma_NB_uniGaussian(const Rcpp::NumericVector &times,
   if (times.size() < 2) {
     stop("gamma_NB_uniGaussian: length of times must be at least 2"); 
   }
-  Rcpp::NumericVector eval = x0 + times*(-x0+y)/(t-s);
+  Rcpp::NumericVector eval = (x0*(t-times)+y*(times-s))/(t-s);
   Rcpp::NumericVector phi = ea_phi_uniGaussian_DL(eval, mean, sd, beta, precondition);
   double sum_phi_eval = 0;
   for (int i=0; i < phi.size(); ++i) {
