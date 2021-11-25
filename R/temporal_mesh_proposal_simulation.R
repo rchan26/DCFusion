@@ -1,3 +1,4 @@
+#' @export
 construct_V_vanilla <- function(s, t, end_time, C, d) {
   C1 <- ((t-s)*(end_time-t)) / (end_time-s)
   C2 <- ((t-s)^2)/(C*(end_time-s))
@@ -14,6 +15,7 @@ construct_V_vanilla <- function(s, t, end_time, C, d) {
   return(list('V' = V, 'V_inv' = solve(V)))
 }
 
+#' @export
 construct_M_vanilla <- function(s, t, end_time, C, d, sub_posterior_samples) {
   sum_vec <- sub_posterior_samples[[C]]
   for (i in 1:(C-1)) {
@@ -32,6 +34,7 @@ construct_M_vanilla <- function(s, t, end_time, C, d, sub_posterior_samples) {
   return(list('M' = M, 'M_list' = M_list))
 }
 
+#' @export
 long_vec_to_list_of_vec <- function(C, d, vec) {
   list_of_vec <- rep(list(rep(NA, d)), C)
   for (c in 1:C) {
@@ -41,6 +44,7 @@ long_vec_to_list_of_vec <- function(C, d, vec) {
   return(list_of_vec)
 }
 
+#' @export
 construct_V <- function(s, t, end_time, C, d, Lambda, inv_precondition_matrices) {
   C1 <- (end_time-s) / ((t-s)*(end_time-t))
   C2 <- -1/(end_time-t)
@@ -58,6 +62,7 @@ construct_V <- function(s, t, end_time, C, d, Lambda, inv_precondition_matrices)
   return(list('V' = solve(V_inv), 'V_inv' = V_inv))
 }
 
+#' @export
 construct_L_inv <- function(inv_precondition_matrices) {
   L_inv <- matrix(data = 0, nrow = C*d, ncol = C*d)
   for (i in 1:C) {
@@ -67,6 +72,7 @@ construct_L_inv <- function(inv_precondition_matrices) {
   return(L_inv)
 }
 
+#' @export
 construct_M <- function(s, t, end_time, C, d, Lambda, inv_precondition_matrices, sub_posterior_samples) {
   covariance_mat <- construct_V(s, t, end_time, C, d, Lambda, inv_precondition_matrices)
   V <- covariance_mat$V
