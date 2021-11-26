@@ -6,6 +6,8 @@
 #'                        that you wish to perform fusion with
 #' @param multivariate logical value indicating if the samples are multivariate
 #'                     (TRUE) or not (FALSE)
+#' @param number_of_steps integer value for number of steps in the algorithm
+#'                        (default set to 2 for Monte Carlo Fusion)
 #'
 #' @return A particle environment with components
 #' \describe{
@@ -19,10 +21,11 @@
 #'                             1/number of samples)}
 #'   \item{ESS}{effective sample size of particles (initialised as the 
 #'              number of samples)}
-#'   \item{CESS}{conditional effective sample size of particles after rho and Q step
-#'               (initialised as NA for both)}
-#'   \item{resampled}{logical value to idicate if particles have been resampled
-#'                    after rho and Q step (initialised as FALSE for rho and TRUE for Q)}
+#'   \item{CESS}{conditional effective sample size of particles after each step 
+#'               of the algorithm (initialised as NA for each step)}
+#'   \item{resampled}{logical value to indicate if particles have been resampled
+#'                    after each step (initialised as FALSE for each step besides 
+#'                    the last step, which is set to TRUE)}
 #'   \item{N}{Number of particles}
 #' }
 #'
@@ -30,48 +33,40 @@
 #' p <- create_particle(samples = rnorm(10, 0, 1), multivariate = FALSE)
 #' 
 #' @export
-create_particle <- function(samples, multivariate) {
+create_particle <- function(samples, multivariate, number_of_steps = 2) {
   ps <- new.env(parent = emptyenv())
+  N <- nrow(samples)
+  ps$y_samples <- samples
+  ps$x_samples <- rep(list(NA), N)
   if (multivariate) {
-    N <- nrow(samples)
     dim <- ncol(samples)
-    ps$y_samples <- samples
-    ps$x_samples <- rep(list(NA), N)
     ps$x_means <- matrix(data = NA, nrow = N, ncol = dim)
-    ps$log_weights <- log(rep(1/N, N))
-    ps$normalised_weights <- rep(1/N, N)
-    ps$ESS <- N
-    ps$CESS <- c('rho' = NA, 'Q' = NA)
-    ps$resampled <- c('rho' = FALSE, 'Q' = TRUE)
-    ps$N <- N
-    class(ps) <- "particle"
-    return(ps)
   } else {
-    N <- length(samples)
-    ps$y_samples <- samples
-    ps$x_samples <- rep(list(NA), N)
     ps$x_means <- rep(NA, N)
-    ps$log_weights <- log(rep(1/N, N))
-    ps$normalised_weights <- rep(1/N, N)
-    ps$ESS <- N
-    ps$CESS <- c('rho' = NA, 'Q' = NA)
-    ps$resampled <- c('rho' = FALSE, 'Q' = TRUE)
-    ps$N <- N
-    class(ps) <- "particle"
-    return(ps)
   }
+  ps$log_weights <- log(rep(1/N, N))
+  ps$normalised_weights <- rep(1/N, N)
+  ps$ESS <- N
+  ps$CESS <- rep(NA, number_of_steps)
+  ps$resampled <- c(rep(FALSE, number_of_steps-1), TRUE)
+  ps$N <- N
+  ps$number_of_steps <- number_of_steps
+  class(ps) <- "particle"
+  return(ps)
 }
 
 #' Initialise particle sets from a list of samples
 #'
-#' Function to intialise particle sets from a list of samples
+#' Function to initialise particle sets from a list of samples
 #'
 #' @param samples_to_fuse a list of samples that you wish to perform fusion with
 #' @param multivariate logical value indicating if the samples are multivariate
 #'                     (TRUE) or not (FALSE)
+#' @param number_of_steps integer value for number of steps in the algorithm
+#'                        (default set to 2 for Monte Carlo Fusion)
 #'
 #' @return A list of particles to fuse, where the cth component is the particle 
-#'         for sub-posterior c. In particular, each item in the list is an enviroment
+#'         for sub-posterior c. In particular, each item in the list is an environment
 #'         with components
 #' \describe{
 #'   \item{y_samples}{samples for y in particle set (initialised as the samples given)}
@@ -84,10 +79,11 @@ create_particle <- function(samples, multivariate) {
 #'                             1/number of samples)}
 #'   \item{ESS}{effective sample size of particles (initialised as the 
 #'              number of samples)}
-#'   \item{CESS}{conditional effective sample size of particles after rho and Q step
-#'               (initialised as NA for both)}
-#'   \item{resampled}{logical value to idicate if particles have been resampled
-#'                    after rho and Q step (initialised as FALSE for rho and TRUE for Q)}
+#'   \item{CESS}{conditional effective sample size of particles after each step 
+#'               of the algorithm (initialised as NA for each step)}
+#'   \item{resampled}{logical value to indicate if particles have been resampled
+#'                    after each step (initialised as FALSE for each step besides 
+#'                    the last step, which is set to TRUE)}
 #'   \item{N}{Number of particles}
 #' }
 #'
@@ -101,7 +97,7 @@ create_particle <- function(samples, multivariate) {
 #' particles <- initialise_particle_sets(samples_to_fuse = multi_samples, multivariate = TRUE)
 #' 
 #' @export
-initialise_particle_sets <- function(samples_to_fuse, multivariate) {
+initialise_particle_sets <- function(samples_to_fuse, multivariate, number_of_steps = 2) {
   if (!is.list(samples_to_fuse)) {
     stop("initialise_particle_sets: samples_to_fuse must be a list")
   }
@@ -117,12 +113,16 @@ initialise_particle_sets <- function(samples_to_fuse, multivariate) {
       stop("initialise_particle_sets: if multivariate is FALSE, each of the samples in samples_to_fuse must be a vector")
     }
   }
-  return(lapply(samples_to_fuse, function(samples) create_particle(samples = samples, multivariate = multivariate)))
+  return(lapply(samples_to_fuse, function(samples) {
+    create_particle(samples = samples,
+                    multivariate = multivariate,
+                    number_of_steps = number_of_steps)}))
 }
 
 # ---------- functions for resampling schemes from Murray Pollock Github
 
-multi.resamp <- function(normalised_weights, n = length(normalised_weights)) { 
+multi.resamp <- function(normalised_weights,
+                         n = length(normalised_weights)) { 
   # Multinomial Resampling
   # Check whether resampling is possible
   if (sum(normalised_weights) > 0 & (n >0)) {
@@ -138,7 +138,8 @@ multi.resamp <- function(normalised_weights, n = length(normalised_weights)) {
   }
 }
 
-system.resamp <- function(normalised_weights, n = length(normalised_weights)) { 
+system.resamp <- function(normalised_weights,
+                          n = length(normalised_weights)) { 
   # Systematic Resampling
   # Check whether resampling is possible
   if (sum(normalised_weights) > 0 & (n >0)) {
@@ -153,7 +154,8 @@ system.resamp <- function(normalised_weights, n = length(normalised_weights)) {
   }  
 }
 
-strat.resamp <- function(normalised_weights, n = length(normalised_weights)) { 
+strat.resamp <- function(normalised_weights,
+                         n = length(normalised_weights)) { 
   # Stratified Resampling
   # Check whether resampling is possible
   if (sum(normalised_weights) > 0 & (n >0)) {
@@ -233,7 +235,7 @@ resample_indices <- function(normalised_weights,
 #'                          residual resampling ('resid')
 #' @param seed seed number - default is NULL, meaning there is no seed
 #'
-#' @return resampled particle set
+#' @return resampled particle set. Returns the same set if it has already been resampled
 #' 
 #' @examples
 #' particles <- create_particle(samples = rnorm(10, 0, 1), multivariate = FALSE)
@@ -244,8 +246,8 @@ resample_indices <- function(normalised_weights,
 #' 
 #' @export
 resample_particle_y_samples <- function(N = particle_set$N,
-                                        particle_set, 
-                                        multivariate, 
+                                        particle_set,
+                                        multivariate,
                                         resampling_method = 'multi',
                                         seed = NULL) {
   if (!("particle" %in% class(particle_set))) {
@@ -254,7 +256,7 @@ resample_particle_y_samples <- function(N = particle_set$N,
   if (!is.null(seed)) {
     set.seed(seed)
   }
-  if (particle_set$resampled['Q'] & particle_set$N==N) {
+  if (particle_set$resampled[particle_set$number_of_steps] & particle_set$N==N) {
     return(particle_set)
   } else {
     indices <- resample_indices(normalised_weights = particle_set$normalised_weights,
@@ -268,7 +270,7 @@ resample_particle_y_samples <- function(N = particle_set$N,
     particle_set$log_weights <- rep(log(1/N), N)
     particle_set$normalised_weights <- rep(1/N, N)
     particle_set$ESS <- N
-    particle_set$resampled['Q'] <- TRUE
+    particle_set$resampled[particle_set$number_of_steps] <- TRUE
     particle_set$N <- N
     return(particle_set)
   }
@@ -286,9 +288,10 @@ resample_particle_y_samples <- function(N = particle_set$N,
 #'                          resampling ('multi'). Other choices are stratified 
 #'                          resampling ('strat'), systematic resampling ('system'),
 #'                          residual resampling ('resid')
+#' @param step the step of the algorithm is this is resampling for
 #' @param seed seed number - default is NULL, meaning there is no seed
 #'
-#' @return resampled particle set
+#' @return resampled particle set. Returns the same set if it has already been resampled
 #' 
 #' @examples
 #' samples_to_fuse <- lapply(1:2, function(i) rnorm(100, 0, 1))
@@ -309,15 +312,18 @@ resample_particle_y_samples <- function(N = particle_set$N,
 resample_particle_x_samples <- function(N = particle_set$N,
                                         particle_set,
                                         multivariate,
+                                        step = 1,
                                         resampling_method = 'multi',
                                         seed = NULL) {
   if (!("particle" %in% class(particle_set))) {
     stop("resample_particle_x_samples: particle_set must be a \"particle\" object")
+  } else if (step >= particle_set$number_of_steps | step <= 0) {
+    stop("resample_particle_x_samples: step must be strictly between 0 and particle_set$number_of_steps")
   }
   if (!is.null(seed)) {
     set.seed(seed)
   }
-  if (particle_set$resampled['rho'] & particle_set$N==N) {
+  if (particle_set$resampled[step] & particle_set$N==N) {
     return(particle_set)
   } else {
     indices <- resample_indices(normalised_weights = particle_set$normalised_weights,
@@ -332,7 +338,7 @@ resample_particle_x_samples <- function(N = particle_set$N,
     particle_set$log_weights <- rep(log(1/N), N)
     particle_set$normalised_weights <- rep(1/N, N)
     particle_set$ESS <- N
-    particle_set$resampled['Q'] <- TRUE
+    particle_set$resampled[step] <- TRUE
     particle_set$N <- N
     return(particle_set)
   }
@@ -378,6 +384,7 @@ rho_IS_univariate <- function(particles_to_fuse,
                               m,
                               time,
                               precondition_values,
+                              number_of_steps = 2,
                               resampling_method = 'multi',
                               n_cores = parallel::detectCores(),
                               cl = NULL) {
@@ -439,9 +446,10 @@ rho_IS_univariate <- function(particles_to_fuse,
   ps$log_weights <- norm_weights$log_weights
   ps$normalised_weights <- norm_weights$normalised_weights
   ps$ESS <- norm_weights$ESS
-  ps$CESS <- c('rho' = norm_weights$ESS, 'Q' = NA)
-  ps$resampled <- c('rho' = FALSE, 'Q' = FALSE)
+  ps$CESS <- c(norm_weights$ESS, rep(NA, number_of_steps-1))
+  ps$resampled <- rep(FALSE, number_of_steps)
   ps$N <- N
+  ps$number_of_steps <- number_of_steps
   class(ps) <- "particle"
   return(ps)
 }
@@ -497,6 +505,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
                                 time,
                                 inv_precondition_matrices,
                                 inverse_sum_inv_precondition_matrices,
+                                number_of_steps = 2,
                                 resampling_method = 'multi',
                                 n_cores = parallel::detectCores(),
                                 cl = NULL) {
@@ -560,9 +569,10 @@ rho_IS_multivariate <- function(particles_to_fuse,
   ps$log_weights <- norm_weights$log_weights
   ps$normalised_weights <- norm_weights$normalised_weights
   ps$ESS <- norm_weights$ESS
-  ps$CESS <- c('rho' = norm_weights$ESS, 'Q' = NA)
-  ps$resampled <- c('rho' = FALSE, 'Q' = FALSE)
+  ps$CESS <- c(norm_weights$ESS, rep(NA, number_of_steps-1))
+  ps$resampled <- rep(FALSE, number_of_steps)
   ps$N <- N
+  ps$number_of_steps <- number_of_steps
   class(ps) <- "particle"
   return(ps)
 }

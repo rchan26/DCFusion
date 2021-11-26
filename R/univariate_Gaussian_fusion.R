@@ -65,7 +65,7 @@ ea_uniGaussian_DL_PT <- function(x0,
                                  beta_NB = 10,
                                  gamma_NB_n_points = 2,
                                  logarithm) {
-  # transform to preconditoned space
+  # transform to preconditioned space
   z0 <- x0 / sqrt(precondition)
   zt <- y / sqrt(precondition)
   # simulate layer information
@@ -855,9 +855,9 @@ Q_IS_uniGaussian <- function(particle_set,
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
   # where inc_change is the incremental change in weight (= log_Q_weights)
-  particle_set$CESS['Q'] <- particle_ESS(log_weights = log_Q_weights)$ESS
+  particle_set$CESS[2] <- particle_ESS(log_weights = log_Q_weights)$ESS
   # set the resampled indicator to FALSE
-  particle_set$resampled['Q'] <- FALSE
+  particle_set$resampled[2] <- FALSE
   return(particle_set)
 }
 
@@ -960,11 +960,12 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
                                  m = m,
                                  time = time,
                                  precondition_values = precondition_values,
+                                 number_of_steps = 2,
                                  resampling_method = resampling_method,
                                  n_cores = n_cores)
   # record ESS and CESS after rho step 
   ESS <- c('rho' = particles$ESS)
-  CESS <- c('rho' = particles$CESS['rho'])
+  CESS <- c('rho' = particles$CESS[1])
   # ----------- resample particles
   # only resample if ESS < N*ESS_threshold
   if (particles$ESS < N*ESS_threshold) {
@@ -972,6 +973,7 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
     particles <- resample_particle_x_samples(N = N,
                                              particle_set = particles,
                                              multivariate = FALSE,
+                                             step = 1,
                                              resampling_method = resampling_method,
                                              seed = seed)
   } else {
@@ -979,7 +981,7 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
   }
   # ---------- second importance sampling step
   # unbiased estimator for Q
-  particles <- Q_IS_uniGaussian(particle_set = particles, 
+  particles <- Q_IS_uniGaussian(particle_set = particles,
                                 m = m,
                                 time = time,
                                 means = means,
@@ -993,7 +995,7 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
                                 n_cores = n_cores)
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
-  CESS['Q'] <- particles$CESS['Q']
+  CESS['Q'] <- particles$CESS[2]
   names(CESS) <- c('rho', 'Q')
   # record proposed samples
   proposed_samples <- particles$y_samples
@@ -1135,7 +1137,9 @@ bal_binary_fusion_SMC_uniGaussian <- function(N_schedule,
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[L]] <- base_samples
   } else if (all(sapply(base_samples, is.vector))) {
-    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples,
+                                               multivariate = FALSE,
+                                               number_of_steps = 2)
   } else {
     stop("bal_binary_fusion_SMC_uniGaussian: base_samples must be a list of length
          (1/start_beta) containing either items of class \"particle\" (representing
@@ -1315,7 +1319,9 @@ progressive_fusion_SMC_uniGaussian <- function(N_schedule,
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[(1/start_beta)]] <- base_samples
   } else if (all(sapply(base_samples, is.vector))) {
-    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples,
+                                                            multivariate = FALSE,
+                                                            number_of_steps = 2)
   } else {
     stop("progressive_fusion_SMC_uniGaussian: base_samples must be a list of length
          (1/start_beta) containing either items of class \"particle\" (representing
