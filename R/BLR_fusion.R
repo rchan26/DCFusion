@@ -861,7 +861,7 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
       stop("bal_binary_fusion_SMC_BLR: the sub-posterior samples in base_samples must be matrices with dim columns")
     }
     particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples,
-                                               multivariate = FALSE,
+                                               multivariate = TRUE,
                                                number_of_steps = 2)
   } else {
     stop("bal_binary_fusion_SMC_BLR: base_samples must be a list of length C
