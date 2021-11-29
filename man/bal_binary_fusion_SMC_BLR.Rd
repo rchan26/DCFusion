@@ -45,12 +45,12 @@ the samples for the c-th node in the level}
 
 \item{dim}{dimension of the predictors (= p+1)}
 
-\item{data_split}{list of length C where each item is a list of length 4 where
-for c=1,...,C, data[[c]]$y is the vector for y responses and
-data[[c]]$x is the design matrix for the covariates for
-sub-posterior c, data[[c]]$full_data_count is the unique
+\item{data_split}{list of length m where each item is a list of length 4 where
+for c=1,...,m, data_split[[c]]$y is the vector for y responses and
+data_split[[c]]$x is the design matrix for the covariates for
+sub-posterior c, data_split[[c]]$full_data_count is the unique
 rows of the full data set with their counts and 
-data[[c]]$design_count is the unique rows of the design
+data_split[[c]]$design_count is the unique rows of the design
 matrix and their counts}
 
 \item{prior_means}{prior for means of predictors}
@@ -89,6 +89,9 @@ and "NB" for Negative Binomial estimator}
 \item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
 of the integral found in the mean of the negative
 binomial estimator (default is 2)}
+
+\item{local_bounds}{logical value indicating if local bounds for the phi function
+are used (default is TRUE)}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 

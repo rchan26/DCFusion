@@ -6,8 +6,8 @@
 #'                        that you wish to perform fusion with
 #' @param multivariate logical value indicating if the samples are multivariate
 #'                     (TRUE) or not (FALSE)
-#' @param number_of_steps integer value for number of steps in the algorithm
-#'                        (default set to 2 for Monte Carlo Fusion)
+#' @param number_of_steps integer value for number of steps in the Fusion algorithm
+#'                        (default is 2 for Monte Carlo Fusion)
 #'
 #' @return A particle environment with components
 #' \describe{
@@ -15,7 +15,7 @@
 #'   \item{x_samples}{a list where x_samples[[i]] is the ith x sample for in 
 #'                    particle set (all initialised as NA)}
 #'   \item{x_mean}{the corresponding means for x_samples (initialised as NA)}
-#'   \item{log_weights}{associated logarithm of the weights (initiliased as
+#'   \item{log_weights}{associated logarithm of the weights (initialised as
 #'                      the logarithm of 1/number of samples)}
 #'   \item{normalised_weights}{associated normalised weights (initialised as 
 #'                             1/number of samples)}
@@ -26,6 +26,8 @@
 #'   \item{resampled}{logical value to indicate if particles have been resampled
 #'                    after each step (initialised as FALSE for each step besides 
 #'                    the last step, which is set to TRUE)}
+#'   \item{number_of_steps}{number of steps in the Fusion algorithm (initialised
+#'                          as the number_of_steps provided)}
 #'   \item{N}{Number of particles}
 #' }
 #'
@@ -35,13 +37,15 @@
 #' @export
 create_particle <- function(samples, multivariate, number_of_steps = 2) {
   ps <- new.env(parent = emptyenv())
-  N <- nrow(samples)
   ps$y_samples <- samples
-  ps$x_samples <- rep(list(NA), N)
   if (multivariate) {
+    N <- nrow(samples)
     dim <- ncol(samples)
+    ps$x_samples <- rep(list(NA), N)
     ps$x_means <- matrix(data = NA, nrow = N, ncol = dim)
   } else {
+    N <- length(samples)
+    ps$x_samples <- rep(list(NA), N)
     ps$x_means <- rep(NA, N)
   }
   ps$log_weights <- log(rep(1/N, N))
@@ -62,8 +66,8 @@ create_particle <- function(samples, multivariate, number_of_steps = 2) {
 #' @param samples_to_fuse a list of samples that you wish to perform fusion with
 #' @param multivariate logical value indicating if the samples are multivariate
 #'                     (TRUE) or not (FALSE)
-#' @param number_of_steps integer value for number of steps in the algorithm
-#'                        (default set to 2 for Monte Carlo Fusion)
+#' @param number_of_steps integer value for number of steps in the Fusion algorithm
+#'                        (default is 2 for Monte Carlo Fusion)
 #'
 #' @return A list of particles to fuse, where the cth component is the particle 
 #'         for sub-posterior c. In particular, each item in the list is an environment
@@ -73,7 +77,7 @@ create_particle <- function(samples, multivariate, number_of_steps = 2) {
 #'   \item{x_samples}{a list where x_samples[[i]] is the ith x sample for in 
 #'                    particle set (all initialised as NA)}
 #'   \item{x_mean}{the corresponding means for x_samples (initialised as NA)}
-#'   \item{log_weights}{associated logarithm of the weights (initiliased as
+#'   \item{log_weights}{associated logarithm of the weights (initialised as
 #'                      the logarithm of 1/number of samples)}
 #'   \item{normalised_weights}{associated normalised weights (initialised as 
 #'                             1/number of samples)}
@@ -84,6 +88,8 @@ create_particle <- function(samples, multivariate, number_of_steps = 2) {
 #'   \item{resampled}{logical value to indicate if particles have been resampled
 #'                    after each step (initialised as FALSE for each step besides 
 #'                    the last step, which is set to TRUE)}
+#'   \item{number_of_steps}{number of steps in the Fusion algorithm (initialised
+#'                          as the number_of_steps provided)}
 #'   \item{N}{Number of particles}
 #' }
 #'
@@ -193,10 +199,10 @@ resid.resamp <- function(normalised_weights,
 #' @param normalised_weights a vector of normalised weights
 #' @param method method to be used in resampling, default is multinomial 
 #'               resampling ('multi'). Other choices are stratified ('strat'), 
-#'               systematic ('system'), residual ('resid')
+#'               systematic ('system'), residual ('resid') resampling
 #' @param n number of samples to resample
 #'
-#' @return a vector of resampled indicies
+#' @return a vector of resampled indices
 #' 
 #' @export
 resample_indices <- function(normalised_weights,
@@ -226,7 +232,7 @@ resample_indices <- function(normalised_weights,
 #' 
 #' Resamples the particle set for the samples for y
 #'
-#' @param N number of samples (default to particle_set$N)
+#' @param N number of samples (default is particle_set$N)
 #' @param multivariate logical value indicating if the particles are multivariate
 #'                     (TRUE) or not (FALSE)
 #' @param resampling_method method to be used in resampling, default is multinomial 
@@ -280,7 +286,7 @@ resample_particle_y_samples <- function(N = particle_set$N,
 #' 
 #' Resamples the particle set for the samples for x
 #'
-#' @param N number of samples (default to particle_set$N)
+#' @param N number of samples (default is particle_set$N)
 #' @param particle_set particle object (see initialise_particle_set)
 #' @param multivariate logical value indicating if the particles are multivariate
 #'                     (TRUE) or not (FALSE)

@@ -10,6 +10,7 @@ rho_IS_univariate(
   m,
   time,
   precondition_values,
+  number_of_steps = 2,
   resampling_method = "multi",
   n_cores = parallel::detectCores(),
   cl = NULL

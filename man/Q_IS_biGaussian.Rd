@@ -37,6 +37,9 @@ Q_IS_biGaussian(
 \item{betas}{vector of length c, where betas[c] is the inverse temperature 
 value for c-th posterior}
 
+\item{precondition_matrices}{list of length m, where precondition_matrices[[c]]
+is the precondition matrix for sub-posterior c}
+
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poission estimator
 and "NB" for Negative Binomial estimator}
@@ -50,9 +53,6 @@ binomial estimator (default is 2)}
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
-
-\item{precondition_matricies}{list of length m, where precondition_matrices[[c]]
-is the precondition matrix for sub-posterior c}
 }
 \value{
 An updated particle set

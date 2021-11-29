@@ -37,12 +37,12 @@ contains the samples for the c-th sub-posterior}
 \item{betas}{vector of length c, where betas[c] is the inverse temperature 
 value for c-th posterior}
 
+\item{precondition_matrices}{list of length m, where precondition_matrices[[c]]
+is the precondition matrix for sub-posterior c}
+
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
-
-\item{precondition_matricies}{list of length m, where precondition_matrices[[c]]
-is the precondition matrix for sub-posterior c}
 }
 \value{
 A list with components:

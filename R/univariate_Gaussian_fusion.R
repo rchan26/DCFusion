@@ -848,9 +848,9 @@ Q_IS_uniGaussian <- function(particle_set,
   # ---------- update particle set
   # update the weights and return updated particle set
   particle_set$y_samples <- y_samples
-  particle_set$log_weights <- particle_set$log_weights + log_Q_weights
-  # normalise weights
-  norm_weights <- particle_ESS(log_weights = particle_set$log_weights)
+  # normalise weight
+  norm_weights <- particle_ESS(log_weights = particle_set$log_weights + log_Q_weights)
+  particle_set$log_weights <- norm_weights$log_weights
   particle_set$normalised_weights <- norm_weights$normalised_weights
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))

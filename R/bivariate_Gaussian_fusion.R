@@ -59,7 +59,7 @@ ea_phi_biGaussian_DL <- function(x,
 #' @param corr correlation value between component 1 and component 2
 #' @param beta real value
 #' @param precondition_mat precondition matrix
-#' @param transform_mats list of transformation matricies where 
+#' @param transform_mats list of transformation matrices where 
 #'                       transform_mats$to_Z is the transformation matrix to Z space
 #'                       and transform_mats$to_X is the transformation matrix to 
 #'                       X space
@@ -209,7 +209,7 @@ ea_biGaussian_DL_PT <- function(x0,
 #' @param betas vector of length m, where betas[c] is the inverse temperature (beta)
 #'              for c-th sub-posterior (can also pass in one number if they are all
 #'              at the same inverse temperature)
-#' @param precondition_matricies list of length m, where precondition_matrices[[c]]
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #'
 #' @return samples: fusion samples
@@ -301,7 +301,7 @@ fusion_biGaussian <- function(N,
 #' @param corr correlation value between component 1 and component 2
 #' @param betas vector of length c, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
-#' @param precondition_matricies list of length m, where precondition_matrices[[c]]
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
@@ -793,7 +793,7 @@ progressive_fusion_biGaussian <- function(N_schedule,
 #' @param corr correlation value between component 1 and component 2
 #' @param betas vector of length c, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
-#' @param precondition_matricies list of length m, where precondition_matrices[[c]]
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poission estimator
@@ -895,9 +895,9 @@ Q_IS_biGaussian <- function(particle_set,
   # ---------- update particle set
   # update the weights and return updated particle set
   particle_set$y_samples <- y_samples
-  particle_set$log_weights <- particle_set$log_weights + log_Q_weights
-  # normalise weights
-  norm_weights <- particle_ESS(log_weights = particle_set$log_weights)
+  # normalise weight
+  norm_weights <- particle_ESS(log_weights = particle_set$log_weights + log_Q_weights)
+  particle_set$log_weights <- norm_weights$log_weights
   particle_set$normalised_weights <- norm_weights$normalised_weights
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
@@ -919,7 +919,7 @@ Q_IS_biGaussian <- function(particle_set,
 #' @param N number of samples
 #' @param m number of sub-posteriors to combine
 #' @param time time T for fusion algorithm
-#' @param precondition_matricies list of length m, where precondition_matrices[[c]]
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation

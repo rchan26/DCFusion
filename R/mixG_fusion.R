@@ -952,9 +952,9 @@ Q_IS_mixG <- function(particle_set,
   # ---------- update particle set
   # update the weights and return updated particle set
   particle_set$y_samples <- y_samples
-  particle_set$log_weights <- particle_set$log_weights + log_Q_weights
-  # normalise weights
-  norm_weights <- particle_ESS(log_weights = particle_set$log_weights)
+  # normalise weight
+  norm_weights <- particle_ESS(log_weights = particle_set$log_weights + log_Q_weights)
+  particle_set$log_weights <- norm_weights$log_weights
   particle_set$normalised_weights <- norm_weights$normalised_weights
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
@@ -984,7 +984,7 @@ Q_IS_mixG <- function(particle_set,
 #'              value for c-th posterior
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 

@@ -4,11 +4,14 @@
 \alias{create_particle}
 \title{Create a particle object}
 \usage{
-create_particle(samples, multivariate)
+create_particle(samples, multivariate, number_of_steps = 2)
 }
 \arguments{
 \item{multivariate}{logical value indicating if the samples are multivariate
 (TRUE) or not (FALSE)}
+
+\item{number_of_steps}{integer value for number of steps in the Fusion algorithm
+(default is 2 for Monte Carlo Fusion)}
 
 \item{samples_to_fuse}{a list of samples (vector if univariate, matrix is multivariate)
 that you wish to perform fusion with}
@@ -20,16 +23,19 @@ A particle environment with components
   \item{x_samples}{a list where x_samples[[i]] is the ith x sample for in 
                    particle set (all initialised as NA)}
   \item{x_mean}{the corresponding means for x_samples (initialised as NA)}
-  \item{log_weights}{associated logarithm of the weights (initiliased as
+  \item{log_weights}{associated logarithm of the weights (initialised as
                      the logarithm of 1/number of samples)}
   \item{normalised_weights}{associated normalised weights (initialised as 
                             1/number of samples)}
   \item{ESS}{effective sample size of particles (initialised as the 
              number of samples)}
-  \item{CESS}{conditional effective sample size of particles after rho and Q step
-              (initialised as NA for both)}
-  \item{resampled}{logical value to idicate if particles have been resampled
-                   after rho and Q step (initialised as FALSE for rho and TRUE for Q)}
+  \item{CESS}{conditional effective sample size of particles after each step 
+              of the algorithm (initialised as NA for each step)}
+  \item{resampled}{logical value to indicate if particles have been resampled
+                   after each step (initialised as FALSE for each step besides 
+                   the last step, which is set to TRUE)}
+  \item{number_of_steps}{number of steps in the Fusion algorithm (initialised
+                         as the number_of_steps provided)}
   \item{N}{Number of particles}
 }
 }

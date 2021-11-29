@@ -4,38 +4,44 @@
 \alias{initialise_particle_sets}
 \title{Initialise particle sets from a list of samples}
 \usage{
-initialise_particle_sets(samples_to_fuse, multivariate)
+initialise_particle_sets(samples_to_fuse, multivariate, number_of_steps = 2)
 }
 \arguments{
 \item{samples_to_fuse}{a list of samples that you wish to perform fusion with}
 
 \item{multivariate}{logical value indicating if the samples are multivariate
 (TRUE) or not (FALSE)}
+
+\item{number_of_steps}{integer value for number of steps in the Fusion algorithm
+(default is 2 for Monte Carlo Fusion)}
 }
 \value{
 A list of particles to fuse, where the cth component is the particle 
-        for sub-posterior c. In particular, each item in the list is an enviroment
+        for sub-posterior c. In particular, each item in the list is an environment
         with components
 \describe{
   \item{y_samples}{samples for y in particle set (initialised as the samples given)}
   \item{x_samples}{a list where x_samples[[i]] is the ith x sample for in 
                    particle set (all initialised as NA)}
   \item{x_mean}{the corresponding means for x_samples (initialised as NA)}
-  \item{log_weights}{associated logarithm of the weights (initiliased as
+  \item{log_weights}{associated logarithm of the weights (initialised as
                      the logarithm of 1/number of samples)}
   \item{normalised_weights}{associated normalised weights (initialised as 
                             1/number of samples)}
   \item{ESS}{effective sample size of particles (initialised as the 
              number of samples)}
-  \item{CESS}{conditional effective sample size of particles after rho and Q step
-              (initialised as NA for both)}
-  \item{resampled}{logical value to idicate if particles have been resampled
-                   after rho and Q step (initialised as FALSE for rho and TRUE for Q)}
+  \item{CESS}{conditional effective sample size of particles after each step 
+              of the algorithm (initialised as NA for each step)}
+  \item{resampled}{logical value to indicate if particles have been resampled
+                   after each step (initialised as FALSE for each step besides 
+                   the last step, which is set to TRUE)}
+  \item{number_of_steps}{number of steps in the Fusion algorithm (initialised
+                         as the number_of_steps provided)}
   \item{N}{Number of particles}
 }
 }
 \description{
-Function to intialise particle sets from a list of samples
+Function to initialise particle sets from a list of samples
 }
 \examples{
 # univariate

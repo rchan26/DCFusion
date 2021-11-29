@@ -48,7 +48,7 @@ value for c-th posterior}
 \item{precondition_values}{vector of length m, where precondition_values[c]
 is the precondition value for sub-posterior c}
 
-\item{bounds_multiplier}{scalar value to mulitply bounds by 
+\item{bounds_multiplier}{scalar value to multiply bounds by 
 (should greater than or equal to 1)}
 
 \item{resampling_method}{method to be used in resampling, default is multinomial 

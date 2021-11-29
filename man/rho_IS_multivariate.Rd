@@ -12,6 +12,7 @@ rho_IS_multivariate(
   time,
   inv_precondition_matrices,
   inverse_sum_inv_precondition_matrices,
+  number_of_steps = 2,
   resampling_method = "multi",
   n_cores = parallel::detectCores(),
   cl = NULL

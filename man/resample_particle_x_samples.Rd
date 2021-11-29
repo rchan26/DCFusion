@@ -8,17 +8,20 @@ resample_particle_x_samples(
   N = particle_set$N,
   particle_set,
   multivariate,
+  step = 1,
   resampling_method = "multi",
   seed = NULL
 )
 }
 \arguments{
-\item{N}{number of samples (default to particle_set$N)}
+\item{N}{number of samples (default is particle_set$N)}
 
 \item{particle_set}{particle object (see initialise_particle_set)}
 
 \item{multivariate}{logical value indicating if the particles are multivariate
 (TRUE) or not (FALSE)}
+
+\item{step}{the step of the algorithm is this is resampling for}
 
 \item{resampling_method}{method to be used in resampling, default is multinomial 
 resampling ('multi'). Other choices are stratified 
@@ -28,7 +31,7 @@ residual resampling ('resid')}
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 }
 \value{
-resampled particle set
+resampled particle set. Returns the same set if it has already been resampled
 }
 \description{
 Resamples the particle set for the samples for x
