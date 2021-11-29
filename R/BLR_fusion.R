@@ -110,7 +110,8 @@ ea_BLR_DL_PT <- function(dim,
   # calculate the lower and upper bounds of phi
   if (is.list(cv_location)) {
     if (names(cv_location)==c("beta_hat", "grad_log_hat")) {
-      hypercube_vertices <- obtain_hypercube_vertices(bes_layers)
+      hypercube_vertices <- obtain_hypercube_vertices(bessel_layers = bes_layers,
+                                                      dim = dim)
       bounds <- ea_phi_BLR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                      grad_log_hat = as.vector(cv_location$grad_log_hat),
                                      dim = dim,
@@ -133,7 +134,8 @@ ea_BLR_DL_PT <- function(dim,
                                                prior_means = prior_means,
                                                prior_variances = prior_variances,
                                                C = C)
-    hypercube_vertices <- obtain_hypercube_vertices(bes_layers)
+    hypercube_vertices <- obtain_hypercube_vertices(bessel_layers = bes_layers,
+                                                    dim = dim)
     bounds <- ea_phi_BLR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                    grad_log_hat = as.vector(cv_location$grad_log_hat),
                                    dim = dim,
