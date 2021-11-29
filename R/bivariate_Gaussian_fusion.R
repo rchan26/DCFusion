@@ -423,10 +423,10 @@ parallel_fusion_biGaussian <- function(N,
 #'                   of samples per node at level l
 #' @param m_schedule vector of length (L-1), where m_schedule[l] is the number 
 #'                   of samples to fuse for level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the 
 #'                      time chosen for Fusion at level l
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation
@@ -619,14 +619,14 @@ bal_binary_fusion_biGaussian <- function(N_schedule,
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the 
 #'                      time chosen for Fusion at level l
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation
 #' @param corr correlation value between component 1 and component 2
 #' @param start_beta beta for the base level
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
+#'                     contains the samples for the c-th node in the level
 #' @param precondition either a logical value to determine if preconditioning matrices are
 #'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
 #'                     or not (FALSE - and is set to be the identity matrix for all sub-posteriors),
@@ -1097,10 +1097,10 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
 #'                   of samples per node at level l
 #' @param m_schedule vector of length (L-1), where m_schedule[l] is the number 
 #'                   of samples to fuse for level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation
@@ -1308,10 +1308,10 @@ bal_binary_fusion_SMC_biGaussian <- function(N_schedule,
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
+#'                     contains the samples for the c-th node in the level
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation
 #' @param corr correlation value between component 1 and component 2

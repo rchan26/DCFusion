@@ -22,35 +22,35 @@ vanilla_rho_j_BLR <- function(particle_set,
                      node = 1,
                      print_progress_iters = 1000) {
   if (!("particle" %in% class(particle_set))) {
-    stop("Q_IS_BLR: particle_set must be a \"particle\" object")
+    stop("vanilla_rho_j_BLR: particle_set must be a \"particle\" object")
   } else if (!is.list(data_split) | length(data_split)!=m) {
-    stop("Q_IS_BLR: data_split must be a list of length m")
+    stop("vanilla_rho_j_BLR: data_split must be a list of length m")
   } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
-    stop("Q_IS_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
+    stop("vanilla_rho_j_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
-    stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
+    stop("vanilla_rho_j_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
-    stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
+    stop("vanilla_rho_j_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
   } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)==dim))) {
-    stop("Q_IS_BLR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
+    stop("vanilla_rho_j_BLR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
   } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
-    stop("Q_IS_BLR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
+    stop("vanilla_rho_j_BLR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
   } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
+    stop("vanilla_rho_j_BLR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
   } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("Q_IS_BLR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
+    stop("vanilla_rho_j_BLR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
-    stop("Q_IS_BLR: prior_means must be vectors of length dim")
+    stop("vanilla_rho_j_BLR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
-    stop("Q_IS_BLR: prior_variances must be vectors of length dim")
+    stop("vanilla_rho_j_BLR: prior_variances must be vectors of length dim")
   } else if (!is.list(precondition_matrices) | (length(precondition_matrices)!=m)) {
-    stop("Q_IS_BLR: precondition_matrices must be a list of length m")
+    stop("vanilla_rho_j_BLR: precondition_matrices must be a list of length m")
   } else if (!is.list(inv_precondition_matrices) | (length(inv_precondition_matrices)!=m)) {
-    stop("Q_IS_BLR: inv_precondition_matrices must be a list of length m")
+    stop("vanilla_rho_j_BLR: inv_precondition_matrices must be a list of length m")
   } else if (!(diffusion_estimator %in% c('Poisson', 'NB'))) {
-    stop("Q_IS_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
+    stop("vanilla_rho_j_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
   } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
-    stop("Q_IS_BLR: cl must be a \"cluster\" object or NULL")
+    stop("vanilla_rho_j_BLR: cl must be a \"cluster\" object or NULL")
   }
   if (cv_location == 'mode') {
     cv_location <- lapply(1:m, function(c) {
@@ -68,7 +68,7 @@ vanilla_rho_j_BLR <- function(particle_set,
   } else if (cv_location == 'hypercube_centre') {
     cv_location <- lapply(1:m, function(c) 'hypercube_centre')
   } else {
-    stop("Q_IS_BLR: cv_location must be either \"mode\" or \"hypercube_centre\"")
+    stop("vanilla_rho_j_BLR: cv_location must be either \"mode\" or \"hypercube_centre\"")
   }
   transform_matrices <- lapply(1:m, function(c) {
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
@@ -103,7 +103,7 @@ vanilla_rho_j_BLR <- function(particle_set,
     y_samples <- t(apply(split_x_means[[core]], 1, function(vec) mvrnormArma(N = 1, mu = vec, Sigma = proposal_cov)))
     log_Q_weights <- rep(0, split_N)
     cat('Level:', level, '|| Node:', node, '|| Core:', core, '|| START \n',
-        file = 'Q_IS_BLR_progress.txt', append = T)
+        file = 'vanilla_rho_j_BLR_progress.txt', append = T)
     if (is.null(print_progress_iters)) {
       print_progress_iters <- split_N
     }
@@ -147,11 +147,11 @@ vanilla_rho_j_BLR <- function(particle_set,
       }))
       if (i%%print_progress_iters==0) {
         cat('Level:', level, '|| Node:', node, '|| Core:', core, '||', i, '/',
-            split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
+            split_N, '\n', file = 'vanilla_rho_j_BLR_progress.txt', append = T)
       }
     }
     cat('Completed: Level:', level, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
-        split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
+        split_N, '\n', file = 'vanilla_rho_j_BLR_progress.txt', append = T)
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
   if (close_cluster) {

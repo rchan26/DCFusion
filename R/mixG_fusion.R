@@ -483,7 +483,7 @@ parallel_fusion_mixG <- function(N,
 #'                   of samples per node at level l
 #' @param m_schedule vector of length (L-1), where m_schedule[l] is the number
 #'                   of samples to fuse for level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where samples_to_fuse[c]
 #'                     contains the samples for the c-th node in the level
@@ -679,7 +679,7 @@ bal_binary_fusion_mixG <- function(N_schedule,
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number
 #'                   of samples per node at level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where samples_to_fuse[c]
 #'                     contains the samples for the c-th node in the level
@@ -1140,9 +1140,9 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
 #'                   of samples per node at level l
 #' @param m_schedule vector of length (L-1), where m_schedule[l] is the number 
 #'                   of samples to fuse for level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
 #'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param n_comp integer number of components of mixture Gaussian
@@ -1343,9 +1343,9 @@ bal_binary_fusion_SMC_mixG <- function(N_schedule,
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
 #'                     contains the samples for the c-th node in the level
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
