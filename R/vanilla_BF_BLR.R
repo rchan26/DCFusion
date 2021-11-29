@@ -101,7 +101,7 @@ vanilla_rho_j_BLR <- function(particle_set,
       particles <- resample_particle_x_samples(N = N,
                                                particle_set = particles,
                                                multivariate = TRUE,
-                                               step = j,
+                                               step = j-1,
                                                resampling_method = resampling_method,
                                                seed = seed)
     } else {
@@ -223,70 +223,70 @@ vanilla_rho_j_BLR <- function(particle_set,
 }
 
 #' @export
-parallel_generalised_BF_SMC_BLR <- function(particles_to_fuse,
-                                    N,
-                                    m,
-                                    time_mesh,
-                                    dim,
-                                    data_split,
-                                    prior_means,
-                                    prior_variances,
-                                    C,
-                                    resampling_method = 'multi',
-                                    ESS_threshold = 0.5,
-                                    cv_location = 'hypercube_centre',
-                                    diffusion_estimator = 'Poisson',
-                                    beta_NB = 10,
-                                    gamma_NB_n_points = 2,
-                                    local_bounds = TRUE,
-                                    seed = NULL,
-                                    n_cores = parallel::detectCores(),
-                                    cl = NULL,
-                                    level = 1,
-                                    node = 1,
-                                    print_progress_iters = 1000) {
+parallel_vanilla_BF_SMC_BLR <- function(particles_to_fuse,
+                                        N,
+                                        m,
+                                        time_mesh,
+                                        dim,
+                                        data_split,
+                                        prior_means,
+                                        prior_variances,
+                                        C,
+                                        resampling_method = 'multi',
+                                        ESS_threshold = 0.5,
+                                        cv_location = 'hypercube_centre',
+                                        diffusion_estimator = 'Poisson',
+                                        beta_NB = 10,
+                                        gamma_NB_n_points = 2,
+                                        local_bounds = TRUE,
+                                        seed = NULL,
+                                        n_cores = parallel::detectCores(),
+                                        cl = NULL,
+                                        level = 1,
+                                        node = 1,
+                                        print_progress_iters = 1000) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
-    stop("parallel_generalised_BF_SMC_BLR: particles_to_fuse must be a list of length m")
+    stop("parallel_vanilla_BF_SMC_BLR: particles_to_fuse must be a list of length m")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
-    stop("parallel_generalised_BF_SMC_BLR: particles in particles_to_fuse must be \"particle\" objects")
+    stop("parallel_vanilla_BF_SMC_BLR: particles in particles_to_fuse must be \"particle\" objects")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) is.matrix(sub_posterior$y_samples)))) {
-    stop("parallel_generalised_BF_SMC_BLR: the particles' samples for y should all be matrices")
+    stop("parallel_vanilla_BF_SMC_BLR: the particles' samples for y should all be matrices")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ncol(sub_posterior$y_samples)==dim))) {
-    stop("parallel_generalised_BF_SMC_BLR: the particles' samples for y should all be matrices with dim columns")
+    stop("parallel_vanilla_BF_SMC_BLR: the particles' samples for y should all be matrices with dim columns")
   } else if (!is.vector(time_mesh)) {
-    stop("parallel_generalised_BF_SMC_BLR: time_mesh must be an ordered vector of length >= 2")
+    stop("parallel_vanilla_BF_SMC_BLR: time_mesh must be an ordered vector of length >= 2")
   } else if (length(time_mesh) < 2) {
-    stop("parallel_generalised_BF_SMC_BLR: time_mesh must be an ordered vector of length >= 2")
+    stop("parallel_vanilla_BF_SMC_BLR: time_mesh must be an ordered vector of length >= 2")
   } else if (!identical(time_mesh, sort(time_mesh))) {
-    stop("parallel_generalised_BF_SMC_BLR: time_mesh must be an ordered vector of length >= 2")
+    stop("parallel_vanilla_BF_SMC_BLR: time_mesh must be an ordered vector of length >= 2")
   } else if (!is.list(data_split) | length(data_split)!=m) {
-    stop("parallel_generalised_BF_SMC_BLR: data_split must be a list of length m")
+    stop("parallel_vanilla_BF_SMC_BLR: data_split must be a list of length m")
   } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
-    stop("parallel_generalised_BF_SMC_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
+    stop("parallel_vanilla_BF_SMC_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
-    stop("parallel_generalised_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
+    stop("parallel_vanilla_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
-    stop("parallel_generalised_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
+    stop("parallel_vanilla_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
   } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)==dim))) {
-    stop("parallel_generalised_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix with dim columns")
+    stop("parallel_vanilla_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix with dim columns")
   } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
-    stop("parallel_generalised_BF_SMC_BLR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
+    stop("parallel_vanilla_BF_SMC_BLR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
   } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("parallel_generalised_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
+    stop("parallel_vanilla_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
   } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("parallel_generalised_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
+    stop("parallel_vanilla_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
-    stop("parallel_generalised_BF_SMC_BLR: prior_means must be vectors of length dim")
+    stop("parallel_vanilla_BF_SMC_BLR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
-    stop("parallel_generalised_BF_SMC_BLR: prior_variances must be vectors of length dim")
+    stop("parallel_vanilla_BF_SMC_BLR: prior_variances must be vectors of length dim")
   } else if (!(diffusion_estimator %in% c('Poisson', 'NB'))) {
-    stop("parallel_generalised_BF_SMC_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
+    stop("parallel_vanilla_BF_SMC_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
   } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
-    stop("parallel_generalised_BF_SMC_BLR: ESS_threshold must be between 0 and 1")
+    stop("parallel_vanilla_BF_SMC_BLR: ESS_threshold must be between 0 and 1")
   } else if ((cv_location != 'mode') & (cv_location != 'hypercube_centre')) {
-    stop("parallel_generalised_BF_SMC_BLR: cv_location must be either \"mode\" or \"hypercube_centre\"")
+    stop("parallel_vanilla_BF_SMC_BLR: cv_location must be either \"mode\" or \"hypercube_centre\"")
   } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
-    stop("parallel_generalised_BF_SMC_BLR: cl must be a \"cluster\" object or NULL")
+    stop("parallel_vanilla_BF_SMC_BLR: cl must be a \"cluster\" object or NULL")
   }
   # set a seed if one is supplied
   if (!is.null(seed)) {
@@ -330,7 +330,7 @@ parallel_generalised_BF_SMC_BLR <- function(particles_to_fuse,
                              print_progress_iters = print_progress_iters)
   # check that the particles coalesced at final time marginal
   if (!all(sapply(1:N, function(i) nrow(unique(rho_j$particle_set$x_samples[[i]]))==1))) {
-    warning("parallel_generalised_BF_SMC_BLR: the particles didn't seem to coalesce at the final time marginal. Please check.")
+    warning("parallel_vanilla_BF_SMC_BLR: the particles didn't seem to coalesce at the final time marginal. Please check.")
   }
   return(list('particles' = rho_j$particle_set,
               'proposed_samples' = rho_j$proposed_samples,
