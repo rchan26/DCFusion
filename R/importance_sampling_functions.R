@@ -323,8 +323,8 @@ resample_particle_x_samples <- function(N = particle_set$N,
                                         seed = NULL) {
   if (!("particle" %in% class(particle_set))) {
     stop("resample_particle_x_samples: particle_set must be a \"particle\" object")
-  } else if (step >= particle_set$number_of_steps | step <= 0) {
-    stop("resample_particle_x_samples: step must be strictly between 0 and particle_set$number_of_steps")
+  } else if (step > particle_set$number_of_steps | step <= 0) {
+    stop("resample_particle_x_samples: step must be greater than 0 and less than or equal to particle_set$number_of_steps")
   }
   if (!is.null(seed)) {
     set.seed(seed)

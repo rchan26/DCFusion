@@ -86,17 +86,30 @@ vanilla_rho_j_BLR <- function(particle_set,
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
-  # split the x samples and their means into approximately equal lists
   max_samples_per_core <- ceiling(N/n_cores)
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
-  split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
-  split_x_means <- lapply(split_indices, function(indices) particle_set$x_means[indices,,drop = FALSE])
   counts <- c('full_data_count', 'design_count')
-  ESS <- rep(NA, length(time_mesh)-1)
-  CESS <- rep(NA, length(time_mesh)-1)
-  resampled <- rep(NA, length(time_mesh)-2)
+  ESS <-  c(particle_set$ESS[1], rep(NA, length(time_mesh)))
+  CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)))
+  resampled <- rep(FALSE, length(time_mesh))
   # iterative proposals
   for (j in 2:length(time_mesh)) {
+    # ----------- resample particles
+    # only resample if ESS < N*ESS_threshold
+    if (particles$ESS < N*ESS_threshold) {
+      resampled[j-1] <- TRUE
+      particles <- resample_particle_x_samples(N = N,
+                                               particle_set = particles,
+                                               multivariate = TRUE,
+                                               step = j,
+                                               resampling_method = resampling_method,
+                                               seed = seed)
+    } else {
+      resampled[j-1] <- FALSE
+    }
+    # split the x samples from the previous time marginal (and their means) into approximately equal lists
+    split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
+    split_x_means <- lapply(split_indices, function(indices) particle_set$x_means[indices,,drop = FALSE])
     V <- construct_V_vanilla(s = time_mesh[j-1],
                              t = time_mesh[j],
                              end_time = time_mesh[length(time_mesh)],
@@ -171,7 +184,8 @@ vanilla_rho_j_BLR <- function(particle_set,
       parallel::stopCluster(cl)
     }
     # unlist the proposed samples for the next time marginals and their associated log rho_j weights
-    x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
+    x_samples <- unlist(lapply(1:length(split_indices), function(i) {
+      rho_j_weighted_samples[[i]]$x_j}), recursive = FALSE)
     log_rho_j <- unlist(lapply(1:length(split_x_samples), function(i) {
       rho_j_weighted_samples[[i]]$log_rho_j}))
     # ---------- update particle set
@@ -182,24 +196,25 @@ vanilla_rho_j_BLR <- function(particle_set,
     particle_set$log_weights <- norm_weights$log_weights
     particle_set$normalised_weights <- norm_weights$normalised_weights
     particle_set$ESS <- norm_weights$ESS
-    ESS[j-1] <- particle_set$ESS
+    ESS[j] <- particle_set$ESS
     # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
     # where inc_change is the incremental change in weight (= log_rho_j)
     particle_set$CESS[j] <- particle_ESS(log_weights = log_rho_j)$ESS
-    CESS[j-1] <- particle_set$CESS[j]
-    # ----------- resample particles
-    # only resample if ESS < N*ESS_threshold
-    if (particles$ESS < N*ESS_threshold) {
-      resampled[j] <- TRUE
-      particles <- resample_particle_x_samples(N = N,
-                                               particle_set = particles,
-                                               multivariate = TRUE,
-                                               step = j,
-                                               resampling_method = resampling_method,
-                                               seed = seed)
-    } else {
-      resampled[j] <- FALSE
-    }
+    CESS[j] <- particle_set$CESS[j]
+  }
+  # set the y samples as the first element of each of the x_samples
+  particles$y_samples <- sapply(1:N, function(i) particles$x_samples[[i]][1,])
+  # ----------- resample particles
+  # only resample if ESS < N*ESS_threshold
+  if (particles$ESS < N*ESS_threshold) {
+    resampled[particle_set$number_of_steps] <- TRUE
+    particles <- resample_particle_y_samples(N = N,
+                                             particle_set = particles,
+                                             multivariate = TRUE,
+                                             resampling_method = resampling_method,
+                                             seed = seed)
+  } else {
+    resampled[particle_set$number_of_steps] <- FALSE
   }
   return(list('particle_set' = particle_set,
               'ESS' = ESS,
@@ -292,22 +307,6 @@ parallel_generalised_BF_SMC_BLR <- function(particles_to_fuse,
                                    resampling_method = resampling_method,
                                    n_cores = n_cores,
                                    cl = cl)
-  # record ESS and CESS after rho step
-  ESS <- c(particles$ESS, rep(NA, length(time_mesh)-1))
-  CESS <- c(particles$CESS[1], rep(NA, length(time_mesh)-1))
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
-  if (particles$ESS < N*ESS_threshold) {
-    resampled <- c(TRUE, rep(NA, length(time_mesh)-1))
-    particles <- resample_particle_x_samples(N = N,
-                                             particle_set = particles,
-                                             multivariate = TRUE,
-                                             step = 1,
-                                             resampling_method = resampling_method,
-                                             seed = seed)
-  } else {
-    resampled <- c(FALSE, rep(NA, length(time_mesh)-1))
-  }
   # ---------- iterative steps
   rho_j <- vanilla_rho_j_BLR(particle_set = particles,
                              m = m,
@@ -329,24 +328,15 @@ parallel_generalised_BF_SMC_BLR <- function(particles_to_fuse,
                              level = level,
                              node = node,
                              print_progress_iters = print_progress_iters)
-  # record ESS, CESS, when resampling took place during the iterative steps
-  # and the proposals (for last time marginal)
-  ESS[2:length(time_mesh)] <- rho_j$ESS
-  CESS[2:length(time_mesh)] <- rho_j$CESS
-  resampled[2:length(time_mesh)] <- rho_j$resampled
-  proposed_samples <- rho_j$proposed_samples
-  # set the y samples as the first element of each of the x_samples
-  particles <- rho_j$particle_set
-  particles$y_samples <- sapply(1:N, function(i) particles$x_samples[[i]][1,])
   # check that the particles coalesced at final time marginal
-  if (!all(sapply(1:N, function(i) nrow(unique(particles$x_samples[[i]]))==1))) {
+  if (!all(sapply(1:N, function(i) nrow(unique(rho_j$particle_set$x_samples[[i]]))==1))) {
     warning("parallel_generalised_BF_SMC_BLR: the particles didn't seem to coalesce at the final time marginal. Please check.")
   }
-  return(list('particles' = particles,
-              'proposed_samples' = proposed_samples,
+  return(list('particles' = rho_j$particle_set,
+              'proposed_samples' = rho_j$proposed_samples,
               'time' = (proc.time()-pcm)['elapsed'],
-              'ESS' = ESS,
-              'CESS' = CESS,
-              'resampled' = resampled,
+              'ESS' = rho_j$ESS,
+              'CESS' = rho_j$CESS,
+              'resampled' = rho_j$resampled,
               'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
 }
