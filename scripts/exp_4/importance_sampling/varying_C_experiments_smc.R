@@ -2,7 +2,7 @@ library(DCFusion)
 
 seed <- 408
 set.seed(seed)
-denominator <- 2:32
+denominator <- 2:32 
 input_samples <- list()
 smc_fnj_results <- list()
 smc_bal_results <- list()
@@ -128,9 +128,9 @@ for (i in 1:length(denominator)) {
   }
   
   if (denominator[i] %in% c(2, 4, 8, 16, 32)) {
-    smc_bal_results[[i]] <- list('time' = smc_bal_fused$time[[1]],
-                                 'ESS' = smc_bal_fused$ESS[[1]],
-                                 'CESS' = smc_bal_fused$CESS[[1]],
+    smc_bal_results[[i]] <- list('time' = sum(unlist(smc_bal_fused$time)),
+                                 'ESS' = smc_bal_fused$ESS,
+                                 'CESS' = smc_bal_fused$CESS,
                                  'IAD' = integrated_abs_distance_exp_4(fusion_post = resample_particle_y_samples(
                                    particle_set = smc_bal_fused$particles[[1]],
                                    multivariate = FALSE,
@@ -153,9 +153,9 @@ for (i in 1:length(denominator)) {
                                                  diffusion_estimator = 'NB',
                                                  seed = seed)
   
-  smc_prog_results[[i]] <- list('time' = smc_prog_fused$time[[1]],
-                                'ESS' = smc_prog_fused$ESS[[1]],
-                                'CESS' = smc_prog_fused$CESS[[1]],
+  smc_prog_results[[i]] <- list('time' = sum(unlist(smc_prog_fused$time)),
+                                'ESS' = smc_prog_fused$ESS,
+                                'CESS' = smc_prog_fused$CESS,
                                 'IAD' = integrated_abs_distance_exp_4(fusion_post = resample_particle_y_samples(
                                   particle_set = smc_prog_fused$particles[[1]],
                                   multivariate = FALSE,
@@ -169,8 +169,6 @@ for (i in 1:length(denominator)) {
   lines(density(smc_bal_fused$particles[[1]]$y_samples), col = 'green')
   lines(density(smc_prog_fused$particles[[1]]$y_samples), col = 'blue')
 }
-
-par(mai = c(1.02, 1, 0.82, 0.42))
 
 ######################################## running time
 
@@ -203,20 +201,20 @@ legend(x = 2, y = 10, legend = c('standard', 'balanced binary', 'progressive'),
 ######################################## ESS (overall)
 
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
-plot(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS['Q']), ylim = c(0, 30000),
+plot(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS[[1]][2]), ylim = c(0, 30000),
      ylab = 'ESS', xlab = 'Number of Subposteriors (C)',
      col = Okabe_Ito[8], pch = 1, lwd = 3)
-lines(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS['Q']),
+lines(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS[[1]][2]),
       col = Okabe_Ito[8], lwd = 3)
-points(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS['Q'], smc_bal_results[[3]]$ESS['Q'],
-                                 smc_bal_results[[7]]$ESS['Q'], smc_bal_results[[15]]$ESS['Q']), 
+points(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS[[1]][2], smc_bal_results[[3]]$ESS[[1]][2],
+                                 smc_bal_results[[7]]$ESS[[1]][2], smc_bal_results[[15]]$ESS[[1]][2]), 
        col = Okabe_Ito[5], pch = 0, lwd = 3)
-lines(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS['Q'], smc_bal_results[[3]]$ESS['Q'],
-                                smc_bal_results[[7]]$ESS['Q'], smc_bal_results[[15]]$ESS['Q']),
+lines(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS[[1]][2], smc_bal_results[[3]]$ESS[[1]][2],
+                                smc_bal_results[[7]]$ESS[[1]][2], smc_bal_results[[15]]$ESS[[1]][2]),
       col = Okabe_Ito[5], lty = 2, lwd = 3)
-points(x = 2:16, y = sapply(1:15, function(i) smc_prog_results[[i]]$ESS['Q']), 
+points(x = 2:16, y = sapply(1:15, function(i) smc_prog_results[[i]]$ESS[[1]][2]), 
        col = Okabe_Ito[4], pch = 2, lwd = 3)
-lines(x = 2:16, y = sapply(1:15, function(i) smc_prog_results[[i]]$ESS['Q']), 
+lines(x = 2:16, y = sapply(1:15, function(i) smc_prog_results[[i]]$ESS[[1]][2]), 
       col = Okabe_Ito[4], lty = 3, lwd = 3)
 legend(x = 2, y = 30000, 
        legend = c('fork-and-join', 'balanced', 'progressive'),
