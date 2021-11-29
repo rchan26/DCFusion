@@ -57,42 +57,40 @@ for (i in 1:length(correlations)) {
   print('CESS:'); print(smc_fusion_precondition[[i]]$CESS)
 }
 
-par(mai = c(1.02, 1, 0.82, 0.42))
-
-plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$CESS['rho']), ylim = c(0, 10000),
+plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$CESS[1]), ylim = c(0, 10000),
      xlab = 'correlation', ylab = 'rho CESS', col = 'blue', xaxt='n')
 axis(1, at=seq(0, 1, 0.25))
-lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$CESS['rho']), col = 'blue')
-points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$CESS['rho']), col = 'red')
-lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$CESS['rho']), col = 'red')
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$CESS[1]), col = 'blue')
+points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$CESS[1]), col = 'red')
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$CESS[1]), col = 'red')
 legend('topleft', legend = c('standard', 'preconditioned'), col = c('blue', 'red'), lty = c(1,1))
 
-plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$CESS['Q']), ylim = c(0, 10000),
+plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$CESS[2]), ylim = c(0, 10000),
      xlab = 'correlation', ylab = 'Q CESS', col = 'blue')
-lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$CESS['Q']), col = 'blue')
-points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$CESS['Q']), col = 'red')
-lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$CESS['Q']), col = 'red')
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$CESS[2]), col = 'blue')
+points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$CESS[2]), col = 'red')
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$CESS[2]), col = 'red')
 legend('topleft', legend = c('standard', 'preconditioned'), col = c('blue', 'red'), lty = c(1,1))
 
-plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$ESS['Q']),
+plot(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$ESS[2]),
      xlab = 'correlation', ylab = 'ESS', ylim = c(0, 10000),
      col = 'black', lwd = 3)
-lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$ESS['Q']), 
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$ESS[2]), 
       col = 'black', lwd = 3)
-points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$ESS['Q']),
+points(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$ESS[2]),
        col = 'black', lwd = 3)
-lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$ESS['Q']),
+lines(correlations, sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$ESS[2]),
       col = 'black', lty = 3, lwd = 3)
 legend(x = 0, y = 10000, legend = c('standard', 'preconditioned'), col = c('black', 'black'),
        lty = c(1,3), lwd = c(3,3), bty = 'n')
 
 ##### ESS per second
 
-ESS_standard <- sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$ESS['Q'])
+ESS_standard <- sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$ESS[2])
 time_taken_standard <- sapply(1:length(correlations), function(i) smc_fusion_standard[[i]]$time[[1]])
 ESS_per_sec_standard <- ESS_standard / time_taken_standard
 
-ESS_precondition <- sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$ESS['Q'])
+ESS_precondition <- sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$ESS[2])
 time_taken_precondition <- sapply(1:length(correlations), function(i) smc_fusion_precondition[[i]]$time[[1]])
 ESS_per_sec_precondition <- ESS_precondition / time_taken_precondition
 
@@ -103,4 +101,3 @@ points(correlations, ESS_per_sec_precondition, col = 'black', lwd = 3)
 lines(correlations, ESS_per_sec_precondition, col = 'black', lty = 3, lwd = 3)
 legend(x = 0, y = 1000, legend = c('standard', 'preconditioned'), col = c('black', 'black'),
        lty = c(1,3), lwd = c(3,3), bty = 'n')
-

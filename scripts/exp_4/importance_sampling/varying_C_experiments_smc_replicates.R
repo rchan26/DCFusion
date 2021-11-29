@@ -3,7 +3,7 @@ library(DCFusion)
 seed <- 408
 set.seed(seed)
 denominator <- 2:32
-number_of_replicates <- 50
+number_of_replicates <- 2
 smc_fnj_results <- list()
 smc_bal_results <- list()
 smc_prog_results <- list()
@@ -188,8 +188,6 @@ for (i in 1:length(denominator)) {
   }
 }
 
-par(mai = c(1.02, 1, 0.82, 0.42))
-
 ######################################## running time
 
 plot(x = 2:32, y = sapply(1:31, function(i) {
@@ -241,20 +239,20 @@ legend(x = 2, y = 3,
 ######################################## ESS (overall)
 
 Okabe_Ito <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000")
-plot(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS['Q']), ylim = c(0, nsamples),
+plot(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS[2]), ylim = c(0, nsamples),
      ylab = 'ESS', xlab = 'Number of Subposteriors (C)',
      col = Okabe_Ito[8], pch = 1, lwd = 3)
-lines(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS['Q']),
+lines(x = 2:16, y = sapply(1:15, function(i) smc_fnj_results[[i]]$ESS[2]),
       col = Okabe_Ito[8], lwd = 3)
-points(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS['Q'], smc_bal_results[[3]]$ESS['Q'],
-                                 smc_bal_results[[7]]$ESS['Q'], smc_bal_results[[15]]$ESS['Q']), 
+points(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS[2], smc_bal_results[[3]]$ESS[2],
+                                 smc_bal_results[[7]]$ESS[2], smc_bal_results[[15]]$ESS[2]), 
        col = Okabe_Ito[5], pch = 0, lwd = 3)
-lines(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS['Q'], smc_bal_results[[3]]$ESS['Q'],
-                                smc_bal_results[[7]]$ESS['Q'], smc_bal_results[[15]]$ESS['Q']),
+lines(x = c(2, 4, 8, 16), y = c(smc_bal_results[[1]]$ESS[2], smc_bal_results[[3]]$ESS[2],
+                                smc_bal_results[[7]]$ESS[2], smc_bal_results[[15]]$ESS[2]),
       col = Okabe_Ito[5], lty = 2, lwd = 3)
-points(x = 2:16, y = sapply(1:15, function(i) smc_prog_results[[i]]$ESS['Q']), 
+points(x = 2:16, y = sapply(1:15, function(i) smc_prog_results[[i]]$ESS[2]), 
        col = Okabe_Ito[4], pch = 2, lwd = 3)
-lines(x = 2:16, y = sapply(1:15, function(i) smc_prog_results[[i]]$ESS['Q']), 
+lines(x = 2:16, y = sapply(1:15, function(i) smc_prog_results[[i]]$ESS[2]), 
       col = Okabe_Ito[4], lty = 3, lwd = 3)
 legend(x = 2, y = nsamples, 
        legend = c('fork-and-join', 'balanced', 'progressive'),
