@@ -1,7 +1,7 @@
-#' Diffusion probability for the Exact Algorithm for langevin diffusion 
+#' Diffusion probability for the Exact Algorithm for Langevin diffusion 
 #' with pi = exp(-(beta*(x-mean)^4)/2) 
 #'
-#' Evaluate probability of langevin diffusion using the Exact Algorithm with pi = 
+#' Evaluate probability of Langevin diffusion using the Exact Algorithm with pi = 
 #' exp(-(beta*(x-mean)^4)/2) using Poisson thinning
 #'
 #' @param x0 start value
@@ -23,7 +23,7 @@
 #' @param logarithm logical value to determine if log probability is 
 #'                  returned (TRUE) or not (FALSE)
 #'
-#' @return acceptance probability of simulating langevin diffusion with pi = 
+#' @return acceptance probability of simulating Langevin diffusion with pi = 
 #'         exp(-(beta*(x-mean)^4)/2)
 #'
 #' @examples
@@ -146,7 +146,7 @@ ea_exp_4_DL_PT <- function(x0,
   }
 }
 
-#' Exact Algorithm for langevin diffusion with pi = exp(-(beta*(x-mean)^4)/2) 
+#' Exact Algorithm for Langevin diffusion with pi = exp(-(beta*(x-mean)^4)/2) 
 #'
 #' Exact Algorithm with pi = exp(-(beta*(x-mean)^4)/2)
 #'

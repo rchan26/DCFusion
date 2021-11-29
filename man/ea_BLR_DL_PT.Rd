@@ -2,7 +2,7 @@
 % Please edit documentation in R/BLR_fusion.R
 \name{ea_BLR_DL_PT}
 \alias{ea_BLR_DL_PT}
-\title{Diffusion probability for the Exact Algorithm for langevin diffusion for
+\title{Diffusion probability for the Exact Algorithm for Langevin diffusion for
 Bayesian logistic regression}
 \usage{
 ea_BLR_DL_PT(
@@ -78,10 +78,10 @@ are used (default is TRUE)}
 returned (TRUE) or not (FALSE)}
 }
 \value{
-acceptance probability of simulating langevin diffusion where target
+acceptance probability of simulating Langevin diffusion where target
         is the posterior for a logistic regression model with Gaussian priors
 }
 \description{
-Simulate langevin diffusion using the Exact Algorithm where target is the
+Simulate Langevin diffusion using the Exact Algorithm where target is the
 posterior for a logistic regression model with Gaussian priors
 }

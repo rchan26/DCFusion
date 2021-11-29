@@ -4,14 +4,14 @@
 #'
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
-#' @param means vector: means of mixture Gassuan
+#' @param means vector: means of mixture Gaussian
 #' @param sds vector: st.devs of mixture Gaussian
 #' @param beta real value
 #' @param precondition precondition value
 #' @param PHI global lower bound of phi
 #' @param lower lower end of interval
 #' @param upper upper end of interval
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param seq_length desired length of the sequence that we compute phi in the
 #'                   interval [lower, upper]. Default is 1000
@@ -102,9 +102,9 @@ ea_phi_mixG_DL_bounds <- function(n_comp,
               'UB' = UB + 0.5*(bounds_multiplier-1)*BD))
 }
 
-#' Exact Algorithm for langevin diffusion with pi as a tempered mixture Gaussian
+#' Exact Algorithm for Langevin diffusion with pi as a tempered mixture Gaussian
 #'
-#' Simulate langevin diffusion using the Exact Algorithm with pi = exp(-(beta*x^4)/2)
+#' Simulate Langevin diffusion using the Exact Algorithm with pi = exp(-(beta*x^4)/2)
 #'
 #' @param x0 start value
 #' @param y end value
@@ -112,12 +112,12 @@ ea_phi_mixG_DL_bounds <- function(n_comp,
 #' @param t end time
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
-#' @param means vector: means of mixture Gassuan
+#' @param means vector: means of mixture Gaussian
 #' @param sds vector: st.devs of mixture Gaussian
 #' @param beta real value
 #' @param precondition precondition value (i.e the covariance for 
 #'                     the Langevin diffusion)
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param logarithm logical value to determine if log probability is 
 #'                  returned (TRUE) or not (FALSE)
@@ -243,14 +243,14 @@ ea_mixG_DL_PT <- function(x0,
 #'                        the samples for the c-th sub-posterior
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
-#' @param means vector: means of mixture Gassuan
+#' @param means vector: means of mixture Gaussian
 #' @param sds vector: st.devs of mixture Gaussian
 #' @param betas vector of length m, where betas[c] is the inverse temperature
 #'              (beta) for c-th sub-posterior (can also pass in one number if
 #'              they are all at the same inverse temperature)
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param level integer for level in hierarchy - default 1
@@ -344,14 +344,14 @@ fusion_mixG <- function(N,
 #'                        the samples for the c-th sub-posterior
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
-#' @param means vector: means of mixture Gassuan
+#' @param means vector: means of mixture Gaussian
 #' @param sds vector: st.devs of mixture Gaussian
 #' @param betas vector of length m, where betas[c] is the inverse temperature
 #'              (beta) for c-th sub-posterior (can also pass in one number if
 #'              they are all at the same inverse temperature)
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
@@ -498,7 +498,7 @@ parallel_fusion_mixG <- function(N,
 #'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
 #'                     or a list of length (1/start_beta) where precondition[[c]]
 #'                     is the preconditioning value for sub-posterior c. Default is TRUE
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
@@ -685,7 +685,7 @@ bal_binary_fusion_mixG <- function(N_schedule,
 #'                     contains the samples for the c-th node in the level
 #' @param n_comp integer number of components of mixture Gaussian
 #' @param weights vector: weights of mixture Gaussian
-#' @param means vector: means of mixture Gassuan
+#' @param means vector: means of mixture Gaussian
 #' @param sds vector: st.devs of mixture Gaussian
 #' @param start_beta beta for the base level
 #' @param precondition either a logical value to determine if preconditioning values are
@@ -693,7 +693,7 @@ bal_binary_fusion_mixG <- function(N_schedule,
 #'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
 #'                     or a list of length (1/start_beta) where precondition[[c]]
 #'                     is the preconditioning value for sub-posterior c. Default is TRUE
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
@@ -1155,7 +1155,7 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
 #'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
 #'                     or a list of length (1/start_beta) where precondition[[c]]
 #'                     is the preconditioning value for sub-posterior c. Default is TRUE
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
@@ -1357,7 +1357,7 @@ bal_binary_fusion_SMC_mixG <- function(N_schedule,
 #'                     or not (FALSE - and is set to be 1 for all sub-posteriors),
 #'                     or a list of length (1/start_beta) where precondition[[c]]
 #'                     is the preconditioning value for sub-posterior c. Default is TRUE
-#' @param bounds_multiplier scalar value to mulitply bounds by 
+#' @param bounds_multiplier scalar value to multiply bounds by 
 #'                          (should greater than or equal to 1)
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixG_fusion.R
 \name{ea_mixG_DL_PT}
 \alias{ea_mixG_DL_PT}
-\title{Exact Algorithm for langevin diffusion with pi as a tempered mixture Gaussian}
+\title{Exact Algorithm for Langevin diffusion with pi as a tempered mixture Gaussian}
 \usage{
 ea_mixG_DL_PT(
   x0,
@@ -32,7 +32,7 @@ ea_mixG_DL_PT(
 
 \item{weights}{vector: weights of mixture Gaussian}
 
-\item{means}{vector: means of mixture Gassuan}
+\item{means}{vector: means of mixture Gaussian}
 
 \item{sds}{vector: st.devs of mixture Gaussian}
 
@@ -41,14 +41,14 @@ ea_mixG_DL_PT(
 \item{precondition}{precondition value (i.e the covariance for 
 the Langevin diffusion)}
 
-\item{bounds_multiplier}{scalar value to mulitply bounds by 
+\item{bounds_multiplier}{scalar value to multiply bounds by 
 (should greater than or equal to 1)}
 
 \item{logarithm}{logical value to determine if log probability is 
 returned (TRUE) or not (FALSE)}
 }
 \description{
-Simulate langevin diffusion using the Exact Algorithm with pi = exp(-(beta*x^4)/2)
+Simulate Langevin diffusion using the Exact Algorithm with pi = exp(-(beta*x^4)/2)
 }
 \examples{
 weights <- c(0.4, 0.6)

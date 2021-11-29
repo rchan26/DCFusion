@@ -2,7 +2,7 @@
 % Please edit documentation in R/univariate_Gaussian_fusion.R
 \name{ea_uniGaussian_DL}
 \alias{ea_uniGaussian_DL}
-\title{Exact Algorithm for langevin diffusion for tempered Gaussian distribution}
+\title{Exact Algorithm for Langevin diffusion for tempered Gaussian distribution}
 \usage{
 ea_uniGaussian_DL(N, input_samples, time, mean, sd, beta, precondition)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_4_fusion.R
 \name{ea_exp_4_DL}
 \alias{ea_exp_4_DL}
-\title{Exact Algorithm for langevin diffusion with pi = exp(-(beta*(x-mean)^4)/2)}
+\title{Exact Algorithm for Langevin diffusion with pi = exp(-(beta*(x-mean)^4)/2)}
 \usage{
 ea_exp_4_DL(
   N,

@@ -33,10 +33,10 @@ obtain_LR_MLE <- function(dim, data) {
   return(as.vector(unname(glm(formula = data$y ~ data$X[,2:dim], family = 'binomial')$coeff)))
 }
 
-#' Diffusion probability for the Exact Algorithm for langevin diffusion for
+#' Diffusion probability for the Exact Algorithm for Langevin diffusion for
 #' Bayesian logistic regression
 #' 
-#' Simulate langevin diffusion using the Exact Algorithm where target is the
+#' Simulate Langevin diffusion using the Exact Algorithm where target is the
 #' posterior for a logistic regression model with Gaussian priors
 #' 
 #' @param dim dimension of the predictors (= p+1)
@@ -74,7 +74,7 @@ obtain_LR_MLE <- function(dim, data) {
 #' @param logarithm logical value to determine if log probability is
 #'                  returned (TRUE) or not (FALSE)
 #' 
-#' @return acceptance probability of simulating langevin diffusion where target
+#' @return acceptance probability of simulating Langevin diffusion where target
 #'         is the posterior for a logistic regression model with Gaussian priors
 #' 
 #' @export

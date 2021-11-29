@@ -23,7 +23,7 @@
 #' @param logarithm logical value to determine if log probability is 
 #'                  returned (TRUE) or not (FALSE)
 #' 
-#' @return acceptance probability of simulating langevin diffusion with pi =
+#' @return acceptance probability of simulating Langevin diffusion with pi =
 #'         tempered Gaussian distribution
 #'
 #' @examples
@@ -155,7 +155,7 @@ ea_uniGaussian_DL_PT <- function(x0,
   }
 }
 
-#' Exact Algorithm for langevin diffusion for tempered Gaussian distribution
+#' Exact Algorithm for Langevin diffusion for tempered Gaussian distribution
 #'
 #' Exact Algorithm with pi = tempered Gaussian distribution
 #'

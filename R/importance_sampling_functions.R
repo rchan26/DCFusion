@@ -452,7 +452,7 @@ rho_IS_univariate <- function(particles_to_fuse,
   ps$log_weights <- norm_weights$log_weights
   ps$normalised_weights <- norm_weights$normalised_weights
   ps$ESS <- norm_weights$ESS
-  ps$CESS <- c(norm_weights$ESS, rep(NA, number_of_steps-1))
+  ps$CESS <- c(particle_ESS(log_weights = unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights)))$ESS, rep(NA, number_of_steps-1))
   ps$resampled <- rep(FALSE, number_of_steps)
   ps$N <- N
   ps$number_of_steps <- number_of_steps
@@ -575,7 +575,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
   ps$log_weights <- norm_weights$log_weights
   ps$normalised_weights <- norm_weights$normalised_weights
   ps$ESS <- norm_weights$ESS
-  ps$CESS <- c(norm_weights$ESS, rep(NA, number_of_steps-1))
+  ps$CESS <- c(particle_ESS(log_weights = unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights)))$ESS, rep(NA, number_of_steps-1))
   ps$resampled <- rep(FALSE, number_of_steps)
   ps$N <- N
   ps$number_of_steps <- number_of_steps

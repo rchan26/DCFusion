@@ -33,7 +33,7 @@ contains the samples for the c-th node in the level}
 
 \item{weights}{vector: weights of mixture Gaussian}
 
-\item{means}{vector: means of mixture Gassuan}
+\item{means}{vector: means of mixture Gaussian}
 
 \item{sds}{vector: st.devs of mixture Gaussian}
 
@@ -45,7 +45,7 @@ or not (FALSE - and is set to be 1 for all sub-posteriors),
 or a list of length (1/start_beta) where precondition[[c]]
 is the preconditioning value for sub-posterior c. Default is TRUE}
 
-\item{bounds_multiplier}{scalar value to mulitply bounds by 
+\item{bounds_multiplier}{scalar value to multiply bounds by 
 (should greater than or equal to 1)}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}

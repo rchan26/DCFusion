@@ -2,7 +2,7 @@
 % Please edit documentation in R/exp_4_fusion.R
 \name{ea_exp_4_DL_PT}
 \alias{ea_exp_4_DL_PT}
-\title{Diffusion probability for the Exact Algorithm for langevin diffusion 
+\title{Diffusion probability for the Exact Algorithm for Langevin diffusion 
 with pi = exp(-(beta*(x-mean)^4)/2)}
 \usage{
 ea_exp_4_DL_PT(
@@ -51,11 +51,11 @@ returned (TRUE) or not (FALSE)}
 \item{K}{lower bound of the phi function}
 }
 \value{
-acceptance probability of simulating langevin diffusion with pi = 
+acceptance probability of simulating Langevin diffusion with pi = 
         exp(-(beta*(x-mean)^4)/2)
 }
 \description{
-Evaluate probability of langevin diffusion using the Exact Algorithm with pi = 
+Evaluate probability of Langevin diffusion using the Exact Algorithm with pi = 
 exp(-(beta*(x-mean)^4)/2) using Poisson thinning
 }
 \examples{
