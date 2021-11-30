@@ -206,9 +206,12 @@ Poisson_VBF_4$particles <- resample_particle_y_samples(particle_set = Poisson_VB
                                                        multivariate = TRUE,
                                                        resampling_method = 'resid',
                                                        seed = seed)
-Poisson_VBF_4$proposed_samples <- Poisson_VBF_4$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, Poisson_VBF_4$particles$y_samples))
-plot_fusion_matrix(full_post = full_posterior, Poisson_VBF_4$particles$y_samples, c(-4,4))
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            Poisson_VBF_4$particles$y_samples,
+                                            Poisson_VBF_4$proposed_samples),
+                          colours = c('black', 'red', 'green'),
+                          common_limit = c(-4, 4))
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
@@ -228,12 +231,16 @@ NB_VBF_4 <- parallel_vanilla_BF_SMC_BLR(particles_to_fuse = particles_to_fuse,
                                         seed = seed,
                                         n_cores = n_cores,
                                         print_progress_iters = 500)
-NB_VBF_4$particles <- resample_particle_y_samples(particle_set = NB_VBF_4$particles[[1]],
+NB_VBF_4$particles <- resample_particle_y_samples(particle_set = NB_VBF_4$particles,
                                                   multivariate = TRUE,
                                                   resampling_method = 'resid',
                                                   seed = seed)
-NB_VBF_4$proposed_samples <- NB_VBF_4$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, NB_VBF_4$particles$y_samples))
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            NB_VBF_4$particles$y_samples,
+                                            NB_VBF_4$proposed_samples),
+                          colours = c('black', 'red', 'green'),
+                          common_limit = c(-4, 4))
 
 ##### IAD #####
 
