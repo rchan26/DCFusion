@@ -210,7 +210,8 @@ vanilla_rho_j_BLR <- function(particle_set,
     warning("not all particles coalesced exactly at the final time marginal")
   }
   # set the y samples as the first element of each of the x_samples
-  particle_set$y_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
+  proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
+  particle_set$y_samples <- proposed_samples
   # ----------- resample particle_set (only resample if ESS < N*ESS_threshold)
   if (particle_set$ESS < N*ESS_threshold) {
     resampled[particle_set$number_of_steps] <- TRUE
@@ -223,6 +224,7 @@ vanilla_rho_j_BLR <- function(particle_set,
     resampled[particle_set$number_of_steps] <- FALSE
   }
   return(list('particle_set' = particle_set,
+              'proposed_samples' = proposed_samples,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled))
