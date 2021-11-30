@@ -1064,11 +1064,10 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
                                  number_of_steps = 2,
                                  resampling_method = resampling_method,
                                  n_cores = n_cores)
-  # record ESS and CESS after rho step 
+  # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)
   CESS <- c('rho' = particles$CESS[1])
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
+  # ----------- resample particles (only resample if ESS < N*ESS_threshold)
   if (particles$ESS < N*ESS_threshold) {
     resampled <- c('rho' = TRUE)
     particles <- resample_particle_x_samples(N = N,
@@ -1100,8 +1099,7 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
   names(CESS) <- c('rho', 'Q')
   # record proposed samples
   proposed_samples <- particles$y_samples
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
+  # ----------- resample particles (only resample if ESS < N*ESS_threshold)
   if (particles$ESS < N*ESS_threshold) {
     resampled['Q'] <- TRUE
     particles <- resample_particle_y_samples(N = N,
