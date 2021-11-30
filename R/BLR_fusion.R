@@ -152,7 +152,7 @@ ea_BLR_DL_PT <- function(dim,
   LX <- bounds$LB
   UX <- bounds$UB
   if (diffusion_estimator=='Poisson') {
-    # simulate the number of points to simulate from Possion distribution
+    # simulate the number of points to simulate from Poisson distribution
     kap <- rpois(n = 1, lambda = (UX-LX)*(t-s))
     log_acc_prob <- 0
     if (kap > 0) {

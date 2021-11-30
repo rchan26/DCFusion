@@ -90,7 +90,7 @@ ea_uniGaussian_DL_PT <- function(x0,
                                   beta = beta,
                                   precondition = precondition)
   if (diffusion_estimator=='Poisson') {
-    # simulate the number of points to simulate from Possion distribution
+    # simulate the number of points to simulate from Poisson distribution
     kap <- rpois(n = 1, lambda = (UX-LX)*(t-s))
     log_acc_prob <- 0
     if (kap > 0) {

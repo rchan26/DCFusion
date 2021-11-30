@@ -6,9 +6,9 @@ construct_V_vanilla <- function(s,
                                 d,
                                 inv = FALSE) {
   if (t <= s) {
-    stop("construct_V_vanilla: must have s < t < end_time")
-  } else if (end_time <= t) {
-    stop("construct_V_vanilla: must have s < t < end_time")
+    stop("construct_V_vanilla: must have s < t <= end_time")
+  } else if (end_time < t) {
+    stop("construct_V_vanilla: must have s < t <= end_time")
   }
   C1 <- ((t-s)*(end_time-t)) / (end_time-s)
   C2 <- ((t-s)^2)/(C*(end_time-s))
@@ -38,9 +38,9 @@ construct_M_vanilla <- function(s,
                                 sub_posterior_samples,
                                 sub_posterior_mean) {
   if (t <= s) {
-    stop("construct_M_vanilla: must have s < t < end_time")
-  } else if (end_time <= t) {
-    stop("construct_M_vanilla: must have s < t < end_time")
+    stop("construct_V_vanilla: must have s < t <= end_time")
+  } else if (end_time < t) {
+    stop("construct_V_vanilla: must have s < t <= end_time")
   }
   if (d==1) {
     if (!is.vector(sub_posterior_samples)) {
@@ -72,8 +72,7 @@ construct_M_vanilla <- function(s,
     M[i_fill] <- C1*sub_posterior_samples[i,] + C2*sub_posterior_mean
     M_list[[i]] <- M[i_fill]
   }
-  return(list('M' = M,
-              'M_list' = M_list))
+  return(list('M' = M, 'M_list' = M_list))
 }
 
 #' #' @export

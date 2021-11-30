@@ -7,7 +7,8 @@ vanilla_rho_j_BLR <- function(particle_set,
                               prior_means,
                               prior_variances,
                               C,
-                              proposal_cov,
+                              resampling_method = 'multi',
+                              ESS_threshold = 0.5,
                               cv_location = 'hypercube_centre',
                               diffusion_estimator,
                               beta_NB = 10,
@@ -73,37 +74,33 @@ vanilla_rho_j_BLR <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   if (is.null(cl)) {
-    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "VBF_BLR_outfile.txt")
     parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
     close_cluster <- TRUE
   } else {
     close_cluster <- FALSE
   }
-  parallel::clusterExport(cl, envir = environment(), 
-                          varlist = c(ls(), "ea_phi_BLR_DL_matrix",
-                                      "ea_phi_BLR_DL_bounds",
-                                      "ea_BLR_DL_PT"))
+  parallel::clusterExport(cl, envir = environment(), varlist = ls("package:DCFusion"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
   max_samples_per_core <- ceiling(N/n_cores)
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
   counts <- c('full_data_count', 'design_count')
-  ESS <-  c(particle_set$ESS[1], rep(NA, length(time_mesh)))
-  CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)))
+  ESS <-  c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
+  CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
   # iterative proposals
   for (j in 2:length(time_mesh)) {
-    # ----------- resample particles
-    # only resample if ESS < N*ESS_threshold
-    if (particles$ESS < N*ESS_threshold) {
+    # ----------- resample particle_set (only resample if ESS < N*ESS_threshold)
+    if (particle_set$ESS < N*ESS_threshold) {
       resampled[j-1] <- TRUE
-      particles <- resample_particle_x_samples(N = N,
-                                               particle_set = particles,
-                                               multivariate = TRUE,
-                                               step = j-1,
-                                               resampling_method = resampling_method,
-                                               seed = seed)
+      particle_set <- resample_particle_x_samples(N = N,
+                                                  particle_set = particle_set,
+                                                  multivariate = TRUE,
+                                                  step = j-1,
+                                                  resampling_method = resampling_method,
+                                                  seed = seed)
     } else {
       resampled[j-1] <- FALSE
     }
@@ -117,7 +114,7 @@ vanilla_rho_j_BLR <- function(particle_set,
                              d = dim)$V
     rho_j_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
       split_N <- length(split_indices[[core]])
-      log_rho_j_weights <- rep(0, split_N)
+      log_rho_j <- rep(0, split_N)
       x_j <- lapply(1:split_N, function(i) {
         M <- construct_M_vanilla(s = time_mesh[j-1],
                                  t = time_mesh[j],
@@ -126,7 +123,11 @@ vanilla_rho_j_BLR <- function(particle_set,
                                  d = dim,
                                  sub_posterior_samples = split_x_samples[[core]][[i]],
                                  sub_posterior_mean = split_x_means[[core]][[i]])$M
-        proposal <- matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = d, byrow = TRUE)
+        if (j!=length(time_mesh)) {
+          return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = dim, byrow = TRUE))  
+        } else {
+          return(matrix(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V), nrow = m, ncol = dim, byrow = TRUE))  
+        }
       })
       cat('Level:', level, '|| Step:', j, '|| Node:', node, '|| Core:', core, '|| START \n',
           file = 'vanilla_rho_j_BLR_progress.txt', append = T)
@@ -145,7 +146,8 @@ vanilla_rho_j_BLR <- function(particle_set,
                                        prior_variances = prior_variances,
                                        C = C,
                                        precondition_mat = diag(1, dim),
-                                       transform_mats = diag(1, dim),
+                                       transform_mats = list('to_Z' = diag(1, dim),
+                                                             'to_X' = diag(1, dim)),
                                        cv_location = cv_location[[c]],
                                        diffusion_estimator = diffusion_estimator,
                                        beta_NB = beta_NB,
@@ -163,7 +165,8 @@ vanilla_rho_j_BLR <- function(particle_set,
                                   prior_variances = prior_variances,
                                   C = C,
                                   precondition_mat = diag(1, dim),
-                                  transform_mats = diag(1, dim),
+                                  transform_mats = list('to_Z' = diag(1, dim),
+                                                        'to_X' = diag(1, dim)),
                                   cv_location = cv_location[[c]],
                                   diffusion_estimator = diffusion_estimator,
                                   beta_NB = beta_NB,
@@ -180,9 +183,6 @@ vanilla_rho_j_BLR <- function(particle_set,
           split_N, '\n', file = 'vanilla_rho_j_BLR_progress.txt', append = T)
       return(list('x_j' = x_j, 'log_rho_j' = log_rho_j))
     })
-    if (close_cluster) {
-      parallel::stopCluster(cl)
-    }
     # unlist the proposed samples for the next time marginals and their associated log rho_j weights
     x_samples <- unlist(lapply(1:length(split_indices), function(i) {
       rho_j_weighted_samples[[i]]$x_j}), recursive = FALSE)
@@ -202,17 +202,23 @@ vanilla_rho_j_BLR <- function(particle_set,
     particle_set$CESS[j] <- particle_ESS(log_weights = log_rho_j)$ESS
     CESS[j] <- particle_set$CESS[j]
   }
+  if (close_cluster) {
+    parallel::stopCluster(cl)
+  }
+  # check that the particle_set coalesced at final time marginal
+  if (any(sapply(1:N, function(i) nrow(unique(particle_set$x_samples[[i]]))!=1))) {
+    warning("not all particles coalesced exactly at the final time marginal")
+  }
   # set the y samples as the first element of each of the x_samples
-  particles$y_samples <- sapply(1:N, function(i) particles$x_samples[[i]][1,])
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
-  if (particles$ESS < N*ESS_threshold) {
+  particle_set$y_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
+  # ----------- resample particle_set (only resample if ESS < N*ESS_threshold)
+  if (particle_set$ESS < N*ESS_threshold) {
     resampled[particle_set$number_of_steps] <- TRUE
-    particles <- resample_particle_y_samples(N = N,
-                                             particle_set = particles,
-                                             multivariate = TRUE,
-                                             resampling_method = resampling_method,
-                                             seed = seed)
+    particle_set <- resample_particle_y_samples(N = N,
+                                                particle_set = particle_set,
+                                                multivariate = TRUE,
+                                                resampling_method = resampling_method,
+                                                seed = seed)
   } else {
     resampled[particle_set$number_of_steps] <- FALSE
   }
@@ -295,14 +301,13 @@ parallel_vanilla_BF_SMC_BLR <- function(particles_to_fuse,
   # start time recording
   pcm <- proc.time()
   # ---------- first importance sampling step
-  # importance sampling for rho step
   particles <- rho_IS_multivariate(particles_to_fuse = particles_to_fuse,
                                    dim = dim,
                                    N = N,
                                    m = m,
-                                   time = time,
-                                   inv_precondition_matrices = diag(1, dim),
-                                   inverse_sum_inv_precondition_matrices = inverse_sum_matrices(diag(1, dim)),
+                                   time = time_mesh[length(time_mesh)],
+                                   inv_precondition_matrices = rep(list(diag(1, dim)), m),
+                                   inverse_sum_inv_precondition_matrices = inverse_sum_matrices(rep(list(diag(1, dim)), m)),
                                    number_of_steps = length(time_mesh),
                                    resampling_method = resampling_method,
                                    n_cores = n_cores,
@@ -310,13 +315,14 @@ parallel_vanilla_BF_SMC_BLR <- function(particles_to_fuse,
   # ---------- iterative steps
   rho_j <- vanilla_rho_j_BLR(particle_set = particles,
                              m = m,
-                             time = time,
+                             time_mesh = time_mesh,
                              dim = dim,
                              data_split = data_split,
                              prior_means = prior_means,
                              prior_variances = prior_variances,
                              C = C,
-                             proposal_cov = calculate_proposal_cov(time = time, weights = diag(1, dim)),
+                             resampling_method = resampling_method,
+                             ESS_threshold = ESS_threshold,
                              cv_location = cv_location,
                              diffusion_estimator = diffusion_estimator,
                              beta_NB = beta_NB,
@@ -328,10 +334,6 @@ parallel_vanilla_BF_SMC_BLR <- function(particles_to_fuse,
                              level = level,
                              node = node,
                              print_progress_iters = print_progress_iters)
-  # check that the particles coalesced at final time marginal
-  if (!all(sapply(1:N, function(i) nrow(unique(rho_j$particle_set$x_samples[[i]]))==1))) {
-    warning("parallel_vanilla_BF_SMC_BLR: the particles didn't seem to coalesce at the final time marginal. Please check.")
-  }
   return(list('particles' = rho_j$particle_set,
               'proposed_samples' = rho_j$proposed_samples,
               'time' = (proc.time()-pcm)['elapsed'],

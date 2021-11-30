@@ -83,7 +83,7 @@ ea_exp_4_DL_PT <- function(x0,
   UX <- bounds$UB
   PHI <- ea_phi_exp_4_DL_LB(mean = mean, beta = beta, precondition = precondition)
   if (diffusion_estimator=='Poisson') {
-    # simulate the number of points to simulate from Possion distribution
+    # simulate the number of points to simulate from Poisson distribution
     kap <- rpois(n = 1, lambda = (UX-LX)*(t-s))
     log_acc_prob <- 0
     if (kap > 0) {
