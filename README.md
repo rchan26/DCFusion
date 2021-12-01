@@ -22,6 +22,7 @@ The experiments were ran on [Microsoft Azure](https://azure.microsoft.com/en-gb/
 
 * [Divide-and-Conquer Monte Carlo Fusion](https://arxiv.org/abs/2110.07265)
 * [Monte Carlo Fusion](https://www.cambridge.org/core/journals/journal-of-applied-probability/article/abs/monte-carlo-fusion/2C7099791C6073E37F98A7FFD91C331E)
+* [Bayesian Fusion: Scalable unification of distributed statistical analyses](https://arxiv.org/abs/2102.02123)
 
 ## License
 
