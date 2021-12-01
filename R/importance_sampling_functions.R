@@ -35,7 +35,9 @@
 #' p <- create_particle(samples = rnorm(10, 0, 1), multivariate = FALSE)
 #' 
 #' @export
-create_particle <- function(samples, multivariate, number_of_steps = 2) {
+create_particle <- function(samples,
+                            multivariate,
+                            number_of_steps = 2) {
   ps <- new.env(parent = emptyenv())
   ps$y_samples <- samples
   if (multivariate) {
@@ -55,6 +57,7 @@ create_particle <- function(samples, multivariate, number_of_steps = 2) {
   ps$resampled <- c(rep(FALSE, number_of_steps-1), TRUE)
   ps$N <- N
   ps$number_of_steps <- number_of_steps
+  ps$time_mesh <- NA
   class(ps) <- "particle"
   return(ps)
 }
@@ -103,7 +106,9 @@ create_particle <- function(samples, multivariate, number_of_steps = 2) {
 #' particles <- initialise_particle_sets(samples_to_fuse = multi_samples, multivariate = TRUE)
 #' 
 #' @export
-initialise_particle_sets <- function(samples_to_fuse, multivariate, number_of_steps = 2) {
+initialise_particle_sets <- function(samples_to_fuse,
+                                     multivariate,
+                                     number_of_steps = 2) {
   if (!is.list(samples_to_fuse)) {
     stop("initialise_particle_sets: samples_to_fuse must be a list")
   }
@@ -360,7 +365,11 @@ resample_particle_x_samples <- function(N = particle_set$N,
 #'                          initialise_particle_sets() function)
 #' @param N number of particles to importance sample
 #' @param m number of sub-posteriors to combine
-#' @param time time T for fusion algorithm
+#' @param time end time T for fusion algorithm
+#' @param number_of_steps integer value for number of steps in the Fusion algorithm
+#'                        (default is 2 for Monte Carlo Fusion)
+#' @param time_mesh vector of times used in Fusion algorithm (default is NA). If
+#'                  set to NA, the returned particle has time_mesh given by c(0, time)
 #' @param precondition_values vector of length m, where precondition_values[[c]]
 #'                            is the precondition value for sub-posterior c
 #' @param resampling_method method to be used in resampling, default is multinomial 
@@ -391,6 +400,7 @@ rho_IS_univariate <- function(particles_to_fuse,
                               time,
                               precondition_values,
                               number_of_steps = 2,
+                              time_mesh = NA,
                               resampling_method = 'multi',
                               n_cores = parallel::detectCores(),
                               cl = NULL) {
@@ -446,7 +456,7 @@ rho_IS_univariate <- function(particles_to_fuse,
   ps <- new.env(parent = emptyenv())
   ps$y_samples <- rep(NA, N)
   ps$x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
-  ps$x_means <-  unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
+  ps$x_means <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
   lw <- combined_weights + unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
   norm_weights <- particle_ESS(log_weights = lw)
   ps$log_weights <- norm_weights$log_weights
@@ -456,6 +466,11 @@ rho_IS_univariate <- function(particles_to_fuse,
   ps$resampled <- rep(FALSE, number_of_steps)
   ps$N <- N
   ps$number_of_steps <- number_of_steps
+  if (all(is.na(time_mesh))) {
+    ps$time_mesh <- c(0, time)
+  } else {
+    ps$time_mesh <- time_mesh  
+  }
   class(ps) <- "particle"
   return(ps)
 }
@@ -471,7 +486,11 @@ rho_IS_univariate <- function(particles_to_fuse,
 #' @param N number of particles to importance sample
 #' @param dim dimension of the particles
 #' @param m number of sub-posteriors to combine
-#' @param time time T for fusion algorithm
+#' @param time end time T for fusion algorithm
+#' @param number_of_steps integer value for number of steps in the Fusion algorithm
+#'                        (default is 2 for Monte Carlo Fusion)
+#' @param time_mesh vector of times used in Fusion algorithm (default is NA). If
+#'                  set to NA, the returned particle has time_mesh given by c(0, time)
 #' @param inv_precondition_matrices list of length m of inverse 
 #'                                  preconditioning matrices
 #' @param inverse_sum_inv_precondition_matrices the inverse of the sum of the inverse
@@ -512,6 +531,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
                                 inv_precondition_matrices,
                                 inverse_sum_inv_precondition_matrices,
                                 number_of_steps = 2,
+                                time_mesh = NA,
                                 resampling_method = 'multi',
                                 n_cores = parallel::detectCores(),
                                 cl = NULL) {
@@ -569,7 +589,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
   ps <- new.env(parent = emptyenv())
   ps$y_samples <- matrix(data = NA, nrow = N, ncol = dim)
   ps$x_samples <- unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_samples), recursive = FALSE)
-  ps$x_means <-  do.call(rbind, lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
+  ps$x_means <- do.call(rbind, lapply(1:length(split_indices), function(i) rho_IS[[i]]$x_means))
   lw <- combined_weights + unlist(lapply(1:length(split_indices), function(i) rho_IS[[i]]$log_weights))
   norm_weights <- particle_ESS(log_weights = lw)
   ps$log_weights <- norm_weights$log_weights
@@ -579,6 +599,11 @@ rho_IS_multivariate <- function(particles_to_fuse,
   ps$resampled <- rep(FALSE, number_of_steps)
   ps$N <- N
   ps$number_of_steps <- number_of_steps
+  if (all(is.na(time_mesh))) {
+    ps$time_mesh <- c(0, time)
+  } else {
+    ps$time_mesh <- time_mesh  
+  }
   class(ps) <- "particle"
   return(ps)
 }

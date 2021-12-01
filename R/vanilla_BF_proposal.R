@@ -53,11 +53,11 @@ construct_M_vanilla <- function(s,
   } else if (d > 1)  {
     if (!is.matrix(sub_posterior_samples)){
       stop("construct_M_vanilla: if d>1, sub_posterior_samples must be a (C x d) matrix")
-    } else if (dim(sub_posterior_samples)!=c(C, d)) {
+    } else if (any(dim(sub_posterior_samples)!=c(C,d))) {
       stop("construct_M_vanilla: if d>1, sub_posterior_samples must be a (C x d) matrix")
     } else if (!is.vector(sub_posterior_mean)) {
       stop("construct_M_vanilla: if d==1, sub_posterior_mean must be a vector of length d")
-    } else if (length(sub_posterior_mean)==d) {
+    } else if (length(sub_posterior_mean)!=d) {
       stop("construct_M_vanilla: if d==1, sub_posterior_mean must be a vector of length d")
     }
   } else {

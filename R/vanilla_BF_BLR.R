@@ -90,6 +90,9 @@ vanilla_rho_j_BLR <- function(particle_set,
   ESS <-  c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
+  if (is.null(print_progress_iters)) {
+    print_progress_iters <- split_N
+  }
   # iterative proposals
   for (j in 2:length(time_mesh)) {
     # ----------- resample particle_set (only resample if ESS < N*ESS_threshold)
@@ -114,6 +117,7 @@ vanilla_rho_j_BLR <- function(particle_set,
                              d = dim)$V
     rho_j_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
       split_N <- length(split_indices[[core]])
+      x_mean_j <- matrix(data = NA, nrow = split_N, ncol = dim)
       log_rho_j <- rep(0, split_N)
       x_j <- lapply(1:split_N, function(i) {
         M <- construct_M_vanilla(s = time_mesh[j-1],
@@ -122,19 +126,19 @@ vanilla_rho_j_BLR <- function(particle_set,
                                  C = m,
                                  d = dim,
                                  sub_posterior_samples = split_x_samples[[core]][[i]],
-                                 sub_posterior_mean = split_x_means[[core]][[i]])$M
+                                 sub_posterior_mean = split_x_means[[core]][i,])$M
         if (j!=length(time_mesh)) {
-          return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = dim, byrow = TRUE))  
+          return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = dim, byrow = TRUE))
         } else {
-          return(matrix(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V), nrow = m, ncol = dim, byrow = TRUE))  
+          return(matrix(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V), nrow = m, ncol = dim, byrow = TRUE))
         }
       })
       cat('Level:', level, '|| Step:', j, '|| Node:', node, '|| Core:', core, '|| START \n',
           file = 'vanilla_rho_j_BLR_progress.txt', append = T)
-      if (is.null(print_progress_iters)) {
-        print_progress_iters <- split_N
-      }
       for (i in 1:split_N) {
+        x_mean_j[i,] <- weighted_mean_multivariate(matrix = x_j[[i]],
+                                                   weights = rep(list(diag(1, dim)), m),
+                                                   inverse_sum_weights = inverse_sum_matrices(rep(list(diag(1, dim)), m)))
         log_rho_j[i] <- sum(sapply(1:m, function(c) {
           tryCatch(expr = ea_BLR_DL_PT(dim = dim,
                                        x0 = as.vector(split_x_samples[[core]][[i]][c,]),
@@ -181,17 +185,17 @@ vanilla_rho_j_BLR <- function(particle_set,
       }
       cat('Level:', level, '|| Step:', j, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
           split_N, '\n', file = 'vanilla_rho_j_BLR_progress.txt', append = T)
-      return(list('x_j' = x_j, 'log_rho_j' = log_rho_j))
+      return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j))
     })
-    # unlist the proposed samples for the next time marginals and their associated log rho_j weights
-    x_samples <- unlist(lapply(1:length(split_indices), function(i) {
-      rho_j_weighted_samples[[i]]$x_j}), recursive = FALSE)
-    log_rho_j <- unlist(lapply(1:length(split_x_samples), function(i) {
-      rho_j_weighted_samples[[i]]$log_rho_j}))
     # ---------- update particle set
     # update the weights and return updated particle set
-    particle_set$x_samples <- x_samples
-    # normalise weight
+    particle_set$x_samples <- unlist(lapply(1:length(split_indices), function(i) {
+      rho_j_weighted_samples[[i]]$x_j}), recursive = FALSE)
+    particle_set$x_means <- do.call(rbind, lapply(1:length(split_indices), function(i) {
+      rho_j_weighted_samples[[i]]$x_mean_j}))
+    # update weight and normalise
+    log_rho_j <- unlist(lapply(1:length(split_indices), function(i) {
+      rho_j_weighted_samples[[i]]$log_rho_j}))
     norm_weights <- particle_ESS(log_weights = particle_set$log_weights + log_rho_j)
     particle_set$log_weights <- norm_weights$log_weights
     particle_set$normalised_weights <- norm_weights$normalised_weights
@@ -204,10 +208,6 @@ vanilla_rho_j_BLR <- function(particle_set,
   }
   if (close_cluster) {
     parallel::stopCluster(cl)
-  }
-  # check that the particle_set coalesced at final time marginal
-  if (any(sapply(1:N, function(i) nrow(unique(particle_set$x_samples[[i]]))!=1))) {
-    warning("not all particles coalesced exactly at the final time marginal")
   }
   # set the y samples as the first element of each of the x_samples
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
@@ -311,6 +311,7 @@ parallel_vanilla_BF_SMC_BLR <- function(particles_to_fuse,
                                    inv_precondition_matrices = rep(list(diag(1, dim)), m),
                                    inverse_sum_inv_precondition_matrices = inverse_sum_matrices(rep(list(diag(1, dim)), m)),
                                    number_of_steps = length(time_mesh),
+                                   time_mesh = time_mesh,
                                    resampling_method = resampling_method,
                                    n_cores = n_cores,
                                    cl = cl)
