@@ -179,8 +179,9 @@ vanilla_rho_j_BLR <- function(particle_set,
                                   logarithm = TRUE)})
         }))
         if (i%%print_progress_iters==0) {
-          cat('Level:', level, '|| Step:', j, '|| Node:', node, '|| Core:', core, '||', i, '/',
-              split_N, '\n', file = 'vanilla_rho_j_BLR_progress.txt', append = T)
+          cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
+              '|| Node:', node, '|| Core:', core, '||', i, '/', split_N, '\n',
+              file = 'vanilla_rho_j_BLR_progress.txt', append = T)
         }
       }
       cat('Level:', level, '|| Step:', j, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
