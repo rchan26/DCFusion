@@ -85,7 +85,7 @@ generalised_rho_j_BLR <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   if (is.null(cl)) {
-    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "VBF_BLR_outfile.txt")
+    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "GBF_BLR_outfile.txt")
     parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
     close_cluster <- TRUE
   } else {
