@@ -3,8 +3,7 @@ construct_V_vanilla <- function(s,
                                 t,
                                 end_time,
                                 C,
-                                d,
-                                inv = FALSE) {
+                                d) {
   if (t <= s) {
     stop("construct_V_vanilla: must have s < t <= end_time")
   } else if (end_time < t) {
@@ -21,12 +20,7 @@ construct_V_vanilla <- function(s,
       }
     }
   }
-  V <- kronecker(Sigma, diag(1, d))
-  if (inv) {
-    return(list('V' = V, 'V_inv' = solve(V)))  
-  } else {
-    return(list('V' = V))
-  }
+  return(kronecker(Sigma, diag(1, d)))
 }
 
 #' @export

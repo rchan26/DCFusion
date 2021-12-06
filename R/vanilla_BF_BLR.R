@@ -114,7 +114,7 @@ vanilla_rho_j_BLR <- function(particle_set,
                              t = time_mesh[j],
                              end_time = time_mesh[length(time_mesh)],
                              C = m,
-                             d = dim)$V
+                             d = dim)
     rho_j_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
       split_N <- length(split_indices[[core]])
       x_mean_j <- matrix(data = NA, nrow = split_N, ncol = dim)
