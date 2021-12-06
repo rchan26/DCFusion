@@ -10,30 +10,67 @@ long_vec_to_list_of_vec <- function(C,
   return(list_of_vec)
 }
 
+#' @export
 construct_V <- function(s,
                         t,
                         end_time,
                         C,
                         d,
-                        Lambda,
-                        inv_precondition_matrices) {
-  C1 <- (end_time-s) / ((t-s)*(end_time-t))
-  C2 <- -1/(end_time-t)
-  V_inv <- matrix(data = NA, nrow = C*d, ncol = C*d)
-  for (i in 1:C) {
-    for (j in 1:C) {
-      i_fill <- d*(i-1)+(1:d)
-      j_fill <- d*(j-1)+(1:d)
-      V_inv[i_fill,j_fill] <- C2*(inv_precondition_matrices[[i]]%*%Lambda%*%inv_precondition_matrices[[j]])
-      if (i==j) {
-        V_inv[i_fill,j_fill] <- V_inv[i_fill,j_fill] + C1*inv_precondition_matrices[[i]]
+                        inv_precondition_matrices,
+                        Lambda) {
+  if (t <= s) {
+    stop("generalised_BF_proposal: must have s < t <= end_time")
+  } else if (end_time < t) {
+    stop("generalised_BF_proposal: must have s < t <= end_time")
+  } else if (!is.list(inv_precondition_matrices)) {
+    stop("generalised_BF_proposal: inv_precondition_matrices must be a list of length C")
+  } else if (length(inv_precondition_matrices)!=C) {
+    stop("generalised_BF_proposal: inv_precondition_matrices must be a list of length C")
+  }
+  if (d==1) {
+    if (!is.double(Lambda)) {
+      stop("generalised_BF_proposal: if d==1, Lambda must be a double")
+    } else if (!all(sapply(1:C, function(c) is.double(inv_precondition_matrices)))) {
+      stop("generalised_BF_proposal: if d==1, inv_precondition_matrices[[c]] must a double")
+    }
+  } else if (d > 1)  {
+    if (!is.matrix(Lambda)) {
+      stop("generalised_BF_proposal: if d>1, Lambda must be a (d x d) matrix")
+    } else if (!all(dim(Lambda)==d)) {
+      stop("generalised_BF_proposal: if d>1, Lambda must be a (d x d) matrix")
+    } else if (!all(sapply(1:C, function(c) is.matrix(inv_precondition_matrices[[c]])))) {
+      stop("generalised_BF_proposal: if d>1, inv_precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
+    } else if (!all(sapply(1:C, function(c) all(dim(inv_precondition_matrices)==d)))) {
+      stop("generalised_BF_proposal: if d>1, inv_precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
+    }
+  } else {
+    stop("generalised_BF_proposal: d must be greater than or equal to 1")
+  }
+  if (t != end_time) {
+    C1 <- (end_time-s) / ((t-s)*(end_time-t))
+    C2 <- -1/(end_time-t)
+    V_inv <- matrix(data = NA, nrow = C*d, ncol = C*d)
+    for (i in 1:C) {
+      for (j in 1:C) {
+        i_fill <- d*(i-1)+(1:d)
+        j_fill <- d*(j-1)+(1:d)
+        V_inv[i_fill,j_fill] <- C2*(inv_precondition_matrices[[i]]%*%Lambda%*%inv_precondition_matrices[[j]])
+        if (i==j) {
+          V_inv[i_fill,j_fill] <- V_inv[i_fill,j_fill] + C1*inv_precondition_matrices[[i]]
+        }
       }
     }
+    return(solve(V_inv))
+  } else {
+    proposal_cov <- calculate_proposal_cov(time = t-s,
+                                           weights = inv_precondition_matrices)
+    # create (C x C) block matrix with elements proposal_cov
+    block_cols <- do.call(cbind, replicate(C, proposal_cov, simplify = FALSE))
+    return(do.call(rbind, replicate(C, block_cols, simplify = FALSE)))
   }
-  return(list('V' = solve(V_inv),
-              'V_inv' = V_inv))
 }
 
+#' @export
 construct_L_inv <- function(C, d, inv_precondition_matrices) {
   L_inv <- matrix(data = 0, nrow = C*d, ncol = C*d)
   for (i in 1:C) {
@@ -43,67 +80,69 @@ construct_L_inv <- function(C, d, inv_precondition_matrices) {
   return(L_inv)
 }
 
+#' @export
 construct_M <- function(s,
                         t,
                         end_time,
                         C,
                         d,
-                        Lambda,
                         inv_precondition_matrices,
-                        sub_posterior_samples) {
-  covariance_mat <- construct_V(s, t, end_time, C, d, Lambda, inv_precondition_matrices)
-  L_inv <- construct_L_inv(inv_precondition_matrices)
-  M <- as.vector(covariance_mat$V%*%L_inv%*%unlist(sub_posterior_samples)/(t-s))
-  return(list('M' = M,
-              'M_list' = long_vec_to_list_of_vec(C, d, M),
-              'V' = covariance_mat$V,
-              'V_inv' = covariance_mat$V_inv))
-}
-
-#' @export
-generalised_BF_proposal <- function(s,
-                                    t,
-                                    end_time,
-                                    C,
-                                    d,
-                                    Lambda,
-                                    inv_precondition_matrices,
-                                    sub_posterior_samples) {
+                        Lambda,
+                        V,
+                        L_inv,
+                        sub_posterior_samples,
+                        sub_posterior_mean) {
   if (t <= s) {
-    stop("generalised_BF_proposal: must have s < t < end_time")
-  } else if (end_time <= t) {
-    stop("generalised_BF_proposal: must have s < t < end_time")
-  } else if (!is.list(sub_posterior_samples)) {
-    stop("generalised_BF_proposal: sub_posterior_samples must be a list of length C")
-  } else if (length(sub_posterior_samples)!=C) {
-    stop("generalised_BF_proposal: sub_posterior_samples must be a list of length C")
+    stop("generalised_BF_proposal: must have s < t <= end_time")
+  } else if (end_time < t) {
+    stop("generalised_BF_proposal: must have s < t <= end_time")
   } else if (!is.list(inv_precondition_matrices)) {
     stop("generalised_BF_proposal: inv_precondition_matrices must be a list of length C")
   } else if (length(inv_precondition_matrices)!=C) {
     stop("generalised_BF_proposal: inv_precondition_matrices must be a list of length C")
-  } 
+  }
   if (d==1) {
-    if (!all(sapply(1:length(sub_posterior_samples), function(i) is.double(sub_posterior_samples[[i]])))) {
-      stop("generalised_BF_proposal: if d==1, sub_posterior_samples[[i]] must be a double for all i=1,...,C")
+    if (!is.vector(sub_posterior_samples)) {
+      stop("generalised_BF_proposal: if d==1, sub_posterior_samples must be a vector of length C")
+    } else if (length(sub_posterior_samples)!=C) {
+      stop("generalised_BF_proposal: if d==1, sub_posterior_samples must be a vector of length C")
     } else if (!is.double(Lambda)) {
       stop("generalised_BF_proposal: if d==1, Lambda must be a double")
-    } else if (!all(sapply(1:length(sub_posterior_samples), function(i) is.double(inv_precondition_matrices[[i]])))) {
-      stop("generalised_BF_proposal: if d==1, inv_precondition_matrices[[i]] must be a double for all i=1,...,C")
+    } else if (!all(sapply(1:C, function(c) is.double(inv_precondition_matrices)))) {
+      stop("generalised_BF_proposal: if d==1, inv_precondition_matrices[[c]] must a double")
     }
-  } else if (d > 1) {
-    if (!all(sapply(1:length(sub_posterior_samples), function(i) length(sub_posterior_samples[[i]])==d))) {
-      stop("vanilla_BF_proposal: if d>1, sub_posterior_samples[[i]] must be a vector of length d for all i=1,...,C")
+  } else if (d > 1)  {
+    if (!is.matrix(sub_posterior_samples)){
+      stop("generalised_BF_proposal: if d>1, sub_posterior_samples must be a (C x d) matrix")
+    } else if (any(dim(sub_posterior_samples)!=c(C,d))) {
+      stop("generalised_BF_proposal: if d>1, sub_posterior_samples must be a (C x d) matrix")
+    } else if (!is.matrix(Lambda)) {
+      stop("generalised_BF_proposal: if d>1, Lambda must be a (d x d) matrix")
     } else if (!all(dim(Lambda)==d)) {
-      stop("generalised_BF_proposal: if d>1, Lambda must matrix with dimension dxd")
-    } else if (!all(sapply(1:length(sub_posterior_samples), function(i) all(dim(inv_precondition_matrices[[i]])==d)))) {
-      stop("generalised_BF_proposal: if d==1, inv_precondition_matrices[[i]] must matrix with dimension dxd for all i=1,...,C")
+      stop("generalised_BF_proposal: if d>1, Lambda must be a (d x d) matrix")
+    } else if (!all(sapply(1:C, function(c) is.matrix(inv_precondition_matrices[[c]])))) {
+      stop("generalised_BF_proposal: if d>1, inv_precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
+    } else if (!all(sapply(1:C, function(c) all(dim(inv_precondition_matrices)==d)))) {
+      stop("generalised_BF_proposal: if d>1, inv_precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
     }
   } else {
     stop("generalised_BF_proposal: d must be greater than or equal to 1")
   }
-  M <- construct_M(s, t, end_time, C, d, Lambda, inv_precondition_matrices, sub_posterior_samples)
-  return(list('M' = M$M,
-              'M_list' = M$M_list,
-              'V' = M$V,
-              'V_inv' = M$V_inv))
+  if (t != end_time) {
+    if (!is.matrix(V)) {
+      stop("generalised_BF_proposal: if t != end_time, V must be a (C*d x C*d) marix")
+    } else if (!all(dim(V)==C*d)) {
+      stop("generalised_BF_proposal: if t != end_time, V must be a (C*d x C*d) marix")
+    } else if (!is.matrix(L_inv)) {
+      stop("generalised_BF_proposal: if t != end_time, L-inv must be a (C*d x C*d) marix")
+    } else if (!all(dim(L_inv)==C*d)) {
+      stop("generalised_BF_proposal: if t != end_time, L_inv must be a (C*d x C*d) marix")
+    }
+    M <- as.vector(V%*%L_inv%*%as.vector(t(sub_posterior_samples))/(t-s))
+    return(list('M' = M,
+                'M_list' = long_vec_to_list_of_vec(C, d, M)))    
+  } else {
+    return(list('M' = rep(as.vector(sub_posterior_mean), C),
+                'M_list' = rep(list(as.vector(sub_posterior_mean)), C)))
+  }
 }
