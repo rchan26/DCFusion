@@ -151,8 +151,8 @@ generalised_rho_j_BLR <- function(particle_set,
           return(matrix(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V), nrow = m, ncol = dim, byrow = TRUE))
         }
       })
-      cat('Level:', level, '|| Step:', j, '|| Node:', node, '|| Core:', core, '|| START \n',
-          file = 'generalised_rho_j_BLR_progress.txt', append = T)
+      cat('Level:', level, '|| Step:', j, '/', length(time_mesh), '|| Node:', node,
+          '|| Core:', core, '|| START \n', file = 'generalised_rho_j_BLR_progress.txt', append = T)
       for (i in 1:split_N) {
         x_mean_j[i,] <- weighted_mean_multivariate(matrix = x_j[[i]],
                                                    weights = inv_precondition_matrices,
