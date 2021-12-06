@@ -52,9 +52,9 @@ generalised_rho_j_BLR <- function(particle_set,
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
     stop("generalised_rho_j_BLR: prior_variances must be vectors of length dim")
   } else if (!is.list(precondition_matrices) | (length(precondition_matrices)!=m)) {
-    stop("Q_IS_BLR: precondition_matrices must be a list of length m")
+    stop("generalised_rho_j_BLR: precondition_matrices must be a list of length m")
   } else if (!is.list(inv_precondition_matrices) | (length(inv_precondition_matrices)!=m)) {
-    stop("Q_IS_BLR: inv_precondition_matrices must be a list of length m")
+    stop("generalised_rho_j_BLR: inv_precondition_matrices must be a list of length m")
   } else if (!(diffusion_estimator %in% c('Poisson', 'NB'))) {
     stop("generalised_rho_j_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
   } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
@@ -306,7 +306,7 @@ parallel_generalised_BF_SMC_BLR <- function(particles_to_fuse,
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
     stop("parallel_generalised_BF_SMC_BLR: prior_variances must be vectors of length dim")
   } else if (!is.list(precondition_matrices) | (length(precondition_matrices)!=m)) {
-    stop("parallel_fusion_SMC_BLR: precondition_matrices must be a list of length m")
+    stop("parallel_generalised_BF_SMC_BLR: precondition_matrices must be a list of length m")
   } else if (!(diffusion_estimator %in% c('Poisson', 'NB'))) {
     stop("parallel_generalised_BF_SMC_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
   } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
