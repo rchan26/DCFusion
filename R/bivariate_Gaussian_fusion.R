@@ -1018,6 +1018,7 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                    inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices),
                                    number_of_steps = 2,
                                    resampling_method = resampling_method,
+                                   seed = seed,
                                    n_cores = n_cores)
   # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)

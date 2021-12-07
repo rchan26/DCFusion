@@ -314,6 +314,7 @@ parallel_vanilla_BF_SMC_BLR <- function(particles_to_fuse,
                                    number_of_steps = length(time_mesh),
                                    time_mesh = time_mesh,
                                    resampling_method = resampling_method,
+                                   seed = seed,
                                    n_cores = n_cores,
                                    cl = cl)
   # ---------- iterative steps

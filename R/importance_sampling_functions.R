@@ -376,6 +376,7 @@ resample_particle_x_samples <- function(N = particle_set$N,
 #'                          resampling ('multi'). Other choices are stratified 
 #'                          resampling ('strat'), systematic resampling ('system'),
 #'                          residual resampling ('resid')
+#' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
 #'           is passed, then one is created and used within this function
@@ -402,6 +403,7 @@ rho_IS_univariate <- function(particles_to_fuse,
                               number_of_steps = 2,
                               time_mesh = NA,
                               resampling_method = 'multi',
+                              seed = NULL,
                               n_cores = parallel::detectCores(),
                               cl = NULL) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
@@ -501,6 +503,7 @@ rho_IS_univariate <- function(particles_to_fuse,
 #'                          resampling ('multi'). Other choices are stratified 
 #'                          resampling ('strat'), systematic resampling ('system'),
 #'                          residual resampling ('resid')
+#' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
 #'           is passed, then one is created and used within this function
@@ -533,6 +536,7 @@ rho_IS_multivariate <- function(particles_to_fuse,
                                 number_of_steps = 2,
                                 time_mesh = NA,
                                 resampling_method = 'multi',
+                                seed = NULL,
                                 n_cores = parallel::detectCores(),
                                 cl = NULL) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {

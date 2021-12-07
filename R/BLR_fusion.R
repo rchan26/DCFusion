@@ -627,6 +627,7 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                    inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices),
                                    number_of_steps = 2,
                                    resampling_method = resampling_method,
+                                   seed = seed,
                                    n_cores = n_cores,
                                    cl = cl)
   # record ESS and CESS after rho step

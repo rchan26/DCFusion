@@ -15,6 +15,7 @@ rho_IS_multivariate(
   number_of_steps = 2,
   time_mesh = NA,
   resampling_method = "multi",
+  seed = NULL,
   n_cores = parallel::detectCores(),
   cl = NULL
 )
@@ -51,6 +52,8 @@ set to NA, the returned particle has time_mesh given by c(0, time)}
 resampling ('multi'). Other choices are stratified 
 resampling ('strat'), systematic resampling ('system'),
 residual resampling ('resid')}
+
+\item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
 
