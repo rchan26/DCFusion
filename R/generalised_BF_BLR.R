@@ -101,7 +101,6 @@ generalised_rho_j_BLR <- function(particle_set,
   ESS <-  c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
-  # L_inv <- construct_L_inv(C = m, d = dim, inv_precondition_matrices = inv_precondition_matrices)
   if (is.null(print_progress_iters)) {
     print_progress_iters <- split_N
   }
@@ -140,9 +139,6 @@ generalised_rho_j_BLR <- function(particle_set,
                          C = m,
                          d = dim,
                          precondition_matrices = precondition_matrices,
-                         # Lambda = Lambda,
-                         # V = V,
-                         # L_inv = L_inv,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
                          sub_posterior_mean = split_x_means[[core]][i,])$M
         if (j!=length(time_mesh)) {
