@@ -148,6 +148,11 @@ Poisson_DCMCF_4$particles <- resample_particle_y_samples(particle_set = Poisson_
                                                          seed = seed)
 Poisson_DCMCF_4$proposed_samples <- Poisson_DCMCF_4$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, Poisson_DCMCF_4$particles$y_samples))
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            Poisson_DCMCF_4$particles$y_samples,
+                                            Poisson_DCMCF_4$proposed_samples),
+                          colours = c('black', 'red', 'green'),
+                          common_limit = c(-4, 4))
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
@@ -175,11 +180,17 @@ NB_DCMCF_4$particles <- resample_particle_y_samples(particle_set = NB_DCMCF_4$pa
                                                     seed = seed)
 NB_DCMCF_4$proposed_samples <- NB_DCMCF_4$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, NB_DCMCF_4$particles$y_samples))
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            NB_DCMCF_4$particles$y_samples,
+                                            NB_DCMCF_4$proposed_samples),
+                          colours = c('black', 'red', 'green'),
+                          common_limit = c(-4, 4))
+
 
 ##### Applying Vanilla Bayesian Fusion #####
 
-time_choice <- 1
-time_mesh <- seq(0, time_choice, 0.01)
+time_choice <- 2
+time_mesh <- seq(0, time_choice, 0.005)
 particles_to_fuse <- initialise_particle_sets(samples_to_fuse = sub_posteriors_4,
                                               multivariate = TRUE,
                                               number_of_steps = length(time_mesh))
@@ -229,7 +240,7 @@ NB_VBF_4 <- parallel_vanilla_BF_SMC_BLR(particles_to_fuse = particles_to_fuse,
                                         cv_location = 'hypercube_centre',
                                         diffusion_estimator = 'NB',
                                         seed = seed,
-                                        n_cores = 1,
+                                        n_cores = n_cores,
                                         print_progress_iters = 500)
 NB_VBF_4$particles <- resample_particle_y_samples(particle_set = NB_VBF_4$particles,
                                                   multivariate = TRUE,
