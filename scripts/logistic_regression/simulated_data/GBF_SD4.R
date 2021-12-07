@@ -239,3 +239,8 @@ compare_samples_bivariate(posteriors = list(full_posterior,
                                             NB_GBF_4$proposed_samples),
                           colours = c('black', 'red', 'green'),
                           common_limit = c(-4, 4))
+
+integrated_abs_distance(full_posterior, Poisson_GBF_identity_4$particles$y_samples)
+integrated_abs_distance(full_posterior, NB_GBF_identity_4$particles$y_samples)
+integrated_abs_distance(full_posterior, Poisson_GBF_4$particles$y_samples)
+integrated_abs_distance(full_posterior, NB_GBF_4$particles$y_samples)
