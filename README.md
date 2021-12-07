@@ -26,7 +26,7 @@ The experiments were ran on [Microsoft Azure](https://azure.microsoft.com/en-gb/
 
 ## Current development
 
-The package is still in development and I'm currently in the process of implementing the [Bayesian Fusion]((https://arxiv.org/abs/2102.02123)) algorithm along with a new *Generalised Bayesian Fusion* algorithm.
+The package is still in development and I'm currently in the process of implementing the [Bayesian Fusion](https://arxiv.org/abs/2102.02123) algorithm along with a new *Generalised Bayesian Fusion* algorithm.
 
 ## License
 
