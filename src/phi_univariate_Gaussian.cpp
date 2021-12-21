@@ -29,7 +29,7 @@ Rcpp::NumericVector ea_phi_uniGaussian_DL(const Rcpp::NumericVector &x,
   for (int i=0; i < x.size(); ++i) {
     double y = x.at(i) - mean;
     double t1 = term1*y*y;
-    value.at(i) = 0.5*precondition*(t1+t2);
+    value.at(i) = 0.5*precondition*(t1-t2);
   }
   return(value);
 }
