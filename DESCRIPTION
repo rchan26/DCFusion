@@ -17,7 +17,8 @@ Depends:
     HMCBRR,
     dplyr,
     expm,
-    sfsmisc
+    sfsmisc,
+    ks
 LinkingTo: 
     Rcpp,
     RcppArmadillo,
@@ -27,7 +28,8 @@ LinkingTo:
     dplyr,
     expm,
     MASS,
-    parallelMCMCcombine
+    parallelMCMCcombine,
+    ks
 Imports: 
     Rcpp,
     RcppArmadillo,
@@ -37,5 +39,6 @@ Imports:
     dplyr,
     expm,
     MASS,
-    parallelMCMCcombine
-RoxygenNote: 7.1.1
+    parallelMCMCcombine,
+    ks
+RoxygenNote: 7.1.2
