@@ -41,7 +41,7 @@ construct_M_vanilla <- function(s,
       stop("construct_M_vanilla: if d==1, sub_posterior_samples must be a vector of length C")
     } else if (length(sub_posterior_samples)!=C) {
       stop("construct_M_vanilla: if d==1, sub_posterior_samples must be a vector of length C")
-    } else if (!is.double(sub_posterior_mean)) {
+    } else if (!is.double(sub_posterior_mean) | length(sub_posterior_mean)!=1) {
       stop("construct_M_vanilla: if d==1, sub_posterior_mean must be a double")
     }
   } else if (d > 1)  {
@@ -67,4 +67,56 @@ construct_M_vanilla <- function(s,
     M_list[[i]] <- M[i_fill]
   }
   return(list('M' = M, 'M_list' = M_list))
+}
+
+#' @export
+simulate_xj_vanilla <- function(s,
+                                t,
+                                end_time,
+                                C,
+                                d,
+                                M,
+                                xi = NULL,
+                                eta = NULL) {
+  if (t <= s) {
+    stop("simulate_xj_vanilla: must have s < t <= end_time")
+  } else if (end_time < t) {
+    stop("simulate_xj_vanilla: must have s < t <= end_time")
+  } else if (!is.double(M) | length(M)!=C*d) {
+    stop("simulate_xj_vanilla: M must be a vector of length C*d")
+  }
+  if (is.null(xi)) {
+    xi <- mvrnormArma(N = 1, mu = rep(0, d), Sigma = diag(1, d))
+  } else {
+    if (!is.vector(xi)) {
+      stop("simulate_xj_vanilla: if xi is not NULL, xi must be a vector of length d")
+    } else if (length(xi)!=d) {
+      stop("simulate_xj_vanilla: if xi is not NULL, xi must be a vector of length d")
+    }
+  }
+  if (is.null(eta)) {
+    eta <- lapply(1:C, function(c) {
+      mvrnormArma(N = 1, mu = rep(0, d), Sigma = diag(1, d))})
+  } else {
+    if (!is.list(eta)) {
+      stop("simulate_xj_vanilla: if eta is not NULL, eta must be a list of length C")
+    } else if (length(eta)!=C) {
+      stop("simulate_xj_vanilla: if eta is not NULL, eta must be a list of length C")
+    } else if (!all(sapply(1:C, function(c) is.vector(eta[[c]])))) {
+      stop("simulate_xj_vanilla: if eta is not NULL, eta[[c]] must be a vector of length d for all c=1,...,C")
+    } else if (!all(sapply(1:C, function(c) length(eta[[c]])==d))) {
+      stop("simulate_xj_vanilla: if eta is not NULL, eta[[c]] must be a vector of length d for all c=1,...,C")
+    }
+  }
+  Delta_j <- t-s
+  C1 <- Delta_j / sqrt(C*(end_time-s))
+  C2 <- sqrt(Delta_j*(end_time-t)/(end_time-s))
+  xj <- rep(NA, C*d)
+  xj_list <- rep(list(rep(NA, d)), C)
+  for (i in 1:C) {
+    i_fill <- d*(i-1)+(1:d)
+    xj[i_fill] <- C1*xi + C2*eta[[i]] + M[i_fill]
+    xj_list[[i]] <- xj[i_fill]
+  }
+  return(list('xj' = xj, 'xj_list' = xj_list))
 }
