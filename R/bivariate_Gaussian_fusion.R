@@ -59,7 +59,7 @@ ea_phi_biGaussian_DL <- function(x,
 #' @param corr correlation value between component 1 and component 2
 #' @param beta real value
 #' @param precondition_mat precondition matrix
-#' @param transform_mats list of transformation matricies where 
+#' @param transform_mats list of transformation matrices where 
 #'                       transform_mats$to_Z is the transformation matrix to Z space
 #'                       and transform_mats$to_X is the transformation matrix to 
 #'                       X space
@@ -121,7 +121,7 @@ ea_biGaussian_DL_PT <- function(x0,
                                  beta = beta,
                                  precondition_mat = precondition_mat)
   if (diffusion_estimator=='Poisson') {
-    # simulate the number of points to simulate from Possion distribution
+    # simulate the number of points to simulate from Poisson distribution
     kap <- rpois(n = 1, lambda = (UZ-LZ)*(t-s))
     log_acc_prob <- 0
     if (kap > 0) {
@@ -209,7 +209,7 @@ ea_biGaussian_DL_PT <- function(x0,
 #' @param betas vector of length m, where betas[c] is the inverse temperature (beta)
 #'              for c-th sub-posterior (can also pass in one number if they are all
 #'              at the same inverse temperature)
-#' @param precondition_matricies list of length m, where precondition_matrices[[c]]
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #'
 #' @return samples: fusion samples
@@ -301,7 +301,7 @@ fusion_biGaussian <- function(N,
 #' @param corr correlation value between component 1 and component 2
 #' @param betas vector of length c, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
-#' @param precondition_matricies list of length m, where precondition_matrices[[c]]
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
@@ -423,10 +423,10 @@ parallel_fusion_biGaussian <- function(N,
 #'                   of samples per node at level l
 #' @param m_schedule vector of length (L-1), where m_schedule[l] is the number 
 #'                   of samples to fuse for level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the 
 #'                      time chosen for Fusion at level l
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation
@@ -619,14 +619,14 @@ bal_binary_fusion_biGaussian <- function(N_schedule,
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the 
 #'                      time chosen for Fusion at level l
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation
 #' @param corr correlation value between component 1 and component 2
 #' @param start_beta beta for the base level
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
+#'                     contains the samples for the c-th node in the level
 #' @param precondition either a logical value to determine if preconditioning matrices are
 #'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
 #'                     or not (FALSE - and is set to be the identity matrix for all sub-posteriors),
@@ -793,7 +793,7 @@ progressive_fusion_biGaussian <- function(N_schedule,
 #' @param corr correlation value between component 1 and component 2
 #' @param betas vector of length c, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
-#' @param precondition_matricies list of length m, where precondition_matrices[[c]]
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poission estimator
@@ -895,16 +895,16 @@ Q_IS_biGaussian <- function(particle_set,
   # ---------- update particle set
   # update the weights and return updated particle set
   particle_set$y_samples <- y_samples
-  particle_set$log_weights <- particle_set$log_weights + log_Q_weights
-  # normalise weights
-  norm_weights <- particle_ESS(log_weights = particle_set$log_weights)
+  # normalise weight
+  norm_weights <- particle_ESS(log_weights = particle_set$log_weights + log_Q_weights)
+  particle_set$log_weights <- norm_weights$log_weights
   particle_set$normalised_weights <- norm_weights$normalised_weights
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
   # where inc_change is the incremental change in weight (= log_Q_weights)
-  particle_set$CESS['Q'] <- particle_ESS(log_weights = log_Q_weights)$ESS
+  particle_set$CESS[2] <- particle_ESS(log_weights = log_Q_weights)$ESS
   # set the resampled indicator to FALSE
-  particle_set$resampled['Q'] <- FALSE
+  particle_set$resampled[2] <- FALSE
   return(particle_set)
 }
 
@@ -919,7 +919,7 @@ Q_IS_biGaussian <- function(particle_set,
 #' @param N number of samples
 #' @param m number of sub-posteriors to combine
 #' @param time time T for fusion algorithm
-#' @param precondition_matricies list of length m, where precondition_matrices[[c]]
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation
@@ -1016,18 +1016,20 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
                                    inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices),
+                                   number_of_steps = 2,
                                    resampling_method = resampling_method,
+                                   seed = seed,
                                    n_cores = n_cores)
-  # record ESS and CESS after rho step 
+  # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)
-  CESS <- c('rho' = particles$CESS['rho'])
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
+  CESS <- c('rho' = particles$CESS[1])
+  # ----------- resample particles (only resample if ESS < N*ESS_threshold)
   if (particles$ESS < N*ESS_threshold) {
     resampled <- c('rho' = TRUE)
     particles <- resample_particle_x_samples(N = N,
                                              particle_set = particles,
                                              multivariate = TRUE,
+                                             step = 1,
                                              resampling_method = resampling_method,
                                              seed = seed)
   } else {
@@ -1051,12 +1053,11 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
                                n_cores = n_cores)
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
-  CESS['Q'] <- particles$CESS['Q']
+  CESS['Q'] <- particles$CESS[2]
   names(CESS) <- c('rho', 'Q')
   # record proposed samples
   proposed_samples <- particles$y_samples
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
+  # ----------- resample particles (only resample if ESS < N*ESS_threshold)
   if (particles$ESS < N*ESS_threshold) {
     resampled['Q'] <- TRUE
     particles <- resample_particle_y_samples(N = N,
@@ -1095,10 +1096,10 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
 #'                   of samples per node at level l
 #' @param m_schedule vector of length (L-1), where m_schedule[l] is the number 
 #'                   of samples to fuse for level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
+#'                     contains the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation
@@ -1202,7 +1203,9 @@ bal_binary_fusion_SMC_biGaussian <- function(N_schedule,
     if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
       stop("bal_binary_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
     }
-    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples,
+                                               multivariate = TRUE,
+                                               number_of_steps = 2)
   } else {
     stop("bal_binary_fusion_SMC_biGaussian: base_samples must be a list of length
          (1/start_beta) containing either items of class \"particle\" (representing
@@ -1304,10 +1307,10 @@ bal_binary_fusion_SMC_biGaussian <- function(N_schedule,
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
-#' @param base_samples list of length (1/start_beta), where samples_to_fuse[c] 
-#'                     containg the samples for the c-th node in the level
+#' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
+#'                     contains the samples for the c-th node in the level
 #' @param mean_vec vector of length 2 for mean
 #' @param sd_vec vector of length 2 for standard deviation
 #' @param corr correlation value between component 1 and component 2
@@ -1395,7 +1398,9 @@ progressive_fusion_SMC_biGaussian <- function(N_schedule,
     if (!all(sapply(base_samples, function(core) ncol(core)==2))) {
       stop("progressive_fusion_SMC_biGaussian: the sub-posterior samples in base_samples must be matrices with 2 columns")
     }
-    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples,
+                                                            multivariate = TRUE,
+                                                            number_of_steps = 2)
   } else {
     stop("progressive_fusion_SMC_biGaussian: base_samples must be a list of length
          (1/start_beta) containing either items of class \"particle\" (representing

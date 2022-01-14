@@ -149,7 +149,7 @@ double gamma_NB_biGaussian(const arma::vec &times,
   }
   double sum_phi_eval = 0;
   for (int i=0; i < times.size(); ++i) {
-    const arma::vec eval = x0+times.at(i)*(-x0+y)/(t-s);
+    const arma::vec eval = (x0*(t-times.at(i))+y*(times.at(i)-s))/(t-s);
     Rcpp::List phi = ea_phi_biGaussian_DL_vec(eval,
                                               mean_vec,
                                               sd_vec,

@@ -202,19 +202,19 @@ legend(x = 2, y = 8,
 ######################################## ESS (overall)
 
 plot(x = denominator, y = sapply(1:length(denominator), function(i) {
-  mean(sapply(1:number_of_replicates, function(j) smc_fnj_results[[i]][[j]]$ESS['Q']))
+  mean(sapply(1:number_of_replicates, function(j) smc_fnj_results[[i]][[j]]$ESS[2]))
 }), ylim = c(0, 10000), ylab = '', xlab = '', font.lab = 2, pch = 1, lwd = 3, xaxt = 'n', yaxt = 'n', type = 'l')
 axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
 mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 10000, 1000), labels = seq(0, 10000, 1000), font = 2, cex = 1.5)
 mtext('ESS (at top level)', 2, 2.75, font = 2, cex = 1.5)
-lines(x = denominator, y = c(mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[1]][[j]]$ESS['Q'])),
+lines(x = denominator, y = c(mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[1]][[j]]$ESS[2])),
                              sapply(2:length(denominator), function(i) {
-                               mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[i]][[j]]$ESS[[1]]['Q']))
+                               mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[i]][[j]]$ESS[[1]][2]))
                              })), lty = 3, lwd = 3)
-lines(x = denominator, y = c(mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[1]][[j]]$ESS['Q'])),
+lines(x = denominator, y = c(mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[1]][[j]]$ESS[2])),
                              sapply(2:length(denominator), function(i) {
-                               mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[i]][[j]]$ESS[[1]]['Q']))
+                               mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[i]][[j]]$ESS[[1]][2]))
                              })), lty = 2, lwd = 3)
 legend(x = 2, y = 10000,
        legend = c('fork-and-join', 'balanced', 'progressive'),

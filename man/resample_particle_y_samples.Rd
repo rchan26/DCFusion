@@ -13,7 +13,7 @@ resample_particle_y_samples(
 )
 }
 \arguments{
-\item{N}{number of samples (default to particle_set$N)}
+\item{N}{number of samples (default is particle_set$N)}
 
 \item{multivariate}{logical value indicating if the particles are multivariate
 (TRUE) or not (FALSE)}
@@ -26,7 +26,7 @@ residual resampling ('resid')}
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 }
 \value{
-resampled particle set
+resampled particle set. Returns the same set if it has already been resampled
 }
 \description{
 Resamples the particle set for the samples for y

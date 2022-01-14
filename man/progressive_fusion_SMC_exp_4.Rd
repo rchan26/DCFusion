@@ -24,7 +24,7 @@ progressive_fusion_SMC_exp_4(
 \item{N_schedule}{vector of length (L-1), where N_schedule[l] is the number 
 of samples per node at level l}
 
-\item{time_schedule}{vector of legnth(L-1), where time_schedule[l] is the time 
+\item{time_schedule}{vector of length(L-1), where time_schedule[l] is the time 
 chosen for Fusion at level l}
 
 \item{base_samples}{list of length (1/start_beta), where base_samples[[c]] 

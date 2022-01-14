@@ -384,6 +384,7 @@ END_RCPP
 // ea_phi_BLR_DL_bounds
 Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const int& dim, const arma::mat& X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices, const bool& local_bounds);
 RcppExport SEXP _DCFusion_ea_phi_BLR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP, SEXP local_boundsSEXP) {
+<<<<<<< HEAD
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -446,6 +447,8 @@ END_RCPP
 // log_BRR_hessian
 arma::mat log_BRR_hessian(const arma::vec& y_resp, const arma::mat& X, const arma::vec& X_beta, const double& nu, const double& sigma, const arma::vec& prior_variances, const double& C);
 RcppExport SEXP _DCFusion_log_BRR_hessian(SEXP y_respSEXP, SEXP XSEXP, SEXP X_betaSEXP, SEXP nuSEXP, SEXP sigmaSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
+=======
+>>>>>>> bayesian_fusion
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;

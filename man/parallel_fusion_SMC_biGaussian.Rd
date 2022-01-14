@@ -44,6 +44,9 @@ initialise_particle_sets() function)}
 \item{betas}{vector of length c, where betas[c] is the inverse temperature 
 value for c-th posterior}
 
+\item{precondition_matrices}{list of length m, where precondition_matrices[[c]]
+is the precondition matrix for sub-posterior c}
+
 \item{resampling_method}{method to be used in resampling, default is multinomial 
 resampling ('multi'). Other choices are stratified 
 resampling ('strat'), systematic resampling ('system'),
@@ -67,9 +70,6 @@ binomial estimator (default is 2)}
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
-
-\item{precondition_matricies}{list of length m, where precondition_matrices[[c]]
-is the precondition matrix for sub-posterior c}
 }
 \value{
 A list with components:

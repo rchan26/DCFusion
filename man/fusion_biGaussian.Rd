@@ -37,7 +37,7 @@ the samples for the c-th sub-posterior}
 for c-th sub-posterior (can also pass in one number if they are all
 at the same inverse temperature)}
 
-\item{precondition_matricies}{list of length m, where precondition_matrices[[c]]
+\item{precondition_matrices}{list of length m, where precondition_matrices[[c]]
 is the precondition matrix for sub-posterior c}
 }
 \value{

@@ -33,7 +33,7 @@ weierstrass <- c(integrated_abs_distance(full_posterior,
                  integrated_abs_distance(full_posterior,
                                          weierstrass_rejection_8$samples),
                  integrated_abs_distance(full_posterior,
-                                         neiswanger_false_16$samples))
+                                         weierstrass_rejection_16$samples))
 
 plot(x = c(4, 8, 16), y = NB_fusion,
      ylim = c(0, 0.6),

@@ -29,11 +29,54 @@ ea_phi_BLR_DL <- function(beta,
   stop("ea_phi_BLR_DL: beta must be a vector or a matrix")
 }
 
-#' @export
 obtain_LR_MLE <- function(dim, data) {
   return(as.vector(unname(glm(formula = data$y ~ data$X[,2:dim], family = 'binomial')$coeff)))
 }
 
+#' Diffusion probability for the Exact Algorithm for Langevin diffusion for
+#' Bayesian logistic regression
+#' 
+#' Simulate Langevin diffusion using the Exact Algorithm where target is the
+#' posterior for a logistic regression model with Gaussian priors
+#' 
+#' @param dim dimension of the predictors (= p+1)
+#' @param x0 start value (vector of length dim)
+#' @param y end value (vector of length dim)
+#' @param s start time
+#' @param t end time
+#' @param data list of length 4 where data[[c]]$y is the vector for y responses 
+#'             and data[[c]]$x is the design matrix for the covariates for
+#'             sub-posterior c, data[[c]]$full_data_count is the unique
+#'             rows of the full data set with their counts and 
+#'             data[[c]]$design_count is the unique rows of the design
+#'             matrix and their counts
+#' @param prior_means prior for means of predictors
+#' @param prior_variances prior for variances of predictors
+#' @param C overall number of sub-posteriors
+#' @param precondition_mat precondition matrix
+#' @param transform_mats list of transformation matrices where 
+#'                       transform_mats$to_Z is the transformation matrix to Z space
+#'                       and transform_mats$to_X is the transformation matrix to 
+#'                       X space
+#' @param cv_location string to determine what the location of the control variate
+#'                    should be. Must be either 'mode' where the MLE estimator 
+#'                    will be used or 'hypercube_centre' (default) to use the centre
+#'                    of the simualted hypercube
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
+#' @param logarithm logical value to determine if log probability is
+#'                  returned (TRUE) or not (FALSE)
+#' 
+#' @return acceptance probability of simulating Langevin diffusion where target
+#'         is the posterior for a logistic regression model with Gaussian priors
+#' 
 #' @export
 ea_BLR_DL_PT <- function(dim,
                          x0,
@@ -52,7 +95,7 @@ ea_BLR_DL_PT <- function(dim,
                          gamma_NB_n_points = 2,
                          local_bounds = TRUE,
                          logarithm) {
-  # transform to preconditoned space
+  # transform to preconditioned space
   z0 <- transform_mats$to_Z %*% x0
   zt <- transform_mats$to_Z %*% y
   # simulate layer information
@@ -67,7 +110,8 @@ ea_BLR_DL_PT <- function(dim,
   # calculate the lower and upper bounds of phi
   if (is.list(cv_location)) {
     if (names(cv_location)==c("beta_hat", "grad_log_hat")) {
-      hypercube_vertices <- obtain_hypercube_vertices(bes_layers)
+      hypercube_vertices <- obtain_hypercube_vertices(bessel_layers = bes_layers,
+                                                      dim = dim)
       bounds <- ea_phi_BLR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                      grad_log_hat = as.vector(cv_location$grad_log_hat),
                                      dim = dim,
@@ -90,7 +134,8 @@ ea_BLR_DL_PT <- function(dim,
                                                prior_means = prior_means,
                                                prior_variances = prior_variances,
                                                C = C)
-    hypercube_vertices <- obtain_hypercube_vertices(bes_layers)
+    hypercube_vertices <- obtain_hypercube_vertices(bessel_layers = bes_layers,
+                                                    dim = dim)
     bounds <- ea_phi_BLR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                    grad_log_hat = as.vector(cv_location$grad_log_hat),
                                    dim = dim,
@@ -107,7 +152,7 @@ ea_BLR_DL_PT <- function(dim,
   LX <- bounds$LB
   UX <- bounds$UB
   if (diffusion_estimator=='Poisson') {
-    # simulate the number of points to simulate from Possion distribution
+    # simulate the number of points to simulate from Poisson distribution
     kap <- rpois(n = 1, lambda = (UX-LX)*(t-s))
     log_acc_prob <- 0
     if (kap > 0) {
@@ -197,6 +242,54 @@ ea_BLR_DL_PT <- function(dim,
   }
 }
 
+#' Q Importance Sampling Step
+#'
+#' Q Importance Sampling weighting for Bayesian logistic regression
+#'
+#' @param particle_set particles set prior to Q importance sampling step
+#' @param m number of sub-posteriors to combine
+#' @param time time T for fusion algorithm
+#' @param dim dimension of the predictors (= p+1)
+#' @param data_split list of length m where each item is a list of length 4 where
+#'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
+#'                   data_split[[c]]$x is the design matrix for the covariates for
+#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
+#'                   rows of the full data set with their counts and 
+#'                   data_split[[c]]$design_count is the unique rows of the design
+#'                   matrix and their counts
+#' @param prior_means prior for means of predictors
+#' @param prior_variances prior for variances of predictors
+#' @param C overall number of sub-posteriors
+#' @param proposal_cov proposal covariance of Gaussian distribution for Fusion
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
+#'                               is the precondition matrix for sub-posterior c
+#' @param inv_precondition_matrices list of length m, where inv_precondition_matrices[[c]]
+#'                                  is the inverse precondition matrix for sub-posterior c
+#' @param cv_location string to determine what the location of the control variate
+#'                    should be. Must be either 'mode' where the MLE estimator 
+#'                    will be used or 'hypercube_centre' (default) to use the centre
+#'                    of the simualted hypercube
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poission estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
+#' @param seed seed number - default is NULL, meaning there is no seed
+#' @param n_cores number of cores to use
+#' @param cl an object of class "cluster" for parallel computation in R. If none
+#'           is passed, then one is created and used within this function
+#' @param level indicates which level this is for the hierarchy (default 1)
+#' @param node indicates which node this is for the hierarchy (default 1)
+#' @param print_progress_iters number of iterations between each progress update
+#'                             (default is 1000). If NULL, progress will only
+#'                             be updated when importance sampling is finished
+#'
+#' @return An updated particle set
+#' 
 #' @export
 Q_IS_BLR <- function(particle_set,
                      m,
@@ -371,9 +464,9 @@ Q_IS_BLR <- function(particle_set,
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
   # where inc_change is the incremental change in weight (= log_Q_weights)
-  particle_set$CESS['Q'] <- particle_ESS(log_weights = log_Q_weights)$ESS
+  particle_set$CESS[2] <- particle_ESS(log_weights = log_Q_weights)$ESS
   # set the resampled indicator to FALSE
-  particle_set$resampled['Q'] <- FALSE
+  particle_set$resampled[2] <- FALSE
   return(particle_set)
 }
 
@@ -384,22 +477,22 @@ Q_IS_BLR <- function(particle_set,
 #' @param particles_to_fuse list of length m, where particles_to_fuse[c] contains
 #'                          the particles for the c-th sub-posterior. Can
 #'                          initialise a this from list of sub-posterior samples
-#'                          by using the intialise_particle_sets function
+#'                          by using the initialise_particle_sets function
 #' @param N number of samples
 #' @param m number of sub-posteriors to combine
 #' @param time time T for fusion algorithm
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
-#'                   for c=1,...,m, data[[c]]$y is the vector for y responses and
-#'                   data[[c]]$x is the design matrix for the covariates for
-#'                   sub-posterior c, data[[c]]$full_data_count is the unique
+#'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
+#'                   data_split[[c]]$x is the design matrix for the covariates for
+#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
 #'                   rows of the full data set with their counts and 
-#'                   data[[c]]$design_count is the unique rows of the design
+#'                   data_split[[c]]$design_count is the unique rows of the design
 #'                   matrix and their counts
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C overall number of sub-posteriors
-#' @param precondition_matricies list of length m, where precondition_matrices[[c]]
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #' @param resampling_method method to be used in resampling, default is multinomial
 #'                          resampling ('multi'). Other choices are stratified
@@ -420,6 +513,8 @@ Q_IS_BLR <- function(particle_set,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
@@ -530,19 +625,21 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                                    time = time,
                                    inv_precondition_matrices = inv_precondition_matrices,
                                    inverse_sum_inv_precondition_matrices = inverse_sum_matrices(inv_precondition_matrices),
+                                   number_of_steps = 2,
                                    resampling_method = resampling_method,
+                                   seed = seed,
                                    n_cores = n_cores,
                                    cl = cl)
   # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)
-  CESS <- c('rho' = particles$CESS['rho'])
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
+  CESS <- c('rho' = particles$CESS[1])
+  # ----------- resample particles (only resample if ESS < N*ESS_threshold)
   if (particles$ESS < N*ESS_threshold) {
     resampled <- c('rho' = TRUE)
     particles <- resample_particle_x_samples(N = N,
                                              particle_set = particles,
                                              multivariate = TRUE,
+                                             step = 1,
                                              resampling_method = resampling_method,
                                              seed = seed)
   } else {
@@ -574,12 +671,11 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
                         print_progress_iters = print_progress_iters)
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
-  CESS['Q'] <- particles$CESS['Q']
+  CESS['Q'] <- particles$CESS[2]
   names(CESS) <- c('rho', 'Q')
   # record proposed samples
   proposed_samples <- particles$y_samples
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
+  # ----------- resample particles (only resample if ESS < N*ESS_threshold)
   if (particles$ESS < N*ESS_threshold) {
     resampled['Q'] <- TRUE
     particles <- resample_particle_y_samples(N = N,
@@ -626,12 +722,12 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'                     the samples for the c-th node in the level
 #' @param L total number of levels in the hierarchy
 #' @param dim dimension of the predictors (= p+1)
-#' @param data_split list of length C where each item is a list of length 4 where
-#'                   for c=1,...,C, data[[c]]$y is the vector for y responses and
-#'                   data[[c]]$x is the design matrix for the covariates for
-#'                   sub-posterior c, data[[c]]$full_data_count is the unique
+#' @param data_split list of length m where each item is a list of length 4 where
+#'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
+#'                   data_split[[c]]$x is the design matrix for the covariates for
+#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
 #'                   rows of the full data set with their counts and 
-#'                   data[[c]]$design_count is the unique rows of the design
+#'                   data_split[[c]]$design_count is the unique rows of the design
 #'                   matrix and their counts
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
@@ -660,6 +756,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param print_progress_iters number of iterations between each progress update
@@ -763,7 +861,9 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
     if (!all(sapply(base_samples, function(core) ncol(core)==dim))) {
       stop("bal_binary_fusion_SMC_BLR: the sub-posterior samples in base_samples must be matrices with dim columns")
     }
-    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples,
+                                               multivariate = TRUE,
+                                               number_of_steps = 2)
   } else {
     stop("bal_binary_fusion_SMC_BLR: base_samples must be a list of length C
          containing either items of class \"particle\" (representing particle 

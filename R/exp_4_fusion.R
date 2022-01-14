@@ -1,7 +1,7 @@
-#' Diffusion probability for the Exact Algorithm for langevin diffusion 
+#' Diffusion probability for the Exact Algorithm for Langevin diffusion 
 #' with pi = exp(-(beta*(x-mean)^4)/2) 
 #'
-#' Evaluate probability of langevin diffusion using the Exact Algorithm with pi = 
+#' Evaluate probability of Langevin diffusion using the Exact Algorithm with pi = 
 #' exp(-(beta*(x-mean)^4)/2) using Poisson thinning
 #'
 #' @param x0 start value
@@ -23,7 +23,7 @@
 #' @param logarithm logical value to determine if log probability is 
 #'                  returned (TRUE) or not (FALSE)
 #'
-#' @return acceptance probability of simulating langevin diffusion with pi = 
+#' @return acceptance probability of simulating Langevin diffusion with pi = 
 #'         exp(-(beta*(x-mean)^4)/2)
 #'
 #' @examples
@@ -62,7 +62,7 @@ ea_exp_4_DL_PT <- function(x0,
                            beta_NB = 10,
                            gamma_NB_n_points = 2,
                            logarithm) {
-  # transform to preconditoned space
+  # transform to preconditioned space
   z0 <- x0 / sqrt(precondition)
   zt <- y / sqrt(precondition)
   # simulate layer information
@@ -83,7 +83,7 @@ ea_exp_4_DL_PT <- function(x0,
   UX <- bounds$UB
   PHI <- ea_phi_exp_4_DL_LB(mean = mean, beta = beta, precondition = precondition)
   if (diffusion_estimator=='Poisson') {
-    # simulate the number of points to simulate from Possion distribution
+    # simulate the number of points to simulate from Poisson distribution
     kap <- rpois(n = 1, lambda = (UX-LX)*(t-s))
     log_acc_prob <- 0
     if (kap > 0) {
@@ -146,7 +146,7 @@ ea_exp_4_DL_PT <- function(x0,
   }
 }
 
-#' Exact Algorithm for langevin diffusion with pi = exp(-(beta*(x-mean)^4)/2) 
+#' Exact Algorithm for Langevin diffusion with pi = exp(-(beta*(x-mean)^4)/2) 
 #'
 #' Exact Algorithm with pi = exp(-(beta*(x-mean)^4)/2)
 #'
@@ -398,7 +398,7 @@ parallel_fusion_exp_4 <- function(N,
 #'                   of samples per node at level l
 #' @param m_schedule vector of length (L-1), where m_schedule[l] is the number
 #'                   of samples to fuse for level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
 #'                     contains the samples for the c-th node in the level
@@ -574,7 +574,7 @@ bal_binary_fusion_exp_4 <- function(N_schedule,
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the
 #'                      time chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
 #'                     contains the samples for the c-th node in the level
@@ -813,16 +813,16 @@ Q_IS_exp_4 <- function(particle_set,
   # ---------- update particle set
   # update the weights and return updated particle set
   particle_set$y_samples <- y_samples
-  particle_set$log_weights <- particle_set$log_weights + log_Q_weights
-  # normalise weights
-  norm_weights <- particle_ESS(log_weights = particle_set$log_weights)
+  # normalise weight
+  norm_weights <- particle_ESS(log_weights = particle_set$log_weights + log_Q_weights)
+  particle_set$log_weights <- norm_weights$log_weights
   particle_set$normalised_weights <- norm_weights$normalised_weights
   particle_set$ESS <- norm_weights$ESS
   # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
   # where inc_change is the incremental change in weight (= log_Q_weights)
-  particle_set$CESS['Q'] <- particle_ESS(log_weights = log_Q_weights)$ESS
+  particle_set$CESS[2] <- particle_ESS(log_weights = log_Q_weights)$ESS
   # set the resampled indicator to FALSE
-  particle_set$resampled['Q'] <- FALSE
+  particle_set$resampled[2] <- FALSE
   return(particle_set)
 }
 
@@ -917,18 +917,20 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
                                  m = m,
                                  time = time,
                                  precondition_values = precondition_values,
+                                 number_of_steps = 2,
                                  resampling_method = resampling_method,
+                                 seed = seed,
                                  n_cores = n_cores)
-  # record ESS and CESS after rho step 
+  # record ESS and CESS after rho step
   ESS <- c('rho' = particles$ESS)
-  CESS <- c('rho' = particles$CESS['rho'])
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
+  CESS <- c('rho' = particles$CESS[1])
+  # ----------- resample particles (only resample if ESS < N*ESS_threshold)
   if (particles$ESS < N*ESS_threshold) {
     resampled <- c('rho' = TRUE)
     particles <- resample_particle_x_samples(N = N,
                                              particle_set = particles,
                                              multivariate = FALSE,
+                                             step = 1,
                                              resampling_method = resampling_method,
                                              seed = seed)
   } else {
@@ -949,12 +951,11 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
                           n_cores = n_cores)
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
-  CESS['Q'] <- particles$CESS['Q']
+  CESS['Q'] <- particles$CESS[2]
   names(CESS) <- c('rho', 'Q')
   # record proposed samples
   proposed_samples <- particles$y_samples
-  # ----------- resample particles
-  # only resample if ESS < N*ESS_threshold
+  # ----------- resample particles (only resample if ESS < N*ESS_threshold)
   if (particles$ESS < N*ESS_threshold) {
     resampled['Q'] <- TRUE
     particles <- resample_particle_y_samples(N = N,
@@ -993,7 +994,7 @@ parallel_fusion_SMC_exp_4 <- function(particles_to_fuse,
 #'                   of samples per node at level l
 #' @param m_schedule vector of length (L-1), where m_schedule[l] is the number 
 #'                   of samples to fuse for level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
 #'                     contains the samples for the c-th node in the level
@@ -1089,7 +1090,9 @@ bal_binary_fusion_SMC_exp_4 <- function(N_schedule,
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[L]] <- base_samples
   } else if (all(sapply(base_samples, is.vector))) {
-    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples,
+                                               multivariate = FALSE,
+                                               number_of_steps = 2)
   } else {
     stop("bal_binary_fusion_SMC_exp_4: base_samples must be a list of length
          (1/start_beta) containing either items of class \"particle\" (representing
@@ -1188,7 +1191,7 @@ bal_binary_fusion_SMC_exp_4 <- function(N_schedule,
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the number 
 #'                   of samples per node at level l
-#' @param time_schedule vector of legnth(L-1), where time_schedule[l] is the time 
+#' @param time_schedule vector of length(L-1), where time_schedule[l] is the time 
 #'                      chosen for Fusion at level l
 #' @param base_samples list of length (1/start_beta), where base_samples[[c]] 
 #'                     contains the samples for the c-th node in the level
@@ -1267,7 +1270,9 @@ progressive_fusion_SMC_exp_4 <- function(N_schedule,
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[(1/start_beta)]] <- base_samples
   } else if (all(sapply(base_samples, is.vector))) {
-    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples, multivariate = FALSE)
+    particles[[(1/start_beta)]] <- initialise_particle_sets(samples_to_fuse = base_samples,
+                                                            multivariate = FALSE,
+                                                            number_of_steps = 2)
   } else {
     stop("progressive_fusion_SMC_exp_4: base_samples must be a list of length
          (1/start_beta) containing either items of class \"particle\" (representing

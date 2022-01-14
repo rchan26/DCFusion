@@ -307,7 +307,7 @@ double gamma_NB_BLR(const arma::vec &times,
   } 
   double sum_phi_eval = 0;
   for (int i=0; i < times.size(); ++i) {
-    const arma::vec eval = (x0*(t-s-times.at(i)) + y*times.at(i))/(t-s);
+    const arma::vec eval = (x0*(t-times.at(i))+y*(times.at(i)-s))/(t-s);
     Rcpp::List phi = ea_phi_BLR_DL_vec(eval,
                                        y_labels,
                                        X,

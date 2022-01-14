@@ -23,7 +23,7 @@ ea_phi_mixG_DL_bounds(
 
 \item{weights}{vector: weights of mixture Gaussian}
 
-\item{means}{vector: means of mixture Gassuan}
+\item{means}{vector: means of mixture Gaussian}
 
 \item{sds}{vector: st.devs of mixture Gaussian}
 
@@ -37,7 +37,7 @@ ea_phi_mixG_DL_bounds(
 
 \item{upper}{upper end of interval}
 
-\item{bounds_multiplier}{scalar value to mulitply bounds by 
+\item{bounds_multiplier}{scalar value to multiply bounds by 
 (should greater than or equal to 1)}
 
 \item{seq_length}{desired length of the sequence that we compute phi in the

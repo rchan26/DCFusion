@@ -21,7 +21,7 @@ progressive_fusion_biGaussian(
 \item{N_schedule}{vector of length (L-1), where N_schedule[l] is the number 
 of samples per node at level l}
 
-\item{time_schedule}{vector of legnth(L-1), where time_schedule[l] is the 
+\item{time_schedule}{vector of length(L-1), where time_schedule[l] is the 
 time chosen for Fusion at level l}
 
 \item{mean_vec}{vector of length 2 for mean}
@@ -32,8 +32,8 @@ time chosen for Fusion at level l}
 
 \item{start_beta}{beta for the base level}
 
-\item{base_samples}{list of length (1/start_beta), where samples_to_fuse[c] 
-containg the samples for the c-th node in the level}
+\item{base_samples}{list of length (1/start_beta), where base_samples[[c]] 
+contains the samples for the c-th node in the level}
 
 \item{precondition}{either a logical value to determine if preconditioning matrices are
 used (TRUE - and is set to be the variance of the sub-posterior samples)

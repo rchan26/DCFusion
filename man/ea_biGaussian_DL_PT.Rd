@@ -41,7 +41,7 @@ ea_biGaussian_DL_PT(
 
 \item{precondition_mat}{precondition matrix}
 
-\item{transform_mats}{list of transformation matricies where 
+\item{transform_mats}{list of transformation matrices where 
 transform_mats$to_Z is the transformation matrix to Z space
 and transform_mats$to_X is the transformation matrix to 
 X space}

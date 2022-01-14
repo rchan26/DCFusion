@@ -25,10 +25,10 @@ progressive_fusion_SMC_mixG(
 \item{N_schedule}{vector of length (L-1), where N_schedule[l] is the number 
 of samples per node at level l}
 
-\item{time_schedule}{vector of legnth(L-1), where time_schedule[l] is the time 
+\item{time_schedule}{vector of length(L-1), where time_schedule[l] is the time 
 chosen for Fusion at level l}
 
-\item{base_samples}{list of length (1/start_beta), where samples_to_fuse[c] 
+\item{base_samples}{list of length (1/start_beta), where base_samples[[c]] 
 contains the samples for the c-th node in the level}
 
 \item{n_comp}{integer number of components of mixture Gaussian}
@@ -47,7 +47,7 @@ or not (FALSE - and is set to be 1 for all sub-posteriors),
 or a list of length (1/start_beta) where precondition[[c]]
 is the preconditioning value for sub-posterior c. Default is TRUE}
 
-\item{bounds_multiplier}{scalar value to mulitply bounds by 
+\item{bounds_multiplier}{scalar value to multiply bounds by 
 (should greater than or equal to 1)}
 
 \item{resampling_method}{method to be used in resampling, default is multinomial 

@@ -15,12 +15,12 @@ resample_indices(
 
 \item{method}{method to be used in resampling, default is multinomial 
 resampling ('multi'). Other choices are stratified ('strat'), 
-systematic ('system'), residual ('resid')}
+systematic ('system'), residual ('resid') resampling}
 
 \item{n}{number of samples to resample}
 }
 \value{
-a vector of resampled indicies
+a vector of resampled indices
 }
 \description{
 Resampling methods

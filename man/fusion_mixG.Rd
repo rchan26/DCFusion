@@ -35,7 +35,7 @@ the samples for the c-th sub-posterior}
 
 \item{weights}{vector: weights of mixture Gaussian}
 
-\item{means}{vector: means of mixture Gassuan}
+\item{means}{vector: means of mixture Gaussian}
 
 \item{sds}{vector: st.devs of mixture Gaussian}
 
@@ -46,7 +46,7 @@ they are all at the same inverse temperature)}
 \item{precondition_values}{vector of length m, where precondition_values[c]
 is the precondition value for sub-posterior c}
 
-\item{bounds_multiplier}{scalar value to mulitply bounds by 
+\item{bounds_multiplier}{scalar value to multiply bounds by 
 (should greater than or equal to 1)}
 
 \item{level}{integer for level in hierarchy - default 1}

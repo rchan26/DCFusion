@@ -52,7 +52,7 @@ binomial estimator (default is 2)}
 returned (TRUE) or not (FALSE)}
 }
 \value{
-acceptance probability of simulating langevin diffusion with pi =
+acceptance probability of simulating Langevin diffusion with pi =
         tempered Gaussian distribution
 }
 \description{

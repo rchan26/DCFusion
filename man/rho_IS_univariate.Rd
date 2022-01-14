@@ -10,7 +10,10 @@ rho_IS_univariate(
   m,
   time,
   precondition_values,
+  number_of_steps = 2,
+  time_mesh = NA,
   resampling_method = "multi",
+  seed = NULL,
   n_cores = parallel::detectCores(),
   cl = NULL
 )
@@ -25,15 +28,23 @@ initialise_particle_sets() function)}
 
 \item{m}{number of sub-posteriors to combine}
 
-\item{time}{time T for fusion algorithm}
+\item{time}{end time T for fusion algorithm}
 
 \item{precondition_values}{vector of length m, where precondition_values[[c]]
 is the precondition value for sub-posterior c}
+
+\item{number_of_steps}{integer value for number of steps in the Fusion algorithm
+(default is 2 for Monte Carlo Fusion)}
+
+\item{time_mesh}{vector of times used in Fusion algorithm (default is NA). If
+set to NA, the returned particle has time_mesh given by c(0, time)}
 
 \item{resampling_method}{method to be used in resampling, default is multinomial 
 resampling ('multi'). Other choices are stratified 
 resampling ('strat'), systematic resampling ('system'),
 residual resampling ('resid')}
+
+\item{seed}{seed number - default is NULL, meaning there is no seed}
 
 \item{n_cores}{number of cores to use}
 
