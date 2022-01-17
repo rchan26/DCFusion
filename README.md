@@ -16,6 +16,14 @@ There are a number of other R packages that I have created which this package de
 * [HMCBLR](https://github.com/rchan26/HMCBLR): for the simulation examples in the paper, we need to be able to simulate from the posterior distribution of a logistic regression model with Gaussian priors. This package uses [Stan](https://mc-stan.org/) to implement a sampler for the logistic regression posterior.
 * [HMCBRR](https://github.com/rchan26/HMCBRR): currently in development of further examples of the methodology on robust regression. For this, we need to be able to simulate from the posterior distribution of a robust regression model (regression with student-t distributed priors). This package uses [Stan](https://mc-stan.org/) to implement a sampler for the logistic regression posterior.
 
+To install these dependencies, run:
+
+```
+devtools::install_github('rchan26/layeredBB', build_vignettes = TRUE)
+devtools::install_github('rchan26/HMCBLR', build_vignettes = TRUE)
+devtools::install_github('rchan26/HMCBRR', build_vignettes = TRUE)
+```
+
 ## Running the experiments
 
 The experiments were ran on [Microsoft Azure](https://azure.microsoft.com/en-gb/) using *Data Science Virtual Machine's (DSVM)* with either 16 core (Section 4) or 64 core machines (Section 5). The code utilises parallel computing (via the base [`parallel`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/doc/parallel.pdf) package) and by default uses all the cores available on the machine. To change this, modify the `n_cores` variable in the functions which perform the methodology (this is set to `parallel::detectCores()` by default).
