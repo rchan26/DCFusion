@@ -22,7 +22,15 @@
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #'
-#' @return An updated particle set
+#' @return A list with components:
+#' \describe{
+#'   \item{particle_set}{updated particle set after the iterative rho_j steps}
+#'   \item{proposed_samples}{proposal samples for the last time step}
+#'   \item{ESS}{effective sample size of the particles after each step}
+#'   \item{CESS}{conditional effective sample size of the particles after each step}
+#'   \item{resampled}{boolean value to indicate if particles were resampled
+#'                    after each time step}
+#' }
 #' 
 #' @export
 rho_j_biGaussian <- function(particle_set,
@@ -41,6 +49,12 @@ rho_j_biGaussian <- function(particle_set,
                              n_cores = parallel::detectCores()) {
   if (!("particle" %in% class(particle_set))) {
     stop("rho_j_biGaussian: particle_set must be a \"particle\" object")
+  } else if (!is.vector(time_mesh)) {
+    stop("rho_j_biGaussian: time_mesh must be an ordered vector of length >= 2")
+  } else if (length(time_mesh) < 2) {
+    stop("rho_j_biGaussian: time_mesh must be an ordered vector of length >= 2")
+  } else if (!identical(time_mesh, sort(time_mesh))) {
+    stop("rho_j_biGaussian: time_mesh must be an ordered vector of length >= 2")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("rho_j_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
@@ -64,8 +78,7 @@ rho_j_biGaussian <- function(particle_set,
                           varlist = c(ls(), "ea_phi_biGaussian_DL_matrix",
                                       "ea_phi_biGaussian_DL_bounds",
                                       "ea_phi_biGaussian_DL_LB",
-                                      "ea_biGaussian_DL_PT",
-                                      "fusion_biGaussian"))
+                                      "ea_biGaussian_DL_PT"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
@@ -225,14 +238,10 @@ rho_j_biGaussian <- function(particle_set,
 #'   \item{particles}{particles returned from fusion sampler}
 #'   \item{proposed_samples}{proposal samples from fusion sampler}
 #'   \item{time}{run-time of fusion sampler}
-#'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective 
-#'              sample size of the particles after each step BEFORE deciding 
-#'              whether or not to resample for level l, node i}
-#'   \item{CESS}{list of length (L-1), where CESS[[l]][[i]] is the conditional
-#'               effective sample size of the particles after each step}
-#'   \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a 
-#'                    boolean value to record if the particles were resampled
-#'                    after each step; rho and Q for level l, node i}
+#'   \item{ESS}{effective sample size of the particles after each step}
+#'   \item{CESS}{conditional effective sample size of the particles after each step}
+#'   \item{resampled}{boolean value to indicate if particles were resampled
+#'                    after each time step}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]] 
 #'                                are the pre-conditioning matrices that were used 
 #'                                and precondition_matrices[[1]] are the combined 
@@ -264,6 +273,12 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
     stop("parallel_GBF_biGaussian: the particles' samples for y should all be matrices")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ncol(sub_posterior$y_samples)==2))) {
     stop("parallel_GBF_biGaussian: the particles' samples for y should all be matrices with 2 columns")
+  } else if (!is.vector(time_mesh)) {
+    stop("parallel_GBF_biGaussian: time_mesh must be an ordered vector of length >= 2")
+  } else if (length(time_mesh) < 2) {
+    stop("parallel_GBF_biGaussian: time_mesh must be an ordered vector of length >= 2")
+  } else if (!identical(time_mesh, sort(time_mesh))) {
+    stop("parallel_GBF_biGaussian: time_mesh must be an ordered vector of length >= 2")
   } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
     stop("parallel_GBF_biGaussian: mean_vec must be a vector of length 2")
   } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
@@ -300,20 +315,20 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
                                    n_cores = n_cores,
                                    cl = cl)
   # ---------- iterative steps
-  particles <- rho_j_biGaussian(particle_set = particles,
-                                m = m,
-                                time_mesh = time_mesh,
-                                mean_vec = mean_vec,
-                                sd_vec = sd_vec,
-                                corr = corr,
-                                betas = betas,
-                                precondition_matrices = precondition_matrices,
-                                inv_precondition_matrices = inv_precondition_matrices,
-                                diffusion_estimator = diffusion_estimator,
-                                beta_NB = beta_NB,
-                                gamma_NB_n_points = gamma_NB_n_points,
-                                seed = seed,
-                                n_cores = n_cores)
+  rho_j <- rho_j_biGaussian(particle_set = particles,
+                            m = m,
+                            time_mesh = time_mesh,
+                            mean_vec = mean_vec,
+                            sd_vec = sd_vec,
+                            corr = corr,
+                            betas = betas,
+                            precondition_matrices = precondition_matrices,
+                            inv_precondition_matrices = inv_precondition_matrices,
+                            diffusion_estimator = diffusion_estimator,
+                            beta_NB = beta_NB,
+                            gamma_NB_n_points = gamma_NB_n_points,
+                            seed = seed,
+                            n_cores = n_cores)
   if (identical(precondition_matrices, rep(list(diag(1, dim)), m))) {
     new_precondition_matrices <- list(diag(1, dim), precondition_matrices)
   } else {

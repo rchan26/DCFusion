@@ -55,7 +55,15 @@ binomial estimator (default is 2)}
 \item{n_cores}{number of cores to use}
 }
 \value{
-An updated particle set
+A list with components:
+\describe{
+  \item{particle_set}{updated particle set after the iterative rho_j steps}
+  \item{proposed_samples}{proposal samples for the last time step}
+  \item{ESS}{effective sample size of the particles after each step}
+  \item{CESS}{conditional effective sample size of the particles after each step}
+  \item{resampled}{boolean value to indicate if particles were resampled
+                   after each time step}
+}
 }
 \description{
 rho_j Importance Sampling weighting for bivariate Gaussian distributions
