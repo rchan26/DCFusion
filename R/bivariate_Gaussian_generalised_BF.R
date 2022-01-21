@@ -70,7 +70,6 @@ rho_j_biGaussian <- function(particle_set,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
-  proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
@@ -296,7 +295,6 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
   }
   # start time recording
   pcm <- proc.time()
-  
   # ---------- first importance sampling step
   # pre-calculating the inverse precondition matrices
   inv_precondition_matrices <- lapply(precondition_matrices, solve)

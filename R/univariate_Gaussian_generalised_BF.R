@@ -63,7 +63,6 @@ rho_j_uniGaussian <- function(particle_set,
   } else if (!is.vector(precondition_values) | (length(precondition_values)!=m)) {
     stop("rho_j_uniGaussian: precondition_values must be a vector of length m")
   }
-  proposal_sd <- sqrt(time / sum(1/precondition_values))
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")

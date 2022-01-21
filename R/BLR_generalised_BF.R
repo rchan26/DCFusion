@@ -16,7 +16,6 @@
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C overall number of sub-posteriors
-#' @param proposal_cov proposal covariance of Gaussian distribution for Fusion
 #' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
 #' @param inv_precondition_matrices list of length m, where inv_precondition_matrices[[c]]
