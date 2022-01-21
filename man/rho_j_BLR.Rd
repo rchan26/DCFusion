@@ -92,8 +92,6 @@ is passed, then one is created and used within this function}
 \item{print_progress_iters}{number of iterations between each progress update
 (default is 1000). If NULL, progress will only
 be updated when importance sampling is finished}
-
-\item{proposal_cov}{proposal covariance of Gaussian distribution for Fusion}
 }
 \value{
 A list with components:
