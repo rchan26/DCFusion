@@ -831,8 +831,7 @@ Q_IS_biGaussian <- function(particle_set,
                           varlist = c(ls(), "ea_phi_biGaussian_DL_matrix",
                                       "ea_phi_biGaussian_DL_bounds",
                                       "ea_phi_biGaussian_DL_LB",
-                                      "ea_biGaussian_DL_PT",
-                                      "fusion_biGaussian"))
+                                      "ea_biGaussian_DL_PT"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
@@ -933,14 +932,10 @@ Q_IS_biGaussian <- function(particle_set,
 #'   \item{particles}{particles returned from fusion sampler}
 #'   \item{proposed_samples}{proposal samples from fusion sampler}
 #'   \item{time}{run-time of fusion sampler}
-#'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective 
-#'              sample size of the particles after each step BEFORE deciding 
-#'              whether or not to resample for level l, node i}
-#'   \item{CESS}{list of length (L-1), where CESS[[l]][[i]] is the conditional
-#'               effective sample size of the particles after each step}
-#'   \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a 
-#'                    boolean value to record if the particles were resampled
-#'                    after each step; rho and Q for level l, node i}
+#'   \item{ESS}{effective sample size of the particles after each step}
+#'   \item{CESS}{conditional effective sample size of the particles after each step}
+#'   \item{resampled}{boolean value to indicate if particles were resampled
+#'                    after each time step}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]] 
 #'                                are the pre-conditioning matrices that were used 
 #'                                and precondition_matrices[[1]] are the combined 
