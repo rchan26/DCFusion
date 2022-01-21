@@ -454,25 +454,18 @@ parallel_fusion_mixG <- function(N,
   Q_acc <- N / Q_iterations
   rhoQ_acc <- N / rho_iterations
   if (identical(precondition_values, rep(1, m))) {
-    return(list('samples' = samples,
-                'rho' = rho_acc,
-                'Q' = Q_acc,
-                'rhoQ '= rhoQ_acc,
-                'time' = final['elapsed'],
-                'rho_iterations' = rho_iterations,
-                'Q_iterations' = Q_iterations,
-                'precondition_values' = list(1, precondition_values)))
+    new_precondition_values <- list(1, precondition_values)
   } else {
-    return(list('samples' = samples,
-                'rho' = rho_acc,
-                'Q' = Q_acc,
-                'rhoQ '= rhoQ_acc,
-                'time' = final['elapsed'],
-                'rho_iterations' = rho_iterations,
-                'Q_iterations' = Q_iterations,
-                'precondition_values' = list(1/sum(1/precondition_values),
-                                             precondition_values)))
+    new_precondition_values <- list(1/sum(1/precondition_values), precondition_values)
   }
+  return(list('samples' = samples,
+              'rho' = rho_acc,
+              'Q' = Q_acc,
+              'rhoQ '= rhoQ_acc,
+              'time' = final['elapsed'],
+              'rho_iterations' = rho_iterations,
+              'Q_iterations' = Q_iterations,
+              'precondition_values' = new_precondition_values))
 }
 
 #' (Balanced Binary) D&C Monte Carlo Fusion (rejection sampling)
@@ -569,12 +562,9 @@ bal_binary_fusion_mixG <- function(N_schedule,
   } else {
     stop("bal_binary_fusion_mixG: m_schedule must be a vector of length (L-1)")
   }
-  # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
-  # we need this so that we can set the right value for beta when fusing up the levels
   m_schedule <- c(m_schedule, 1)
-  # initialising study results
   hier_samples <- list()
-  hier_samples[[L]] <- base_samples # base level
+  hier_samples[[L]] <- base_samples
   time <- list()
   rho <- list()
   Q <- list()
@@ -602,8 +592,6 @@ bal_binary_fusion_mixG <- function(N_schedule,
   }
   cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_mixG.txt')
   for (k in ((L-1):1)) {
-    # since previous level has (1/beta)/prod(m_schedule[L:(k-1)]) nodes and we 
-    # fuse m_schedule[k] of these
     n_nodes <- max((1/start_beta)/prod(m_schedule[L:k]), 1)
     cat('########################\n', file = 'bal_binary_fusion_mixG.txt',
         append = T)
@@ -636,15 +624,12 @@ bal_binary_fusion_mixG <- function(N_schedule,
     })
     # need to combine the correct samples
     hier_samples[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$samples)
-    # obtaining the acceptance rates for all nodes in the current level
     rho[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$rho)
     Q[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$Q)
     rhoQ[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$rhoQ)
     time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$time)
-    # get number of iterations in this level
     sum_rho_iterations <- sum(unlist(lapply(1:n_nodes, function(i) fused[[i]]$rho_iterations)))
     sum_Q_iterations <- sum(unlist(lapply(1:n_nodes, function(i) fused[[i]]$Q_iterations)))
-    # acceptance rate for whole level
     overall_rho[k] <- sum_Q_iterations / sum_rho_iterations
     overall_Q[k] <- N_schedule[k]*n_nodes / sum_Q_iterations
     overall_rhoQ[k] <- N_schedule[k]*n_nodes / sum_rho_iterations
@@ -742,9 +727,8 @@ progressive_fusion_mixG <- function(N_schedule,
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("progressive_fusion_mixG: base_samples must be a list of length (1/start_beta)")
   }
-  # initialising results
   prog_samples <- list()
-  prog_samples[[(1/start_beta)]] <- base_samples # base level
+  prog_samples[[(1/start_beta)]] <- base_samples
   time <- rep(0, (1/start_beta)-1)
   rho <- rep(0, (1/start_beta)-1)
   Q <- rep(0, (1/start_beta)-1)
@@ -798,7 +782,6 @@ progressive_fusion_mixG <- function(N_schedule,
                                     n_cores = n_cores,
                                     level = k)
     } else {
-      # printing out some stuff to log file to track the progress
       cat('########################\n', file = 'progressive_fusion_mixG.txt',
           append = T)
       cat('Starting to fuse', 2, 'densities for level', k, 'which is using',
@@ -810,7 +793,6 @@ progressive_fusion_mixG <- function(N_schedule,
           '\n', file = 'progressive_fusion_mixG.txt', append = T)
       cat('########################\n', file = 'progressive_fusion_mixG.txt',
           append = T)
-      # starting fusion
       samples_to_fuse <- list(prog_samples[[k+1]],
                               base_samples[[index+1]])
       precondition_vals <- c(precondition_values[[k+1]],
@@ -834,7 +816,6 @@ progressive_fusion_mixG <- function(N_schedule,
     # need to combine the correct samples
     prog_samples[[k]] <- fused$samples
     precondition_values[[k]] <- fused$precondition_values[[1]]
-    # obtaining the acceptance rates for all nodes in the current level
     rho[k] <- fused$rho
     Q[k] <- fused$Q
     rhoQ[k] <- fused$rhoQ
@@ -1112,23 +1093,17 @@ parallel_fusion_SMC_mixG <- function(particles_to_fuse,
     resampled['Q'] <- FALSE
   }
   if (identical(precondition_values, rep(1, m))) {
-    return(list('particles' = particles,
-                'proposed_samples' = proposed_samples,
-                'time' = (proc.time()-pcm)['elapsed'],
-                'ESS' = ESS,
-                'CESS' = CESS,
-                'resampled' = resampled,
-                'precondition_values' = list(1, precondition_values)))
+    new_precondition_values <- list(1, precondition_values)
   } else {
-    return(list('particles' = particles,
-                'proposed_samples' = proposed_samples,
-                'time' = (proc.time()-pcm)['elapsed'],
-                'ESS' = ESS,
-                'CESS' = CESS,
-                'resampled' = resampled,
-                'precondition_values' = list(1/sum(1/precondition_values), 
-                                             precondition_values)))
+    new_precondition_values <- list(1/sum(1/precondition_values), precondition_values)
   }
+  return(list('particles' = particles,
+              'proposed_samples' = proposed_samples,
+              'time' = (proc.time()-pcm)['elapsed'],
+              'ESS' = ESS,
+              'CESS' = CESS,
+              'resampled' = resampled,
+              'precondition_values' = new_precondition_values))
 }
 
 #' (Balanced Binary) D&C Monte Carlo Fusion using SMC
@@ -1233,9 +1208,7 @@ bal_binary_fusion_SMC_mixG <- function(N_schedule,
   } else {
     stop("bal_binary_fusion_SMC_mixG: m_schedule must be a vector of length (L-1)")
   }
-  # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   m_schedule <- c(m_schedule, 1)
-  # initialising results
   particles <- list()
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[L]] <- base_samples
@@ -1273,8 +1246,6 @@ bal_binary_fusion_SMC_mixG <- function(N_schedule,
   }
   cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_SMC_mixG.txt')
   for (k in ((L-1):1)) {
-    # since previous level has (1/beta)/prod(m_schedule[L:(k-1)]) nodes and we 
-    # fuse m_schedule[k] of these
     n_nodes <- max((1/start_beta)/prod(m_schedule[L:k]), 1)
     cat('########################\n', file = 'bal_binary_fusion_SMC_mixG.txt',
         append = T)
@@ -1421,7 +1392,6 @@ progressive_fusion_SMC_mixG <- function(N_schedule,
   } else if (ESS_threshold < 0 | ESS_threshold > 1) {
     stop("progressive_fusion_SMC_mixG: ESS_threshold must be between 0 and 1")
   }
-  # initialising results
   particles <- list()
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[(1/start_beta)]] <- base_samples

@@ -61,9 +61,9 @@ obtain_LR_MLE <- function(dim, data) {
 #' @param cv_location string to determine what the location of the control variate
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
-#'                    of the simualted hypercube
+#'                    of the simulated hypercube
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -268,9 +268,9 @@ ea_BLR_DL_PT <- function(dim,
 #' @param cv_location string to determine what the location of the control variate
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
-#'                    of the simualted hypercube
+#'                    of the simulated hypercube
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -505,9 +505,9 @@ Q_IS_BLR <- function(particle_set,
 #' @param cv_location string to determine what the location of the control variate
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
-#'                    of the simualted hypercube
+#'                    of the simulated hypercube
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -748,9 +748,9 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #' @param cv_location string to determine what the location of the control variate
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
-#'                    of the simualted hypercube
+#'                    of the simulated hypercube
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -851,9 +851,7 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
   } else {
     stop("bal_binary_fusion_SMC_BLR: m_schedule must be a vector of length (L-1)")
   }
-  # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   m_schedule <- c(m_schedule, 1)
-  # initialising results that we want to keep
   particles <- list()
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[L]] <- base_samples
