@@ -1,64 +1,112 @@
+#' rho_j Importance Sampling Step
+#'
+#' rho_j Importance Sampling weighting for Bayesian logistic regression
+#'
+#' @param particle_set particles set prior to Q importance sampling step
+#' @param m number of sub-posteriors to combine
+#' @param time_mesh time mesh used in Bayesian Fusion
+#' @param dim dimension of the predictors (= p+1)
+#' @param data_split list of length m where each item is a list of length 4 where
+#'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
+#'                   data_split[[c]]$x is the design matrix for the covariates for
+#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
+#'                   rows of the full data set with their counts and 
+#'                   data_split[[c]]$design_count is the unique rows of the design
+#'                   matrix and their counts
+#' @param prior_means prior for means of predictors
+#' @param prior_variances prior for variances of predictors
+#' @param C overall number of sub-posteriors
+#' @param proposal_cov proposal covariance of Gaussian distribution for Fusion
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
+#'                               is the precondition matrix for sub-posterior c
+#' @param inv_precondition_matrices list of length m, where inv_precondition_matrices[[c]]
+#'                                  is the inverse precondition matrix for sub-posterior c
+#' @param cv_location string to determine what the location of the control variate
+#'                    should be. Must be either 'mode' where the MLE estimator 
+#'                    will be used or 'hypercube_centre' (default) to use the centre
+#'                    of the simulated hypercube
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poisson estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
+#' @param seed seed number - default is NULL, meaning there is no seed
+#' @param n_cores number of cores to use
+#' @param cl an object of class "cluster" for parallel computation in R. If none
+#'           is passed, then one is created and used within this function
+#' @param level indicates which level this is for the hierarchy (default 1)
+#' @param node indicates which node this is for the hierarchy (default 1)
+#' @param print_progress_iters number of iterations between each progress update
+#'                             (default is 1000). If NULL, progress will only
+#'                             be updated when importance sampling is finished
+#'
+#' @return An updated particle set
+#' 
 #' @export
-generalised_rho_j_BLR <- function(particle_set,
-                                  m,
-                                  time_mesh,
-                                  dim,
-                                  data_split,
-                                  prior_means,
-                                  prior_variances,
-                                  C,
-                                  precondition_matrices,
-                                  inv_precondition_matrices,
-                                  Lambda,
-                                  resampling_method = 'multi',
-                                  ESS_threshold = 0.5,
-                                  cv_location = 'hypercube_centre',
-                                  diffusion_estimator,
-                                  beta_NB = 10,
-                                  gamma_NB_n_points = 2,
-                                  local_bounds = TRUE,
-                                  seed = NULL,
-                                  n_cores = parallel::detectCores(),
-                                  cl = NULL,
-                                  level = 1,
-                                  node = 1,
-                                  print_progress_iters = 1000) {
+rho_j_BLR <- function(particle_set,
+                      m,
+                      time_mesh,
+                      dim,
+                      data_split,
+                      prior_means,
+                      prior_variances,
+                      C,
+                      precondition_matrices,
+                      inv_precondition_matrices,
+                      Lambda,
+                      resampling_method = 'multi',
+                      ESS_threshold = 0.5,
+                      cv_location = 'hypercube_centre',
+                      diffusion_estimator,
+                      beta_NB = 10,
+                      gamma_NB_n_points = 2,
+                      local_bounds = TRUE,
+                      seed = NULL,
+                      n_cores = parallel::detectCores(),
+                      cl = NULL,
+                      level = 1,
+                      node = 1,
+                      print_progress_iters = 1000) {
   if (!("particle" %in% class(particle_set))) {
-    stop("generalised_rho_j_BLR: particle_set must be a \"particle\" object")
+    stop("rho_j_BLR: particle_set must be a \"particle\" object")
   } else if (!is.list(data_split) | length(data_split)!=m) {
-    stop("generalised_rho_j_BLR: data_split must be a list of length m")
+    stop("rho_j_BLR: data_split must be a list of length m")
   } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
-    stop("generalised_rho_j_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
+    stop("rho_j_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!is.vector(time_mesh)) {
-    stop("generalised_rho_j_BLR: time_mesh must be an ordered vector of length >= 2")
+    stop("rho_j_BLR: time_mesh must be an ordered vector of length >= 2")
   } else if (length(time_mesh) < 2) {
-    stop("generalised_rho_j_BLR: time_mesh must be an ordered vector of length >= 2")
+    stop("rho_j_BLR: time_mesh must be an ordered vector of length >= 2")
   } else if (!identical(time_mesh, sort(time_mesh))) {
-    stop("generalised_rho_j_BLR: time_mesh must be an ordered vector of length >= 2")
+    stop("rho_j_BLR: time_mesh must be an ordered vector of length >= 2")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
-    stop("generalised_rho_j_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
+    stop("rho_j_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
-    stop("generalised_rho_j_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
+    stop("rho_j_BLR: for each i in 1:m, data_split[[i]]$X must be a matrix")
   } else if (!all(sapply(1:m, function(i) ncol(data_split[[i]]$X)==dim))) {
-    stop("generalised_rho_j_BLR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
+    stop("rho_j_BLR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
   } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
-    stop("generalised_rho_j_BLR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
+    stop("rho_j_BLR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
   } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("generalised_rho_j_BLR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
+    stop("rho_j_BLR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
   } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("generalised_rho_j_BLR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
+    stop("rho_j_BLR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
-    stop("generalised_rho_j_BLR: prior_means must be vectors of length dim")
+    stop("rho_j_BLR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
-    stop("generalised_rho_j_BLR: prior_variances must be vectors of length dim")
+    stop("rho_j_BLR: prior_variances must be vectors of length dim")
   } else if (!is.list(precondition_matrices) | (length(precondition_matrices)!=m)) {
-    stop("generalised_rho_j_BLR: precondition_matrices must be a list of length m")
+    stop("rho_j_BLR: precondition_matrices must be a list of length m")
   } else if (!is.list(inv_precondition_matrices) | (length(inv_precondition_matrices)!=m)) {
-    stop("generalised_rho_j_BLR: inv_precondition_matrices must be a list of length m")
+    stop("rho_j_BLR: inv_precondition_matrices must be a list of length m")
   } else if (!(diffusion_estimator %in% c('Poisson', 'NB'))) {
-    stop("generalised_rho_j_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
+    stop("rho_j_BLR: diffusion_estimator must be set to either \'Poisson\' or \'NB\'")
   } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
-    stop("generalised_rho_j_BLR: cl must be a \"cluster\" object or NULL")
+    stop("rho_j_BLR: cl must be a \"cluster\" object or NULL")
   }
   if (cv_location == 'mode') {
     cv_location <- lapply(1:m, function(c) {
@@ -76,7 +124,7 @@ generalised_rho_j_BLR <- function(particle_set,
   } else if (cv_location == 'hypercube_centre') {
     cv_location <- lapply(1:m, function(c) 'hypercube_centre')
   } else {
-    stop("generalised_rho_j_BLR: cv_location must be either \"mode\" or \"hypercube_centre\"")
+    stop("rho_j_BLR: cv_location must be either \"mode\" or \"hypercube_centre\"")
   }
   transform_matrices <- lapply(1:m, function(c) {
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
@@ -148,7 +196,7 @@ generalised_rho_j_BLR <- function(particle_set,
         }
       })
       cat('Level:', level, '|| Step:', j, '/', length(time_mesh), '|| Node:', node,
-          '|| Core:', core, '|| START \n', file = 'generalised_rho_j_BLR_progress.txt', append = T)
+          '|| Core:', core, '|| START \n', file = 'rho_j_BLR_progress.txt', append = T)
       for (i in 1:split_N) {
         x_mean_j[i,] <- weighted_mean_multivariate(matrix = x_j[[i]],
                                                    weights = inv_precondition_matrices,
@@ -193,11 +241,11 @@ generalised_rho_j_BLR <- function(particle_set,
         if (i%%print_progress_iters==0) {
           cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
               '|| Node:', node, '|| Core:', core, '||', i, '/', split_N, '\n',
-              file = 'generalised_rho_j_BLR_progress.txt', append = T)
+              file = 'rho_j_BLR_progress.txt', append = T)
         }
       }
       cat('Level:', level, '|| Step:', j, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
-          split_N, '\n', file = 'generalised_rho_j_BLR_progress.txt', append = T)
+          split_N, '\n', file = 'rho_j_BLR_progress.txt', append = T)
       return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j))
     })
     # ---------- update particle set
@@ -243,30 +291,105 @@ generalised_rho_j_BLR <- function(particle_set,
               'resampled' = resampled))
 }
 
+#' Generalised Bayesian Fusion [parallel]
+#' 
+#' Generalised Bayesian Fusion for Bayesian Logistic Regression
+#'
+#' @param particles_to_fuse list of length m, where particles_to_fuse[c] contains
+#'                          the particles for the c-th sub-posterior. Can
+#'                          initialise a this from list of sub-posterior samples
+#'                          by using the initialise_particle_sets function
+#' @param N number of samples
+#' @param m number of sub-posteriors to combine
+#' @param time_mesh time mesh used in Bayesian Fusion
+#' @param dim dimension of the predictors (= p+1)
+#' @param data_split list of length m where each item is a list of length 4 where
+#'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
+#'                   data_split[[c]]$x is the design matrix for the covariates for
+#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
+#'                   rows of the full data set with their counts and 
+#'                   data_split[[c]]$design_count is the unique rows of the design
+#'                   matrix and their counts
+#' @param prior_means prior for means of predictors
+#' @param prior_variances prior for variances of predictors
+#' @param C overall number of sub-posteriors
+#' @param precondition_matrices list of length m, where precondition_matrices[[c]]
+#'                               is the precondition matrix for sub-posterior c
+#' @param resampling_method method to be used in resampling, default is multinomial
+#'                          resampling ('multi'). Other choices are stratified
+#'                          resampling ('strat'), systematic resampling ('system'),
+#'                          residual resampling ('resid')
+#' @param ESS_threshold number between 0 and 1 defining the proportion of the
+#'                      number of samples that ESS needs to be lower than for
+#'                      resampling (i.e. resampling is carried out only when
+#'                      ESS < N*ESS_threshold)
+#' @param cv_location string to determine what the location of the control variate
+#'                    should be. Must be either 'mode' where the MLE estimator 
+#'                    will be used or 'hypercube_centre' (default) to use the centre
+#'                    of the simulated hypercube
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poisson estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
+#' @param seed seed number - default is NULL, meaning there is no seed
+#' @param n_cores number of cores to use
+#' @param cl an object of class "cluster" for parallel computation in R. If none
+#'           is passed, then one is created and used within this function
+#' @param level indicates which level this is for the hierarchy (default 1)
+#' @param node indicates which node this is for the hierarchy (default 1)
+#' @param print_progress_iters number of iterations between each progress update
+#'                             (default is 1000). If NULL, progress will only
+#'                             be updated when importance sampling is finished
+#'
+#' @return A list with components:
+#' \describe{
+#'   \item{particles}{particles returned from fusion sampler}
+#'   \item{proposed_samples}{proposal samples from fusion sampler}
+#'   \item{time}{run-time of fusion sampler}
+#'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
+#'              sample size of the particles after each step BEFORE deciding
+#'              whether or not to resample for level l, node i}
+#'   \item{CESS}{list of length (L-1), where CESS[[l]][[i]] is the conditional
+#'               effective sample size of the particles after each step}
+#'   \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a
+#'                    boolean value to record if the particles were resampled
+#'                    after each step; rho and Q for level l, node i}
+#'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
+#'                                are the pre-conditioning matrices that were used
+#'                                and precondition_matrices[[1]] are the combined
+#'                                precondition matrices}
+#'   \item{combined_data}{combined data for the fusion density}
+#' }
+#'
 #' @export
-parallel_generalised_BF_SMC_BLR <- function(particles_to_fuse,
-                                            N,
-                                            m,
-                                            time_mesh,
-                                            dim,
-                                            data_split,
-                                            prior_means,
-                                            prior_variances,
-                                            C,
-                                            precondition_matrices,
-                                            resampling_method = 'multi',
-                                            ESS_threshold = 0.5,
-                                            cv_location = 'hypercube_centre',
-                                            diffusion_estimator = 'Poisson',
-                                            beta_NB = 10,
-                                            gamma_NB_n_points = 2,
-                                            local_bounds = TRUE,
-                                            seed = NULL,
-                                            n_cores = parallel::detectCores(),
-                                            cl = NULL,
-                                            level = 1,
-                                            node = 1,
-                                            print_progress_iters = 1000) {
+parallel_GBF_BLR <- function(particles_to_fuse,
+                             N,
+                             m,
+                             time_mesh,
+                             dim,
+                             data_split,
+                             prior_means,
+                             prior_variances,
+                             C,
+                             precondition_matrices,
+                             resampling_method = 'multi',
+                             ESS_threshold = 0.5,
+                             cv_location = 'hypercube_centre',
+                             diffusion_estimator = 'Poisson',
+                             beta_NB = 10,
+                             gamma_NB_n_points = 2,
+                             local_bounds = TRUE,
+                             seed = NULL,
+                             n_cores = parallel::detectCores(),
+                             cl = NULL,
+                             level = 1,
+                             node = 1,
+                             print_progress_iters = 1000) {
   if (!is.list(particles_to_fuse) | (length(particles_to_fuse)!=m)) {
     stop("parallel_generalised_BF_SMC_BLR: particles_to_fuse must be a list of length m")
   } else if (!all(sapply(particles_to_fuse, function(sub_posterior) ("particle" %in% class(sub_posterior))))) {
@@ -336,30 +459,30 @@ parallel_generalised_BF_SMC_BLR <- function(particles_to_fuse,
                                    n_cores = n_cores,
                                    cl = cl)
   # ---------- iterative steps
-  rho_j <- generalised_rho_j_BLR(particle_set = particles,
-                                 m = m,
-                                 time_mesh = time_mesh,
-                                 dim = dim,
-                                 data_split = data_split,
-                                 prior_means = prior_means,
-                                 prior_variances = prior_variances,
-                                 C = C,
-                                 precondition_matrices = precondition_matrices,
-                                 inv_precondition_matrices = inv_precondition_matrices,
-                                 Lambda = Lambda,
-                                 resampling_method = resampling_method,
-                                 ESS_threshold = ESS_threshold,
-                                 cv_location = cv_location,
-                                 diffusion_estimator = diffusion_estimator,
-                                 beta_NB = beta_NB,
-                                 gamma_NB_n_points = gamma_NB_n_points,
-                                 local_bounds = local_bounds,
-                                 seed = seed,
-                                 n_cores = n_cores,
-                                 cl = cl,
-                                 level = level,
-                                 node = node,
-                                 print_progress_iters = print_progress_iters)
+  rho_j <- rho_j_BLR(particle_set = particles,
+                     m = m,
+                     time_mesh = time_mesh,
+                     dim = dim,
+                     data_split = data_split,
+                     prior_means = prior_means,
+                     prior_variances = prior_variances,
+                     C = C,
+                     precondition_matrices = precondition_matrices,
+                     inv_precondition_matrices = inv_precondition_matrices,
+                     Lambda = Lambda,
+                     resampling_method = resampling_method,
+                     ESS_threshold = ESS_threshold,
+                     cv_location = cv_location,
+                     diffusion_estimator = diffusion_estimator,
+                     beta_NB = beta_NB,
+                     gamma_NB_n_points = gamma_NB_n_points,
+                     local_bounds = local_bounds,
+                     seed = seed,
+                     n_cores = n_cores,
+                     cl = cl,
+                     level = level,
+                     node = node,
+                     print_progress_iters = print_progress_iters)
   if (identical(precondition_matrices, rep(list(diag(1, dim)), m))) {
     new_precondition_matrices <- list(diag(1, dim), precondition_matrices)
   } else {
@@ -373,5 +496,5 @@ parallel_generalised_BF_SMC_BLR <- function(particles_to_fuse,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
               'precondition_matrices' = new_precondition_matrices,
-              'combined_data' = combine_data(list_of_data = data_split, dim = dim)))  
+              'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
 }
