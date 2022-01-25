@@ -50,6 +50,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// weighted_trajectory_variation_univariate
+double weighted_trajectory_variation_univariate(const Rcpp::List& x_samples, const Rcpp::List& sub_posterior_means, const Rcpp::NumericVector& precondition_values);
+RcppExport SEXP _DCFusion_weighted_trajectory_variation_univariate(SEXP x_samplesSEXP, SEXP sub_posterior_meansSEXP, SEXP precondition_valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type x_samples(x_samplesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type sub_posterior_means(sub_posterior_meansSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type precondition_values(precondition_valuesSEXP);
+    rcpp_result_gen = Rcpp::wrap(weighted_trajectory_variation_univariate(x_samples, sub_posterior_means, precondition_values));
+    return rcpp_result_gen;
+END_RCPP
+}
 // inverse_sum_matrices
 arma::mat inverse_sum_matrices(const Rcpp::List& matrices);
 RcppExport SEXP _DCFusion_inverse_sum_matrices(SEXP matricesSEXP) {
@@ -122,6 +135,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type x_mean(x_meanSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
     rcpp_result_gen = Rcpp::wrap(weighted_variance_multivariate(x, x_mean, inv_precondition_matrices));
+    return rcpp_result_gen;
+END_RCPP
+}
+// weighted_trajectory_variation_multivariate
+double weighted_trajectory_variation_multivariate(const Rcpp::List& x_samples, const Rcpp::List& sub_posterior_means, const Rcpp::List& inv_precondition_matrices);
+RcppExport SEXP _DCFusion_weighted_trajectory_variation_multivariate(SEXP x_samplesSEXP, SEXP sub_posterior_meansSEXP, SEXP inv_precondition_matricesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type x_samples(x_samplesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type sub_posterior_means(sub_posterior_meansSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
+    rcpp_result_gen = Rcpp::wrap(weighted_trajectory_variation_multivariate(x_samples, sub_posterior_means, inv_precondition_matrices));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -705,12 +731,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_weighted_mean_univariate", (DL_FUNC) &_DCFusion_weighted_mean_univariate, 2},
     {"_DCFusion_log_rho_univariate", (DL_FUNC) &_DCFusion_log_rho_univariate, 4},
     {"_DCFusion_weighted_variance_univariate", (DL_FUNC) &_DCFusion_weighted_variance_univariate, 3},
+    {"_DCFusion_weighted_trajectory_variation_univariate", (DL_FUNC) &_DCFusion_weighted_trajectory_variation_univariate, 3},
     {"_DCFusion_inverse_sum_matrices", (DL_FUNC) &_DCFusion_inverse_sum_matrices, 1},
     {"_DCFusion_weighted_mean_multivariate", (DL_FUNC) &_DCFusion_weighted_mean_multivariate, 3},
     {"_DCFusion_calculate_proposal_cov", (DL_FUNC) &_DCFusion_calculate_proposal_cov, 2},
     {"_DCFusion_row_wise_subtraction", (DL_FUNC) &_DCFusion_row_wise_subtraction, 2},
     {"_DCFusion_log_rho_multivariate", (DL_FUNC) &_DCFusion_log_rho_multivariate, 4},
     {"_DCFusion_weighted_variance_multivariate", (DL_FUNC) &_DCFusion_weighted_variance_multivariate, 3},
+    {"_DCFusion_weighted_trajectory_variation_multivariate", (DL_FUNC) &_DCFusion_weighted_trajectory_variation_multivariate, 3},
     {"_DCFusion_logsumexp", (DL_FUNC) &_DCFusion_logsumexp, 1},
     {"_DCFusion_particle_ESS", (DL_FUNC) &_DCFusion_particle_ESS, 1},
     {"_DCFusion_rho_IS_univariate_", (DL_FUNC) &_DCFusion_rho_IS_univariate_, 5},

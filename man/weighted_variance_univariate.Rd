@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{weighted_variance_univariate}
 \alias{weighted_variance_univariate}
-\title{Calculate the variance of numbers}
+\title{Calculate the variance of numbers (univariate)}
 \usage{
 weighted_variance_univariate(x, x_mean, precondition_values)
 }

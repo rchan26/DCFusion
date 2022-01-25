@@ -19,6 +19,10 @@ double weighted_variance_univariate(const Rcpp::NumericVector &x,
                                     const double &x_mean,
                                     const Rcpp::NumericVector &precondition_values);
 
+double weighted_trajectory_variation_univariate(const Rcpp::List &x_samples,
+                                                const Rcpp::List &sub_posterior_means,
+                                                const Rcpp::NumericVector &precondition_values);
+
 arma::mat inverse_sum_matrices(const Rcpp::List &matrices);
 
 arma::vec weighted_mean_multivariate(const arma::mat &matrix,
@@ -37,6 +41,10 @@ double log_rho_multivariate(const arma::mat &x,
 double weighted_variance_multivariate(const arma::mat &x,
                                       const arma::vec &x_mean,
                                       const Rcpp::List &inv_precondition_matrices);
+
+double weighted_trajectory_variation_multivariate(const Rcpp::List &x_samples,
+                                                  const Rcpp::List &sub_posterior_means,
+                                                  const Rcpp::List &inv_precondition_matrices);
 
 double logsumexp(const Rcpp::NumericVector &x);
 

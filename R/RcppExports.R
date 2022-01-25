@@ -51,7 +51,7 @@ log_rho_univariate <- function(x, x_mean, time, precondition_values) {
     .Call(`_DCFusion_log_rho_univariate`, x, x_mean, time, precondition_values)
 }
 
-#' Calculate the variance of numbers
+#' Calculate the variance of numbers (univariate)
 #' 
 #' Calculation of the weighted variance of numbers
 #'
@@ -71,6 +71,38 @@ log_rho_univariate <- function(x, x_mean, time, precondition_values) {
 #'                              precondition_values = precondition_vals)
 weighted_variance_univariate <- function(x, x_mean, precondition_values) {
     .Call(`_DCFusion_weighted_variance_univariate`, x, x_mean, precondition_values)
+}
+
+#' Calculate approximation to expectation of nu_j (univariate)
+#' 
+#' Calculation of the scaled/weighted average variation of the C trajectories
+#' with respect to their individual sub-posterior means
+#'
+#' @param list where x_samples[[i]] ith collection of the C trajectories
+#' @param sub_posterior_means list of length C, where sub_posterior_mean[[c]] is the
+#'        sub_posterior_mean of the cth sub-posterior
+#' @param precondition_values precondition values associated to each sub-posterior
+#'
+#' @return the approximated expectation of nu_j
+#'
+#' @examples
+#' # x_samples has 5 samples and C=4
+#' x <- rnorm(4, 0, 1)
+#' x_samples <- rep(list(x), 5)
+#' precondition_vals <- c(1, 2, 3, 4)
+#' # compute x_means (and take these as the sub-posterior means)
+#' x_mean <- weighted_mean_univariate(x = x,
+#'                                    weights = 1/precondition_vals)
+#' sub_posterior_means <- rep(list(x_mean), 4)
+#' # this should be 3 times the example for weighted_variance_univariate()
+#' weighted_trajectory_variation_univariate(x_samples = x_samples,
+#'                                          sub_posterior_means = sub_posterior_means,
+#'                                          precondition_values = precondition_vals)
+#' 3*weighted_variance_univariate(x = x,
+#'                                x_mean = x_mean,
+#'                                precondition_values = precondition_vals)
+weighted_trajectory_variation_univariate <- function(x_samples, sub_posterior_means, precondition_values) {
+    .Call(`_DCFusion_weighted_trajectory_variation_univariate`, x_samples, sub_posterior_means, precondition_values)
 }
 
 #' Calculate the inverse of a sum of matrices
@@ -189,7 +221,7 @@ log_rho_multivariate <- function(x, x_mean, time, inv_precondition_matrices) {
     .Call(`_DCFusion_log_rho_multivariate`, x, x_mean, time, inv_precondition_matrices)
 }
 
-#' Calculate the variance of vectors
+#' Calculate the variance of vectors (multivariate)
 #' 
 #' Calculation of the weighted variance of vectors
 #'
@@ -210,15 +242,64 @@ log_rho_multivariate <- function(x, x_mean, time, inv_precondition_matrices) {
 #' x[1,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig1)
 #' x[2,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig2)
 #' x[3,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig3)
-#' # calcualte precondition matrices and their inverses
+#' # calculate precondition matrices and their inverses
 #' precondition_matrices <- list(Sig1, Sig2, Sig3)
 #' inv_precondition_matrices <- lapply(precondition_matrices, solve)
 #' inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
+#' # calculate the weighted mean where weights are the inverse precondition matrices
+#' x_mean <- weighted_mean_multivariate(matrix = x,
+#'                                      weights = precondition_matrices,
+#'                                      inverse_sum_weights = inverse_sum_weights)
 #' weighted_variance_multivariate(x = x,
 #'                                x_mean = x_mean,
 #'                                inv_precondition_matrices = inv_precondition_matrices)
 weighted_variance_multivariate <- function(x, x_mean, inv_precondition_matrices) {
     .Call(`_DCFusion_weighted_variance_multivariate`, x, x_mean, inv_precondition_matrices)
+}
+
+#' Calculate approximation to expectation of nu_j (multivariate)
+#' 
+#' Calculation of the scaled/weighted average variation of the C trajectories
+#' with respect to their individual sub-posterior means
+#'
+#' @param list where x_samples[[i]] ith collection of the C trajectories
+#' @param sub_posterior_means list of length C, where sub_posterior_mean[[c]] is the
+#'        sub_posterior_mean of the cth sub-posterior
+#' @param inv_precondition_matrices list of length m of inverse 
+#'                                  preconditioning matrices
+#'
+#' @return the approximated expectation of nu_j
+#'
+#' @examples
+#' # set covariance matrices
+#' Sig1 <- diag(2)
+#' Sig2 <- matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2)
+#' Sig3 <- matrix(c(4, -3.2, -3.2, 4), nrow = 2, ncol = 2)
+#' # sample some x values and store in the rows
+#' x <- matrix(nrow = 3, ncol = 2)
+#' x[1,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig1)
+#' x[2,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig2)
+#' x[3,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig3)
+#' # x_samples has 5 samples and C=3
+#' x_samples <- rep(list(x), 5)
+#' # calculate precondition matrices and their inverses
+#' precondition_matrices <- list(Sig1, Sig2, Sig3)
+#' inv_precondition_matrices <- lapply(precondition_matrices, solve)
+#' inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
+#' # calculate the weighted mean where weights are the inverse precondition matrices
+#' x_mean <- weighted_mean_multivariate(matrix = x,
+#'                                      weights = precondition_matrices,
+#'                                      inverse_sum_weights = inverse_sum_weights)
+#' sub_posterior_means <- rep(list(x_mean), 3)
+#' # this should be 3 times the example for weighted_variance_multivariate()
+#' weighted_trajectory_variation_multivariate(x_samples = x_samples,
+#'                                            sub_posterior_means = sub_posterior_means,
+#'                                            inv_precondition_matrices = inv_precondition_matrices)
+#' 3*weighted_variance_multivariate(x = x,
+#'                                  x_mean = x_mean,
+#'                                  inv_precondition_matrices = inv_precondition_matrices)
+weighted_trajectory_variation_multivariate <- function(x_samples, sub_posterior_means, inv_precondition_matrices) {
+    .Call(`_DCFusion_weighted_trajectory_variation_multivariate`, x_samples, sub_posterior_means, inv_precondition_matrices)
 }
 
 #' Calculate the logarithm of the sum of the exponentials of the arguments

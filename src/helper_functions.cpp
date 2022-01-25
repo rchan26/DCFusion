@@ -50,7 +50,7 @@ double weighted_mean_univariate(const Rcpp::NumericVector &x,
   if (x.size() != weights.size()) {
     stop("weighted_mean: x and weights must be of the same size");
   }
-  double w_mean = 0;
+  double w_mean = 0.0;
   for (int i=0; i < x.size(); ++i) {
     w_mean += weights[i]*x[i];
   }
@@ -95,7 +95,7 @@ double log_rho_univariate(const Rcpp::NumericVector &x,
   return (-numerator/(2*time));
 }
 
-//' Calculate the variance of numbers
+//' Calculate the variance of numbers (univariate)
 //' 
 //' Calculation of the weighted variance of numbers
 //'
@@ -120,13 +120,56 @@ double weighted_variance_univariate(const Rcpp::NumericVector &x,
   if (x.size() != precondition_values.size()) {
     stop("weighted_variance_univariate: x and precondition_values must be of the same size");
   }
-  double w_variance = 0;
+  double w_variance = 0.0;
   for (int i=0; i < x.size(); ++i) {
     double D = (x_mean - x[i]);
     double num = D*D/precondition_values[i];
     w_variance += num;
   }
   return (w_variance/x.size());
+}
+
+//' Calculate approximation to expectation of nu_j (univariate)
+//' 
+//' Calculation of the scaled/weighted average variation of the C trajectories
+//' with respect to their individual sub-posterior means
+//'
+//' @param list where x_samples[[i]] ith collection of the C trajectories
+//' @param sub_posterior_means list of length C, where sub_posterior_mean[[c]] is the
+//'        sub_posterior_mean of the cth sub-posterior
+//' @param precondition_values precondition values associated to each sub-posterior
+//'
+//' @return the approximated expectation of nu_j
+//'
+//' @examples
+//' # x_samples has 5 samples and C=4
+//' x <- rnorm(4, 0, 1)
+//' x_samples <- rep(list(x), 5)
+//' precondition_vals <- c(1, 2, 3, 4)
+//' # compute x_means (and take these as the sub-posterior means)
+//' x_mean <- weighted_mean_univariate(x = x,
+//'                                    weights = 1/precondition_vals)
+//' sub_posterior_means <- rep(list(x_mean), 4)
+//' # this should be 3 times the example for weighted_variance_univariate()
+//' weighted_trajectory_variation_univariate(x_samples = x_samples,
+//'                                          sub_posterior_means = sub_posterior_means,
+//'                                          precondition_values = precondition_vals)
+//' 3*weighted_variance_univariate(x = x,
+//'                                x_mean = x_mean,
+//'                                precondition_values = precondition_vals)
+// [[Rcpp::export]]
+double weighted_trajectory_variation_univariate(const Rcpp::List &x_samples,
+                                                const Rcpp::List &sub_posterior_means,
+                                                const Rcpp::NumericVector &precondition_values) {
+  double variation = 0.0;
+  for (int i=0; i < x_samples.size(); ++i) {
+    for (int c=0; c < precondition_values.size(); ++c) {
+      const Rcpp::NumericVector &x_c = x_samples[i];
+      const double &a_c = sub_posterior_means[c];
+      variation += weighted_variance_univariate(x_c, a_c, precondition_values);
+    }
+  }
+  return (variation/x_samples.size());
 }
 
 //' Calculate the inverse of a sum of matrices
@@ -275,7 +318,7 @@ double log_rho_multivariate(const arma::mat &x,
                             const double &time,
                             const Rcpp::List &inv_precondition_matrices) {
   if (x.n_cols != x_mean.size()) {
-    stop("log_rho_multivariate: ncol(x) and x_mean must be equal");
+    stop("log_rho_multivariate: ncol(x) and x_mean.size() must be equal");
   } else if (x.n_rows != inv_precondition_matrices.size()) {
     stop("log_rho_multivariate: nrow(x) and length(inv_precondition_matrices) must be equal");
   }
@@ -288,7 +331,7 @@ double log_rho_multivariate(const arma::mat &x,
   return (-numerator/(2*time));
 }
 
-//' Calculate the variance of vectors
+//' Calculate the variance of vectors (multivariate)
 //' 
 //' Calculation of the weighted variance of vectors
 //'
@@ -309,10 +352,14 @@ double log_rho_multivariate(const arma::mat &x,
 //' x[1,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig1)
 //' x[2,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig2)
 //' x[3,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig3)
-//' # calcualte precondition matrices and their inverses
+//' # calculate precondition matrices and their inverses
 //' precondition_matrices <- list(Sig1, Sig2, Sig3)
 //' inv_precondition_matrices <- lapply(precondition_matrices, solve)
 //' inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
+//' # calculate the weighted mean where weights are the inverse precondition matrices
+//' x_mean <- weighted_mean_multivariate(matrix = x,
+//'                                      weights = precondition_matrices,
+//'                                      inverse_sum_weights = inverse_sum_weights)
 //' weighted_variance_multivariate(x = x,
 //'                                x_mean = x_mean,
 //'                                inv_precondition_matrices = inv_precondition_matrices)
@@ -321,7 +368,7 @@ double weighted_variance_multivariate(const arma::mat &x,
                                       const arma::vec &x_mean,
                                       const Rcpp::List &inv_precondition_matrices) {
   if (x.n_cols != x_mean.size()) {
-    stop("weighted_variance_multivariate: ncol(x) and x_mean must be equal");
+    stop("weighted_variance_multivariate: ncol(x) and x_mean.size() must be equal");
   } else if (x.n_rows != inv_precondition_matrices.size()) {
     stop("weighted_variance_multivariate: nrow(x) and length(inv_precondition_matrices) must be equal");
   }
@@ -332,6 +379,62 @@ double weighted_variance_multivariate(const arma::mat &x,
     w_variance += as_scalar((x_minus_x_mean.row(c)*inv_precond)*trans(x_minus_x_mean.row(c)));
   }
   return (w_variance/x.n_rows);
+}
+
+//' Calculate approximation to expectation of nu_j (multivariate)
+//' 
+//' Calculation of the scaled/weighted average variation of the C trajectories
+//' with respect to their individual sub-posterior means
+//'
+//' @param list where x_samples[[i]] ith collection of the C trajectories
+//' @param sub_posterior_means list of length C, where sub_posterior_mean[[c]] is the
+//'        sub_posterior_mean of the cth sub-posterior
+//' @param inv_precondition_matrices list of length m of inverse 
+//'                                  preconditioning matrices
+//'
+//' @return the approximated expectation of nu_j
+//'
+//' @examples
+//' # set covariance matrices
+//' Sig1 <- diag(2)
+//' Sig2 <- matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2)
+//' Sig3 <- matrix(c(4, -3.2, -3.2, 4), nrow = 2, ncol = 2)
+//' # sample some x values and store in the rows
+//' x <- matrix(nrow = 3, ncol = 2)
+//' x[1,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig1)
+//' x[2,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig2)
+//' x[3,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig3)
+//' # x_samples has 5 samples and C=3
+//' x_samples <- rep(list(x), 5)
+//' # calculate precondition matrices and their inverses
+//' precondition_matrices <- list(Sig1, Sig2, Sig3)
+//' inv_precondition_matrices <- lapply(precondition_matrices, solve)
+//' inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
+//' # calculate the weighted mean where weights are the inverse precondition matrices
+//' x_mean <- weighted_mean_multivariate(matrix = x,
+//'                                      weights = precondition_matrices,
+//'                                      inverse_sum_weights = inverse_sum_weights)
+//' sub_posterior_means <- rep(list(x_mean), 3)
+//' # this should be 3 times the example for weighted_variance_multivariate()
+//' weighted_trajectory_variation_multivariate(x_samples = x_samples,
+//'                                            sub_posterior_means = sub_posterior_means,
+//'                                            inv_precondition_matrices = inv_precondition_matrices)
+//' 3*weighted_variance_multivariate(x = x,
+//'                                  x_mean = x_mean,
+//'                                  inv_precondition_matrices = inv_precondition_matrices)
+// [[Rcpp::export]]
+double weighted_trajectory_variation_multivariate(const Rcpp::List &x_samples,
+                                                  const Rcpp::List &sub_posterior_means,
+                                                  const Rcpp::List &inv_precondition_matrices) {
+  double variation = 0.0;
+  for (int i=0; i < x_samples.size(); ++i) {
+    for (int c=0; c < inv_precondition_matrices.size(); ++c) {
+      const arma::mat &x_c = x_samples[i];
+      const arma::vec &a_c = sub_posterior_means[c];
+      variation += weighted_variance_multivariate(x_c, a_c, inv_precondition_matrices);
+    }
+  }
+  return (variation/x_samples.size());
 }
 
 //' Calculate the logarithm of the sum of the exponentials of the arguments

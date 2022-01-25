@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{weighted_variance_multivariate}
 \alias{weighted_variance_multivariate}
-\title{Calculate the variance of vectors}
+\title{Calculate the variance of vectors (multivariate)}
 \usage{
 weighted_variance_multivariate(x, x_mean, inv_precondition_matrices)
 }
@@ -30,10 +30,14 @@ x <- matrix(nrow = 3, ncol = 2)
 x[1,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig1)
 x[2,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig2)
 x[3,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig3)
-# calcualte precondition matrices and their inverses
+# calculate precondition matrices and their inverses
 precondition_matrices <- list(Sig1, Sig2, Sig3)
 inv_precondition_matrices <- lapply(precondition_matrices, solve)
 inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
+# calculate the weighted mean where weights are the inverse precondition matrices
+x_mean <- weighted_mean_multivariate(matrix = x,
+                                     weights = precondition_matrices,
+                                     inverse_sum_weights = inverse_sum_weights)
 weighted_variance_multivariate(x = x,
                                x_mean = x_mean,
                                inv_precondition_matrices = inv_precondition_matrices)
