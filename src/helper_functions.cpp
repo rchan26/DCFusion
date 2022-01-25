@@ -63,7 +63,7 @@ double weighted_mean_univariate(const Rcpp::NumericVector &x,
 //' univariate
 //'
 //' @param x vector of sampled sub-posterior values
-//' @param weighted_mean weighted mean of sampled sub-posterior values
+//' @param x_mean weighted mean of sampled sub-posterior values
 //' @param time time T for fusion algorithm
 //' @param precondition_values precondition values associated to each sub-posterior
 //'
@@ -72,27 +72,61 @@ double weighted_mean_univariate(const Rcpp::NumericVector &x,
 //' @examples
 //' x <- rnorm(4, 0, 1)
 //' precondition_vals <- c(1, 2, 3, 4)
-//' weighted_mean <- weighted_mean_univariate(x = x,
-//'                                           weights = 1/precondition_vals)
+//' x_mean <- weighted_mean_univariate(x = x,
+//'                                    weights = 1/precondition_vals)
 //' log_rho_univariate(x = x,
-//'                    weighted_mean = weighted_mean,
+//'                    x_mean = x_mean,
 //'                    time = 0.5,
 //'                    precondition_values = precondition_vals)
 // [[Rcpp::export]]
 double log_rho_univariate(const Rcpp::NumericVector &x,
-                          const double &weighted_mean,
+                          const double &x_mean,
                           const double &time,
                           const Rcpp::NumericVector &precondition_values) {
   if (x.size() != precondition_values.size()) {
     stop("log_rho_univariate: x and precondition_values must be of the same size");
   }
-  double log_rho = 0;
+  double numerator = 0.0;
   for (int i=0; i < x.size(); ++i) {
-    double D = (weighted_mean - x[i]);
+    double D = (x_mean - x[i]);
     double num = D*D/precondition_values[i];
-    log_rho -= num / (2*time);
+    numerator += num;
   }
-  return log_rho;
+  return (-numerator/(2*time));
+}
+
+//' Calculate the variance of numbers
+//' 
+//' Calculation of the weighted variance of numbers
+//'
+//' @param x vector of sampled sub-posterior values
+//' @param x_mean weighted mean of sampled sub-posterior values
+//' @param precondition_values precondition values associated to each sub-posterior
+//'
+//' @return the weighted variance of numbers
+//'
+//' @examples
+//' x <- rnorm(4, 0, 1)
+//' precondition_vals <- c(1, 2, 3, 4)
+//' x_mean <- weighted_mean_univariate(x = x,
+//'                                    weights = 1/precondition_vals)
+//' weighted_variance_univariate(x = x,
+//'                              x_mean = x_mean,
+//'                              precondition_values = precondition_vals)
+// [[Rcpp::export]]
+double weighted_variance_univariate(const Rcpp::NumericVector &x,
+                                    const double &x_mean,
+                                    const Rcpp::NumericVector &precondition_values) {
+  if (x.size() != precondition_values.size()) {
+    stop("weighted_variance_univariate: x and precondition_values must be of the same size");
+  }
+  double w_variance = 0;
+  for (int i=0; i < x.size(); ++i) {
+    double D = (x_mean - x[i]);
+    double num = D*D/precondition_values[i];
+    w_variance += num;
+  }
+  return (w_variance/x.size());
 }
 
 //' Calculate the inverse of a sum of matrices
@@ -177,86 +211,6 @@ arma::mat calculate_proposal_cov(const double &time, const Rcpp::List &weights) 
   return(arma::inv(lambda_inv/time));
 }
 
-//' Scaled distance between two vectors
-//' 
-//' Calculates the scaled distance between two vectors, i.e. calculates the norm of matrix*(x-y)
-//' If matrix == identity matrix, this is just the Euclidean distance
-//'
-//' @param x vector
-//' @param y vector
-//' @param matrix matrix
-//'
-//' @return the scaled distance between vectors x and y with matrix 
-//' 
-//' @examples
-//' x <- c(0.3, 0.2, 0.5, 1.2)
-//' y <- c(-0.5, 0.8, 1.4, 0.9)
-//' scaled_distance(x, y, diag(1, 4))
-//' # should equal to the Euclidean distance:
-//' sqrt(0.8^2 + 0.6^2 + 0.9^2 + 0.3^2)
-// [[Rcpp::export]]
-double scaled_distance(const arma::vec &x, const arma::vec &y, const arma::mat &matrix) {
-  if (x.size()!=y.size()) {
-    stop("scaled_distance: x and y must be the same size");
-  } else if (matrix.n_rows!=matrix.n_cols) {
-    stop("scaled_distance: matrix must be a square matrix");
-  } else if (matrix.n_rows!=x.size()) {
-    stop("scaled_distance: dimensions of x, y and matrix are not correct");
-  }
-  const double sum_dist = arma::sum(arma::square(matrix*(x-y)));
-  return(std::sqrt(sum_dist));
-}
-
-//' Spectral radius of a symmetric matrix
-//' 
-//' Calculates the spectral radius of a symmetric matrix A (the largest absolute eigenvalue)
-//' 
-//' @param A matrix
-//' 
-//' @return The spectral radius (largest absolute eigenvalue) of A
-//' 
-//' @examples
-//' # symmetric matrix
-//' # should equal 2.5
-//' spectral_radius(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
-//' # non-symmetrix matrix
-//' # should equal 10
-//' spectral_radius(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
-// [[Rcpp::export]]
-double spectral_radius(const arma::mat &A) {
-  if (A.is_symmetric()) {
-    arma::vec abs_eigenvals = arma::abs(arma::eig_sym(A));
-    return(abs_eigenvals.max());
-  } else {
-    arma::vec abs_eigenvals = arma::abs(arma::eig_gen(A));
-    return(abs_eigenvals.max());
-  }
-}
-
-//' Absolute eigenvalues of a matrix
-//' 
-//' Calculates the absolute eigenvalues of a matrix
-//' 
-//' @param A matrix matrix
-//' 
-//' @return The absolute eigenvalues of A
-//' 
-//' @examples
-//' # symmetric matrix
-//' # should equal 2.5, 1.5
-//' abs_eigenvals(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
-//' # non-symmetrix matrix
-//' # should equal 10, 10, 5
-//' abs_eigenvals(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
-// [[Rcpp::export]]
-arma::vec abs_eigenvals(const arma::mat &A) {
-  if (A.is_symmetric()) {
-    return(arma::abs(arma::eig_sym(A)));
-  } else {
-    return(arma::abs(arma::eig_gen(A)));
-  }
-}
-
 //' Row-wise subtraction of a vector to rows of a matrix
 //' 
 //' Calculates the subtraction of a vector to each row of a matrix
@@ -320,6 +274,11 @@ double log_rho_multivariate(const arma::mat &x,
                             const arma::vec &x_mean,
                             const double &time,
                             const Rcpp::List &inv_precondition_matrices) {
+  if (x.n_cols != x_mean.size()) {
+    stop("log_rho_multivariate: ncol(x) and x_mean must be equal");
+  } else if (x.n_rows != inv_precondition_matrices.size()) {
+    stop("log_rho_multivariate: nrow(x) and length(inv_precondition_matrices) must be equal");
+  }
   const arma::mat x_minus_x_mean = row_wise_subtraction(x, x_mean);
   double numerator = 0.0;
   for (int c=0; c < x_minus_x_mean.n_rows; ++c) {
@@ -327,6 +286,52 @@ double log_rho_multivariate(const arma::mat &x,
     numerator += as_scalar((x_minus_x_mean.row(c)*inv_precond)*trans(x_minus_x_mean.row(c)));
   }
   return (-numerator/(2*time));
+}
+
+//' Calculate the variance of vectors
+//' 
+//' Calculation of the weighted variance of vectors
+//'
+//' @param x an (m x n) matrix where the ith row is the ith sample
+//' @param x_mean a vector of length n (the weighted mean of x samples)
+//' @param inv_precondition_matrices list of length m of inverse 
+//'                                  preconditioning matrices
+//'
+//' @return the weighted variance of vectors
+//'
+//' @examples
+//' # set covariance matrices
+//' Sig1 <- diag(2)
+//' Sig2 <- matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2)
+//' Sig3 <- matrix(c(4, -3.2, -3.2, 4), nrow = 2, ncol = 2)
+//' # sample some x values and store in the rows
+//' x <- matrix(nrow = 3, ncol = 2)
+//' x[1,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig1)
+//' x[2,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig2)
+//' x[3,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig3)
+//' # calcualte precondition matrices and their inverses
+//' precondition_matrices <- list(Sig1, Sig2, Sig3)
+//' inv_precondition_matrices <- lapply(precondition_matrices, solve)
+//' inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
+//' weighted_variance_multivariate(x = x,
+//'                                x_mean = x_mean,
+//'                                inv_precondition_matrices = inv_precondition_matrices)
+// [[Rcpp::export]]
+double weighted_variance_multivariate(const arma::mat &x,
+                                      const arma::vec &x_mean,
+                                      const Rcpp::List &inv_precondition_matrices) {
+  if (x.n_cols != x_mean.size()) {
+    stop("weighted_variance_multivariate: ncol(x) and x_mean must be equal");
+  } else if (x.n_rows != inv_precondition_matrices.size()) {
+    stop("weighted_variance_multivariate: nrow(x) and length(inv_precondition_matrices) must be equal");
+  }
+  const arma::mat x_minus_x_mean = row_wise_subtraction(x, x_mean);
+  double w_variance = 0.0;
+  for (int c=0; c < x_minus_x_mean.n_rows; ++c) {
+    const arma::mat &inv_precond = inv_precondition_matrices[c];
+    w_variance += as_scalar((x_minus_x_mean.row(c)*inv_precond)*trans(x_minus_x_mean.row(c)));
+  }
+  return (w_variance/x.n_rows);
 }
 
 //' Calculate the logarithm of the sum of the exponentials of the arguments
@@ -485,6 +490,98 @@ arma::mat mvrnormArma_tempered(const int &N,
   return arma::repmat(mu, 1, N).t() + Y * arma::chol(new_Sigma);
 }
 
+//' Scaled distance between two vectors
+//' 
+//' Calculates the scaled distance between two vectors, i.e. calculates the norm of matrix*(x-y)
+//' If matrix == identity matrix, this is just the Euclidean distance
+//'
+//' @param x vector
+//' @param y vector
+//' @param matrix matrix
+//'
+//' @return the scaled distance between vectors x and y with matrix 
+//' 
+//' @examples
+//' x <- c(0.3, 0.2, 0.5, 1.2)
+//' y <- c(-0.5, 0.8, 1.4, 0.9)
+//' scaled_distance(x, y, diag(1, 4))
+//' # should equal to the Euclidean distance:
+//' sqrt(0.8^2 + 0.6^2 + 0.9^2 + 0.3^2)
+// [[Rcpp::export]]
+double scaled_distance(const arma::vec &x,
+                       const arma::vec &y,
+                       const arma::mat &matrix) {
+  if (x.size()!=y.size()) {
+    stop("scaled_distance: x and y must be the same size");
+  } else if (matrix.n_rows!=matrix.n_cols) {
+    stop("scaled_distance: matrix must be a square matrix");
+  } else if (matrix.n_rows!=x.size()) {
+    stop("scaled_distance: dimensions of x, y and matrix are not correct");
+  }
+  const double sum_dist = arma::sum(arma::square(matrix*(x-y)));
+  return(std::sqrt(sum_dist));
+}
+
+//' Spectral radius of a symmetric matrix
+//' 
+//' Calculates the spectral radius of a symmetric matrix A (the largest absolute eigenvalue)
+//' 
+//' @param A matrix
+//' 
+//' @return The spectral radius (largest absolute eigenvalue) of A
+//' 
+//' @examples
+//' # symmetric matrix
+//' # should equal 2.5
+//' spectral_radius(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
+//' # non-symmetrix matrix
+//' # should equal 10
+//' spectral_radius(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
+// [[Rcpp::export]]
+double spectral_radius(const arma::mat &A) {
+  if (A.is_symmetric()) {
+    arma::vec abs_eigenvals = arma::abs(arma::eig_sym(A));
+    return(abs_eigenvals.max());
+  } else {
+    arma::vec abs_eigenvals = arma::abs(arma::eig_gen(A));
+    return(abs_eigenvals.max());
+  }
+}
+
+//' Absolute eigenvalues of a matrix
+//' 
+//' Calculates the absolute eigenvalues of a matrix
+//' 
+//' @param A matrix matrix
+//' 
+//' @return The absolute eigenvalues of A
+//' 
+//' @examples
+//' # symmetric matrix
+//' # should equal 2.5, 1.5
+//' abs_eigenvals(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
+//' # non-symmetrix matrix
+//' # should equal 10, 10, 5
+//' abs_eigenvals(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
+// [[Rcpp::export]]
+arma::vec abs_eigenvals(const arma::mat &A) {
+  if (A.is_symmetric()) {
+    return(arma::abs(arma::eig_sym(A)));
+  } else {
+    return(arma::abs(arma::eig_gen(A)));
+  }
+}
+
+//' Maximal distance to hypercube
+//' 
+//' Calculates the maximal distance from a vector to a hypercube
+//' 
+//' @param beta_hat vector
+//' @param hypercube vertices matrix of hypercube vertices
+//' @param transform_to_X transformation matrix to X-space (original space)
+//' @param transform_to_X transformation matrix to Z-space (transformed space)
+//' 
+//' @return The maximal distance from beta_hat to point in hypercube
 // [[Rcpp::export]]
 double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
                                         const arma::mat &hypercube_vertices,
@@ -496,26 +593,4 @@ double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
     distances.at(i) = scaled_distance(arma::trans(hypercube_X.row(i)), beta_hat, transform_to_Z);
   }
   return(distances.max());
-}
-
-//////////----- testing the best covariance matrix for the double langevin -----//////////
-
-// ----- obtains the additional terms in the weights
-// [[Rcpp::export]]
-double log_rho_multivariate_additional(const arma::vec &y,
-                                       const arma::vec &x_mean,
-                                       const double &time,
-                                       const Rcpp::List &inv_precondition_matrices,
-                                       const Rcpp::List &inv_gamma_matrices) {
-  const arma::vec y_minus_x_mean = y-x_mean;
-  double numerator = 0.0;
-  for (int c=0; c < inv_precondition_matrices.size(); ++c) {
-    // term that comes from g
-    const arma::mat &inv_gamma = inv_gamma_matrices[c];
-    numerator -= as_scalar((trans(y_minus_x_mean)*inv_gamma)*y_minus_x_mean);
-    // term that comes from h
-    const arma::mat &inv_precond = inv_precondition_matrices[c];
-    numerator += as_scalar((trans(y_minus_x_mean)*inv_precond)*y_minus_x_mean);
-  }
-  return (numerator/(2*time));
 }

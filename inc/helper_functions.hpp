@@ -11,9 +11,13 @@ double weighted_mean_univariate(const Rcpp::NumericVector &x,
                                 const Rcpp::NumericVector &weights);
 
 double log_rho_univariate(const Rcpp::NumericVector &x,
-                          const double &weighted_mean,
+                          const double &x_mean,
                           const double &time,
                           const Rcpp::NumericVector &precondition_values);
+
+double weighted_variance_univariate(const Rcpp::NumericVector &x,
+                                    const double &x_mean,
+                                    const Rcpp::NumericVector &precondition_values);
 
 arma::mat inverse_sum_matrices(const Rcpp::List &matrices);
 
@@ -23,18 +27,16 @@ arma::vec weighted_mean_multivariate(const arma::mat &matrix,
 
 arma::mat calculate_proposal_cov(const double &time, const Rcpp::List &weights);
 
-double scaled_distance(const arma::vec &x, const arma::vec &y, const arma::mat &matrix);
-
-double spectral_radius(const arma::mat &A);
-
-arma::vec abs_eigenvals(const arma::mat &A);
-
 arma::mat row_wise_subtraction(const arma::mat &X, const arma::vec &vect);
 
 double log_rho_multivariate(const arma::mat &x,
                             const arma::vec &x_mean,
                             const double &time,
                             const Rcpp::List &inv_precondition_matrices);
+
+double weighted_variance_multivariate(const arma::mat &x,
+                                      const arma::vec &x_mean,
+                                      const Rcpp::List &inv_precondition_matrices);
 
 double logsumexp(const Rcpp::NumericVector &x);
 
@@ -62,6 +64,12 @@ arma::mat mvrnormArma_tempered(const int &N,
                                const arma::vec &mu,
                                const arma::mat &Sigma,
                                const double &beta);
+
+double scaled_distance(const arma::vec &x, const arma::vec &y, const arma::mat &matrix);
+
+double spectral_radius(const arma::mat &A);
+
+arma::vec abs_eigenvals(const arma::mat &A);
 
 double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
                                         const arma::mat &hypercube_vertices,

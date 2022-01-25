@@ -24,16 +24,29 @@ BEGIN_RCPP
 END_RCPP
 }
 // log_rho_univariate
-double log_rho_univariate(const Rcpp::NumericVector& x, const double& weighted_mean, const double& time, const Rcpp::NumericVector& precondition_values);
-RcppExport SEXP _DCFusion_log_rho_univariate(SEXP xSEXP, SEXP weighted_meanSEXP, SEXP timeSEXP, SEXP precondition_valuesSEXP) {
+double log_rho_univariate(const Rcpp::NumericVector& x, const double& x_mean, const double& time, const Rcpp::NumericVector& precondition_values);
+RcppExport SEXP _DCFusion_log_rho_univariate(SEXP xSEXP, SEXP x_meanSEXP, SEXP timeSEXP, SEXP precondition_valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double& >::type weighted_mean(weighted_meanSEXP);
+    Rcpp::traits::input_parameter< const double& >::type x_mean(x_meanSEXP);
     Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type precondition_values(precondition_valuesSEXP);
-    rcpp_result_gen = Rcpp::wrap(log_rho_univariate(x, weighted_mean, time, precondition_values));
+    rcpp_result_gen = Rcpp::wrap(log_rho_univariate(x, x_mean, time, precondition_values));
+    return rcpp_result_gen;
+END_RCPP
+}
+// weighted_variance_univariate
+double weighted_variance_univariate(const Rcpp::NumericVector& x, const double& x_mean, const Rcpp::NumericVector& precondition_values);
+RcppExport SEXP _DCFusion_weighted_variance_univariate(SEXP xSEXP, SEXP x_meanSEXP, SEXP precondition_valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const double& >::type x_mean(x_meanSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type precondition_values(precondition_valuesSEXP);
+    rcpp_result_gen = Rcpp::wrap(weighted_variance_univariate(x, x_mean, precondition_values));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -73,41 +86,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// scaled_distance
-double scaled_distance(const arma::vec& x, const arma::vec& y, const arma::mat& matrix);
-RcppExport SEXP _DCFusion_scaled_distance(SEXP xSEXP, SEXP ySEXP, SEXP matrixSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type matrix(matrixSEXP);
-    rcpp_result_gen = Rcpp::wrap(scaled_distance(x, y, matrix));
-    return rcpp_result_gen;
-END_RCPP
-}
-// spectral_radius
-double spectral_radius(const arma::mat& A);
-RcppExport SEXP _DCFusion_spectral_radius(SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(spectral_radius(A));
-    return rcpp_result_gen;
-END_RCPP
-}
-// abs_eigenvals
-arma::vec abs_eigenvals(const arma::mat& A);
-RcppExport SEXP _DCFusion_abs_eigenvals(SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(abs_eigenvals(A));
-    return rcpp_result_gen;
-END_RCPP
-}
 // row_wise_subtraction
 arma::mat row_wise_subtraction(const arma::mat& X, const arma::vec& vect);
 RcppExport SEXP _DCFusion_row_wise_subtraction(SEXP XSEXP, SEXP vectSEXP) {
@@ -131,6 +109,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
     rcpp_result_gen = Rcpp::wrap(log_rho_multivariate(x, x_mean, time, inv_precondition_matrices));
+    return rcpp_result_gen;
+END_RCPP
+}
+// weighted_variance_multivariate
+double weighted_variance_multivariate(const arma::mat& x, const arma::vec& x_mean, const Rcpp::List& inv_precondition_matrices);
+RcppExport SEXP _DCFusion_weighted_variance_multivariate(SEXP xSEXP, SEXP x_meanSEXP, SEXP inv_precondition_matricesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x_mean(x_meanSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
+    rcpp_result_gen = Rcpp::wrap(weighted_variance_multivariate(x, x_mean, inv_precondition_matrices));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -215,6 +206,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// scaled_distance
+double scaled_distance(const arma::vec& x, const arma::vec& y, const arma::mat& matrix);
+RcppExport SEXP _DCFusion_scaled_distance(SEXP xSEXP, SEXP ySEXP, SEXP matrixSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type matrix(matrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(scaled_distance(x, y, matrix));
+    return rcpp_result_gen;
+END_RCPP
+}
+// spectral_radius
+double spectral_radius(const arma::mat& A);
+RcppExport SEXP _DCFusion_spectral_radius(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(spectral_radius(A));
+    return rcpp_result_gen;
+END_RCPP
+}
+// abs_eigenvals
+arma::vec abs_eigenvals(const arma::mat& A);
+RcppExport SEXP _DCFusion_abs_eigenvals(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(abs_eigenvals(A));
+    return rcpp_result_gen;
+END_RCPP
+}
 // maximal_distance_hypercube_to_cv
 double maximal_distance_hypercube_to_cv(const arma::vec& beta_hat, const arma::mat& hypercube_vertices, const arma::mat& transform_to_X, const arma::mat& transform_to_Z);
 RcppExport SEXP _DCFusion_maximal_distance_hypercube_to_cv(SEXP beta_hatSEXP, SEXP hypercube_verticesSEXP, SEXP transform_to_XSEXP, SEXP transform_to_ZSEXP) {
@@ -226,21 +252,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type transform_to_X(transform_to_XSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type transform_to_Z(transform_to_ZSEXP);
     rcpp_result_gen = Rcpp::wrap(maximal_distance_hypercube_to_cv(beta_hat, hypercube_vertices, transform_to_X, transform_to_Z));
-    return rcpp_result_gen;
-END_RCPP
-}
-// log_rho_multivariate_additional
-double log_rho_multivariate_additional(const arma::vec& y, const arma::vec& x_mean, const double& time, const Rcpp::List& inv_precondition_matrices, const Rcpp::List& inv_gamma_matrices);
-RcppExport SEXP _DCFusion_log_rho_multivariate_additional(SEXP ySEXP, SEXP x_meanSEXP, SEXP timeSEXP, SEXP inv_precondition_matricesSEXP, SEXP inv_gamma_matricesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type x_mean(x_meanSEXP);
-    Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_gamma_matrices(inv_gamma_matricesSEXP);
-    rcpp_result_gen = Rcpp::wrap(log_rho_multivariate_additional(y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -693,22 +704,23 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_weighted_mean_univariate", (DL_FUNC) &_DCFusion_weighted_mean_univariate, 2},
     {"_DCFusion_log_rho_univariate", (DL_FUNC) &_DCFusion_log_rho_univariate, 4},
+    {"_DCFusion_weighted_variance_univariate", (DL_FUNC) &_DCFusion_weighted_variance_univariate, 3},
     {"_DCFusion_inverse_sum_matrices", (DL_FUNC) &_DCFusion_inverse_sum_matrices, 1},
     {"_DCFusion_weighted_mean_multivariate", (DL_FUNC) &_DCFusion_weighted_mean_multivariate, 3},
     {"_DCFusion_calculate_proposal_cov", (DL_FUNC) &_DCFusion_calculate_proposal_cov, 2},
-    {"_DCFusion_scaled_distance", (DL_FUNC) &_DCFusion_scaled_distance, 3},
-    {"_DCFusion_spectral_radius", (DL_FUNC) &_DCFusion_spectral_radius, 1},
-    {"_DCFusion_abs_eigenvals", (DL_FUNC) &_DCFusion_abs_eigenvals, 1},
     {"_DCFusion_row_wise_subtraction", (DL_FUNC) &_DCFusion_row_wise_subtraction, 2},
     {"_DCFusion_log_rho_multivariate", (DL_FUNC) &_DCFusion_log_rho_multivariate, 4},
+    {"_DCFusion_weighted_variance_multivariate", (DL_FUNC) &_DCFusion_weighted_variance_multivariate, 3},
     {"_DCFusion_logsumexp", (DL_FUNC) &_DCFusion_logsumexp, 1},
     {"_DCFusion_particle_ESS", (DL_FUNC) &_DCFusion_particle_ESS, 1},
     {"_DCFusion_rho_IS_univariate_", (DL_FUNC) &_DCFusion_rho_IS_univariate_, 5},
     {"_DCFusion_rho_IS_multivariate_", (DL_FUNC) &_DCFusion_rho_IS_multivariate_, 7},
     {"_DCFusion_mvrnormArma", (DL_FUNC) &_DCFusion_mvrnormArma, 3},
     {"_DCFusion_mvrnormArma_tempered", (DL_FUNC) &_DCFusion_mvrnormArma_tempered, 4},
+    {"_DCFusion_scaled_distance", (DL_FUNC) &_DCFusion_scaled_distance, 3},
+    {"_DCFusion_spectral_radius", (DL_FUNC) &_DCFusion_spectral_radius, 1},
+    {"_DCFusion_abs_eigenvals", (DL_FUNC) &_DCFusion_abs_eigenvals, 1},
     {"_DCFusion_maximal_distance_hypercube_to_cv", (DL_FUNC) &_DCFusion_maximal_distance_hypercube_to_cv, 4},
-    {"_DCFusion_log_rho_multivariate_additional", (DL_FUNC) &_DCFusion_log_rho_multivariate_additional, 5},
     {"_DCFusion_log_BLR_gradient", (DL_FUNC) &_DCFusion_log_BLR_gradient, 8},
     {"_DCFusion_log_BLR_hessian", (DL_FUNC) &_DCFusion_log_BLR_hessian, 5},
     {"_DCFusion_ea_phi_BLR_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_vec, 8},
