@@ -13,6 +13,14 @@
 #'              value for c-th posterior
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
+#' @param resampling_method method to be used in resampling, default is multinomial 
+#'                          resampling ('multi'). Other choices are stratified 
+#'                          resampling ('strat'), systematic resampling ('system'),
+#'                          residual resampling ('resid')
+#' @param ESS_threshold number between 0 and 1 defining the proportion 
+#'                      of the number of samples that ESS needs to be
+#'                      lower than for resampling (i.e. resampling is carried 
+#'                      out only when ESS < N*ESS_threshold)
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -41,6 +49,8 @@ rho_j_uniGaussian <- function(particle_set,
                               sds,
                               betas,
                               precondition_values,
+                              resampling_method = 'multi',
+                              ESS_threshold = 0.5,
                               diffusion_estimator = 'Poisson',
                               beta_NB = 10,
                               gamma_NB_n_points = 2,
@@ -62,21 +72,18 @@ rho_j_uniGaussian <- function(particle_set,
     stop("rho_j_uniGaussian: betas must be a vector of length m")
   } else if (!is.vector(precondition_values) | (length(precondition_values)!=m)) {
     stop("rho_j_uniGaussian: precondition_values must be a vector of length m")
+  } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
+    stop("rho_j_uniGaussian: ESS_threshold must be between 0 and 1")
   }
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  parallel::clusterExport(cl, envir = environment(),
-                          varlist = c(ls(), "ea_phi_uniGaussian_DL",
-                                      "ea_phi_uniGaussian_DL_bounds",
-                                      "ea_phi_uniGaussian_DL_LB",
-                                      "ea_uniGaussian_DL_PT"))
-  # exporting functions from layeredBB package to simulate layered Brownian bridges
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
-  # split the x samples and their means into approximately equal lists
   max_samples_per_core <- ceiling(N/n_cores)
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
   counts <- c('full_data_count', 'design_count')
@@ -118,14 +125,14 @@ rho_j_uniGaussian <- function(particle_set,
                          t = time_mesh[j],
                          end_time = time_mesh[length(time_mesh)],
                          C = m,
-                         d = dim,
+                         d = 1,
                          precondition_matrices = precondition_matrices,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
-                         sub_posterior_mean = split_x_means[[core]][i,])$M
+                         sub_posterior_mean = split_x_means[[core]][i])$M
         if (j!=length(time_mesh)) {
-          return(mvrnormArma(N = 1, mu = M, Sigma = V))
+          return(as.vector(mvrnormArma(N = 1, mu = M, Sigma = V)))
         } else {
-          return(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V))
+          return(as.vector(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V)))
         }
       })
       for (i in 1:split_N) {
@@ -282,7 +289,7 @@ parallel_GBF_uniGaussian <- function(particles_to_fuse,
   }
   # start time recording
   pcm <- proc.time()
-  # ---------- first importance sampling step 
+  # ---------- first importance sampling step
   particles <- rho_IS_univariate(particles_to_fuse = particles_to_fuse,
                                  N = N,
                                  m = m,
@@ -317,5 +324,5 @@ parallel_GBF_uniGaussian <- function(particles_to_fuse,
               'ESS' = rho_j$ESS,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
-              'precondition_matrices' = new_precondition_matrices))
+              'precondition_matrices' = new_precondition_values))
 }

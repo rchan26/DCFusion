@@ -12,6 +12,8 @@ rho_j_uniGaussian(
   sds,
   betas,
   precondition_values,
+  resampling_method = "multi",
+  ESS_threshold = 0.5,
   diffusion_estimator = "Poisson",
   beta_NB = 10,
   gamma_NB_n_points = 2,
@@ -37,6 +39,16 @@ value for c-th posterior}
 
 \item{precondition_values}{vector of length m, where precondition_values[c]
 is the precondition value for sub-posterior c}
+
+\item{resampling_method}{method to be used in resampling, default is multinomial 
+resampling ('multi'). Other choices are stratified 
+resampling ('strat'), systematic resampling ('system'),
+residual resampling ('resid')}
+
+\item{ESS_threshold}{number between 0 and 1 defining the proportion 
+of the number of samples that ESS needs to be
+lower than for resampling (i.e. resampling is carried 
+out only when ESS < N*ESS_threshold)}
 
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poisson estimator
