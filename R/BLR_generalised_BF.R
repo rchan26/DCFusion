@@ -20,6 +20,8 @@
 #'                               is the precondition matrix for sub-posterior c
 #' @param inv_precondition_matrices list of length m, where inv_precondition_matrices[[c]]
 #'                                  is the inverse precondition matrix for sub-posterior c
+#' @param Lambda inverse of the sum of the inverse precondition matrices (which
+#'               can be computed using inverse_sum_matrices(inv_precondition_matrices))
 #' @param cv_location string to determine what the location of the control variate
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
@@ -207,7 +209,7 @@ rho_j_BLR <- function(particle_set,
       for (i in 1:split_N) {
         x_mean_j[i,] <- weighted_mean_multivariate(matrix = x_j[[i]],
                                                    weights = inv_precondition_matrices,
-                                                   inverse_sum_weights = inverse_sum_matrices(inv_precondition_matrices))
+                                                   inverse_sum_weights = Lambda)
         log_rho_j[i] <- sum(sapply(1:m, function(c) {
           tryCatch(expr = ea_BLR_DL_PT(dim = dim,
                                        x0 = as.vector(split_x_samples[[core]][[i]][c,]),

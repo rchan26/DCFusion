@@ -60,6 +60,9 @@ is the precondition matrix for sub-posterior c}
 \item{inv_precondition_matrices}{list of length m, where inv_precondition_matrices[[c]]
 is the inverse precondition matrix for sub-posterior c}
 
+\item{Lambda}{inverse of the sum of the inverse precondition matrices (which
+can be computed using inverse_sum_matrices(inv_precondition_matrices))}
+
 \item{cv_location}{string to determine what the location of the control variate
 should be. Must be either 'mode' where the MLE estimator 
 will be used or 'hypercube_centre' (default) to use the centre
