@@ -97,6 +97,9 @@ construct_M <- function(s,
   C2 <- (t-s)/(end_time-s)
   M <- rep(NA, C*d)
   M_list <- rep(list(rep(NA, d)), C)
+  if (d==1) {
+    sub_posterior_samples <- as.matrix(sub_posterior_samples)
+  }
   for (i in 1:C) {
     i_fill <- d*(i-1)+(1:d)
     M[i_fill] <- C1*sub_posterior_samples[i,] + C2*sub_posterior_mean
