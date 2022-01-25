@@ -255,7 +255,7 @@ fusion_uniGaussian <- function(N,
     x <- sapply(samples_to_fuse, function(core) sample(x = core, size = 1))
     weighted_avg <- weighted_mean_univariate(x = x, weights = 1/precondition_values)
     log_rho_prob <- log_rho_univariate(x = x,
-                                       weighted_mean = weighted_avg,
+                                       x_mean = weighted_avg,
                                        time = time,
                                        precondition_values = precondition_values)
     if (log(runif(1, 0, 1)) < log_rho_prob) {
