@@ -40,6 +40,9 @@ value for c-th posterior}
 \item{precondition_matrices}{list of length m, where precondition_matrices[[c]]
 is the precondition matrix for sub-posterior c}
 
+\item{inv_precondition_matrices}{list of length m, where inv_precondition_matrices[[c]]
+is the inverse precondition matrix for sub-posterior c}
+
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poisson estimator
 and "NB" for Negative Binomial estimator}

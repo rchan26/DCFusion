@@ -14,6 +14,9 @@ rho_j_biGaussian(
   betas,
   precondition_matrices,
   inv_precondition_matrices,
+  Lambda,
+  resampling_method = "multi",
+  ESS_threshold = 0.5,
   diffusion_estimator = "Poisson",
   beta_NB = 10,
   gamma_NB_n_points = 2,
@@ -39,6 +42,22 @@ value for c-th posterior}
 
 \item{precondition_matrices}{list of length m, where precondition_matrices[[c]]
 is the precondition matrix for sub-posterior c}
+
+\item{inv_precondition_matrices}{list of length m, where inv_precondition_matrices[[c]]
+is the inverse precondition matrix for sub-posterior c}
+
+\item{Lambda}{inverse of the sum of the inverse precondition matrices (which
+can be computed using inverse_sum_matrices(inv_precondition_matrices))}
+
+\item{resampling_method}{method to be used in resampling, default is multinomial
+resampling ('multi'). Other choices are stratified
+resampling ('strat'), systematic resampling ('system'),
+residual resampling ('resid')}
+
+\item{ESS_threshold}{number between 0 and 1 defining the proportion of the
+number of samples that ESS needs to be lower than for
+resampling (i.e. resampling is carried out only when
+ESS < N*ESS_threshold)}
 
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poisson estimator

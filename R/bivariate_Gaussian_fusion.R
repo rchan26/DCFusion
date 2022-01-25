@@ -91,7 +91,7 @@ ea_biGaussian_DL_PT <- function(x0,
                                 beta_NB = 10,
                                 gamma_NB_n_points = 2,
                                 logarithm) {
-  # transform to preconditoned space
+  # transform to preconditioned space
   z0 <- transform_mats$to_Z %*% x0
   zt <- transform_mats$to_Z %*% y
   # simulate layer information
@@ -393,8 +393,8 @@ parallel_fusion_biGaussian <- function(N,
   rho_acc <- Q_iterations / rho_iterations
   Q_acc <- N / Q_iterations
   rhoQ_acc <- N / rho_iterations
-  if (identical(precondition_matrices, rep(list(diag(1, dim)), m))) {
-    new_precondition_matrices <- list(diag(1, dim), precondition_matrices)
+  if (identical(precondition_matrices, rep(list(diag(1, 2)), m))) {
+    new_precondition_matrices <- list(diag(1, 2), precondition_matrices)
   } else {
     new_precondition_matrices <- list(inverse_sum_matrices(inv_precondition_matrices),
                                       precondition_matrices)
@@ -779,6 +779,8 @@ progressive_fusion_biGaussian <- function(N_schedule,
 #'              value for c-th posterior
 #' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
+#' @param inv_precondition_matrices list of length m, where inv_precondition_matrices[[c]]
+#'                                  is the inverse precondition matrix for sub-posterior c
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -831,8 +833,10 @@ Q_IS_biGaussian <- function(particle_set,
                           varlist = c(ls(), "ea_phi_biGaussian_DL_matrix",
                                       "ea_phi_biGaussian_DL_bounds",
                                       "ea_phi_biGaussian_DL_LB",
-                                      "ea_biGaussian_DL_PT"))
+                                      "ea_biGaussian_DL_PT",
+                                      "mvrnormArma"))
   # exporting functions from layeredBB package to simulate layered Brownian bridges
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
@@ -1047,8 +1051,8 @@ parallel_fusion_SMC_biGaussian <- function(particles_to_fuse,
   } else {
     resampled['Q'] <- FALSE
   }
-  if (identical(precondition_matrices, rep(list(diag(1, dim)), m))) {
-    new_precondition_matrices <- list(diag(1, dim), precondition_matrices)
+  if (identical(precondition_matrices, rep(list(diag(1, 2)), m))) {
+    new_precondition_matrices <- list(diag(1, 2), precondition_matrices)
   } else {
     new_precondition_matrices <- list(inverse_sum_matrices(inv_precondition_matrices),
                                       precondition_matrices)

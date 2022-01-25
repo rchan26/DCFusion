@@ -8,6 +8,7 @@ mean <- rep(0, 2)
 sd <- rep(1, 2)
 correlations <- c(seq(0, 0.9, 0.1), 0.95)
 fusion_time <- 1
+diffusion_estimator <- 'Poisson'
 true_samples <- list()
 input_samples <- list()
 smc_fusion_standard <- list()
@@ -24,7 +25,7 @@ for (i in 1:length(correlations)) {
   # initialising particle sets 
   input_particles <- initialise_particle_sets(samples_to_fuse = input_samples[[i]], multivariate = TRUE)
   
-  # standard 
+  # standard
   print('### performing standard fusion')
   smc_fusion_standard[[i]] <- parallel_fusion_SMC_biGaussian(particles = input_particles,
                                                              N = 10000,
@@ -36,6 +37,7 @@ for (i in 1:length(correlations)) {
                                                              betas = rep(1, 2),
                                                              precondition_matrices = rep(list(diag(1,2)), 2),
                                                              ESS_threshold = 0,
+                                                             diffusion_estimator = diffusion_estimator,
                                                              seed = seed)
   print('ESS:'); print(smc_fusion_standard[[i]]$ESS)
   print('CESS:'); print(smc_fusion_standard[[i]]$CESS)
@@ -52,6 +54,7 @@ for (i in 1:length(correlations)) {
                                                                  betas = rep(1, 2),
                                                                  precondition_matrices = lapply(input_samples[[i]], cov),
                                                                  ESS_threshold = 0,
+                                                                 diffusion_estimator = diffusion_estimator,
                                                                  seed = seed)
   print('ESS:'); print(smc_fusion_precondition[[i]]$ESS)
   print('CESS:'); print(smc_fusion_precondition[[i]]$CESS)

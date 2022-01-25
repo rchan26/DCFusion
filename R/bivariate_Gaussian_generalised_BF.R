@@ -12,6 +12,18 @@
 #'              value for c-th posterior
 #' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
+#' @param inv_precondition_matrices list of length m, where inv_precondition_matrices[[c]]
+#'                                  is the inverse precondition matrix for sub-posterior c
+#' @param Lambda inverse of the sum of the inverse precondition matrices (which
+#'               can be computed using inverse_sum_matrices(inv_precondition_matrices))
+#' @param resampling_method method to be used in resampling, default is multinomial
+#'                          resampling ('multi'). Other choices are stratified
+#'                          resampling ('strat'), systematic resampling ('system'),
+#'                          residual resampling ('resid')
+#' @param ESS_threshold number between 0 and 1 defining the proportion of the
+#'                      number of samples that ESS needs to be lower than for
+#'                      resampling (i.e. resampling is carried out only when
+#'                      ESS < N*ESS_threshold)
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -42,6 +54,9 @@ rho_j_biGaussian <- function(particle_set,
                              betas,
                              precondition_matrices,
                              inv_precondition_matrices,
+                             Lambda,
+                             resampling_method = 'multi',
+                             ESS_threshold = 0.5,
                              diffusion_estimator = 'Poisson',
                              beta_NB = 10,
                              gamma_NB_n_points = 2,
@@ -65,6 +80,8 @@ rho_j_biGaussian <- function(particle_set,
     stop("rho_j_biGaussian: precondition_matrices must be a list of length m")
   } else if (!is.list(inv_precondition_matrices) | (length(inv_precondition_matrices)!=m)) {
     stop("rho_j_biGaussian: inv_precondition_matrices must be a list of length m")
+  } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
+    stop("rho_j_biGaussian: ESS_threshold must be between 0 and 1")
   }
   transform_matrices <- lapply(1:m, function(c) {
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
@@ -83,7 +100,6 @@ rho_j_biGaussian <- function(particle_set,
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
-  # split the x samples and their means into approximately equal lists
   max_samples_per_core <- ceiling(N/n_cores)
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
   counts <- c('full_data_count', 'design_count')
@@ -111,32 +127,32 @@ rho_j_biGaussian <- function(particle_set,
                      t = time_mesh[j],
                      end_time = time_mesh[length(time_mesh)],
                      C = m,
-                     d = dim,
+                     d = 2,
                      precondition_matrices = precondition_matrices,
                      Lambda = Lambda)
     rho_j_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
       split_N <- length(split_indices[[core]])
-      x_mean_j <- matrix(data = NA, nrow = split_N, ncol = dim)
+      x_mean_j <- matrix(data = NA, nrow = split_N, ncol = 2)
       log_rho_j <- rep(0, split_N)
       x_j <- lapply(1:split_N, function(i) {
         M <- construct_M(s = time_mesh[j-1],
                          t = time_mesh[j],
                          end_time = time_mesh[length(time_mesh)],
                          C = m,
-                         d = dim,
+                         d = 2,
                          precondition_matrices = precondition_matrices,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
                          sub_posterior_mean = split_x_means[[core]][i,])$M
         if (j!=length(time_mesh)) {
-          return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = dim, byrow = TRUE))
+          return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = 2, byrow = TRUE))
         } else {
-          return(matrix(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V), nrow = m, ncol = dim, byrow = TRUE))
+          return(matrix(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V), nrow = m, ncol = 2, byrow = TRUE))
         }
       })
       for (i in 1:split_N) {
         x_mean_j[i,] <- weighted_mean_multivariate(matrix = x_j[[i]],
                                                    weights = inv_precondition_matrices,
-                                                   inverse_sum_weights = inverse_sum_matrices(inv_precondition_matrices))
+                                                   inverse_sum_weights = Lambda)
         log_rho_j[i] <- sum(sapply(1:m, function(c) {
           ea_biGaussian_DL_PT(x0 = as.vector(split_x_samples[[core]][[i]][c,]),
                               y = as.vector(x_j[[i]][c,]),
@@ -310,8 +326,7 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
                                    time_mesh = time_mesh,
                                    resampling_method = resampling_method,
                                    seed = seed,
-                                   n_cores = n_cores,
-                                   cl = cl)
+                                   n_cores = n_cores)
   # ---------- iterative steps
   rho_j <- rho_j_biGaussian(particle_set = particles,
                             m = m,
@@ -322,13 +337,14 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
                             betas = betas,
                             precondition_matrices = precondition_matrices,
                             inv_precondition_matrices = inv_precondition_matrices,
+                            Lambda = Lambda,
                             diffusion_estimator = diffusion_estimator,
                             beta_NB = beta_NB,
                             gamma_NB_n_points = gamma_NB_n_points,
                             seed = seed,
                             n_cores = n_cores)
-  if (identical(precondition_matrices, rep(list(diag(1, dim)), m))) {
-    new_precondition_matrices <- list(diag(1, dim), precondition_matrices)
+  if (identical(precondition_matrices, rep(list(diag(1, 2)), m))) {
+    new_precondition_matrices <- list(diag(1, 2), precondition_matrices)
   } else {
     new_precondition_matrices <- list(inverse_sum_matrices(inv_precondition_matrices),
                                       precondition_matrices)
