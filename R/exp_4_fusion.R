@@ -327,13 +327,8 @@ parallel_fusion_exp_4 <- function(N,
   }
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  parallel::clusterExport(cl, envir = environment(),
-                          varlist = c("ea_phi_exp_4_DL",
-                                      "ea_phi_exp_4_DL_bounds",
-                                      "ea_phi_exp_4_DL_LB",
-                                      "ea_exp_4_DL_PT",
-                                      "fusion_exp_4"))
-  # exporting functions from layeredBB package to simulate layered Brownian bridges
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
@@ -748,12 +743,8 @@ Q_IS_exp_4 <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  parallel::clusterExport(cl, envir = environment(), 
-                          varlist = c("ea_phi_exp_4_DL",
-                                      "ea_phi_exp_4_DL_bounds",
-                                      "ea_phi_exp_4_DL_LB",
-                                      "ea_exp_4_DL_PT"))
-  # exporting functions from layeredBB package to simulate layered Brownian bridges
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)

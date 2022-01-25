@@ -404,14 +404,8 @@ parallel_fusion_mixG <- function(N,
   }
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  parallel::clusterExport(cl, envir = environment(),
-                          varlist = c(ls(), list("ea_phi_mixG_DL",
-                                                 "ea_phi_mixG_DL_LB",
-                                                 "ea_phi_mixG_DL_bounds",
-                                                 "ea_mixG_DL_PT",
-                                                 "log_rho_univariate",
-                                                 "fusion_mixG")))
-  # exporting functions from layeredBB package to simulate layered Brownian bridges
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
@@ -884,12 +878,8 @@ Q_IS_mixG <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  parallel::clusterExport(cl, envir = environment(),
-                          varlist = c(ls(), list("ea_phi_mixG_DL",
-                                                 "ea_phi_mixG_DL_LB",
-                                                 "ea_phi_mixG_DL_bounds",
-                                                 "ea_mixG_DL_PT")))
-  # exporting functions from layeredBB package to simulate layered Brownian bridges
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)

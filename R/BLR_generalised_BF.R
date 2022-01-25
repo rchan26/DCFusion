@@ -143,12 +143,13 @@ rho_j_BLR <- function(particle_set,
   # ---------- creating parallel cluster
   if (is.null(cl)) {
     cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "GBF_BLR_outfile.txt")
+    parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
     parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
     close_cluster <- TRUE
   } else {
     close_cluster <- FALSE
   }
-  parallel::clusterExport(cl, envir = environment(), varlist = ls("package:DCFusion"))
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }

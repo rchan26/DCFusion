@@ -371,14 +371,12 @@ Q_IS_BLR <- function(particle_set,
   if (is.null(cl)) {
     cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
     parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
+    parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
     close_cluster <- TRUE
   } else {
     close_cluster <- FALSE
   }
-  parallel::clusterExport(cl, envir = environment(), 
-                          varlist = c(ls(), "ea_phi_BLR_DL_matrix",
-                                      "ea_phi_BLR_DL_bounds",
-                                      "ea_BLR_DL_PT"))
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
@@ -892,11 +890,8 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
   }
   # creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
-  parallel::clusterExport(cl, envir = environment(),
-                          varlist = c("rho_IS_multivariate_",
-                                      "ea_phi_BLR_DL_matrix",
-                                      "ea_phi_BLR_DL_bounds",
-                                      "ea_BLR_DL_PT"))
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_SMC_BLR.txt')
   for (k in ((L-1):1)) {
