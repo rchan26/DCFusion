@@ -1,9 +1,17 @@
 SH_T <- function() {
   # compute T in SH setting
+  # compute variance of sub-posterior means (sigma_a^2)
+  # compute lambda
+  # compute k_1 (using desired threshold for N^{-1}CESS_{0})
+  # give minimum T
 }
 
 SSH_T <- function() {
   # compute T in SSH setting
+  # compute variance of sub-posterior means (sigma_a^2)
+  # compute gamma = sigma_a^2
+  # compute k_1 and k_2 (using desired threshold for N^{-1}CESS_{0})
+  # also give the orders of k_1 and k_2
 }
 
 adaptive_mesh <- function() {
@@ -21,10 +29,10 @@ regular_mesh <- function() {
 # the time mesh that is passed, otherwise, we compute one from the guidance.
 # Maybe we can just set time_mesh = 'adaptive' to do this...
 
-vanilla_SH <- function() {
+SH <- function() {
   
 }
 
-vanilla_SSH <- function() {
+SSH <- function() {
   
 }
