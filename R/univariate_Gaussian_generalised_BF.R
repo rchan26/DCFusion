@@ -51,6 +51,9 @@ rho_j_uniGaussian <- function(particle_set,
                               precondition_values,
                               resampling_method = 'multi',
                               ESS_threshold = 0.5,
+                              sub_posterior_means = NULL,
+                              adaptive_mesh = FALSE,
+                              adaptive_mesh_parameters = NULL,
                               diffusion_estimator = 'Poisson',
                               beta_NB = 10,
                               gamma_NB_n_points = 2,
@@ -75,6 +78,13 @@ rho_j_uniGaussian <- function(particle_set,
   } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
     stop("rho_j_uniGaussian: ESS_threshold must be between 0 and 1")
   }
+  if (adaptive_mesh) {
+    if (!is.vector(sub_posterior_means)) {
+      stop("rho_j_uniGaussian: if adaptive_mesh==TRUE, sub_posterior_means must be a vector of length m")
+    } else if (length(sub_posterior_means)!=m) {
+      stop("rho_j_uniGaussian: if adaptive_mesh==TRUE, sub_posterior_means must be a vector of length m")
+    }
+  }
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
@@ -93,7 +103,10 @@ rho_j_uniGaussian <- function(particle_set,
   precondition_matrices <- lapply(precondition_values, as.matrix)
   Lambda <- inverse_sum_matrices(lapply(1/precondition_values, as.matrix))
   # iterative proposals
-  for (j in 2:length(time_mesh)) {
+  end_time <- time_mesh[length(time_mesh)]
+  j <- 1
+  while (time_mesh[j]!=end_time) {
+    j <- j+1
     # ----------- resample particle_set (only resample if ESS < N*ESS_threshold)
     if (particle_set$ESS < N*ESS_threshold) {
       resampled[j-1] <- TRUE
@@ -106,12 +119,35 @@ rho_j_uniGaussian <- function(particle_set,
     } else {
       resampled[j-1] <- FALSE
     }
+    # ----------- if adaptive_mesh==TRUE, find mesh for jth iteration
+    if (adaptive_mesh) {
+      if (particle_set$number_of_steps < j) {
+        particle_set$number_of_steps <- j
+        particle_set$CESS[j] <- NA
+        particle_set$resampled[j] <- FALSE
+      }
+      tilde_Delta_j <- mesh_guidance_adaptive(C = m,
+                                              d = 1,
+                                              data_size = adaptive_mesh_parameters$data_size,
+                                              b = adaptive_mesh_parameters$b,
+                                              trajectories = particle_set$x_samples,
+                                              sub_posterior_means = sub_posterior_means,
+                                              inv_precondition_matrices = 1/precondition_values,
+                                              k3 = adaptive_mesh_parameters$k3,
+                                              k4 = adaptive_mesh_parameters$k4,
+                                              T2 = adaptive_mesh_parameters$T2,
+                                              vanilla = adaptive_mesh_parameters$vanilla)
+      if (is.null(adaptive_mesh_parameters$T2)) {
+        adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
+      }
+      time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
+    }
     # split the x samples from the previous time marginal (and their means) into approximately equal lists
     split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
     split_x_means <- lapply(split_indices, function(indices) particle_set$x_means[indices])
     V <- construct_V(s = time_mesh[j-1],
                      t = time_mesh[j],
-                     end_time = time_mesh[length(time_mesh)],
+                     end_time = end_time,
                      C = m,
                      d = 1,
                      precondition_matrices = precondition_matrices,
@@ -123,13 +159,13 @@ rho_j_uniGaussian <- function(particle_set,
       x_j <- lapply(1:split_N, function(i) {
         M <- construct_M(s = time_mesh[j-1],
                          t = time_mesh[j],
-                         end_time = time_mesh[length(time_mesh)],
+                         end_time = end_time,
                          C = m,
                          d = 1,
                          precondition_matrices = precondition_matrices,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
                          sub_posterior_mean = split_x_means[[core]][i])$M
-        if (j!=length(time_mesh)) {
+        if (time_mesh[j]!=end_time) {
           return(as.vector(mvrnormArma(N = 1, mu = M, Sigma = V)))
         } else {
           return(as.vector(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V)))
@@ -173,6 +209,12 @@ rho_j_uniGaussian <- function(particle_set,
     CESS[j] <- particle_set$CESS[j]
   }
   parallel::stopCluster(cl)
+  if (adaptive_mesh) {
+    CESS <- CESS[1:j]
+    ESS <- ESS[1:j]
+    resampled <- resampled[1:j]
+    particle_set$time_mesh <- time_mesh[1:j]
+  }
   # set the y samples as the first element of each of the x_samples
   proposed_samples <- sapply(1:N, function(i) particle_set$x_samples[[i]][1])
   particle_set$y_samples <- proposed_samples
@@ -257,6 +299,9 @@ parallel_GBF_uniGaussian <- function(particles_to_fuse,
                                      precondition_values,
                                      resampling_method = 'multi',
                                      ESS_threshold = 0.5,
+                                     sub_posterior_means = NULL,
+                                     adaptive_mesh = FALSE,
+                                     adaptive_mesh_parameters = list(),
                                      diffusion_estimator = 'Poisson',
                                      beta_NB = 10,
                                      gamma_NB_n_points = 2,
@@ -308,6 +353,11 @@ parallel_GBF_uniGaussian <- function(particles_to_fuse,
                              sds = sds,
                              betas = betas,
                              precondition_values = precondition_values,
+                             resampling_method = resampling_method,
+                             ESS_threshold = ESS_threshold,
+                             sub_posterior_means = sub_posterior_means,
+                             adaptive_mesh = adaptive_mesh,
+                             adaptive_mesh_parameters = adaptive_mesh_parameters,
                              diffusion_estimator = diffusion_estimator,
                              beta_NB = beta_NB,
                              gamma_NB_n_points = gamma_NB_n_points,
@@ -318,11 +368,19 @@ parallel_GBF_uniGaussian <- function(particles_to_fuse,
   } else {
     new_precondition_values <- list(1/sum(1/precondition_values), precondition_values)
   }
+  if (!is.null(sub_posterior_means)) {
+    new_sub_posterior_means <- list(weighted_mean_univariate(x = sub_posterior_means,
+                                                             weights = 1/precondition_values),
+                                    sub_posterior_means)
+  } else {
+    new_sub_posterior_means <- list(NULL, sub_posterior_means)
+  }
   return(list('particles' = rho_j$particle_set,
               'proposed_samples' = rho_j$proposed_samples,
               'time' = (proc.time()-pcm)['elapsed'],
               'ESS' = rho_j$ESS,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
-              'precondition_matrices' = new_precondition_values))
+              'precondition_matrices' = new_precondition_values,
+              'sub_posterior_means' = new_sub_posterior_means))
 }
