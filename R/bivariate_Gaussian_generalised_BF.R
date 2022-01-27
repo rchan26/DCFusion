@@ -24,6 +24,16 @@
 #'                      number of samples that ESS needs to be lower than for
 #'                      resampling (i.e. resampling is carried out only when
 #'                      ESS < N*ESS_threshold)
+#' @param sub_posterior_means matrix with m rows and 2 columns, where sub_posterior_means[c,]
+#'                            is the sub-posterior mean of sub-posterior c
+#' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
+#'                      (default is FALSE)
+#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
+#'                                 Items which can be included are data_size,
+#'                                 b (population variance if vanilla BF is used),
+#'                                 k3, k4 (determines CESS_j threshold), T2
+#'                                 (regular mesh recommended), vanilla (logical
+#'                                 value to indicate if vanilla BF guidance is used)
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -57,6 +67,9 @@ rho_j_biGaussian <- function(particle_set,
                              Lambda,
                              resampling_method = 'multi',
                              ESS_threshold = 0.5,
+                             sub_posterior_means = NULL,
+                             adaptive_mesh = FALSE,
+                             adaptive_mesh_parameters = NULL,
                              diffusion_estimator = 'Poisson',
                              beta_NB = 10,
                              gamma_NB_n_points = 2,
@@ -83,6 +96,13 @@ rho_j_biGaussian <- function(particle_set,
   } else if ((ESS_threshold < 0) | (ESS_threshold > 1)) {
     stop("rho_j_biGaussian: ESS_threshold must be between 0 and 1")
   }
+  if (adaptive_mesh) {
+    if (!matrix(sub_posterior_means)) {
+      stop("rho_j_biGaussian: if adaptive_mesh==TRUE, sub_posterior_means must be a (m x 2) matrix")
+    } else if (any(dim(sub_posterior_means)!=c(m,2))) {
+      stop("rho_j_biGaussian: if adaptive_mesh==TRUE, sub_posterior_means must be a (m x 2) matrix")
+    }
+  }
   transform_matrices <- lapply(1:m, function(c) {
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
@@ -103,7 +123,10 @@ rho_j_biGaussian <- function(particle_set,
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
   # iterative proposals
-  for (j in 2:length(time_mesh)) {
+  end_time <- time_mesh[length(time_mesh)]
+  j <- 1
+  while (time_mesh[j]!=end_time) {
+    j <- j+1
     # ----------- resample particle_set (only resample if ESS < N*ESS_threshold)
     if (particle_set$ESS < N*ESS_threshold) {
       resampled[j-1] <- TRUE
@@ -116,12 +139,35 @@ rho_j_biGaussian <- function(particle_set,
     } else {
       resampled[j-1] <- FALSE
     }
+    # ----------- if adaptive_mesh==TRUE, find mesh for jth iteration
+    if (adaptive_mesh) {
+      if (particle_set$number_of_steps < j) {
+        particle_set$number_of_steps <- j
+        particle_set$CESS[j] <- NA
+        particle_set$resampled[j] <- FALSE
+      }
+      tilde_Delta_j <- mesh_guidance_adaptive(C = m,
+                                              d = 2,
+                                              data_size = adaptive_mesh_parameters$data_size,
+                                              b = adaptive_mesh_parameters$b,
+                                              trajectories = particle_set$x_samples,
+                                              sub_posterior_means = sub_posterior_means,
+                                              inv_precondition_matrices = inv_precondition_matrices,
+                                              k3 = adaptive_mesh_parameters$k3,
+                                              k4 = adaptive_mesh_parameters$k4,
+                                              T2 = adaptive_mesh_parameters$T2,
+                                              vanilla = adaptive_mesh_parameters$vanilla)
+      if (is.null(adaptive_mesh_parameters$T2)) {
+        adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
+      }
+      time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
+    }
     # split the x samples from the previous time marginal (and their means) into approximately equal lists
     split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
     split_x_means <- lapply(split_indices, function(indices) particle_set$x_means[indices,,drop = FALSE])
     V <- construct_V(s = time_mesh[j-1],
                      t = time_mesh[j],
-                     end_time = time_mesh[length(time_mesh)],
+                     end_time = end_time,
                      C = m,
                      d = 2,
                      precondition_matrices = precondition_matrices,
@@ -133,13 +179,13 @@ rho_j_biGaussian <- function(particle_set,
       x_j <- lapply(1:split_N, function(i) {
         M <- construct_M(s = time_mesh[j-1],
                          t = time_mesh[j],
-                         end_time = time_mesh[length(time_mesh)],
+                         end_time = end_time,
                          C = m,
                          d = 2,
                          precondition_matrices = precondition_matrices,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
                          sub_posterior_mean = split_x_means[[core]][i,])$M
-        if (j!=length(time_mesh)) {
+        if (time_mesh[j]!=end_time) {
           return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = 2, byrow = TRUE))
         } else {
           return(matrix(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V), nrow = m, ncol = 2, byrow = TRUE))
@@ -187,6 +233,12 @@ rho_j_biGaussian <- function(particle_set,
     CESS[j] <- particle_set$CESS[j]
   }
   parallel::stopCluster(cl)
+  if (adaptive_mesh) {
+    CESS <- CESS[1:j]
+    ESS <- ESS[1:j]
+    resampled <- resampled[1:j]
+    particle_set$time_mesh <- time_mesh[1:j]
+  }
   # set the y samples as the first element of each of the x_samples
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
   particle_set$y_samples <- proposed_samples
@@ -234,6 +286,16 @@ rho_j_biGaussian <- function(particle_set,
 #'                      of the number of samples that ESS needs to be
 #'                      lower than for resampling (i.e. resampling is carried 
 #'                      out only when ESS < N*ESS_threshold)
+#' @param sub_posterior_means matrix with m rows and 2 columns, where sub_posterior_means[c,]
+#'                            is the sub-posterior mean of sub-posterior c
+#' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
+#'                      (default is FALSE)
+#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
+#'                                 Items which can be included are data_size,
+#'                                 b (population variance if vanilla BF is used),
+#'                                 k3, k4 (determines CESS_j threshold), T2
+#'                                 (regular mesh recommended), vanilla (logical
+#'                                 value to indicate if vanilla BF guidance is used)
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -257,6 +319,10 @@ rho_j_biGaussian <- function(particle_set,
 #'                                are the pre-conditioning matrices that were used 
 #'                                and precondition_matrices[[1]] are the combined 
 #'                                precondition matrices}
+#'   \item{sub_posterior_means}{list of length 2, where sub_posterior_means[[2]]
+#'                              are the sub-posterior means that were used and
+#'                              sub_posterior_means[[1]] are the combined
+#'                              sub-posterior means}
 #' }
 #' 
 #' @export
@@ -272,6 +338,9 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
                                     resampling_method = 'multi',
                                     ESS_threshold = 0.5,
                                     diffusion_estimator = 'Poisson',
+                                    sub_posterior_means = NULL,
+                                    adaptive_mesh = FALSE,
+                                    adaptive_mesh_parameters = NULL,
                                     beta_NB = 10,
                                     gamma_NB_n_points = 2,
                                     seed = NULL,
@@ -334,6 +403,11 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
                             precondition_matrices = precondition_matrices,
                             inv_precondition_matrices = inv_precondition_matrices,
                             Lambda = Lambda,
+                            resampling_method = resampling_method,
+                            ESS_threshold = ESS_threshold,
+                            sub_posterior_means = sub_posterior_means,
+                            adaptive_mesh = adaptive_mesh,
+                            adaptive_mesh_parameters = adaptive_mesh_parameters,
                             diffusion_estimator = diffusion_estimator,
                             beta_NB = beta_NB,
                             gamma_NB_n_points = gamma_NB_n_points,
@@ -345,11 +419,20 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
     new_precondition_matrices <- list(inverse_sum_matrices(inv_precondition_matrices),
                                       precondition_matrices)
   }
+  if (!is.null(sub_posterior_means)) {
+    new_sub_posterior_means <- list(weighted_mean_multivariate(x = sub_posterior_means,
+                                                               weights = inv_precondition_matrices,
+                                                               inverse_sum_weights = Lambda),
+                                    sub_posterior_means)
+  } else {
+    new_sub_posterior_means <- list(NULL, sub_posterior_means)
+  }
   return(list('particles' = rho_j$particle_set,
               'proposed_samples' = rho_j$proposed_samples,
               'time' = (proc.time()-pcm)['elapsed'],
               'ESS' = rho_j$ESS,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
-              'precondition_matrices' = new_precondition_matrices))
+              'precondition_matrices' = new_precondition_matrices,
+              'sub_posterior_means' = new_sub_posterior_means))
 }

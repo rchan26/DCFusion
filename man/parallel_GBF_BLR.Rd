@@ -18,6 +18,9 @@ parallel_GBF_BLR(
   resampling_method = "multi",
   ESS_threshold = 0.5,
   cv_location = "hypercube_centre",
+  sub_posterior_means = NULL,
+  adaptive_mesh = FALSE,
+  adaptive_mesh_parameters = NULL,
   diffusion_estimator = "Poisson",
   beta_NB = 10,
   gamma_NB_n_points = 2,
@@ -76,6 +79,19 @@ should be. Must be either 'mode' where the MLE estimator
 will be used or 'hypercube_centre' (default) to use the centre
 of the simulated hypercube}
 
+\item{sub_posterior_means}{matrix with m rows and d columns, where sub_posterior_means[c,]
+is the sub-posterior mean of sub-posterior c}
+
+\item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used
+(default is FALSE)}
+
+\item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh.
+Items which can be included are data_size,
+b (population variance if vanilla BF is used),
+k3, k4 (determines CESS_j threshold), T2
+(regular mesh recommended), vanilla (logical
+value to indicate if vanilla BF guidance is used)}
+
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poisson estimator
 and "NB" for Negative Binomial estimator}
@@ -118,6 +134,10 @@ A list with components:
                                are the pre-conditioning matrices that were used
                                and precondition_matrices[[1]] are the combined
                                precondition matrices}
+  \item{sub_posterior_means}{list of length 2, where sub_posterior_means[[2]]
+                             are the sub-posterior means that were used and
+                             sub_posterior_means[[1]] are the combined
+                             sub-posterior means}
   \item{combined_data}{combined data for the fusion density}
 }
 }

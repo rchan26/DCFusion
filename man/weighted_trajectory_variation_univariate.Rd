@@ -11,8 +11,7 @@ weighted_trajectory_variation_univariate(
 )
 }
 \arguments{
-\item{sub_posterior_means}{list of length C, where sub_posterior_mean[[c]] is the
-sub_posterior_mean of the cth sub-posterior}
+\item{sub_posterior_means}{vector of length C of sub-posterior means}
 
 \item{precondition_values}{precondition values associated to each sub-posterior}
 

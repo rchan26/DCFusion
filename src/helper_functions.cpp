@@ -135,8 +135,7 @@ double weighted_variance_univariate(const arma::vec &x,
 //' with respect to their individual sub-posterior means
 //'
 //' @param list where x_samples[[i]] ith collection of the C trajectories
-//' @param sub_posterior_means list of length C, where sub_posterior_mean[[c]] is the
-//'        sub_posterior_mean of the cth sub-posterior
+//' @param sub_posterior_means vector of length C of sub-posterior means
 //' @param precondition_values precondition values associated to each sub-posterior
 //'
 //' @return the approximated expectation of nu_j
@@ -398,8 +397,7 @@ double weighted_variance_multivariate(const arma::mat &x,
 //' with respect to their individual sub-posterior means
 //'
 //' @param list where x_samples[[i]] ith collection of the C trajectories
-//' @param sub_posterior_means list of length C, where sub_posterior_mean[[c]] is the
-//'        sub_posterior_mean of the cth sub-posterior
+//' @param sub_posterior_means matrix with C rows of sub-posterior means
 //' @param inv_precondition_matrices list of length m of inverse 
 //'                                  preconditioning matrices
 //'

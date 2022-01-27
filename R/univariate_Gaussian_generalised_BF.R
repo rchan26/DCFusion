@@ -24,6 +24,7 @@
 #' @param sub_posterior_means vector of length m, where sub_posterior_means[c]
 #'                            is the sub-posterior mean of sub-posterior c
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
+#'                      (default is FALSE)
 #' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
 #'                                 Items which can be included are data_size,
 #'                                 b (population variance if vanilla BF is used),
@@ -275,6 +276,7 @@ rho_j_uniGaussian <- function(particle_set,
 #' @param sub_posterior_means vector of length m, where sub_posterior_means[c]
 #'                            is the sub-posterior mean of sub-posterior c
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
+#'                      (default is FALSE)
 #' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
 #'                                 Items which can be included are data_size,
 #'                                 b (population variance if vanilla BF is used),
@@ -304,6 +306,10 @@ rho_j_uniGaussian <- function(particle_set,
 #'                              are the pre-conditioning values that were used 
 #'                              and precondition_values[[1]] are the combined 
 #'                              precondition values}
+#'   \item{sub_posterior_means}{list of length 2, where sub_posterior_means[[2]]
+#'                              are the sub-posterior means that were used and
+#'                              sub_posterior_means[[1]] are the combined
+#'                              sub-posterior means}
 #' }
 #' 
 #' @export

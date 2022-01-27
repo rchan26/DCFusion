@@ -17,6 +17,9 @@ parallel_GBF_biGaussian(
   resampling_method = "multi",
   ESS_threshold = 0.5,
   diffusion_estimator = "Poisson",
+  sub_posterior_means = NULL,
+  adaptive_mesh = FALSE,
+  adaptive_mesh_parameters = NULL,
   beta_NB = 10,
   gamma_NB_n_points = 2,
   seed = NULL,
@@ -61,6 +64,19 @@ out only when ESS < N*ESS_threshold)}
 between "Poisson" (default) for Poisson estimator
 and "NB" for Negative Binomial estimator}
 
+\item{sub_posterior_means}{matrix with m rows and 2 columns, where sub_posterior_means[c,]
+is the sub-posterior mean of sub-posterior c}
+
+\item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used
+(default is FALSE)}
+
+\item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh.
+Items which can be included are data_size,
+b (population variance if vanilla BF is used),
+k3, k4 (determines CESS_j threshold), T2
+(regular mesh recommended), vanilla (logical
+value to indicate if vanilla BF guidance is used)}
+
 \item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
 
 \item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
@@ -85,6 +101,10 @@ A list with components:
                                are the pre-conditioning matrices that were used 
                                and precondition_matrices[[1]] are the combined 
                                precondition matrices}
+  \item{sub_posterior_means}{list of length 2, where sub_posterior_means[[2]]
+                             are the sub-posterior means that were used and
+                             sub_posterior_means[[1]] are the combined
+                             sub-posterior means}
 }
 }
 \description{

@@ -56,7 +56,8 @@ out only when ESS < N*ESS_threshold)}
 \item{sub_posterior_means}{vector of length m, where sub_posterior_means[c]
 is the sub-posterior mean of sub-posterior c}
 
-\item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used}
+\item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used
+(default is FALSE)}
 
 \item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh.
 Items which can be included are data_size,

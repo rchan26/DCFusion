@@ -11,8 +11,7 @@ weighted_trajectory_variation_multivariate(
 )
 }
 \arguments{
-\item{sub_posterior_means}{list of length C, where sub_posterior_mean[[c]] is the
-sub_posterior_mean of the cth sub-posterior}
+\item{sub_posterior_means}{matrix with C rows of sub-posterior means}
 
 \item{inv_precondition_matrices}{list of length m of inverse 
 preconditioning matrices}

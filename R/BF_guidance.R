@@ -49,7 +49,7 @@ T_guidance <- function(condition,
     }
   }
   if (is.null(data_size)) {
-    data_size <- C
+    data_size <- 1
   } else {
     if (data_size < 0) {
       stop("T_guidance: data_size must be greater than 0")
@@ -68,8 +68,8 @@ T_guidance <- function(condition,
       Lambda <- diag(1,d)/C
     }
   } else {
-    # set b to 1 if vanilla == FALSE
-    b <- 1
+    # set b to data_size/C if vanilla == FALSE
+    b <- data_size/C
     if (d==1) {
       if (!all(sapply(1:C, function(c) is.double(precondition_matrices[[c]]) & length(precondition_matrices[[c]]==1)))) {
         stop("T_guidance: if d==1, precondition_matrices[[c]] must a double for all c=1,...,C")
@@ -209,7 +209,7 @@ mesh_guidance_adaptive <- function(C,
     }
   }
   if (is.null(data_size)) {
-    data_size <- C
+    data_size <- 1
   } else {
     if (data_size < 0) {
       stop("T_guidance: data_size must be greater than 0")
@@ -225,8 +225,8 @@ mesh_guidance_adaptive <- function(C,
       inv_precondition_matrices <- rep(list(diag(1,d)), C)
     }
   } else {
-    # set b to 1 if vanilla == FALSE
-    b <- 1
+    # set b to data_size/C if vanilla == FALSE
+    b <- data_size/C
     if (d==1) {
       if (!all(sapply(1:C, function(c) is.double(inv_precondition_matrices[[c]]) & length(inv_precondition_matrices[[c]]==1)))) {
         stop("T_guidance: if d==1, inv_precondition_matrices[[c]] must a double for all c=1,...,C")
@@ -291,7 +291,7 @@ mesh_guidance_regular <- function(C,
     }
   }
   if (is.null(data_size)) {
-    data_size <- C
+    data_size <- 1
   } else {
     if (data_size < 0) {
       stop("mesh_guidance_regular: data_size must be greater than 0")
@@ -301,7 +301,8 @@ mesh_guidance_regular <- function(C,
     vanilla <- FALSE
   }
   if (!vanilla) {
-    b <- 1
+    # set b to data_size/C if vanilla == FALSE
+    b <- data_size/C
   }
   if (is.null(k3)) {
     k3 <- 0.5
