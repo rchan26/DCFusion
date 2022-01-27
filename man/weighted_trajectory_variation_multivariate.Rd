@@ -27,31 +27,21 @@ Calculation of the scaled/weighted average variation of the C trajectories
 with respect to their individual sub-posterior means
 }
 \examples{
-# set covariance matrices
-Sig1 <- diag(2)
-Sig2 <- matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2)
-Sig3 <- matrix(c(4, -3.2, -3.2, 4), nrow = 2, ncol = 2)
-# sample some x values and store in the rows
-x <- matrix(nrow = 3, ncol = 2)
-x[1,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig1)
-x[2,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig2)
-x[3,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig3)
-# x_samples has 5 samples and C=3
-x_samples <- rep(list(x), 5)
-# calculate precondition matrices and their inverses
-precondition_matrices <- list(Sig1, Sig2, Sig3)
-inv_precondition_matrices <- lapply(precondition_matrices, solve)
-inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
-# calculate the weighted mean where weights are the inverse precondition matrices
-x_mean <- weighted_mean_multivariate(matrix = x,
-                                     weights = precondition_matrices,
-                                     inverse_sum_weights = inverse_sum_weights)
-sub_posterior_means <- rep(list(x_mean), 3)
-# this should be 3 times the example for weighted_variance_multivariate()
+N <- 10
+C <- 4
+d <- 3
+x_samples <- lapply(1:N, function(i) mvrnormArma(C, rep(0,d), diag(1,d)))
+sub_posterior_means <- mvrnormArma(C, rep(0,d), diag(1,d))
+precond <- lapply(1:C, function(c) diag(c, d))
+inv_precond <- lapply(precond, solve)
 weighted_trajectory_variation_multivariate(x_samples = x_samples,
                                            sub_posterior_means = sub_posterior_means,
-                                           inv_precondition_matrices = inv_precondition_matrices)
-3*weighted_variance_multivariate(x = x,
-                                 x_mean = x_mean,
-                                 inv_precondition_matrices = inv_precondition_matrices)
+                                           inv_precondition_matrices = inv_precond)
+# should be equal to the result of this:
+sum(sapply(1:N, function(i) {
+  sum(sapply(1:C, function(c) {
+    diff <- x_samples[[i]][c,]-sub_posterior_means[c,]
+    return(t(diff) \%*\% inv_precond[[c]] \%*\% diff)
+  }))/C
+}))/N
 }

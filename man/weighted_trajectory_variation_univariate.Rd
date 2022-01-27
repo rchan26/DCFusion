@@ -27,18 +27,16 @@ with respect to their individual sub-posterior means
 }
 \examples{
 # x_samples has 5 samples and C=4
-x <- rnorm(4, 0, 1)
-x_samples <- rep(list(x), 5)
-precondition_vals <- c(1, 2, 3, 4)
-# compute x_means (and take these as the sub-posterior means)
-x_mean <- weighted_mean_univariate(x = x,
-                                   weights = 1/precondition_vals)
-sub_posterior_means <- rep(list(x_mean), 4)
-# this should be 3 times the example for weighted_variance_univariate()
+N <- 10
+C <- 4
+x_samples <- lapply(1:N, function(i) rnorm(C))
+sub_posterior_means <- rnorm(C)
+precond <- 1:C
 weighted_trajectory_variation_univariate(x_samples = x_samples,
                                          sub_posterior_means = sub_posterior_means,
-                                         precondition_values = precondition_vals)
-3*weighted_variance_univariate(x = x,
-                               x_mean = x_mean,
-                               precondition_values = precondition_vals)
+                                         precondition_values = precond)
+# should be equal to the result of this:
+sum(sapply(1:N, function(i) {
+  sum((((x_samples[[i]]-sub_posterior_means)^2)/precond))/C
+}))/N
 }

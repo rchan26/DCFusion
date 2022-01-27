@@ -38,27 +38,27 @@ BEGIN_RCPP
 END_RCPP
 }
 // weighted_variance_univariate
-double weighted_variance_univariate(const Rcpp::NumericVector& x, const double& x_mean, const Rcpp::NumericVector& precondition_values);
+double weighted_variance_univariate(const arma::vec& x, const double& x_mean, const arma::vec& precondition_values);
 RcppExport SEXP _DCFusion_weighted_variance_univariate(SEXP xSEXP, SEXP x_meanSEXP, SEXP precondition_valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const double& >::type x_mean(x_meanSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type precondition_values(precondition_valuesSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type precondition_values(precondition_valuesSEXP);
     rcpp_result_gen = Rcpp::wrap(weighted_variance_univariate(x, x_mean, precondition_values));
     return rcpp_result_gen;
 END_RCPP
 }
 // weighted_trajectory_variation_univariate
-double weighted_trajectory_variation_univariate(const Rcpp::List& x_samples, const Rcpp::List& sub_posterior_means, const Rcpp::NumericVector& precondition_values);
+double weighted_trajectory_variation_univariate(const Rcpp::List& x_samples, const arma::vec& sub_posterior_means, const arma::vec& precondition_values);
 RcppExport SEXP _DCFusion_weighted_trajectory_variation_univariate(SEXP x_samplesSEXP, SEXP sub_posterior_meansSEXP, SEXP precondition_valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type x_samples(x_samplesSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type sub_posterior_means(sub_posterior_meansSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type precondition_values(precondition_valuesSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type sub_posterior_means(sub_posterior_meansSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type precondition_values(precondition_valuesSEXP);
     rcpp_result_gen = Rcpp::wrap(weighted_trajectory_variation_univariate(x_samples, sub_posterior_means, precondition_values));
     return rcpp_result_gen;
 END_RCPP
@@ -139,13 +139,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // weighted_trajectory_variation_multivariate
-double weighted_trajectory_variation_multivariate(const Rcpp::List& x_samples, const Rcpp::List& sub_posterior_means, const Rcpp::List& inv_precondition_matrices);
+double weighted_trajectory_variation_multivariate(const Rcpp::List& x_samples, const arma::mat& sub_posterior_means, const Rcpp::List& inv_precondition_matrices);
 RcppExport SEXP _DCFusion_weighted_trajectory_variation_multivariate(SEXP x_samplesSEXP, SEXP sub_posterior_meansSEXP, SEXP inv_precondition_matricesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type x_samples(x_samplesSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type sub_posterior_means(sub_posterior_meansSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type sub_posterior_means(sub_posterior_meansSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
     rcpp_result_gen = Rcpp::wrap(weighted_trajectory_variation_multivariate(x_samples, sub_posterior_means, inv_precondition_matrices));
     return rcpp_result_gen;
