@@ -41,12 +41,8 @@ T_guidance <- function(condition,
   } else {
     stop("T_guidance: d must be greater than or equal to 1")
   }
-  if (is.null(b)) {
-    b <- 1
-  } else {
-    if (b < 0) {
-      stop("T_guidance: b must be greater than 0")
-    }
+  if (is.null(vanilla)) {
+    vanilla <- FALSE
   }
   if (is.null(data_size)) {
     data_size <- 1
@@ -55,8 +51,16 @@ T_guidance <- function(condition,
       stop("T_guidance: data_size must be greater than 0")
     }
   }
-  if (is.null(vanilla)) {
-    vanilla <- FALSE
+  if (is.null(b)) {
+    if (vanilla) {
+      b <- 1  
+    } else {
+      b <- data_size/C
+    }
+  } else {
+    if (b < 0) {
+      stop("T_guidance: b must be greater than 0")
+    }
   }
   if (vanilla) {
     if (d==1) {
@@ -68,8 +72,6 @@ T_guidance <- function(condition,
       Lambda <- diag(1,d)/C
     }
   } else {
-    # set b to data_size/C if vanilla == FALSE
-    b <- data_size/C
     if (d==1) {
       if (!all(sapply(1:C, function(c) is.double(precondition_matrices[[c]]) & length(precondition_matrices[[c]]==1)))) {
         stop("T_guidance: if d==1, precondition_matrices[[c]] must a double for all c=1,...,C")
@@ -94,7 +96,6 @@ T_guidance <- function(condition,
       }
     }
   }
-  ##### compute mean and variance of sub-posterior means #####
   if (d==1) {
     a_tilde <- weighted_mean_univariate(x = sub_posterior_means,
                                         weights = inv_precondition_matrices)
@@ -109,11 +110,9 @@ T_guidance <- function(condition,
                                                 x_mean = a_tilde,
                                                 inv_precondition_matrices = inv_precondition_matrices)
   }
-  # if vanilla == FALSE, b is set to 1 above
   if (condition == 'SH') {
-    ##### SH(lambda) #####
     if (is.null(lambda)) {
-      lambda <- data_size*sigma_a_2/(b*(C-1))
+      lambda <- 1
     } else {
       if (lambda < 0) {
         stop("T_guidance: lambda must be greater than 0")
@@ -132,9 +131,9 @@ T_guidance <- function(condition,
                 'CESS_0_threshold' = CESS_0_threshold,
                 'sigma_a_2' = sigma_a_2,
                 'lambda' = lambda,
+                'b' = b,
                 'k1' = k1))
   } else if (condition == 'SSH') {
-    ##### SSH(gamma) #####
     if (is.null(gamma)) {
       gamma <- b*sigma_a_2  
     } else {
@@ -167,6 +166,7 @@ T_guidance <- function(condition,
                 'T2' = T2,
                 'sigma_a_2' = sigma_a_2,
                 'gamma' = gamma,
+                'b' = b,
                 'k1' = k1,
                 'k2' = k2,
                 'k1_order' = k1_order,
@@ -188,35 +188,39 @@ mesh_guidance_adaptive <- function(C,
                                    vanilla = NULL) {
   if (d==1) {
     if (!is.vector(sub_posterior_means)) {
-      stop("T_guidance: if d==1, sub_posterior_means must be a vector of length C")
+      stop("mesh_guidance_adaptive: if d==1, sub_posterior_means must be a vector of length C")
     } else if (length(sub_posterior_means)!=C) {
-      stop("T_guidance: if d==1, sub_posterior_means must be a vector of length C")
+      stop("mesh_guidance_adaptive: if d==1, sub_posterior_means must be a vector of length C")
     }
   } else if (d > 1)  {
     if (!is.matrix(sub_posterior_samples)){
-      stop("T_guidance: if d>1, sub_posterior_samples must be a (C x d) matrix")
+      stop("mesh_guidance_adaptive: if d>1, sub_posterior_samples must be a (C x d) matrix")
     } else if (any(dim(sub_posterior_samples)!=c(C,d))) {
-      stop("T_guidance: if d>1, sub_posterior_samples must be a (C x d) matrix")
+      stop("mesh_guidance_adaptive: if d>1, sub_posterior_samples must be a (C x d) matrix")
     } 
   } else {
-    stop("T_guidance: d must be greater than or equal to 1")
+    stop("mesh_guidance_adaptive: d must be greater than or equal to 1")
   }
-  if (is.null(b)) {
-    b <- 1
-  } else {
-    if (b < 0) {
-      stop("T_guidance: b must be greater than 0")
-    }
+  if (is.null(vanilla)) {
+    vanilla <- FALSE
   }
   if (is.null(data_size)) {
     data_size <- 1
   } else {
     if (data_size < 0) {
-      stop("T_guidance: data_size must be greater than 0")
+      stop("mesh_guidance_adaptive: data_size must be greater than 0")
     }
   }
-  if (is.null(vanilla)) {
-    vanilla <- FALSE
+  if (is.null(b)) {
+    if (vanilla) {
+      b <- 1  
+    } else {
+      b <- data_size/C
+    }
+  } else {
+    if (b < 0) {
+      stop("mesh_guidance_adaptive: b must be greater than 0")
+    }
   }
   if (vanilla) {
     if (d==1) {
@@ -225,18 +229,16 @@ mesh_guidance_adaptive <- function(C,
       inv_precondition_matrices <- rep(list(diag(1,d)), C)
     }
   } else {
-    # set b to data_size/C if vanilla == FALSE
-    b <- data_size/C
     if (d==1) {
       if (!all(sapply(1:C, function(c) is.double(inv_precondition_matrices[[c]]) & length(inv_precondition_matrices[[c]]==1)))) {
-        stop("T_guidance: if d==1, inv_precondition_matrices[[c]] must a double for all c=1,...,C")
+        stop("mesh_guidance_adaptive: if d==1, inv_precondition_matrices[[c]] must a double for all c=1,...,C")
       }
       inv_precondition_matrices <- unlist(inv_precondition_matrices)
     } else if (d>1) {
       if (!all(sapply(1:C, function(c) is.matrix(inv_precondition_matrices[[c]])))) {
-        stop("T_guidance: if d>1, inv_precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
+        stop("mesh_guidance_adaptive: if d>1, inv_precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
       } else if (!all(sapply(1:C, function(c) all(dim(inv_precondition_matrices)==d)))) {
-        stop("T_guidance: if d>1, inv_precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
+        stop("mesh_guidance_adaptive: if d>1, inv_precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
       }
     }
   }
@@ -254,14 +256,14 @@ mesh_guidance_adaptive <- function(C,
     k3 <- 0.5
   } else {
     if (k3 < 0) {
-      stop("T_guidance: k3 must be greater than 0")
+      stop("mesh_guidance_adaptive: k3 must be greater than 0")
     }
   }
   if (is.null(k4)) {
     k4 <- 0.5
   } else {
     if (k4< 0) {
-      stop("T_guidance: k4 must be greater than 0")
+      stop("mesh_guidance_adaptive: k4 must be greater than 0")
     }
   }
   T1 <- (b^2)*C*k3/(E_nu_j*(data_size^2))
@@ -283,12 +285,8 @@ mesh_guidance_regular <- function(C,
                                   k3 = NULL,
                                   k4 = NULL,
                                   vanilla = NULL) {
-  if (is.null(b)) {
-    b <- 1
-  } else {
-    if (b < 0) {
-      stop("mesh_guidance_regular: b must be greater than 0")
-    }
+  if (is.null(vanilla)) {
+    vanilla <- FALSE
   }
   if (is.null(data_size)) {
     data_size <- 1
@@ -297,12 +295,16 @@ mesh_guidance_regular <- function(C,
       stop("mesh_guidance_regular: data_size must be greater than 0")
     }
   }
-  if (is.null(vanilla)) {
-    vanilla <- FALSE
-  }
-  if (!vanilla) {
-    # set b to data_size/C if vanilla == FALSE
-    b <- data_size/C
+  if (is.null(b)) {
+    if (vanilla) {
+      b <- 1  
+    } else {
+      b <- data_size/C
+    }
+  } else {
+    if (b < 0) {
+      stop("mesh_guidance_regular: b must be greater than 0")
+    }
   }
   if (is.null(k3)) {
     k3 <- 0.5
