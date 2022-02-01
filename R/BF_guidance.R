@@ -32,7 +32,7 @@ T_guidance <- function(condition,
     } else if (length(sub_posterior_means)!=C) {
       stop("T_guidance: if d==1, sub_posterior_means must be a vector of length C")
     }
-  } else if (d > 1)  {
+  } else if (d > 1) {
     if (!is.matrix(sub_posterior_samples)){
       stop("T_guidance: if d>1, sub_posterior_samples must be a (C x d) matrix")
     } else if (any(dim(sub_posterior_samples)!=c(C,d))) {
@@ -42,9 +42,11 @@ T_guidance <- function(condition,
     stop("T_guidance: d must be greater than or equal to 1")
   }
   if (is.null(vanilla)) {
+    warning('T_guidance: vanilla is set to FALSE by default')
     vanilla <- FALSE
   }
   if (is.null(data_size)) {
+    warning('T_guidance: data_size is set to 1 by default')
     data_size <- 1
   } else {
     if (data_size < 0) {
@@ -53,8 +55,10 @@ T_guidance <- function(condition,
   }
   if (is.null(b)) {
     if (vanilla) {
-      b <- 1  
+      warning('T_guidance: b is set to 1 by default')
+      b <- 1
     } else {
+      warning('T_guidance: b is set to data_size/C by default')
       b <- data_size/C
     }
   } else {
@@ -112,6 +116,7 @@ T_guidance <- function(condition,
   }
   if (condition == 'SH') {
     if (is.null(lambda)) {
+      warning("T_guidance: lambda is set to 1 by default")
       lambda <- 1
     } else {
       if (lambda < 0) {
@@ -119,7 +124,9 @@ T_guidance <- function(condition,
       }
     }
     if (is.null(k1)) {
-      k1 <- sqrt(-(lambda+d/2)/log(threshold))  
+      warning("T_guidance: k1 set to sqrt(-(lambda+d/2)/log(threshold)) = ",
+              sqrt(-(lambda+d/2)/log(threshold)), " by default")
+      k1 <- sqrt(-(lambda+d/2)/log(threshold))
     } else {
       if (k1 < 0) {
         stop("T_guidance: k1 must be greater than 0")
@@ -135,21 +142,26 @@ T_guidance <- function(condition,
                 'k1' = k1))
   } else if (condition == 'SSH') {
     if (is.null(gamma)) {
-      gamma <- b*sigma_a_2  
+      warning("T_guidance: gamma is set to sigma_a_2/b = ", sigma_a_2/b, " by default")
+      gamma <- sigma_a_2/b
     } else {
       if (gamma < 0) {
         stop("T_guidance: gamma must be greater than 0")
       }
     }
     if (is.null(k1)) {
-      k1 <- sqrt(-((data_size*gamma/C)+(d/2))/log(threshold))  
+      warning("T_guidance: k1 set to sqrt(-((data_size*gamma/C)+(d/2))/log(threshold)) = ",
+              sqrt(-((data_size*gamma/C)+(d/2))/log(threshold)), " by default")
+      k1 <- sqrt(-((data_size*gamma/C)+(d/2))/log(threshold))
     } else {
       if (k1 < 0) {
         stop("T_guidance: k1 must be greater than 0")
       }
     }
     if (is.null(k2)) {
-      k2 <- b*C*k1/data_size  
+      warning("T_guidance: k2 set to b*C*k1/data_size = ",
+              b*C*k1/data_size, " by default")
+      k2 <- b*C*k1/data_size
     } else {
       if (k2 < 0) {
         stop("T_guidance: k2 must be greater than 0")
@@ -192,7 +204,7 @@ mesh_guidance_adaptive <- function(C,
     } else if (length(sub_posterior_means)!=C) {
       stop("mesh_guidance_adaptive: if d==1, sub_posterior_means must be a vector of length C")
     }
-  } else if (d > 1)  {
+  } else if (d > 1) {
     if (!is.matrix(sub_posterior_samples)){
       stop("mesh_guidance_adaptive: if d>1, sub_posterior_samples must be a (C x d) matrix")
     } else if (any(dim(sub_posterior_samples)!=c(C,d))) {
@@ -202,9 +214,11 @@ mesh_guidance_adaptive <- function(C,
     stop("mesh_guidance_adaptive: d must be greater than or equal to 1")
   }
   if (is.null(vanilla)) {
+    warning('mesh_guidance_adaptive: vanilla is set to FALSE by default')
     vanilla <- FALSE
   }
   if (is.null(data_size)) {
+    warning('mesh_guidance_adaptive: data_size is set to 1 by default')
     data_size <- 1
   } else {
     if (data_size < 0) {
@@ -213,8 +227,10 @@ mesh_guidance_adaptive <- function(C,
   }
   if (is.null(b)) {
     if (vanilla) {
-      b <- 1  
+      warning('mesh_guidance_adaptive: b is set to 1 by default')
+      b <- 1
     } else {
+      warning('mesh_guidance_adaptive: b is set to data_size/C by default')
       b <- data_size/C
     }
   } else {
@@ -253,6 +269,7 @@ mesh_guidance_adaptive <- function(C,
                                                          inv_precondition_matrices = inv_precondition_matrices)
   }
   if (is.null(k3)) {
+    warning('mesh_guidance_adaptive: k3 is set to 0.5 by default')
     k3 <- 0.5
   } else {
     if (k3 < 0) {
@@ -260,6 +277,7 @@ mesh_guidance_adaptive <- function(C,
     }
   }
   if (is.null(k4)) {
+    warning('mesh_guidance_adaptive: k4 is set to 0.5 by default')
     k4 <- 0.5
   } else {
     if (k4< 0) {
@@ -286,9 +304,11 @@ mesh_guidance_regular <- function(C,
                                   k4 = NULL,
                                   vanilla = NULL) {
   if (is.null(vanilla)) {
+    warning('mesh_guidance_regular: vanilla is set to FALSE by default')
     vanilla <- FALSE
   }
   if (is.null(data_size)) {
+    warning('mesh_guidance_regular: data_size is set to 1 by default')
     data_size <- 1
   } else {
     if (data_size < 0) {
@@ -297,8 +317,10 @@ mesh_guidance_regular <- function(C,
   }
   if (is.null(b)) {
     if (vanilla) {
-      b <- 1  
+      warning('mesh_guidance_regular: b is set to 1 by default')
+      b <- 1
     } else {
+      warning('mesh_guidance_regular: b is set to data_size/C by default')
       b <- data_size/C
     }
   } else {
@@ -307,6 +329,7 @@ mesh_guidance_regular <- function(C,
     }
   }
   if (is.null(k3)) {
+    warning('mesh_guidance_regular: k3 is set to 0.5 by default')
     k3 <- 0.5
   } else {
     if (k3 < 0) {
@@ -314,6 +337,7 @@ mesh_guidance_regular <- function(C,
     }
   }
   if (is.null(k4)) {
+    warning('mesh_guidance_regular: k4 is set to 0.5 by default')
     k4 <- 0.5
   } else {
     if (k4< 0) {
