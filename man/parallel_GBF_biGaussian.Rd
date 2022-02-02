@@ -9,9 +9,9 @@ parallel_GBF_biGaussian(
   N,
   m,
   time_mesh,
-  mean_vec,
-  sd_vec,
-  corr,
+  mean_vecs,
+  sd_vecs,
+  corrs,
   betas,
   precondition_matrices,
   resampling_method = "multi",
@@ -38,13 +38,16 @@ initialise_particle_sets() function)}
 
 \item{time_mesh}{time mesh used in Bayesian Fusion}
 
-\item{mean_vec}{vector of length 2 for mean}
+\item{mean_vecs}{list of length m, where mean_vecs[[c]] is a vector of 
+length 2 for the mean of sub-posterior c}
 
-\item{sd_vec}{vector of length 2 for standard deviation}
+\item{sd_vecs}{list of length m, where sd_vecs[[c]] is a vector of length 2
+for the standard deviation of sub-posterior c}
 
-\item{corr}{correlation value between component 1 and component 2}
+\item{corrs}{vector of length m, where corrs[c] give the correlation value
+between component 1 and component 2 for sub-posterior c}
 
-\item{betas}{vector of length c, where betas[c] is the inverse temperature 
+\item{betas}{vector of length m, where betas[c] is the inverse temperature 
 value for c-th posterior}
 
 \item{precondition_matrices}{list of length m, where precondition_matrices[[c]]

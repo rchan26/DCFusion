@@ -33,10 +33,10 @@ T_guidance <- function(condition,
       stop("T_guidance: if d==1, sub_posterior_means must be a vector of length C")
     }
   } else if (d > 1) {
-    if (!is.matrix(sub_posterior_samples)){
-      stop("T_guidance: if d>1, sub_posterior_samples must be a (C x d) matrix")
-    } else if (any(dim(sub_posterior_samples)!=c(C,d))) {
-      stop("T_guidance: if d>1, sub_posterior_samples must be a (C x d) matrix")
+    if (!is.matrix(sub_posterior_means)){
+      stop("T_guidance: if d>1, sub_posterior_means must be a (C x d) matrix")
+    } else if (any(dim(sub_posterior_means)!=c(C,d))) {
+      stop("T_guidance: if d>1, sub_posterior_means must be a (C x d) matrix")
     } 
   } else {
     stop("T_guidance: d must be greater than or equal to 1")
@@ -205,11 +205,11 @@ mesh_guidance_adaptive <- function(C,
       stop("mesh_guidance_adaptive: if d==1, sub_posterior_means must be a vector of length C")
     }
   } else if (d > 1) {
-    if (!is.matrix(sub_posterior_samples)){
-      stop("mesh_guidance_adaptive: if d>1, sub_posterior_samples must be a (C x d) matrix")
-    } else if (any(dim(sub_posterior_samples)!=c(C,d))) {
-      stop("mesh_guidance_adaptive: if d>1, sub_posterior_samples must be a (C x d) matrix")
-    } 
+    if (!is.matrix(sub_posterior_means)){
+      stop("mesh_guidance_adaptive: if d>1, sub_posterior_means must be a (C x d) matrix")
+    } else if (any(dim(sub_posterior_means)!=c(C,d))) {
+      stop("mesh_guidance_adaptive: if d>1, sub_posterior_means must be a (C x d) matrix")
+    }
   } else {
     stop("mesh_guidance_adaptive: d must be greater than or equal to 1")
   }

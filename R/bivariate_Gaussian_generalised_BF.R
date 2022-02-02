@@ -5,10 +5,13 @@
 #' @param particle_set particles set prior to Q importance sampling step
 #' @param m number of sub-posteriors to combine
 #' @param time_mesh time mesh used in Bayesian Fusion
-#' @param mean_vec vector of length 2 for mean
-#' @param sd_vec vector of length 2 for standard deviation
-#' @param corr correlation value between component 1 and component 2
-#' @param betas vector of length c, where betas[c] is the inverse temperature 
+#' @param mean_vecs list of length m, where mean_vecs[[c]] is a vector of 
+#'                  length 2 for the mean of sub-posterior c
+#' @param sd_vecs list of length m, where sd_vecs[[c]] is a vector of length 2
+#'                for the standard deviation of sub-posterior c
+#' @param corrs vector of length m, where corrs[c] give the correlation value
+#'              between component 1 and component 2 for sub-posterior c
+#' @param betas vector of length m, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
 #' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
@@ -58,9 +61,9 @@
 rho_j_biGaussian <- function(particle_set,
                              m,
                              time_mesh,
-                             mean_vec,
-                             sd_vec,
-                             corr,
+                             mean_vecs,
+                             sd_vecs,
+                             corrs,
                              betas,
                              precondition_matrices,
                              inv_precondition_matrices,
@@ -83,10 +86,12 @@ rho_j_biGaussian <- function(particle_set,
     stop("rho_j_biGaussian: time_mesh must be an ordered vector of length >= 2")
   } else if (!identical(time_mesh, sort(time_mesh))) {
     stop("rho_j_biGaussian: time_mesh must be an ordered vector of length >= 2")
-  } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
-    stop("rho_j_biGaussian: mean_vec must be a vector of length 2")
-  } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
-    stop("rho_j_biGaussian: sd_vec must be a vector of length 2")
+  } else if (any(sapply(1:m, function(c) (!is.vector(mean_vecs[[c]]) | (length(mean_vecs[[c]])!=2))))) {
+    stop("rho_j_biGaussian: mean_vecs[[c]] must be a vector of length 2 for each c")
+  } else if (any(sapply(1:m, function(c) (!is.vector(sd_vecs[[c]]) | (length(sd_vecs[[c]])!=2))))) {
+    stop("rho_j_biGaussian: sd_vecs[[c]] must be a vector of length 2 for each c")
+  } else if (!is.vector(corrs) | (length(corrs)!=m)) {
+    stop("rho_j_biGaussian: corrs must be a vector of length m")
   } else if (!is.vector(betas) | (length(betas)!=m)) {
     stop("rho_j_biGaussian: betas must be a vector of length m")
   } else if (!is.list(precondition_matrices) | (length(precondition_matrices)!=m)) {
@@ -97,7 +102,7 @@ rho_j_biGaussian <- function(particle_set,
     stop("rho_j_biGaussian: ESS_threshold must be between 0 and 1")
   }
   if (adaptive_mesh) {
-    if (!matrix(sub_posterior_means)) {
+    if (!is.matrix(sub_posterior_means)) {
       stop("rho_j_biGaussian: if adaptive_mesh==TRUE, sub_posterior_means must be a (m x 2) matrix")
     } else if (any(dim(sub_posterior_means)!=c(m,2))) {
       stop("rho_j_biGaussian: if adaptive_mesh==TRUE, sub_posterior_means must be a (m x 2) matrix")
@@ -200,9 +205,9 @@ rho_j_biGaussian <- function(particle_set,
                               y = as.vector(x_j[[i]][c,]),
                               s = time_mesh[j-1],
                               t = time_mesh[j],
-                              mean_vec = mean_vec,
-                              sd_vec = sd_vec,
-                              corr = corr,
+                              mean_vec = mean_vecs[[c]],
+                              sd_vec = sd_vecs[[c]],
+                              corr = corrs[c],
                               beta = betas[c],
                               precondition_mat = precondition_matrices[[c]],
                               transform_mats = transform_matrices[[c]],
@@ -273,10 +278,13 @@ rho_j_biGaussian <- function(particle_set,
 #' @param time_mesh time mesh used in Bayesian Fusion
 #' @param precondition_matrices list of length m, where precondition_matrices[[c]]
 #'                               is the precondition matrix for sub-posterior c
-#' @param mean_vec vector of length 2 for mean
-#' @param sd_vec vector of length 2 for standard deviation
-#' @param corr correlation value between component 1 and component 2
-#' @param betas vector of length c, where betas[c] is the inverse temperature 
+#' @param mean_vecs list of length m, where mean_vecs[[c]] is a vector of 
+#'                  length 2 for the mean of sub-posterior c
+#' @param sd_vecs list of length m, where sd_vecs[[c]] is a vector of length 2
+#'                for the standard deviation of sub-posterior c
+#' @param corrs vector of length m, where corrs[c] give the correlation value
+#'              between component 1 and component 2 for sub-posterior c
+#' @param betas vector of length m, where betas[c] is the inverse temperature 
 #'              value for c-th posterior
 #' @param resampling_method method to be used in resampling, default is multinomial 
 #'                          resampling ('multi'). Other choices are stratified 
@@ -330,9 +338,9 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
                                     N, 
                                     m,
                                     time_mesh,
-                                    mean_vec,
-                                    sd_vec,
-                                    corr, 
+                                    mean_vecs,
+                                    sd_vecs,
+                                    corrs, 
                                     betas,
                                     precondition_matrices, 
                                     resampling_method = 'multi',
@@ -359,10 +367,12 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
     stop("parallel_GBF_biGaussian: time_mesh must be an ordered vector of length >= 2")
   } else if (!identical(time_mesh, sort(time_mesh))) {
     stop("parallel_GBF_biGaussian: time_mesh must be an ordered vector of length >= 2")
-  } else if (!is.vector(mean_vec) | (length(mean_vec)!=2)) {
-    stop("parallel_GBF_biGaussian: mean_vec must be a vector of length 2")
-  } else if (!is.vector(sd_vec) | (length(sd_vec)!=2)) {
-    stop("parallel_GBF_biGaussian: sd_vec must be a vector of length 2")
+  } else if (any(sapply(1:m, function(c) (!is.vector(mean_vecs[[c]]) | (length(mean_vecs[[c]])!=2))))) {
+    stop("parallel_GBF_biGaussian: mean_vecs[[c]] must be a vector of length 2 for each c")
+  } else if (any(sapply(1:m, function(c) (!is.vector(sd_vecs[[c]]) | (length(sd_vecs[[c]])!=2))))) {
+    stop("parallel_GBF_biGaussian: sd_vecs[[c]] must be a vector of length 2 for each c")
+  } else if (!is.vector(corrs) | (length(corrs)!=m)) {
+    stop("parallel_GBF_biGaussian: corrs must be a vector of length m")
   } else if (!is.vector(betas) | (length(betas)!=m)) {
     stop("parallel_GBF_biGaussian: betas must be a vector of length m")
   } else if (!is.list(precondition_matrices) | (length(precondition_matrices)!=m)) {
@@ -396,9 +406,9 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
   rho_j <- rho_j_biGaussian(particle_set = particles,
                             m = m,
                             time_mesh = time_mesh,
-                            mean_vec = mean_vec,
-                            sd_vec = sd_vec,
-                            corr = corr,
+                            mean_vecs = mean_vecs,
+                            sd_vecs = sd_vecs,
+                            corrs = corrs,
                             betas = betas,
                             precondition_matrices = precondition_matrices,
                             inv_precondition_matrices = inv_precondition_matrices,
@@ -420,7 +430,7 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
                                       precondition_matrices)
   }
   if (!is.null(sub_posterior_means)) {
-    new_sub_posterior_means <- list(weighted_mean_multivariate(x = sub_posterior_means,
+    new_sub_posterior_means <- list(weighted_mean_multivariate(matrix = sub_posterior_means,
                                                                weights = inv_precondition_matrices,
                                                                inverse_sum_weights = Lambda),
                                     sub_posterior_means)
