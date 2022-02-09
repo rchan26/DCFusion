@@ -5,10 +5,10 @@ set.seed(seed)
 nsamples <- 10000
 C <- 2
 means <- list(rep(-0.25, 2), rep(0.25, 2))
-corr <- 0.8
+corr <- 0.9
 beta <- 1
-a_mesh_vanilla <- seq(0, 0.005, length.out = 6)
-a_mesh_gen <- seq(0, 1, length.out = 6)
+a_mesh_vanilla <- seq(0, 0.01, length.out = 6)
+a_mesh_gen <- seq(0, 2, length.out = 6)
 diffusion_estimator <- 'NB'
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.2
@@ -432,14 +432,18 @@ for (i in 1:length(data_sizes)) {
 ##### vanilla plots #####
 
 ##### Fixed user-specified parameters #####
-plot(x = data_sizes,
+plot(x = data_sizes/100,
      y = sapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/100,
       y = sapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -448,14 +452,18 @@ axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
 mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, fixed n #####
-plot(x = data_sizes,
+plot(x = data_sizes/100,
      y = sapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/100,
       y = sapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -464,14 +472,18 @@ axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
 mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, regular mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/100,
      y = sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/100,
       y = sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -480,14 +492,18 @@ axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
 mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, adaptive mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/100,
      y = sapply(1:length(data_sizes), function(i) d_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/100,
       y = sapply(1:length(data_sizes), function(i) d_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) d_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -536,14 +552,18 @@ mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 # mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 
 ##### SH: Recommended scaling of T, adaptive mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/100,
      y = sapply(1:length(data_sizes), function(i) SH_adaptive_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/100,
       y = sapply(1:length(data_sizes), function(i) SH_adaptive_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) SH_adaptive_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -575,7 +595,7 @@ axis(2, at = seq(0, 1, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0"),
 axis(2, at = seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 1,
+legend(x = 250, y = 1.05,
        legend = c('Fixed T, fixed n',
                   'SSH rec. T, fixed n',
                   'SSH rec. T, reg. mesh',
@@ -591,7 +611,7 @@ legend(x = 250, y = 1,
 ##### time #####
 plot(x = data_sizes,
      y = log(sapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$time)),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,8), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,10), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$time)),
       pch = 2, lty = 2, lwd = 3, type = 'b')
@@ -607,9 +627,9 @@ lines(x = data_sizes,
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 8, 1), labels = seq(0, 8, 1), font = 2, cex = 1.5)
-mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 8,
+axis(2, at = seq(0, 10, 1), labels = seq(0, 10, 1), font = 2, cex = 1.5)
+mtext('log(Elapsed time in seconds)', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 250, y = 10,
        legend = c('Fixed T, fixed n',
                   'SSH rec. T, fixed n',
                   'SSH rec. T, reg. mesh',
@@ -625,14 +645,18 @@ legend(x = 250, y = 8,
 ##### generalised plots #####
 
 ##### Fixed user-specified parameters #####
-plot(x = data_sizes,
+plot(x = data_sizes/100,
      y = sapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/100,
       y = sapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -641,14 +665,18 @@ axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
 mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, fixed n #####
-plot(x = data_sizes,
+plot(x = data_sizes/100,
      y = sapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/100,
       y = sapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -657,14 +685,18 @@ axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
 mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, regular mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/100,
      y = sapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/100,
       y = sapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -673,14 +705,18 @@ axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
 mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, adaptive mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/100,
      y = sapply(1:length(data_sizes), function(i) d_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/100,
       y = sapply(1:length(data_sizes), function(i) d_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) d_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -712,14 +748,18 @@ axis(2, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2,
 mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 
 ##### SH: Recommended scaling of T, adaptive mesh #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) SH_adaptive_results$vanilla[[i]]$CESS_0)/nsamples,
+plot(x = data_sizes/100,
+     y = sapply(1:length(data_sizes), function(i) SH_adaptive_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) SH_adaptive_results$vanilla[[i]]$CESS_j_avg)/nsamples,
+lines(x = data_sizes/100,
+      y = sapply(1:length(data_sizes), function(i) SH_adaptive_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) SH_adaptive_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/100, length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = seq(0, 2500, 500)/100, labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250)/100, labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
@@ -751,7 +791,7 @@ axis(2, at = seq(0, 1, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0"),
 axis(2, at = seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 0, y = 1,
+legend(x = 250, y = 1,
        legend = c('Fixed T, fixed n',
                   'SSH rec. T, fixed n',
                   'SSH rec. T, reg. mesh',
@@ -767,7 +807,7 @@ legend(x = 0, y = 1,
 ##### time #####
 plot(x = data_sizes,
      y = log(sapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$time)),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,6), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,10), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$time)),
       pch = 2, lty = 2, lwd = 3, type = 'b')
@@ -783,9 +823,9 @@ lines(x = data_sizes,
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 6, 1), labels = seq(0, 6, 1), font = 2, cex = 1.5)
-mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 6,
+axis(2, at = seq(0, 10, 1), labels = seq(0, 10, 1), font = 2, cex = 1.5)
+mtext('log(Elapsed time in seconds)', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 250, y = 10,
        legend = c('Fixed T, fixed n',
                   'SSH rec. T, fixed n',
                   'SSH rec. T, reg. mesh',
@@ -798,4 +838,4 @@ legend(x = 250, y = 6,
        text.font = 2,
        bty = 'n')
 
-save.image('bf_bivG_dissimilar_means_example.RData')
+save.image('bf_bivG_dissimilar_means_example_09.RData')

@@ -5,7 +5,7 @@ set.seed(seed)
 nsamples <- 10000
 C <- 10
 mean <- rep(0, 2)
-corr <- 0.8
+corr <- 0.9
 beta <- 1
 a_mesh_vanilla <- seq(0, 0.005, length.out = 6)
 a_mesh_gen <- seq(0, 1, length.out = 6)
@@ -17,7 +17,7 @@ k1 <- NULL
 k2 <- NULL
 k3 <- 1
 k4 <- 1
-data_sizes <- c(1000, 5000, 10000, 20000, 30000, 40000, 50000)
+data_sizes <- c(1000, 5000, 10000, 20000, 30000, 40000)
 a_results <- list('vanilla' = list(), 'generalised' = list())
 b_results <- list('vanilla' = list(), 'generalised' = list())
 c_results <- list('vanilla' = list(), 'generalised' = list())
@@ -27,9 +27,9 @@ SSH_adaptive_results <- list('vanilla' = list(), 'generalised' = list())
 for (i in 1:length(data_sizes)) {
   set.seed(seed*i)
   sd <- sqrt(rep(C, 2)/data_sizes[i])
-  target_cov_mat <- matrix(c(sd[1]^2, sd[1]*sd[2]*corr, sd[1]*sd[2]*corr, sd[2]^2),
-                           nrow = 2, ncol = 2, byrow = T)/C
-  target_samples <- mvrnormArma(N = nsamples, mu = mean, Sigma = target_cov_mat)
+  # target_cov_mat <- matrix(c(sd[1]^2, sd[1]*sd[2]*corr, sd[1]*sd[2]*corr, sd[2]^2),
+  #                          nrow = 2, ncol = 2, byrow = T)/C
+  # target_samples <- mvrnormArma(N = nsamples, mu = mean, Sigma = target_cov_mat)
   cov_mat <- matrix(c(sd[1]^2, sd[1]*sd[2]*corr, sd[1]*sd[2]*corr, sd[2]^2),
                     nrow = 2, ncol = 2, byrow = T)
   opt_bw <- ((4*sd^5)/(3*nsamples))^(1/5)
@@ -72,6 +72,7 @@ for (i in 1:length(data_sizes)) {
   a_results$vanilla[[i]] <- list('CESS_0' = a_BF_standard$CESS[1],
                                  'CESS_j' = a_BF_standard$CESS[2:length(a_BF_standard$CESS)],
                                  'CESS_j_avg' = mean(a_BF_standard$CESS[2:length(a_BF_standard$CESS)]),
+                                 'CESS_j_var' = var(a_BF_standard$CESS[2:length(a_BF_standard$CESS)]),
                                  'n' = length(a_BF_standard$CESS),
                                  'time_mesh' = a_BF_standard$particles$time_mesh,
                                  'time' = a_BF_standard$time,
@@ -86,6 +87,7 @@ for (i in 1:length(data_sizes)) {
   a_results$generalised[[i]] <- list('CESS_0' = a_BF_generalised$CESS[1],
                                      'CESS_j' = a_BF_generalised$CESS[2:length(a_BF_generalised$CESS)],
                                      'CESS_j_avg' = mean(a_BF_generalised$CESS[2:length(a_BF_generalised$CESS)]),
+                                     'CESS_j_var' = var(a_BF_generalised$CESS[2:length(a_BF_generalised$CESS)]),
                                      'n' = length(a_BF_generalised$CESS),
                                      'time_mesh' = a_BF_generalised$particles$time_mesh,
                                      'time' = a_BF_generalised$time,
@@ -161,6 +163,7 @@ for (i in 1:length(data_sizes)) {
   b_results$vanilla[[i]] <- list('CESS_0' = b_BF_standard$CESS[1],
                                  'CESS_j' = b_BF_standard$CESS[2:length(b_BF_standard$CESS)],
                                  'CESS_j_avg' = mean(b_BF_standard$CESS[2:length(b_BF_standard$CESS)]),
+                                 'CESS_j_var' = var(b_BF_standard$CESS[2:length(b_BF_standard$CESS)]),
                                  'n' = length(b_BF_standard$CESS),
                                  'time_mesh' = b_BF_standard$particles$time_mesh,
                                  'time' = b_BF_standard$time,
@@ -175,6 +178,7 @@ for (i in 1:length(data_sizes)) {
   b_results$generalised[[i]] <- list('CESS_0' = b_BF_generalised$CESS[1],
                                      'CESS_j' = b_BF_generalised$CESS[2:length(b_BF_generalised$CESS)],
                                      'CESS_j_avg' = mean(b_BF_generalised$CESS[2:length(b_BF_generalised$CESS)]),
+                                     'CESS_j_var' = var(b_BF_generalised$CESS[2:length(b_BF_generalised$CESS)]),
                                      'n' = length(b_BF_generalised$CESS),
                                      'time_mesh' = b_BF_generalised$particles$time_mesh,
                                      'time' = b_BF_generalised$time,
@@ -224,6 +228,7 @@ for (i in 1:length(data_sizes)) {
   c_results$vanilla[[i]] <- list('CESS_0' = c_BF_standard$CESS[1],
                                  'CESS_j' = c_BF_standard$CESS[2:length(c_BF_standard$CESS)],
                                  'CESS_j_avg' = mean(c_BF_standard$CESS[2:length(c_BF_standard$CESS)]),
+                                 'CESS_j_var' = var(c_BF_standard$CESS[2:length(c_BF_standard$CESS)]),
                                  'n' = length(c_BF_standard$CESS),
                                  'time_mesh' = c_BF_standard$particles$time_mesh,
                                  'time' = c_BF_standard$time,
@@ -238,6 +243,7 @@ for (i in 1:length(data_sizes)) {
   c_results$generalised[[i]] <- list('CESS_0' = c_BF_generalised$CESS[1],
                                      'CESS_j' = c_BF_generalised$CESS[2:length(c_BF_generalised$CESS)],
                                      'CESS_j_avg' = mean(c_BF_generalised$CESS[2:length(c_BF_generalised$CESS)]),
+                                     'CESS_j_var' = var(c_BF_generalised$CESS[2:length(c_BF_generalised$CESS)]),
                                      'n' = length(c_BF_generalised$CESS),
                                      'time_mesh' = c_BF_generalised$particles$time_mesh,
                                      'time' = c_BF_generalised$time,
@@ -300,6 +306,7 @@ for (i in 1:length(data_sizes)) {
   d_results$vanilla[[i]] <- list('CESS_0' = d_BF_standard$CESS[1],
                                  'CESS_j' = d_BF_standard$CESS[2:length(d_BF_standard$CESS)],
                                  'CESS_j_avg' = mean(d_BF_standard$CESS[2:length(d_BF_standard$CESS)]),
+                                 'CESS_j_var' = var(d_BF_standard$CESS[2:length(d_BF_standard$CESS)]),
                                  'n' = length(d_BF_standard$CESS),
                                  'time_mesh' = d_BF_standard$particles$time_mesh,
                                  'time' = d_BF_standard$time,
@@ -314,6 +321,7 @@ for (i in 1:length(data_sizes)) {
   d_results$generalised[[i]] <- list('CESS_0' = d_BF_generalised$CESS[1],
                                      'CESS_j' = d_BF_generalised$CESS[2:length(d_BF_generalised$CESS)],
                                      'CESS_j_avg' = mean(d_BF_generalised$CESS[2:length(d_BF_generalised$CESS)]),
+                                     'CESS_j_var' = var(d_BF_generalised$CESS[2:length(d_BF_generalised$CESS)]),
                                      'n' = length(d_BF_generalised$CESS),
                                      'time_mesh' = d_BF_generalised$particles$time_mesh,
                                      'time' = d_BF_generalised$time,
@@ -402,6 +410,7 @@ for (i in 1:length(data_sizes)) {
   SSH_adaptive_results$vanilla[[i]] <- list('CESS_0' = SSH_adaptive_standard$CESS[1],
                                             'CESS_j' = SSH_adaptive_standard$CESS[2:length(SSH_adaptive_standard$CESS)],
                                             'CESS_j_avg' = mean(SSH_adaptive_standard$CESS[2:length(SSH_adaptive_standard$CESS)]),
+                                            'CESS_j_var' = var(SSH_adaptive_standard$CESS[2:length(SSH_adaptive_standard$CESS)]),
                                             'n' = length(SSH_adaptive_standard$CESS),
                                             'time_mesh' = SSH_adaptive_standard$particles$time_mesh,
                                             'time' = SSH_adaptive_standard$time,
@@ -432,13 +441,19 @@ for (i in 1:length(data_sizes)) {
 ##### vanilla plots #####
 
 ##### Fixed user-specified parameters #####
-plot(x = data_sizes,
+plot(x = data_sizes/1000,
      y = sapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/1000,
       y = sapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
+axis(1, at = c(1000, seq(10000, 50000, 10000))/1000,
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -446,16 +461,22 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, fixed n #####
-plot(x = data_sizes,
+plot(x = data_sizes/1000,
      y = sapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/1000,
       y = sapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
+axis(1, at = c(1000, seq(10000, 50000, 10000))/1000,
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -463,16 +484,22 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, regular mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/1000,
      y = sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/1000,
       y = sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
+axis(1, at = c(1000, seq(10000, 50000, 10000))/1000,
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -480,16 +507,22 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, adaptive mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/1000,
      y = sapply(1:length(data_sizes), function(i) d_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/1000,
       y = sapply(1:length(data_sizes), function(i) d_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) d_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
+axis(1, at = c(1000, seq(10000, 50000, 10000))/1000,
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -497,7 +530,13 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+
+# ratio <- lapply(1:length(data_sizes), function(i) {
+#   result <- d_results$vanilla[[i]]$time_mesh[2:length(d_results$vanilla[[i]]$time_mesh)] / 
+#     d_results$vanilla[[i]]$time_mesh[1:(length(d_results$vanilla[[i]]$time_mesh)-1)]
+#   return(result[2:length(result)])
+# })
 
 ##### Compare regular mesh and adaptive mesh times #####
 plot(x = c_results$vanilla[[1]]$time_mesh,
@@ -541,12 +580,18 @@ mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 # mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 
 ##### SSH: Recommended scaling of T, adaptive mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/1000,
      y = sapply(1:length(data_sizes), function(i) SSH_adaptive_results$vanilla[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/1000,
       y = sapply(1:length(data_sizes), function(i) SSH_adaptive_results$vanilla[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) SSH_adaptive_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) SSH_adaptive_results$vanilla[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
 axis(1, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
@@ -555,7 +600,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### IAD #####
 plot(x = data_sizes,
@@ -582,7 +627,7 @@ axis(2, at = seq(0, 1, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0"),
 axis(2, at = seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 1.4,
+legend(x = 250, y = 1.45,
        legend = c('Fixed T, fixed n',
                   'SH rec. T, fixed n',
                   'SH rec. T, reg. mesh',
@@ -598,7 +643,7 @@ legend(x = 250, y = 1.4,
 ##### time #####
 plot(x = data_sizes,
      y = log(sapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$time)),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,10), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(1,10), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$time)),
       pch = 2, lty = 2, lwd = 3, type = 'b')
@@ -633,13 +678,19 @@ legend(x = 0, y = 10,
 ##### generalised plots #####
 
 ##### Fixed user-specified parameters #####
-plot(x = data_sizes,
+plot(x = data_sizes/1000,
      y = sapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/1000,
       y = sapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
+axis(1, at = c(1000, seq(10000, 50000, 10000))/1000,
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -647,16 +698,22 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, fixed n #####
-plot(x = data_sizes,
+plot(x = data_sizes/1000,
      y = sapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/1000,
       y = sapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
+axis(1, at = c(1000, seq(10000, 50000, 10000))/1000,
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -664,16 +721,22 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, regular mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/1000,
      y = sapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/1000,
       y = sapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
+axis(1, at = c(1000, seq(10000, 50000, 10000))/1000,
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -681,16 +744,22 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, adaptive mesh #####
-plot(x = data_sizes,
+plot(x = data_sizes/1000,
      y = sapply(1:length(data_sizes), function(i) d_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
+lines(x = data_sizes/1000,
       y = sapply(1:length(data_sizes), function(i) d_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) d_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) d_results$generalised[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
+axis(1, at = c(1000, seq(10000, 50000, 10000))/1000,
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -698,7 +767,13 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+
+# ratio <- lapply(1:length(data_sizes), function(i) {
+#   result <- d_results$generalised[[i]]$time_mesh[2:length(d_results$generalised[[i]]$time_mesh)] /
+#     d_results$generalised[[i]]$time_mesh[1:(length(d_results$generalised[[i]]$time_mesh)-1)]
+#   return(result[2:length(result)])
+# })
 
 ##### Compare regular mesh and adaptive mesh times #####
 plot(x = c_results$generalised[[1]]$time_mesh,
@@ -725,13 +800,19 @@ axis(2, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 
 ##### SSH: Recommended scaling of T, adaptive mesh #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) SSH_adaptive_results$vanilla[[i]]$CESS_0)/nsamples,
+plot(x = data_sizes/1000,
+     y = sapply(1:length(data_sizes), function(i) SSH_adaptive_results$generalised[[i]]$CESS_0)/nsamples,
      type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) SSH_adaptive_results$vanilla[[i]]$CESS_j_avg)/nsamples,
+lines(x = data_sizes/1000,
+      y = sapply(1:length(data_sizes), function(i) SSH_adaptive_results$generalised[[i]]$CESS_j_avg)/nsamples,
       pch = 20, lty = 2, lwd = 3, type = 'b')
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) SSH_adaptive_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii]/1000, length(cess_j)), y = cess_j, cex = 0.5)
+}
+# boxplot(lapply(1:length(data_sizes), function(i) SSH_adaptive_results$generalised[[i]]$CESS_j/nsamples),
+#         names = data_sizes, at = data_sizes/1000, add = TRUE, xaxt = 'n', yaxt = 'n')
+axis(1, at = c(1000, seq(10000, 50000, 10000))/1000,
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -739,7 +820,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size', 2, 2.75, font = 2, cex = 1.5)
+mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### IAD #####
 plot(x = data_sizes,
@@ -782,7 +863,7 @@ legend(x = 0, y = 1,
 ##### time #####
 plot(x = data_sizes,
      y = log(sapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$time)),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,7), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(1,10), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$time)),
       pch = 2, lty = 2, lwd = 3, type = 'b')
@@ -799,14 +880,14 @@ axis(1, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 7, 1), labels = seq(0, 7, 1), font = 2, cex = 1.5)
+axis(2, at = seq(0, 10, 1), labels = seq(0, 10, 1), font = 2, cex = 1.5)
 mtext('log(Elapsed time in seconds)', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 0, y = 7,
+legend(x = 0, y = 10,
        legend = c('Fixed T, fixed n',
-                  'SSH rec. T, fixed n',
-                  'SSH rec. T, reg. mesh',
-                  'SSH rec. T, adapt. mesh',
-                  'SH rec. T, adapt. mesh'),
+                  'SH rec. T, fixed n',
+                  'SH rec. T, reg. mesh',
+                  'SH rec. T, adapt. mesh',
+                  'SSH rec. T, adapt. mesh'),
        lty = 1:5,
        pch = 1:5,
        lwd = rep(3, 5),
@@ -814,4 +895,4 @@ legend(x = 0, y = 7,
        text.font = 2,
        bty = 'n')
 
-save.image('bf_bivG_similar_means_example.RData')
+save.image('bf_bivG_similar_means_example_09.RData')
