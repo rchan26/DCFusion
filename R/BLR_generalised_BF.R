@@ -131,10 +131,10 @@ rho_j_BLR <- function(particle_set,
     stop("rho_j_BLR: cl must be a \"cluster\" object or NULL")
   }
   if (adaptive_mesh) {
-    if (!matrix(sub_posterior_means)) {
-      stop("rho_j_BLR: if adaptive_mesh==TRUE, sub_posterior_means must be a (m x d) matrix")
-    } else if (any(dim(sub_posterior_means)!=c(m,d))) {
-      stop("rho_j_BLR: if adaptive_mesh==TRUE, sub_posterior_means must be a (m x d) matrix")
+    if (!is.matrix(sub_posterior_means)) {
+      stop("rho_j_BLR: if adaptive_mesh==TRUE, sub_posterior_means must be a (m x dim) matrix")
+    } else if (any(dim(sub_posterior_means)!=c(m,dim))) {
+      stop("rho_j_BLR: if adaptive_mesh==TRUE, sub_posterior_means must be a (m x dim) matrix")
     }
   }
   if (cv_location == 'mode') {
@@ -251,6 +251,10 @@ rho_j_BLR <- function(particle_set,
           return(matrix(mvtnorm::rmvnorm(n = 1, mean = M, sigma = V), nrow = m, ncol = dim, byrow = TRUE))
         }
       })
+      if (core == 1) {
+        cat('##### t_{j-1}:', time_mesh[j-1], '|| t_{j}:', time_mesh[j], '|| T:', 
+            end_time, '#####\n', file = 'rho_j_BLR_progress.txt', append = T)  
+      }
       cat('Level:', level, '|| Step:', j, '/', length(time_mesh), '|| Node:', node,
           '|| Core:', core, '|| START \n', file = 'rho_j_BLR_progress.txt', append = T)
       for (i in 1:split_N) {
@@ -516,6 +520,19 @@ parallel_GBF_BLR <- function(particles_to_fuse,
   }
   # start time recording
   pcm <- proc.time()
+  # ---------- creating parallel cluster
+  if (is.null(cl)) {
+    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "GBF_BLR_outfile.txt")
+    parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
+    parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
+    close_cluster <- TRUE
+  } else {
+    close_cluster <- FALSE
+  }
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  if (!is.null(seed)) {
+    parallel::clusterSetRNGStream(cl, iseed = seed)
+  }
   # ---------- first importance sampling step
   # pre-calculating the inverse precondition matrices
   inv_precondition_matrices <- lapply(precondition_matrices, solve)
@@ -561,6 +578,9 @@ parallel_GBF_BLR <- function(particles_to_fuse,
                      level = level,
                      node = node,
                      print_progress_iters = print_progress_iters)
+  if (close_cluster) {
+    parallel::stopCluster(cl)
+  }
   if (identical(precondition_matrices, rep(list(diag(1, dim)), m))) {
     new_precondition_matrices <- list(diag(1, dim), precondition_matrices)
   } else {
@@ -568,7 +588,7 @@ parallel_GBF_BLR <- function(particles_to_fuse,
                                       precondition_matrices)
   }
   if (!is.null(sub_posterior_means)) {
-    new_sub_posterior_means <- list(weighted_mean_multivariate(x = sub_posterior_means,
+    new_sub_posterior_means <- list(weighted_mean_multivariate(matrix = sub_posterior_means,
                                                                weights = inv_precondition_matrices,
                                                                inverse_sum_weights = Lambda),
                                     sub_posterior_means)
