@@ -461,7 +461,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, fixed n #####
 plot(x = data_sizes/1000,
@@ -484,7 +484,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, regular mesh #####
 plot(x = data_sizes/1000,
@@ -507,7 +507,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, adaptive mesh #####
 plot(x = data_sizes/1000,
@@ -530,7 +530,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 # ratio <- lapply(1:length(data_sizes), function(i) {
 #   result <- d_results$vanilla[[i]]$time_mesh[2:length(d_results$vanilla[[i]]$time_mesh)] / 
@@ -541,7 +541,7 @@ mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 ##### Compare regular mesh and adaptive mesh times #####
 plot(x = c_results$vanilla[[1]]$time_mesh,
      y = rep(data_sizes[1]-500, length(c_results$vanilla[[1]]$time_mesh)),
-     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,50000),
+     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,40000),
      xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 for (i in  2:length(data_sizes)) {
   lines(x = c_results$vanilla[[i]]$time_mesh,
@@ -600,12 +600,12 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### IAD #####
 plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$IAD),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.4), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.6), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) b_results$vanilla[[i]]$IAD),
       pch = 2, lty = 2, lwd = 3, type = 'b')
@@ -622,12 +622,12 @@ axis(1, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0"),
+axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
      font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5,
+axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 16), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 1.45,
+legend(x = 250, y = 1.6,
        legend = c('Fixed T, fixed n',
                   'SH rec. T, fixed n',
                   'SH rec. T, reg. mesh',
@@ -664,10 +664,10 @@ axis(2, at = seq(0, 10, 1), labels = seq(0, 10, 1), font = 2, cex = 1.5)
 mtext('log(Elapsed time in seconds)', 2, 2.75, font = 2, cex = 1.5)
 legend(x = 0, y = 10,
        legend = c('Fixed T, fixed n',
-                  'SSH rec. T, fixed n',
-                  'SSH rec. T, reg. mesh',
-                  'SSH rec. T, adapt. mesh',
-                  'SH rec. T, adapt. mesh'),
+                  'SH rec. T, fixed n',
+                  'SH rec. T, reg. mesh',
+                  'SH rec. T, adapt. mesh',
+                  'SSH rec. T, adapt. mesh'),
        lty = 1:5,
        pch = 1:5,
        lwd = rep(3, 5),
@@ -698,7 +698,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, fixed n #####
 plot(x = data_sizes/1000,
@@ -721,7 +721,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, regular mesh #####
 plot(x = data_sizes/1000,
@@ -744,7 +744,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### Recommended scaling of T, adaptive mesh #####
 plot(x = data_sizes/1000,
@@ -767,7 +767,7 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 # ratio <- lapply(1:length(data_sizes), function(i) {
 #   result <- d_results$generalised[[i]]$time_mesh[2:length(d_results$generalised[[i]]$time_mesh)] /
@@ -778,7 +778,7 @@ mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
 ##### Compare regular mesh and adaptive mesh times #####
 plot(x = c_results$generalised[[1]]$time_mesh,
      y = rep(data_sizes[1]-500, length(c_results$generalised[[1]]$time_mesh)),
-     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,50000),
+     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,40000),
      xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 for (i in  2:length(data_sizes)) {
   lines(x = c_results$generalised[[i]]$time_mesh,
@@ -820,12 +820,12 @@ axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
      font = 2, cex = 1.5)
 axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
-mtext('Conditional effective sample size / N', 2, 2.75, font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### IAD #####
 plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$IAD),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.6), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) b_results$generalised[[i]]$IAD),
       pch = 2, lty = 2, lwd = 3, type = 'b')
@@ -842,12 +842,12 @@ axis(1, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0"),
+axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
      font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5,
+axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 16), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 0, y = 1,
+legend(x = 0, y = 1.6,
        legend = c('Fixed T, fixed n',
                   'SH rec. T, fixed n',
                   'SH rec. T, reg. mesh',
