@@ -127,6 +127,13 @@ rho_j_biGaussian <- function(particle_set,
   ESS <-  c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
+  if (adaptive_mesh) {
+    E_nu_j <- rep(NA, length(time_mesh))
+    E_nu_j_old <- rep(NA, length(time_mesh))
+  } else {
+    E_nu_j <- NA
+    E_nu_j_old <- NA
+  }
   # iterative proposals
   end_time <- time_mesh[length(time_mesh)]
   j <- 1
@@ -155,7 +162,7 @@ rho_j_biGaussian <- function(particle_set,
                                               d = 2,
                                               data_size = adaptive_mesh_parameters$data_size,
                                               b = adaptive_mesh_parameters$b,
-                                              trajectories = particle_set$x_samples,
+                                              particle_set = particle_set,
                                               sub_posterior_means = sub_posterior_means,
                                               inv_precondition_matrices = inv_precondition_matrices,
                                               k3 = adaptive_mesh_parameters$k3,
@@ -165,6 +172,8 @@ rho_j_biGaussian <- function(particle_set,
       if (is.null(adaptive_mesh_parameters$T2)) {
         adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
       }
+      E_nu_j[j] <- tilde_Delta_j$E_nu_j
+      E_nu_j_old[j] <- tilde_Delta_j$E_nu_j_old
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     # split the x samples from the previous time marginal (and their means) into approximately equal lists
@@ -262,7 +271,9 @@ rho_j_biGaussian <- function(particle_set,
               'proposed_samples' = proposed_samples,
               'ESS' = ESS,
               'CESS' = CESS,
-              'resampled' = resampled))
+              'resampled' = resampled,
+              'E_nu_j' = E_nu_j,
+              'E_nu_j_old' = E_nu_j_old))
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -443,6 +454,8 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
               'ESS' = rho_j$ESS,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
+              'E_nu_j' = rho_j$E_nu_j,
+              'E_nu_j_old' = rho_j$E_nu_j_old,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means))
 }

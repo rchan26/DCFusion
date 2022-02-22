@@ -20,8 +20,15 @@ double weighted_variance_univariate(const arma::vec &x,
                                     const arma::vec &precondition_values);
 
 double weighted_trajectory_variation_univariate(const Rcpp::List &x_samples,
+                                                const arma::vec &normalised_weights,
                                                 const arma::vec &sub_posterior_means,
                                                 const arma::vec &precondition_values);
+
+double compute_max_E_nu_j_univariate(const double &N,
+                                     const arma::vec &normalised_weights,
+                                     const Rcpp::List &sub_posterior_samples,
+                                     const arma::vec &sub_posterior_means,
+                                     const Rcpp::NumericVector &precondition_values);
 
 arma::mat inverse_sum_matrices(const Rcpp::List &matrices);
 
@@ -45,8 +52,17 @@ double weighted_variance_multivariate(const arma::mat &x,
                                       const Rcpp::List &inv_precondition_matrices);
 
 double weighted_trajectory_variation_multivariate(const Rcpp::List &x_samples,
+                                                  const arma::vec &normalised_weights,
                                                   const arma::mat &sub_posterior_means,
                                                   const Rcpp::List &inv_precondition_matrices);
+
+double compute_max_E_nu_j_multivariate(const double &N,
+                                       const int &dim,
+                                       const arma::vec &normalised_weights,
+                                       const Rcpp::List &sub_posterior_samples,
+                                       const arma::mat &sub_posterior_means,
+                                       const Rcpp::List &inv_precondition_matrices,
+                                       const arma::mat &Lambda);
 
 double logsumexp(const Rcpp::NumericVector &x);
 

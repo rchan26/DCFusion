@@ -89,17 +89,23 @@ weighted_variance_univariate <- function(x, x_mean, precondition_values) {
 #' N <- 10
 #' C <- 4
 #' x_samples <- lapply(1:N, function(i) rnorm(C))
+#' normalised_weights <- rep(1/N, N)
 #' sub_posterior_means <- rnorm(C)
 #' precond <- 1:C
 #' weighted_trajectory_variation_univariate(x_samples = x_samples,
+#'                                          normalised_weights = normalised_weights,
 #'                                          sub_posterior_means = sub_posterior_means,
 #'                                          precondition_values = precond)
 #' # should be equal to the result of this:
 #' sum(sapply(1:N, function(i) {
 #'   sum((((x_samples[[i]]-sub_posterior_means)^2)/precond))/C
 #' }))/N
-weighted_trajectory_variation_univariate <- function(x_samples, sub_posterior_means, precondition_values) {
-    .Call(`_DCFusion_weighted_trajectory_variation_univariate`, x_samples, sub_posterior_means, precondition_values)
+weighted_trajectory_variation_univariate <- function(x_samples, normalised_weights, sub_posterior_means, precondition_values) {
+    .Call(`_DCFusion_weighted_trajectory_variation_univariate`, x_samples, normalised_weights, sub_posterior_means, precondition_values)
+}
+
+compute_max_E_nu_j_univariate <- function(N, normalised_weights, sub_posterior_samples, sub_posterior_means, precondition_values) {
+    .Call(`_DCFusion_compute_max_E_nu_j_univariate`, N, normalised_weights, sub_posterior_samples, sub_posterior_means, precondition_values)
 }
 
 #' Calculate the inverse of a sum of matrices
@@ -271,10 +277,12 @@ weighted_variance_multivariate <- function(x, x_mean, inv_precondition_matrices)
 #' C <- 4
 #' d <- 3
 #' x_samples <- lapply(1:N, function(i) mvrnormArma(C, rep(0,d), diag(1,d)))
+#' normalised_weights <- rep(1/N, N)
 #' sub_posterior_means <- mvrnormArma(C, rep(0,d), diag(1,d))
 #' precond <- lapply(1:C, function(c) diag(c, d))
 #' inv_precond <- lapply(precond, solve)
 #' weighted_trajectory_variation_multivariate(x_samples = x_samples,
+#'                                            normalised_weights = normalised_weights,
 #'                                            sub_posterior_means = sub_posterior_means,
 #'                                            inv_precondition_matrices = inv_precond)
 #' # should be equal to the result of this:
@@ -284,8 +292,12 @@ weighted_variance_multivariate <- function(x, x_mean, inv_precondition_matrices)
 #'     return(t(diff) %*% inv_precond[[c]] %*% diff)
 #'   }))/C
 #' }))/N
-weighted_trajectory_variation_multivariate <- function(x_samples, sub_posterior_means, inv_precondition_matrices) {
-    .Call(`_DCFusion_weighted_trajectory_variation_multivariate`, x_samples, sub_posterior_means, inv_precondition_matrices)
+weighted_trajectory_variation_multivariate <- function(x_samples, normalised_weights, sub_posterior_means, inv_precondition_matrices) {
+    .Call(`_DCFusion_weighted_trajectory_variation_multivariate`, x_samples, normalised_weights, sub_posterior_means, inv_precondition_matrices)
+}
+
+compute_max_E_nu_j_multivariate <- function(N, dim, normalised_weights, sub_posterior_samples, sub_posterior_means, inv_precondition_matrices, Lambda) {
+    .Call(`_DCFusion_compute_max_E_nu_j_multivariate`, N, dim, normalised_weights, sub_posterior_samples, sub_posterior_means, inv_precondition_matrices, Lambda)
 }
 
 #' Calculate the logarithm of the sum of the exponentials of the arguments
