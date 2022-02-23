@@ -139,7 +139,10 @@ T_guidance <- function(condition,
                 'sigma_a_2' = sigma_a_2,
                 'lambda' = lambda,
                 'b' = b,
-                'k1' = k1))
+                'k1' = k1,
+                'precondition_matrices' = precondition_matrices,
+                'inv_precondition_matrices' = inv_precondition_matrices,
+                'Lambda' = Lambda))
   } else if (condition == 'SSH') {
     if (is.null(gamma)) {
       warning("T_guidance: gamma is set to sigma_a_2/b = ", sigma_a_2/b, " by default")
@@ -167,8 +170,6 @@ T_guidance <- function(condition,
         stop("T_guidance: k2 must be greater than 0")
       }
     }
-    k1_order <- sqrt(data_size*gamma/C)
-    k2_order <- b*sqrt(C*gamma/data_size)
     T1 <- b*(C^(1.5))*k1/data_size
     T2 <- (C^(0.5))*k2
     CESS_0_threshold <- exp(-(gamma/(k1*k2))-(d/(2*k1^2)))
@@ -181,8 +182,9 @@ T_guidance <- function(condition,
                 'b' = b,
                 'k1' = k1,
                 'k2' = k2,
-                'k1_order' = k1_order,
-                'k2_order' = k2_order))
+                'precondition_matrices' = precondition_matrices,
+                'inv_precondition_matrices' = inv_precondition_matrices,
+                'Lambda' = Lambda))
   }
 }
 
@@ -291,10 +293,10 @@ mesh_guidance_adaptive <- function(C,
                                                          normalised_weights = particle_set$normalised_weights,
                                                          sub_posterior_means = sub_posterior_means,
                                                          inv_precondition_matrices = inv_precondition_matrices)
-    E_nu_j_old <- weighted_trajectory_variation_univariate(x_samples = particle_set$x_samples,
-                                                           normalised_weights = rep(1/length(particle_set$x_samples), length(particle_set$x_samples)),
-                                                           sub_posterior_means = sub_posterior_means,
-                                                           precondition_values = 1/inv_precondition_matrices)
+    E_nu_j_old <- weighted_trajectory_variation_multivariate(x_samples = particle_set$x_samples,
+                                                             normalised_weights = rep(1/length(particle_set$x_samples), length(particle_set$x_samples)),
+                                                             sub_posterior_means = sub_posterior_means,
+                                                             inv_precondition_matrices = inv_precondition_matrices)
   }
   if (is.null(k3)) {
     warning('mesh_guidance_adaptive: k3 is set to 0.5 by default')
@@ -333,6 +335,7 @@ mesh_guidance_regular <- function(C,
                                   k3 = NULL,
                                   k4 = NULL,
                                   max_E_nu_j = NULL,
+                                  trial_k3_by = 0.000001,
                                   vanilla = NULL) {
   if (is.null(vanilla)) {
     warning('mesh_guidance_regular: vanilla is set to FALSE by default')
@@ -373,9 +376,7 @@ mesh_guidance_regular <- function(C,
       stop("mesh_guidance_regular: if threshold is not NULL, max_E_nu_j must be a numeric")
     }
     i <- 1
-    trial_k3 <- c(-log(.Machine$double.xmin)+1, 100, 10, seq(5, 0.1, -0.1),
-                  5e-02, 1e-02, 5e-03, 1e-03, 5e-04, 1e-04, 5e-05, 1e-05, 5e-06,
-                  1e-06, 5e-07, 1e-07, 5e-08, 1e-08, 5e-09, 1e-09, 5e-10, 1e-10)
+    trial_k3 <- c(-log(.Machine$double.xmin)+1, 100, 10, seq(5, trial_k3_by, -trial_k3_by))
     k3 <- trial_k3[i]
     k4 <- -log(threshold)-k3
     # find the first k3 in trial_k3 such that k4 > 0
@@ -392,11 +393,9 @@ mesh_guidance_regular <- function(C,
     # print(paste('exp(-k3-k4):', exp(-k3-k4)))
     # print(paste('T1:', T1))
     # print(paste('T2:', T2))
-    bound_satisfied <- TRUE
     while (T1 < T2) {
       # loop through possible k3, and compute the corresponding k4 such that the
       # user-specified lower bound is satisfied
-      # we want to find the 
       if (i==length(trial_k3)) {
         trial_k3[i+1] <- trial_k3[i]/10
       }
@@ -410,89 +409,57 @@ mesh_guidance_regular <- function(C,
       # print(paste('T1:', T1))
       # print(paste('T2:', T2))
       if (T1 == 0) {
-        bound_satisfied <- FALSE
-        break
+        # occurs when k3 is becoming too small and so T1 is 0
+        # we cannot make T2 less than 0, so we haven't been able to find k3, k4
+        # this can be solved sometimes by making the sequence of numbers that are
+        # trialed for k3 finer (i.e. making trial_k3_by smaller - it is 0.00001 by default)
+        stop("mesh_guidance_regular: couldn't find a k3 and k4. Try again with a smaller value for trial_k3_by (default is 0.00001)")
       }
     }
     # If we are able to find a suitable k3 and k4 that satisfies the bound,
-    # (the previous loop tries finds the first smallest k3 which where T1 < T2)
+    # (the previous loop tries finds the first small enough k3 which where T1 < T2)
     # we can continue to push k3 smaller and k4 larger until T1 > T2 to get a
     # computationally more efficient algorithm, since we'd want k4 as large as
     # possible until we cannot guarantee it will be smaller than T1 on average
-    if (bound_satisfied) {
-      while (T1 > T2) {
-        if (i==length(trial_k3)) {
-          trial_k3[i+1] <- trial_k3[i]/10
-        }
-        i <- i+1
-        k3 <- trial_k3[i]
-        k4 <- -log(threshold)-k3
-        T1 <- mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size)
-        T2 <- mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)
-        # print(paste('k3:', k3))
-        # print(paste('k4:', k4))
-        # print(paste('T1:', T1))
-        # print(paste('T2:', T2))
-        if (T1 < T2) {
-          k3 <- trial_k3[i-1]
-          k4 <- -log(threshold)-k3
-        }
+    while (T1 > T2) {
+      # print('pushing k3 lower')
+      if (i==length(trial_k3)) {
+        trial_k3[i+1] <- trial_k3[i]/10
       }
-    } else {
-      i <- 1
+      i <- i+1
       k3 <- trial_k3[i]
-      # print(paste('k3:', k3))
-      # print(paste('exp(-k3):', exp(-k3)))
-      while (exp(-k3) < threshold) {
-        i <- i+1
-        k3 <- trial_k3[i]
-        # print(paste('k3:', k3))
-        # print(paste('exp(-k3):', exp(-k3)))
-      }
-      j <- 1
-      trial_k4 <- c(-log(.Machine$double.xmin)+1, 100, 10, seq(5, 0.1, -0.1),
-                    1e-02, 5e-03, 1e-03, 5e-04, 1e-04, 5e-05, 1e-05, 5e-06, 1e-06,
-                    5e-07, 1e-07, 5e-08, 1e-08, 5e-09, 1e-09, 5e-10, 1e-10)
-      k4 <- trial_k4[j]
+      k4 <- -log(threshold)-k3
       T1 <- mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size)
       T2 <- mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)
       # print(paste('k3:', k3))
       # print(paste('k4:', k4))
       # print(paste('T1:', T1))
       # print(paste('T2:', T2))
-      while (T1 < T2) {
-        if (j==length(trial_k4)) {
-          trial_k4[j+1] <- trial_k4[j]/2
-        }
-        j <- j+1
-        k4 <- trial_k4[j]
-        T2 <- mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)
-        # print(paste('k3:', k3))
-        # print(paste('k4:', k4))
-        # print(paste('T1:', T1))
-        # print(paste('T2:', T2))
-        # print(paste('T1<T2:', T1<T2))
+      if (T1 < T2) {
+        k3 <- trial_k3[i-1]
+        k4 <- -log(threshold)-k3
       }
-      warning("mesh_guidance_regular: desired threshold was not able to be constructed,
-              N^{-1}CESS_j bound is ", exp(-k3-k4))
     }
   } else {
     stop("mesh_guidance_regular: threshold either is NULL or is a numeric value between 0 and 1")
   }
   return(list('max_delta_j' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d),
-              'T1' = mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size),
-              'T2' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d),
-              'T2<T1' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)<
+              'CESS_j_treshold' = exp(-k3-k4),
+              'delta_j_T1' = mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size),
+              'delta_j_T2' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d),
+              'delta_j_T2<delta_j_T1' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)<
                 mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size),
               'k3' = k3,
               'k4' = k4,
-              'CESS_j_treshold' = exp(-k3-k4)))
+              'max_E_nu_j' = max_E_nu_j))
 }
 
 #' @export
 BF_guidance <- function(condition,
                         CESS_0_threshold = NULL,
                         CESS_j_threshold = NULL,
+                        sub_posterior_samples,
+                        log_weights = NULL,
                         C,
                         d,
                         data_size = NULL,
@@ -507,7 +474,7 @@ BF_guidance <- function(condition,
                         k2 = NULL,
                         k3 = NULL,
                         k4 = NULL,
-                        max_E_nu_j = NULL,
+                        trial_k3_by = 0.000001,
                         vanilla = NULL) {
   T_guide <- T_guidance(condition = condition,
                         threshold = CESS_0_threshold,
@@ -524,6 +491,31 @@ BF_guidance <- function(condition,
                         k1 = k1,
                         k2 = k2,
                         vanilla = vanilla)
+  if (d == 1) {
+    N <- min(sapply(sub_posterior_samples, length))
+    if (is.null(log_weights)) {
+      log_weights <- rep(list(rep(log(1/N), N)), C)
+    }
+    max_E_nu_j <- compute_max_E_nu_j_univariate(N = N,
+                                                sub_posterior_samples = sub_posterior_samples,
+                                                log_weights = log_weights,
+                                                time = T_guide$min_T,
+                                                sub_posterior_means = sub_posterior_means,
+                                                precondition_values = T_guide$precondition_matrices)
+  } else {
+    N <- min(sapply(sub_posterior_samples, nrow))
+    if (is.null(log_weights)) {
+      log_weights <- rep(list(rep(log(1/N), N)), C)
+    }
+    max_E_nu_j <- compute_max_E_nu_j_multivariate(N = N,
+                                                  dim = d,
+                                                  sub_posterior_samples = sub_posterior_samples,
+                                                  log_weights = log_weights,
+                                                  time = T_guide$min_T,
+                                                  sub_posterior_means = sub_posterior_means,
+                                                  inv_precondition_matrices = T_guide$inv_precondition_matrices,
+                                                  Lambda = T_guide$Lambda)
+  }
   mesh_guide <- mesh_guidance_regular(C = C,
                                       d = d,
                                       data_size = data_size,
@@ -531,7 +523,8 @@ BF_guidance <- function(condition,
                                       threshold = CESS_j_threshold,
                                       k3 = k3,
                                       k4 = k4,
-                                      max_E_nu_j = max_E_nu_j,
+                                      max_E_nu_j = max_E_nu_j$sumed,
+                                      trial_k3_by = trial_k3_by,
                                       vanilla = vanilla)
   rec_mesh <- seq(from = 0, to = T_guide$min_T, by = mesh_guide$max_delta_j)
   if (rec_mesh[length(rec_mesh)]!=T_guide$min_T) {

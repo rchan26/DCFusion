@@ -12,11 +12,12 @@ a_mesh_gen <- seq(0, 2, length.out = 6)
 diffusion_estimator <- 'NB'
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.2
+CESS_j_threshold <- 0.2
 vanilla_b <- 1
 k1 <- NULL
 k2 <- NULL
-k3 <- 1
-k4 <- 1
+k3 <- NULL
+k4 <- NULL
 data_sizes <- c(250, 500, 1000, 1500, 2000, 2500)
 a_results <- list('vanilla' = list(), 'generalised' = list())
 b_results <- list('vanilla' = list(), 'generalised' = list())
@@ -102,6 +103,8 @@ for (i in 1:length(data_sizes)) {
   print('### performing standard Bayesian Fusion (with recommended T, fixed n)')
   vanilla_guide <- BF_guidance(condition = 'SSH',
                                CESS_0_threshold = CESS_0_threshold,
+                               CESS_j_threshold = CESS_j_threshold,
+                               sub_posterior_samples = input_samples,
                                C = C,
                                d = 2,
                                data_size = data_sizes[i],
@@ -109,9 +112,8 @@ for (i in 1:length(data_sizes)) {
                                sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
                                k1 = k1,
                                k2 = k2,
-                               k3 = k3,
-                               k4 = k4,
                                vanilla = TRUE)
+  print(paste('vanilla recommened regular mesh n:', vanilla_guide$n))
   b_mesh_vanilla <- seq(0, vanilla_guide$min_T, length.out = 6)
   input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
                                               multivariate = TRUE,
@@ -131,6 +133,8 @@ for (i in 1:length(data_sizes)) {
   print('### performing Bayesian Fusion with a preconditioning matrix (with recommended T, fixed n)')
   gen_guide <- BF_guidance(condition = 'SSH',
                            CESS_0_threshold = CESS_0_threshold,
+                           CESS_j_threshold = CESS_j_threshold,
+                           sub_posterior_samples = input_samples,
                            C = C,
                            d = 2,
                            data_size = data_sizes[i],
@@ -140,9 +144,8 @@ for (i in 1:length(data_sizes)) {
                            Lambda = inverse_sum_matrices(lapply(input_samples, function(sub) solve(cov(sub)))),
                            k1 = k1,
                            k2 = k2,
-                           k3 = k3,
-                           k4 = k4,
                            vanilla = FALSE)
+  print(paste('generalised recommened regular mesh n:', gen_guide$n))
   b_mesh_gen <- seq(0, gen_guide$min_T, length.out = 6)
   input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
                                               multivariate = TRUE,

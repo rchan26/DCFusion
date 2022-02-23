@@ -65,17 +65,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // compute_max_E_nu_j_univariate
-double compute_max_E_nu_j_univariate(const double& N, const arma::vec& normalised_weights, const Rcpp::List& sub_posterior_samples, const arma::vec& sub_posterior_means, const Rcpp::NumericVector& precondition_values);
-RcppExport SEXP _DCFusion_compute_max_E_nu_j_univariate(SEXP NSEXP, SEXP normalised_weightsSEXP, SEXP sub_posterior_samplesSEXP, SEXP sub_posterior_meansSEXP, SEXP precondition_valuesSEXP) {
+Rcpp::List compute_max_E_nu_j_univariate(const double& N, const Rcpp::List& sub_posterior_samples, const Rcpp::List& log_weights, const double& time, const arma::vec& sub_posterior_means, const Rcpp::NumericVector& precondition_values);
+RcppExport SEXP _DCFusion_compute_max_E_nu_j_univariate(SEXP NSEXP, SEXP sub_posterior_samplesSEXP, SEXP log_weightsSEXP, SEXP timeSEXP, SEXP sub_posterior_meansSEXP, SEXP precondition_valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const double& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type normalised_weights(normalised_weightsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type sub_posterior_samples(sub_posterior_samplesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type log_weights(log_weightsSEXP);
+    Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type sub_posterior_means(sub_posterior_meansSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type precondition_values(precondition_valuesSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_max_E_nu_j_univariate(N, normalised_weights, sub_posterior_samples, sub_posterior_means, precondition_values));
+    rcpp_result_gen = Rcpp::wrap(compute_max_E_nu_j_univariate(N, sub_posterior_samples, log_weights, time, sub_posterior_means, precondition_values));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -169,19 +170,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // compute_max_E_nu_j_multivariate
-double compute_max_E_nu_j_multivariate(const double& N, const int& dim, const arma::vec& normalised_weights, const Rcpp::List& sub_posterior_samples, const arma::mat& sub_posterior_means, const Rcpp::List& inv_precondition_matrices, const arma::mat& Lambda);
-RcppExport SEXP _DCFusion_compute_max_E_nu_j_multivariate(SEXP NSEXP, SEXP dimSEXP, SEXP normalised_weightsSEXP, SEXP sub_posterior_samplesSEXP, SEXP sub_posterior_meansSEXP, SEXP inv_precondition_matricesSEXP, SEXP LambdaSEXP) {
+Rcpp::List compute_max_E_nu_j_multivariate(const double& N, const int& dim, const Rcpp::List& sub_posterior_samples, const Rcpp::List& log_weights, const double& time, const arma::mat& sub_posterior_means, const Rcpp::List& inv_precondition_matrices, const arma::mat& Lambda);
+RcppExport SEXP _DCFusion_compute_max_E_nu_j_multivariate(SEXP NSEXP, SEXP dimSEXP, SEXP sub_posterior_samplesSEXP, SEXP log_weightsSEXP, SEXP timeSEXP, SEXP sub_posterior_meansSEXP, SEXP inv_precondition_matricesSEXP, SEXP LambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const double& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type normalised_weights(normalised_weightsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type sub_posterior_samples(sub_posterior_samplesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type log_weights(log_weightsSEXP);
+    Rcpp::traits::input_parameter< const double& >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type sub_posterior_means(sub_posterior_meansSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type inv_precondition_matrices(inv_precondition_matricesSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Lambda(LambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_max_E_nu_j_multivariate(N, dim, normalised_weights, sub_posterior_samples, sub_posterior_means, inv_precondition_matrices, Lambda));
+    rcpp_result_gen = Rcpp::wrap(compute_max_E_nu_j_multivariate(N, dim, sub_posterior_samples, log_weights, time, sub_posterior_means, inv_precondition_matrices, Lambda));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -766,7 +768,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_log_rho_univariate", (DL_FUNC) &_DCFusion_log_rho_univariate, 4},
     {"_DCFusion_weighted_variance_univariate", (DL_FUNC) &_DCFusion_weighted_variance_univariate, 3},
     {"_DCFusion_weighted_trajectory_variation_univariate", (DL_FUNC) &_DCFusion_weighted_trajectory_variation_univariate, 4},
-    {"_DCFusion_compute_max_E_nu_j_univariate", (DL_FUNC) &_DCFusion_compute_max_E_nu_j_univariate, 5},
+    {"_DCFusion_compute_max_E_nu_j_univariate", (DL_FUNC) &_DCFusion_compute_max_E_nu_j_univariate, 6},
     {"_DCFusion_inverse_sum_matrices", (DL_FUNC) &_DCFusion_inverse_sum_matrices, 1},
     {"_DCFusion_weighted_mean_multivariate", (DL_FUNC) &_DCFusion_weighted_mean_multivariate, 3},
     {"_DCFusion_calculate_proposal_cov", (DL_FUNC) &_DCFusion_calculate_proposal_cov, 2},
@@ -774,7 +776,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_log_rho_multivariate", (DL_FUNC) &_DCFusion_log_rho_multivariate, 4},
     {"_DCFusion_weighted_variance_multivariate", (DL_FUNC) &_DCFusion_weighted_variance_multivariate, 3},
     {"_DCFusion_weighted_trajectory_variation_multivariate", (DL_FUNC) &_DCFusion_weighted_trajectory_variation_multivariate, 4},
-    {"_DCFusion_compute_max_E_nu_j_multivariate", (DL_FUNC) &_DCFusion_compute_max_E_nu_j_multivariate, 7},
+    {"_DCFusion_compute_max_E_nu_j_multivariate", (DL_FUNC) &_DCFusion_compute_max_E_nu_j_multivariate, 8},
     {"_DCFusion_logsumexp", (DL_FUNC) &_DCFusion_logsumexp, 1},
     {"_DCFusion_particle_ESS", (DL_FUNC) &_DCFusion_particle_ESS, 1},
     {"_DCFusion_rho_IS_univariate_", (DL_FUNC) &_DCFusion_rho_IS_univariate_, 5},
