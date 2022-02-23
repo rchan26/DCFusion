@@ -417,8 +417,8 @@ mesh_guidance_regular <- function(C,
       }
     }
     # If we are able to find a suitable k3 and k4 that satisfies the bound,
-    # (the previous loop tries finds the first small enough k3 which where T1 < T2)
-    # we can continue to push k3 smaller and k4 larger until T1 > T2 to get a
+    # (the previous loop tries finds the first small enough k3 which where T1 > T2)
+    # we can continue to push k3 smaller and k4 larger while T1 > T2 to get a
     # computationally more efficient algorithm, since we'd want k4 as large as
     # possible until we cannot guarantee it will be smaller than T1 on average
     while (T1 > T2) {
