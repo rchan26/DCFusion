@@ -16,8 +16,8 @@ CESS_j_threshold <- 0.2
 vanilla_b <- 1
 k1 <- NULL
 k2 <- NULL
-k3 <- NULL
-k4 <- NULL
+k3 <- -log(CESS_j_threshold)/2
+k4 <- -log(CESS_j_threshold)/2
 data_sizes <- c(1000, 5000, 10000, 20000, 30000, 40000)
 a_results <- list('vanilla' = list(), 'generalised' = list())
 b_results <- list('vanilla' = list(), 'generalised' = list())

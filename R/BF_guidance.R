@@ -440,6 +440,7 @@ mesh_guidance_regular <- function(C,
         k4 <- -log(threshold)-k3
       }
     }
+    warning("mesh_guidance_regular: k3 set to ", k3, " and k4 set to ", k4, " || exp(-k3-k4) = ", exp(-k3-k4))
   } else {
     stop("mesh_guidance_regular: threshold either is NULL or is a numeric value between 0 and 1")
   }
