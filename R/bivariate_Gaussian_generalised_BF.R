@@ -126,9 +126,8 @@ rho_j_biGaussian <- function(particle_set,
   }
   max_samples_per_core <- ceiling(N/n_cores)
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
-  counts <- c('full_data_count', 'design_count')
   elapsed_time <- rep(NA, length(time_mesh)-1)
-  ESS <-  c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
+  ESS <- c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
   if (adaptive_mesh) {
