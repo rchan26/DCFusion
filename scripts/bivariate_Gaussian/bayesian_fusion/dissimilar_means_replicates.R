@@ -35,8 +35,8 @@ for (i in 1:length(data_sizes)) {
   print(paste('data_size:', data_sizes[i]))
   vanilla_guide[[i]] <- list()
   gen_guide[[i]] <- list()
-  vanilla_guide_SSH[[i]] <- list()
-  gen_guide_SSH[[i]] <- list()
+  vanilla_guide_SH[[i]] <- list()
+  gen_guide_SH[[i]] <- list()
   a_results$vanilla[[i]] <- list()
   a_results$generalised[[i]] <- list()
   b_results$vanilla[[i]] <- list()
@@ -45,9 +45,10 @@ for (i in 1:length(data_sizes)) {
   c_results$generalised[[i]] <- list()
   d_results$vanilla[[i]] <- list()
   d_results$generalised[[i]] <- list()
-  SSH_adaptive_results$vanilla[[i]] <- list()
-  SSH_adaptive_results$generalised[[i]] <- list()
+  SH_adaptive_results$vanilla[[i]] <- list()
+  SH_adaptive_results$generalised[[i]] <- list()
   for (rep in 1:number_of_replicates) {
+    print(paste('rep:', rep))
     set.seed(seed*rep*i)
     sd <- sqrt(rep(C, 2)/data_sizes[i])
     cov_mat <- matrix(c(sd[1]^2, sd[1]*sd[2]*corr, sd[1]*sd[2]*corr, sd[2]^2),
@@ -487,4 +488,7 @@ for (i in 1:length(data_sizes)) {
                                                           marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
                                                           bw = opt_bw))
   }
+  # save progress
+  print('saving progress')
+  save.image('bivG_dissimilar_means_replicates.RData')
 }
