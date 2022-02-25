@@ -304,7 +304,6 @@ compare_samples_bivariate(posteriors = list(full_posterior,
                           colours = c('black', 'green', 'red'),
                           common_limit = c(-4, 4))
 
-
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
 NB_GBF_4 <- list('reg_mesh' = parallel_GBF_BLR(particles_to_fuse = particles_to_fuse,

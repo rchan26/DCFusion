@@ -29,7 +29,7 @@ c_results <- list('vanilla' = list(), 'generalised' = list())
 d_results <- list('vanilla' = list(), 'generalised' = list())
 SSH_adaptive_results <- list('vanilla' = list(), 'generalised' = list())
 
-for (i in 6:length(data_sizes)) {
+for (i in 1:length(data_sizes)) {
   set.seed(seed*i)
   sd <- sqrt(rep(C, 2)/data_sizes[i])
   # target_cov_mat <- matrix(c(sd[1]^2, sd[1]*sd[2]*corr, sd[1]*sd[2]*corr, sd[2]^2),

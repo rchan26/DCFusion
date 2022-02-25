@@ -612,9 +612,9 @@ parallel_GBF_BLR <- function(particles_to_fuse,
                                       precondition_matrices)
   }
   if (!is.null(sub_posterior_means)) {
-    new_sub_posterior_means <- list(weighted_mean_multivariate(matrix = sub_posterior_means,
-                                                               weights = inv_precondition_matrices,
-                                                               inverse_sum_weights = Lambda),
+    new_sub_posterior_means <- list(t(weighted_mean_multivariate(matrix = sub_posterior_means,
+                                                                 weights = inv_precondition_matrices,
+                                                                 inverse_sum_weights = Lambda)),
                                     sub_posterior_means)
   } else {
     new_sub_posterior_means <- list(NULL, sub_posterior_means)
@@ -846,7 +846,8 @@ bal_binary_GBF_BLR <- function(N_schedule,
           length C, where precondition[[c]] is the preconditioning matrix for
           the c-th sub-posterior")
   }
-  sub_posterior_means <- t(sapply(input_samples, function(sub) apply(sub, 2, mean)))
+  sub_posterior_means <- list()
+  sub_posterior_means[[L]] <- t(sapply(base_samples, function(sub) apply(sub, 2, mean)))
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
   parallel::clusterExport(cl, envir = environment(), varlist = ls())
   parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
@@ -855,9 +856,8 @@ bal_binary_GBF_BLR <- function(N_schedule,
   for (k in ((L-1):1)) {
     n_nodes <- max(C/prod(m_schedule[L:k]), 1)
     cat('########################\n', file = 'bal_binary_GBF_BLR.txt', append = T)
-    cat('Starting to fuse', m_schedule[k], 'sub-posteriors for level', k, 'with time',
-        time_schedule[k], ', which is using', n_cores, 'cores\n',
-        file = 'bal_binary_GBF_BLR.txt', append = T)
+    cat('Starting to fuse', m_schedule[k], 'sub-posteriors for level', k, 
+        'using', n_cores, 'cores\n', file = 'bal_binary_GBF_BLR.txt', append = T)
     cat('At this level, the data is split up into', (C/prod(m_schedule[L:(k+1)])), 'subsets\n',
         file = 'bal_binary_GBF_BLR.txt', append = T)
     cat('There are', n_nodes, 'nodes at the next level each giving', N_schedule[k],
@@ -878,9 +878,9 @@ bal_binary_GBF_BLR <- function(N_schedule,
                                         particles_to_fuse[[i]]$y_samples}),
                                       log_weights = lapply(1:length(previous_nodes), function(i) {
                                         particles_to_fuse[[i]]$log_weights}),
-                                      C = (C/prod(m_schedule[L:(k+1)])),
+                                      C = m_schedule[k],
                                       d = dim,
-                                      data_size = mesh_parameters$data_size,
+                                      data_size = length(data_inputs[[k+1]][[1]]$y),
                                       b = mesh_parameters$b,
                                       sub_posterior_means = sub_post_means,
                                       precondition_matrices = precondition_mats,
@@ -914,7 +914,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
                                               ESS_threshold = ESS_threshold,
                                               cv_location = cv_location,
                                               sub_posterior_means = sub_post_means,
-                                              adaptive_mesh = adatpive_mesh,
+                                              adaptive_mesh = adaptive_mesh,
                                               adaptive_mesh_parameters = mesh_parameters,
                                               diffusion_estimator = diffusion_estimator,
                                               beta_NB = beta_NB,
