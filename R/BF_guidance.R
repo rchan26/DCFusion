@@ -335,7 +335,7 @@ mesh_guidance_regular <- function(C,
                                   k3 = NULL,
                                   k4 = NULL,
                                   max_E_nu_j = NULL,
-                                  trial_k3_by = 0.000001,
+                                  trial_k3_by = NULL,
                                   vanilla = NULL) {
   if (is.null(vanilla)) {
     warning('mesh_guidance_regular: vanilla is set to FALSE by default')
@@ -374,6 +374,9 @@ mesh_guidance_regular <- function(C,
     }
     if (!is.numeric(max_E_nu_j)) {
       stop("mesh_guidance_regular: if threshold is not NULL, max_E_nu_j must be a numeric")
+    }
+    if (is.null(trial_k3_by)) {
+      trial_k3_by <- 0.000001
     }
     i <- 1
     trial_k3 <- c(-log(.Machine$double.xmin)+1, 100, 10, seq(5, trial_k3_by, -trial_k3_by))
@@ -475,7 +478,7 @@ BF_guidance <- function(condition,
                         k2 = NULL,
                         k3 = NULL,
                         k4 = NULL,
-                        trial_k3_by = 0.000001,
+                        trial_k3_by = NULL,
                         vanilla = NULL) {
   T_guide <- T_guidance(condition = condition,
                         threshold = CESS_0_threshold,

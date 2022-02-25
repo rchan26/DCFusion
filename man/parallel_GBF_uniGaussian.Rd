@@ -65,12 +65,7 @@ is the sub-posterior mean of sub-posterior c}
 \item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used
 (default is FALSE)}
 
-\item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh.
-Items which can be included are data_size,
-b (population variance if vanilla BF is used),
-k3, k4 (determines CESS_j threshold), T2
-(regular mesh recommended), vanilla (logical
-value to indicate if vanilla BF guidance is used)}
+\item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh}
 
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poisson estimator

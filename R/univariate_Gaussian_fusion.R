@@ -424,7 +424,7 @@ parallel_fusion_uniGaussian <- function(N,
 #' \describe{
 #'   \item{samples}{list of length (L-1), where samples[[l]][[i]] are the samples 
 #'                  for level l, node i}
-#'   \item{time}{list of length (L-1), where time[[l]] is the run time for level 
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for level 
 #'               l, node i}
 #'   \item{rho_acc}{list of length (L-1), where rho_acc[[l]][i] is the acceptance 
 #'                  rate for first fusion step for level l, node i}
@@ -594,7 +594,7 @@ bal_binary_fusion_uniGaussian <- function(N_schedule,
 #' \describe{
 #'   \item{samples}{list of length (L-1), where samples[[l]][[i]] are the samples 
 #'                  for level l, node i}
-#'   \item{time}{list of length (L-1), where time[[l]] is the run time for level 
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for level 
 #'               l, node i}
 #'   \item{rho_acc}{list of length (L-1), where rho_acc[[l]][i] is the acceptance 
 #'                  rate for first fusion step for level l, node i}
@@ -1038,7 +1038,7 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
 #'                    particles for level l, node i}
 #'   \item{proposed_samples}{list of length (L-1), where proposed_samples[[l]][[i]]
 #'                           are the proposed samples for level l, node i}
-#'   \item{time}{list of length (L-1), where time[[l]] is the run time for level l,
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for level l,
 #'               node i}
 #'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective 
 #'              sample size of the particles after each step BEFORE deciding 
@@ -1232,7 +1232,7 @@ bal_binary_fusion_SMC_uniGaussian <- function(N_schedule,
 #'                    particles for level l, node i}
 #'   \item{proposed_samples}{list of length (L-1), where proposed_samples[[l]][[i]]
 #'                           are the proposed samples for level l, node i}
-#'   \item{time}{list of length (L-1), where time[[l]] is the run time for level l,
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for level l,
 #'               node i}
 #'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective 
 #'              sample size of the particles after each step BEFORE deciding 

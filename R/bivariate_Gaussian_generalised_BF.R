@@ -31,12 +31,7 @@
 #'                            is the sub-posterior mean of sub-posterior c
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
 #'                      (default is FALSE)
-#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
-#'                                 Items which can be included are data_size,
-#'                                 b (population variance if vanilla BF is used),
-#'                                 k3, k4 (determines CESS_j threshold), T2
-#'                                 (regular mesh recommended), vanilla (logical
-#'                                 value to indicate if vanilla BF guidance is used)
+#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -252,13 +247,6 @@ rho_j_biGaussian <- function(particle_set,
     elapsed_time[j-1] <- (proc.time()-pcm)['elapsed']
   }
   parallel::stopCluster(cl)
-  if (adaptive_mesh) {
-    CESS <- CESS[1:j]
-    ESS <- ESS[1:j]
-    resampled <- resampled[1:j]
-    particle_set$time_mesh <- time_mesh[1:j]
-    elapsed_time <- elapsed_time[1:(j-1)]
-  }
   # set the y samples as the first element of each of the x_samples
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
   particle_set$y_samples <- proposed_samples
@@ -272,6 +260,15 @@ rho_j_biGaussian <- function(particle_set,
                                                 seed = seed)
   } else {
     resampled[particle_set$number_of_steps] <- FALSE
+  }
+  if (adaptive_mesh) {
+    CESS <- CESS[1:j]
+    ESS <- ESS[1:j]
+    resampled <- resampled[1:j]
+    particle_set$time_mesh <- time_mesh[1:j]
+    elapsed_time <- elapsed_time[1:(j-1)]
+    E_nu_j <- E_nu_j[1:j]
+    E_nu_j_old <- E_nu_j_old[1:j]
   }
   return(list('particle_set' = particle_set,
               'proposed_samples' = proposed_samples,
@@ -316,12 +313,7 @@ rho_j_biGaussian <- function(particle_set,
 #'                            is the sub-posterior mean of sub-posterior c
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
 #'                      (default is FALSE)
-#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
-#'                                 Items which can be included are data_size,
-#'                                 b (population variance if vanilla BF is used),
-#'                                 k3, k4 (determines CESS_j threshold), T2
-#'                                 (regular mesh recommended), vanilla (logical
-#'                                 value to indicate if vanilla BF guidance is used)
+#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator

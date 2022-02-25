@@ -30,12 +30,7 @@
 #'                            is the sub-posterior mean of sub-posterior c
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
 #'                      (default is FALSE)
-#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
-#'                                 Items which can be included are data_size,
-#'                                 b (population variance if vanilla BF is used),
-#'                                 k3, k4 (determines CESS_j threshold), T2
-#'                                 (regular mesh recommended), vanilla (logical
-#'                                 value to indicate if vanilla BF guidance is used)
+#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -100,8 +95,10 @@ rho_j_BLR <- function(particle_set,
     stop("rho_j_BLR: particle_set must be a \"particle\" object")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("rho_j_BLR: data_split must be a list of length m")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
-    stop("rho_j_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
+  } else if (!all(sapply(data_split, function(sub_posterior) {
+    is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count"))}))) {
+    stop("rho_j_BLR: each item in data_split must be a list of length 4 with names
+         \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!is.vector(time_mesh)) {
     stop("rho_j_BLR: time_mesh must be an ordered vector of length >= 2")
   } else if (length(time_mesh) < 2) {
@@ -416,12 +413,7 @@ rho_j_BLR <- function(particle_set,
 #'                            is the sub-posterior mean of sub-posterior c
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
 #'                      (default is FALSE)
-#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
-#'                                 Items which can be included are data_size,
-#'                                 b (population variance if vanilla BF is used),
-#'                                 k3, k4 (determines CESS_j threshold), T2
-#'                                 (regular mesh recommended), vanilla (logical
-#'                                 value to indicate if vanilla BF guidance is used)
+#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -475,6 +467,8 @@ parallel_GBF_BLR <- function(particles_to_fuse,
                              prior_variances,
                              C,
                              precondition_matrices,
+                             inv_precondition_matrices = NULL,
+                             Lambda = NULL,
                              resampling_method = 'multi',
                              ESS_threshold = 0.5,
                              cv_location = 'hypercube_centre',
@@ -507,8 +501,10 @@ parallel_GBF_BLR <- function(particles_to_fuse,
     stop("parallel_generalised_BF_SMC_BLR: time_mesh must be an ordered vector of length >= 2")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("parallel_generalised_BF_SMC_BLR: data_split must be a list of length m")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
-    stop("parallel_generalised_BF_SMC_BLR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
+  } else if (!all(sapply(data_split, function(sub_posterior) {
+    is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count"))}))) {
+    stop("parallel_generalised_BF_SMC_BLR: each item in data_split must be a list of length 4 with names
+         \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
     stop("parallel_generalised_BF_SMC_BLR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
@@ -557,8 +553,12 @@ parallel_GBF_BLR <- function(particles_to_fuse,
   }
   # ---------- first importance sampling step
   # pre-calculating the inverse precondition matrices
-  inv_precondition_matrices <- lapply(precondition_matrices, solve)
-  Lambda <- inverse_sum_matrices(inv_precondition_matrices)
+  if (is.null(inv_precondition_matrices)) {
+    inv_precondition_matrices <- lapply(precondition_matrices, solve)  
+  }
+  if (is.null(Lambda)) {
+    Lambda <- inverse_sum_matrices(inv_precondition_matrices)  
+  }
   pcm_rho_0 <- proc.time()
   particles <- rho_IS_multivariate(particles_to_fuse = particles_to_fuse,
                                    dim = dim,
@@ -631,4 +631,343 @@ parallel_GBF_BLR <- function(particles_to_fuse,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means,
               'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
+}
+
+#' (Balanced Binary) D&C Monte Carlo Fusion using SMC
+#' 
+#' (Balanced Binary) D&C Monte Carlo Fusion using SMC for Bayesian Logistic Regression
+#'
+#' @param N_schedule vector of length (L-1), where N_schedule[l] is the
+#'                   number of samples per node at level l
+#' @param m_schedule vector of length (L-1), where m_schedule[k] is the number
+#'                   of samples to fuse for level k
+#' @param time_mesh time mesh used in Bayesian Fusion. This can either be a vector
+#'                  which will be used for each node in the tree, or it can be
+#'                  passed in as NULL, where a recommended mesh will be generated
+#'                  using the parameters passed into mesh_parameters
+#' @param base_samples list of length C, where base_samples[[c]] contains
+#'                     the samples for the c-th node in the level
+#' @param L total number of levels in the hierarchy
+#' @param dim dimension of the predictors (= p+1)
+#' @param data_split list of length m where each item is a list of length 4 where
+#'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
+#'                   data_split[[c]]$x is the design matrix for the covariates for
+#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
+#'                   rows of the full data set with their counts and 
+#'                   data_split[[c]]$design_count is the unique rows of the design
+#'                   matrix and their counts
+#' @param prior_means prior for means of predictors
+#' @param prior_variances prior for variances of predictors
+#' @param C number of sub-posteriors at the base level
+#' @param precondition either a logical value to determine if preconditioning matrices are
+#'                     used (TRUE - and is set to be the variance of the sub-posterior samples)
+#'                     or not (FALSE - and is set to be the identity matrix for all sub-posteriors),
+#'                     or a list of length (1/start_beta) where precondition[[c]]
+#'                     is the preconditioning matrix for sub-posterior c. Default is TRUE
+#' @param resampling_method method to be used in resampling, default is
+#'                          multinomial resampling ('multi'). Other choices are
+#'                          stratified ('strat'), systematic ('system'),
+#'                          residual ('resid')
+#' @param ESS_threshold number between 0 and 1 defining the proportion
+#'                      of the number of samples that ESS needs to be
+#'                      lower than for resampling (i.e. resampling is carried
+#'                      out only when ESS < N*ESS_threshold)
+#' @param cv_location string to determine what the location of the control variate
+#'                    should be. Must be either 'mode' where the MLE estimator 
+#'                    will be used or 'hypercube_centre' (default) to use the centre
+#'                    of the simulated hypercube
+#' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
+#'                            between "Poisson" (default) for Poisson estimator
+#'                            and "NB" for Negative Binomial estimator
+#' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
+#' @param gamma_NB_n_points number of points used in the trapezoidal estimation
+#'                          of the integral found in the mean of the negative
+#'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
+#' @param seed seed number - default is NULL, meaning there is no seed
+#' @param n_cores number of cores to use
+#' @param print_progress_iters number of iterations between each progress update
+#'                             (default is 1000). If NULL, progress will only
+#'                             be updated when importance sampling is finished
+#'
+#' @return A list with components:
+#' \describe{
+#'   \item{particles}{list of length (L-1), where particles[[l]][[i]] are the
+#'                    particles for level l, node i}
+#'   \item{proposed_samples}{list of length (L-1), where proposed_samples[[l]][[i]]
+#'                           are the proposed samples for level l, node i}
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time
+#'               for level l, node i}
+#'   \item{elapsed_time}{list of length (L-1), where}
+#'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
+#'              sample size of the particles after each step BEFORE deciding
+#'              whether or not to resample for level l, node i}
+#'   \item{CESS}{list of length (L-1), where ESS[[l]][[i]] is the conditional
+#'               effective sample size of the particles after each step}
+#'   \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a
+#'                    boolean value to record if the particles were resampled
+#'                    after each step; rho and Q for level l, node i}
+#'   \item{E_nu_j}{list of length (L-1), where E_nu_j[[l]][[i]] is the
+#'                 approximation of the average variation of the trajectories
+#'                 at each time step for level l, node i}
+#'   \item{precondition_matrices}{pre-conditioning matrices that were used}
+#'   \item{sub_posterior_means}{sub-posterior means that were used}
+#'   \item{recommended_mesh}{list of length (L-1), where recommended_mesh[[l]][[i]]
+#'                           is the recommended mesh for level l, node i}
+#'   \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
+#'                      data input for the sub-posterior in level l, node i}
+#' }
+#'
+#' @export
+bal_binary_GBF_BLR <- function(N_schedule,
+                               m_schedule,
+                               time_mesh = NULL,
+                               base_samples,
+                               L,
+                               dim,
+                               data_split,
+                               prior_means,
+                               prior_variances,
+                               C,
+                               precondition = TRUE,
+                               resampling_method = 'multi',
+                               ESS_threshold = 0.5,
+                               cv_location = 'hypercube_centre',
+                               adaptive_mesh = FALSE,
+                               mesh_parameters = NULL,
+                               diffusion_estimator = 'Poisson',
+                               beta_NB = 10,
+                               gamma_NB_n_points = 2,
+                               local_bounds = TRUE,
+                               seed = NULL,
+                               n_cores = parallel::detectCores(),
+                               print_progress_iters = 100) {
+  if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
+    stop("bal_binary_GBF_BLR: N_schedule must be a vector of length (L-1)")
+  } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
+    stop("bal_binary_GBF_BLR: m_schedule must be a vector of length (L-1)")
+  } else if (!is.list(base_samples) | (length(base_samples)!=C)) {
+    stop("bal_binary_GBF_BLR: base_samples must be a list of length C")
+  } else if (!is.list(data_split) | length(data_split)!=C) {
+    stop("bal_binary_GBF_BLR: data_split must be a list of length C")
+  } else if (!all(sapply(data_split, function(sub_posterior) {
+    is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count"))}))) {
+    stop("bal_binary_GBF_BLR: each item in data_split must be a list of length 4 with names
+         \'y\', \'X\', \'full_data_count\', \'design_count\'")
+  } else if (!all(sapply(1:C, function(i) is.vector(data_split[[i]]$y)))) {
+    stop("bal_binary_GBF_BLR: for each i in 1:C, data_split[[i]]$y must be a vector")
+  } else if (!all(sapply(1:C, function(i) is.matrix(data_split[[i]]$X)))) {
+    stop("bal_binary_GBF_BLR: for each i in 1:C, data_split[[i]]$X must be a matrix")
+  } else if (!all(sapply(1:C, function(i) ncol(data_split[[i]]$X)==dim))) {
+    stop("bal_binary_GBF_BLR: for each i in 1:C, data_split[[i]]$X must be a matrix with dim columns")
+  } else if (!all(sapply(1:C, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
+    stop("bal_binary_GBF_BLR: for each i in 1:C, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
+  } else if (!all(sapply(1:C, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
+    stop("bal_binary_GBF_BLR: for each i in 1:C, data_split[[i]]$full_data_count must be a data frame")
+  } else if (!all(sapply(1:C, function(i) is.data.frame(data_split[[i]]$design_count)))) {
+    stop("bal_binary_GBF_BLR: for each i in 1:C, data_split[[i]]$design_count must be a data frame")
+  } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
+    stop("bal_binary_GBF_BLR: prior_means must be vectors of length dim")
+  } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
+    stop("bal_binary_GBF_BLR: prior_variances must be vectors of length dim")
+  } else if (ESS_threshold < 0 | ESS_threshold > 1) {
+    stop("bal_binary_GBF_BLR: ESS_threshold must be between 0 and 1")
+  }
+  if (is.vector(m_schedule) & (length(m_schedule)==(L-1))) {
+    for (l in (L-1):1) {
+      if ((C/prod(m_schedule[(L-1):l]))%%1!=0) {
+        stop("bal_binary_GBF_BLR: check that C/prod(m_schedule[(L-1):l])
+              is an integer for l=L-1,...,1")
+      }
+    }
+  } else {
+    stop("bal_binary_GBF_BLR: m_schedule must be a vector of length (L-1)")
+  }
+  if (is.vector(time_mesh)) {
+    if (length(time_mesh) < 2) {
+      stop("bal_binary_GBF_BLR: time_mesh must be an ordered vector of length >= 2")
+    } else if (!identical(time_mesh, sort(time_mesh))) {
+      stop("bal_binary_GBF_BLR: time_mesh must be an ordered vector of length >= 2")
+    }
+  } else if (is.null(time_mesh)) {
+    if (!is.list(mesh_parameters)) {
+      stop("bal_binary_GBF_BLR: if time_mesh is NULL, mesh_parameters must be a
+           list of parameters to obtain guidance for the mesh")
+    } 
+  } else {
+    stop("bal_binary_GBF_BLR: time_mesh must either be an ordered vector of length
+           >= 2 or passed as NULL if want to use recommended guidance")
+  }
+  m_schedule <- c(m_schedule, 1)
+  particles <- list()
+  if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
+    particles[[L]] <- base_samples
+  } else if (all(sapply(base_samples, is.matrix))) {
+    if (!all(sapply(base_samples, function(core) ncol(core)==dim))) {
+      stop("bal_binary_GBF_BLR: the sub-posterior samples in base_samples must be matrices with dim columns")
+    }
+    particles[[L]] <- initialise_particle_sets(samples_to_fuse = base_samples,
+                                               multivariate = TRUE,
+                                               number_of_steps = 2)
+  } else {
+    stop("bal_binary_GBF_BLR: base_samples must be a list of length C
+         containing either items of class \"particle\" (representing particle 
+         approximations of the sub-posteriors) or are matrices with dim columns
+         (representing un-normalised sample approximations of the sub-posteriors)")
+  }
+  proposed_samples <- list()
+  data_inputs <- list()
+  data_inputs[[L]] <- data_split
+  time <- list()
+  elapsed_time <- list()
+  ESS <- list()
+  CESS <- list()
+  resampled <- list()
+  E_nu_j <- list()
+  E_nu_j_old <- list()
+  recommended_mesh <- list()
+  precondition_matrices <- list()
+  if (is.logical(precondition)) {
+    if (precondition) {
+      precondition_matrices[[L]] <- lapply(base_samples, cov)
+    } else {
+      precondition_matrices[[L]] <- lapply(base_samples, function(c) diag(1, dim))
+    }
+  } else if (is.list(precondition)) {
+    if (length(precondition)==C & all(sapply(precondition, is.matrix))) {
+      if (all(sapply(precondition, function(sub) ncol(sub)==dim))) {
+        precondition_matrices[[L]] <- precondition  
+      }
+    }
+  } else {
+    stop("bal_binary_GBF_BLR: precondition must be a logical indicating 
+          whether or not a preconditioning matrix should be used, or a list of
+          length C, where precondition[[c]] is the preconditioning matrix for
+          the c-th sub-posterior")
+  }
+  sub_posterior_means <- t(sapply(input_samples, function(sub) apply(sub, 2, mean)))
+  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
+  parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
+  cat('Starting bal_binary fusion \n', file = 'bal_binary_GBF_BLR.txt')
+  for (k in ((L-1):1)) {
+    n_nodes <- max(C/prod(m_schedule[L:k]), 1)
+    cat('########################\n', file = 'bal_binary_GBF_BLR.txt', append = T)
+    cat('Starting to fuse', m_schedule[k], 'sub-posteriors for level', k, 'with time',
+        time_schedule[k], ', which is using', n_cores, 'cores\n',
+        file = 'bal_binary_GBF_BLR.txt', append = T)
+    cat('At this level, the data is split up into', (C/prod(m_schedule[L:(k+1)])), 'subsets\n',
+        file = 'bal_binary_GBF_BLR.txt', append = T)
+    cat('There are', n_nodes, 'nodes at the next level each giving', N_schedule[k],
+        'samples \n', file = 'bal_binary_GBF_BLR.txt', append = T)
+    cat('########################\n', file = 'bal_binary_GBF_BLR.txt', append = T)
+    fused <- lapply(X = 1:n_nodes, FUN = function(i) {
+      previous_nodes <- ((m_schedule[k]*i)-(m_schedule[k]-1)):(m_schedule[k]*i)
+      particles_to_fuse <- particles[[k+1]][previous_nodes]
+      precondition_mats <- precondition_matrices[[k+1]][previous_nodes]
+      inv_precondition_mats <- lapply(precondition_mats, solve)
+      Lambda <- inverse_sum_matrices(inv_precondition_mats)
+      sub_post_means <- sub_posterior_means[[k+1]][previous_nodes,]
+      if (is.null(time_mesh)) {
+        recommendation <- BF_guidance(condition = mesh_parameters$condition,
+                                      CESS_0_threshold = mesh_parameters$CESS_0_threshold,
+                                      CESS_j_threshold = mesh_parameters$CESS_j_threshold,
+                                      sub_posterior_samples = lapply(1:length(previous_nodes), function(i) {
+                                        particles_to_fuse[[i]]$y_samples}),
+                                      log_weights = lapply(1:length(previous_nodes), function(i) {
+                                        particles_to_fuse[[i]]$log_weights}),
+                                      C = (C/prod(m_schedule[L:(k+1)])),
+                                      d = dim,
+                                      data_size = mesh_parameters$data_size,
+                                      b = mesh_parameters$b,
+                                      sub_posterior_means = sub_post_means,
+                                      precondition_matrices = precondition_mats,
+                                      inv_precondition_matrices = inv_precondition_mats,
+                                      Lambda = Lambda,
+                                      lambda = mesh_parameters$lambda,
+                                      gamma = mesh_parameters$gamma,
+                                      k1 = mesh_parameters$k1,
+                                      k2 = mesh_parameters$k2,
+                                      k3 = mesh_parameters$k3,
+                                      k4 = mesh_parameters$k4,
+                                      trial_k3_by = mesh_parameters$trial_k3_by,
+                                      vanilla = mesh_parameters$vanilla)
+      } else {
+        recommendation <- list('mesh' = time_mesh)
+      }
+      return(list('recommendation' = recommendation,
+                  'fusion' = parallel_GBF_BLR(particles_to_fuse = particles_to_fuse,
+                                              N = N_schedule[k],
+                                              m = m_schedule[k],
+                                              time_mesh = recommendation$mesh,
+                                              dim = dim,
+                                              data_split = data_inputs[[k+1]][previous_nodes],
+                                              prior_means = prior_means,
+                                              prior_variances = prior_variances,
+                                              C = (C/prod(m_schedule[L:(k+1)])),
+                                              precondition_matrices = precondition_mats,
+                                              inv_precondition_matrices = inv_precondition_mats,
+                                              Lambda = Lambda,
+                                              resampling_method = resampling_method,
+                                              ESS_threshold = ESS_threshold,
+                                              cv_location = cv_location,
+                                              sub_posterior_means = sub_post_means,
+                                              adaptive_mesh = adatpive_mesh,
+                                              adaptive_mesh_parameters = mesh_parameters,
+                                              diffusion_estimator = diffusion_estimator,
+                                              beta_NB = beta_NB,
+                                              gamma_NB_n_points = gamma_NB_n_points,
+                                              local_bounds = local_bounds,
+                                              seed = seed,
+                                              n_cores = n_cores,
+                                              cl = cl,
+                                              level = k,
+                                              node = i,
+                                              print_progress_iters = print_progress_iters)))
+    })
+    particles[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$particles)
+    proposed_samples[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$proposed_samples)
+    time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$time)
+    elapsed_time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$elapsed_time)
+    ESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$ESS)
+    CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$CESS)
+    resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$resampled)
+    E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
+    E_nu_j_old[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j_old)
+    precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
+    sub_posterior_means[[k]] <- do.call(rbind, lapply(1:n_nodes, function(i) fused[[i]]$fusion$sub_posterior_means[[1]]))
+    data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$combined_data)
+    recommended_mesh[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$recommendation)
+  }
+  parallel::stopCluster(cl)
+  cat('Completed bal_binary fusion\n', file = 'bal_binary_GBF_BLR.txt', append = T)
+  if (length(particles[[1]])==1) {
+    particles[[1]] <- particles[[1]][[1]]
+    proposed_samples[[1]] <- proposed_samples[[1]][[1]]
+    time[[1]] <- time[[1]][[1]]
+    elapsed_time[[1]] <- elapsed_time[[1]][[1]]
+    ESS[[1]] <- ESS[[1]][[1]]
+    CESS[[1]] <- CESS[[1]][[1]]
+    resampled[[1]] <- resampled[[1]][[1]]
+    E_nu_j[[1]] <- E_nu_j[[1]][[1]]
+    E_nu_j_old[[1]] <- E_nu_j_old[[1]][[1]]
+    precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
+    sub_posterior_means[[1]] <- sub_posterior_means[[1]][[1]]
+    data_inputs[[1]] <- data_inputs[[1]][[1]]
+  }
+  return(list('particles' = particles,
+              'proposed_samples' = proposed_samples,
+              'time' = time,
+              'elapsed_time' = elapsed_time,
+              'ESS' = ESS,
+              'CESS' = CESS,
+              'resampled' = resampled,
+              'E_nu_j' = E_nu_j,
+              'E_nu_j_old' = E_nu_j_old,
+              'precondition_matrices' = precondition_matrices,
+              'sub_posterior_means' = sub_posterior_means,
+              'recommended_mesh' = recommended_mesh,
+              'data_inputs' = data_inputs))
 }
