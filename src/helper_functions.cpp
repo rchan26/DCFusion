@@ -145,9 +145,11 @@ double weighted_variance_univariate(const arma::vec &x,
 //' N <- 10
 //' C <- 4
 //' x_samples <- lapply(1:N, function(i) rnorm(C))
+//' normalised_weights <- rep(1/N, N)
 //' sub_posterior_means <- rnorm(C)
 //' precond <- 1:C
 //' weighted_trajectory_variation_univariate(x_samples = x_samples,
+//'                                          normalised_weights = normalised_weights,
 //'                                          sub_posterior_means = sub_posterior_means,
 //'                                          precondition_values = precond)
 //' # should be equal to the result of this:
@@ -156,28 +158,77 @@ double weighted_variance_univariate(const arma::vec &x,
 //' }))/N
 // [[Rcpp::export]]
 double weighted_trajectory_variation_univariate(const Rcpp::List &x_samples,
+                                                const arma::vec &normalised_weights,
                                                 const arma::vec &sub_posterior_means,
                                                 const arma::vec &precondition_values) {
   const double C = precondition_values.size();
   if (sub_posterior_means.size()!=C) {
     stop("weighted_trajectory_variation_univariate: sub_posterior_means must be a vector of length C=length(precondition_values)");
+  } else if (x_samples.size()!=normalised_weights.size()) {
+    stop("weighted_trajectory_variation_univariate: x_samples and normalised_weights must have the same length");
   }
   double variation = 0.0;
   for (int i=0; i < x_samples.size(); ++i) {
     const arma::vec &x_i = x_samples[i];
     if (x_i.size()!=C) {
-      stop("weighted_trajectory_variation_univariate: x_samples must be a list of vectors of length C=length(precondition_values)");
+      stop("weighted_trajectory_variation_univariate: x_samples[i] must be a list of vectors of length C=length(precondition_values)");
     }
     double ith_variation = 0.0;
     for (int c=0; c < C; ++c) {
-      const double &x_i_c = x_i[c];
-      const double &a_c = sub_posterior_means[c];
-      const double D = x_i_c - a_c;
+      const double D = x_i[c] - sub_posterior_means[c];
       ith_variation += D*D/precondition_values[c];
     }
-    variation += ith_variation/C;
+    variation += normalised_weights.at(i)*ith_variation/C;
   }
-  return (variation/x_samples.size());
+  return variation;
+}
+
+// [[Rcpp::export]]
+Rcpp::List compute_max_E_nu_j_univariate(const double &N,
+                                         const Rcpp::List &sub_posterior_samples,
+                                         const Rcpp::List &log_weights,
+                                         const double &time,
+                                         const arma::vec &sub_posterior_means,
+                                         const Rcpp::NumericVector &precondition_values) {
+  const double C = precondition_values.size();
+  if (sub_posterior_samples.size()!=C) {
+    stop("compute_max_E_nu_j_univariate: sub_posterior_samples must be a list of length C=length(precondition_values)");
+  } else if (sub_posterior_means.size()!=C) {
+    stop("compute_max_E_nu_j_univariate: sub_posterior_means must be a vector of length C=length(precondition_values)");
+  } else if (log_weights.size()!=C) {
+    stop("compute_max_E_nu_j_univariate: log_weights must be a list of length C=length(precondition_values)");
+  }
+  // computing the weights for the initialisation step
+  Rcpp::NumericVector x_means(N);
+  Rcpp::NumericVector log_rho_weights(N);
+  for (int i=0; i < N; ++i) {
+    Rcpp::checkUserInterrupt();
+    Rcpp::NumericVector particle(C);
+    for (int c=0; c < C; ++c) {
+      const Rcpp::NumericVector &sub_post_samples = sub_posterior_samples[c];
+      particle[c] = sub_post_samples.at(i);
+      const Rcpp::NumericVector &lw = log_weights[c];
+      log_rho_weights[i] += lw.at(i);
+    }
+    x_means[i] = weighted_mean_univariate(particle, 1/precondition_values);
+    log_rho_weights[i] += log_rho_univariate(particle, x_means[i], time, precondition_values);
+  }
+  const Rcpp::List ESS = particle_ESS(log_rho_weights);
+  const Rcpp::NumericVector &normalised_weights = ESS["normalised_weights"];
+  // using those normalised weights to compute the maximum E[nu_j]
+  Rcpp::NumericVector variation(N);
+  for (int i=0; i < N; ++i) {
+    Rcpp::checkUserInterrupt();
+    double ith_variation = 0.0;
+    for (int c=0; c < C; ++c) {
+      const double D = x_means[i] - sub_posterior_means[c];
+      ith_variation += D*D/precondition_values[c];
+    }
+    variation.at(i) += normalised_weights.at(i)*ith_variation/C;
+  }
+  const double sumed = Rcpp::sum(variation);
+  const double maxed = N*Rcpp::max(variation);
+  return Rcpp::List::create(Named("sumed", sumed), Named("maxed", maxed));
 }
 
 //' Calculate the inverse of a sum of matrices
@@ -408,10 +459,12 @@ double weighted_variance_multivariate(const arma::mat &x,
 //' C <- 4
 //' d <- 3
 //' x_samples <- lapply(1:N, function(i) mvrnormArma(C, rep(0,d), diag(1,d)))
+//' normalised_weights <- rep(1/N, N)
 //' sub_posterior_means <- mvrnormArma(C, rep(0,d), diag(1,d))
 //' precond <- lapply(1:C, function(c) diag(c, d))
 //' inv_precond <- lapply(precond, solve)
 //' weighted_trajectory_variation_multivariate(x_samples = x_samples,
+//'                                            normalised_weights = normalised_weights,
 //'                                            sub_posterior_means = sub_posterior_means,
 //'                                            inv_precondition_matrices = inv_precond)
 //' # should be equal to the result of this:
@@ -423,17 +476,20 @@ double weighted_variance_multivariate(const arma::mat &x,
 //' }))/N
 // [[Rcpp::export]]
 double weighted_trajectory_variation_multivariate(const Rcpp::List &x_samples,
+                                                  const arma::vec &normalised_weights,
                                                   const arma::mat &sub_posterior_means,
                                                   const Rcpp::List &inv_precondition_matrices) {
   const double C = inv_precondition_matrices.size();
   if (sub_posterior_means.n_rows!=C) {
-    stop("weighted_trajectory_variation_univariate: sub_posterior_means must be a matrix with C=length(precondition_values) rows");
+    stop("weighted_trajectory_variation_multivariate: sub_posterior_means must be a matrix with C=length(inv_precondition_matrices) rows");
+  } else if (x_samples.size()!=normalised_weights.size()) {
+    stop("weighted_trajectory_variation_multivariate: x_samples and normalised_weights must have the same length");
   }
   double variation = 0.0;
   for (int i=0; i < x_samples.size(); ++i) {
     const arma::mat &x_i = x_samples[i];
     if (x_i.n_rows!=C) {
-      stop("weighted_trajectory_variation_univariate: x_samples must be a list of matrices with C=length(precondition_values) rows");
+      stop("weighted_trajectory_variation_multivariate: x_samples must be a list of matrices with C=length(inv_precondition_matrices) rows");
     }
     double ith_variation = 0.0;
     for (int c=0; c < C; ++c) {
@@ -443,9 +499,67 @@ double weighted_trajectory_variation_multivariate(const Rcpp::List &x_samples,
       const arma::mat &inv_precond = inv_precondition_matrices[c];
       ith_variation += as_scalar((D*inv_precond)*trans(D));
     }
-    variation += ith_variation/C;
+    variation += normalised_weights.at(i)*ith_variation/C;
   }
-  return (variation/x_samples.size());
+  return variation;
+}
+
+// [[Rcpp::export]]
+Rcpp::List compute_max_E_nu_j_multivariate(const double &N,
+                                           const int &dim,
+                                           const Rcpp::List &sub_posterior_samples,
+                                           const Rcpp::List &log_weights,
+                                           const double &time,
+                                           const arma::mat &sub_posterior_means,
+                                           const Rcpp::List &inv_precondition_matrices,
+                                           const arma::mat &Lambda) {
+  const double C = inv_precondition_matrices.size();
+  if (sub_posterior_samples.size()!=C) {
+    stop("compute_max_E_nu_j_multivariate: sub_posterior_samples must be a list of length C=length(inv_precondition_matrices)");
+  } if (sub_posterior_means.n_rows!=C) {
+    stop("compute_max_E_nu_j_multivariate: sub_posterior_means must be a matrix with C=length(inv_precondition_matrices) rows");
+  } else if (log_weights.size()!=C) {
+    stop("compute_max_E_nu_j_multivariate: log_weights must be a list of length C=length(precondition_values)");
+  }
+  // computing the weights for the initialisation step
+  arma::mat x_means(N, dim, arma::fill::zeros);
+  Rcpp::NumericVector log_rho_weights(N);
+  for (int i=0; i < N; ++i) {
+    Rcpp::checkUserInterrupt();
+    arma::mat particle(C, dim);
+    for (int c=0; c < C; ++c) {
+      const arma::mat &sub_post_samples = sub_posterior_samples[c];
+      particle.row(c) = sub_post_samples.row(i);
+      const Rcpp::NumericVector &lw = log_weights[c];
+      log_rho_weights[i] += lw.at(i);
+    }
+    arma::vec particle_mean = weighted_mean_multivariate(particle,
+                                                         inv_precondition_matrices,
+                                                         Lambda);
+    log_rho_weights[i] += log_rho_multivariate(particle,
+                                               particle_mean,
+                                               time,
+                                               inv_precondition_matrices);
+    x_means.row(i) = arma::trans(particle_mean);
+  }
+  const Rcpp::List ESS = particle_ESS(log_rho_weights);
+  const Rcpp::NumericVector &normalised_weights = ESS["normalised_weights"];
+  // using those normalised weights to compute the maximum E[nu_j]
+  Rcpp::NumericVector variation(N);
+  for (int i=0; i < N; ++i) {
+    Rcpp::checkUserInterrupt();
+    double ith_variation = 0.0;
+    for (int c=0; c < C; ++c) {
+      const arma::rowvec &a_c = sub_posterior_means.row(c);
+      const arma::rowvec D = x_means.row(i) - a_c;
+      const arma::mat &inv_precond = inv_precondition_matrices[c];
+      ith_variation += as_scalar((D*inv_precond)*trans(D));
+    }
+    variation.at(i) += normalised_weights.at(i)*ith_variation/C;
+  }
+  const double sumed = Rcpp::sum(variation);
+  const double maxed = N*Rcpp::max(variation);
+  return Rcpp::List::create(Named("sumed", sumed), Named("maxed", maxed));
 }
 
 //' Calculate the logarithm of the sum of the exponentials of the arguments

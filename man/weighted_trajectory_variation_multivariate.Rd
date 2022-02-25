@@ -6,6 +6,7 @@
 \usage{
 weighted_trajectory_variation_multivariate(
   x_samples,
+  normalised_weights,
   sub_posterior_means,
   inv_precondition_matrices
 )
@@ -30,10 +31,12 @@ N <- 10
 C <- 4
 d <- 3
 x_samples <- lapply(1:N, function(i) mvrnormArma(C, rep(0,d), diag(1,d)))
+normalised_weights <- rep(1/N, N)
 sub_posterior_means <- mvrnormArma(C, rep(0,d), diag(1,d))
 precond <- lapply(1:C, function(c) diag(c, d))
 inv_precond <- lapply(precond, solve)
 weighted_trajectory_variation_multivariate(x_samples = x_samples,
+                                           normalised_weights = normalised_weights,
                                            sub_posterior_means = sub_posterior_means,
                                            inv_precondition_matrices = inv_precond)
 # should be equal to the result of this:

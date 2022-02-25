@@ -78,8 +78,8 @@ A list with components:
                   particles for level l, node i}
   \item{proposed_samples}{list of length (L-1), where proposed_samples[[l]][[i]]
                          are the proposed samples for level l, node i}
-  \item{time}{list of length (L-1), where time[[l]] is the run time for level l,
-             node i}
+  \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for level l,
+              node i}
   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective 
             sample size of the particles after each step BEFORE deciding 
             whether or not to resample for level l, node i}

@@ -6,6 +6,7 @@
 \usage{
 weighted_trajectory_variation_univariate(
   x_samples,
+  normalised_weights,
   sub_posterior_means,
   precondition_values
 )
@@ -29,9 +30,11 @@ with respect to their individual sub-posterior means
 N <- 10
 C <- 4
 x_samples <- lapply(1:N, function(i) rnorm(C))
+normalised_weights <- rep(1/N, N)
 sub_posterior_means <- rnorm(C)
 precond <- 1:C
 weighted_trajectory_variation_univariate(x_samples = x_samples,
+                                         normalised_weights = normalised_weights,
                                          sub_posterior_means = sub_posterior_means,
                                          precondition_values = precond)
 # should be equal to the result of this:

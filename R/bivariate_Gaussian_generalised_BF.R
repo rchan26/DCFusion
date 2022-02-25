@@ -31,12 +31,7 @@
 #'                            is the sub-posterior mean of sub-posterior c
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
 #'                      (default is FALSE)
-#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
-#'                                 Items which can be included are data_size,
-#'                                 b (population variance if vanilla BF is used),
-#'                                 k3, k4 (determines CESS_j threshold), T2
-#'                                 (regular mesh recommended), vanilla (logical
-#'                                 value to indicate if vanilla BF guidance is used)
+#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -51,10 +46,13 @@
 #' \describe{
 #'   \item{particle_set}{updated particle set after the iterative rho_j steps}
 #'   \item{proposed_samples}{proposal samples for the last time step}
+#'   \item{time}{elapsed time of each step of the algorithm}
 #'   \item{ESS}{effective sample size of the particles after each step}
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
+#'   \item{E_nu_j}{Approximation of the average variation of the trajectories
+#'                 at each time step}
 #' }
 #' 
 #' @export
@@ -123,14 +121,22 @@ rho_j_biGaussian <- function(particle_set,
   }
   max_samples_per_core <- ceiling(N/n_cores)
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
-  counts <- c('full_data_count', 'design_count')
-  ESS <-  c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
+  elapsed_time <- rep(NA, length(time_mesh)-1)
+  ESS <- c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
+  if (adaptive_mesh) {
+    E_nu_j <- rep(NA, length(time_mesh))
+    E_nu_j_old <- rep(NA, length(time_mesh))
+  } else {
+    E_nu_j <- NA
+    E_nu_j_old <- NA
+  }
   # iterative proposals
   end_time <- time_mesh[length(time_mesh)]
   j <- 1
   while (time_mesh[j]!=end_time) {
+    pcm <- proc.time()
     j <- j+1
     # ----------- resample particle_set (only resample if ESS < N*ESS_threshold)
     if (particle_set$ESS < N*ESS_threshold) {
@@ -155,7 +161,7 @@ rho_j_biGaussian <- function(particle_set,
                                               d = 2,
                                               data_size = adaptive_mesh_parameters$data_size,
                                               b = adaptive_mesh_parameters$b,
-                                              trajectories = particle_set$x_samples,
+                                              particle_set = particle_set,
                                               sub_posterior_means = sub_posterior_means,
                                               inv_precondition_matrices = inv_precondition_matrices,
                                               k3 = adaptive_mesh_parameters$k3,
@@ -165,6 +171,8 @@ rho_j_biGaussian <- function(particle_set,
       if (is.null(adaptive_mesh_parameters$T2)) {
         adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
       }
+      E_nu_j[j] <- tilde_Delta_j$E_nu_j
+      E_nu_j_old[j] <- tilde_Delta_j$E_nu_j_old
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     # split the x samples from the previous time marginal (and their means) into approximately equal lists
@@ -236,14 +244,9 @@ rho_j_biGaussian <- function(particle_set,
     # where inc_change is the incremental change in weight (= log_rho_j)
     particle_set$CESS[j] <- particle_ESS(log_weights = log_rho_j)$ESS
     CESS[j] <- particle_set$CESS[j]
+    elapsed_time[j-1] <- (proc.time()-pcm)['elapsed']
   }
   parallel::stopCluster(cl)
-  if (adaptive_mesh) {
-    CESS <- CESS[1:j]
-    ESS <- ESS[1:j]
-    resampled <- resampled[1:j]
-    particle_set$time_mesh <- time_mesh[1:j]
-  }
   # set the y samples as the first element of each of the x_samples
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
   particle_set$y_samples <- proposed_samples
@@ -258,11 +261,23 @@ rho_j_biGaussian <- function(particle_set,
   } else {
     resampled[particle_set$number_of_steps] <- FALSE
   }
+  if (adaptive_mesh) {
+    CESS <- CESS[1:j]
+    ESS <- ESS[1:j]
+    resampled <- resampled[1:j]
+    particle_set$time_mesh <- time_mesh[1:j]
+    elapsed_time <- elapsed_time[1:(j-1)]
+    E_nu_j <- E_nu_j[1:j]
+    E_nu_j_old <- E_nu_j_old[1:j]
+  }
   return(list('particle_set' = particle_set,
               'proposed_samples' = proposed_samples,
+              'time' = elapsed_time,
               'ESS' = ESS,
               'CESS' = CESS,
-              'resampled' = resampled))
+              'resampled' = resampled,
+              'E_nu_j' = E_nu_j,
+              'E_nu_j_old' = E_nu_j_old))
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -298,12 +313,7 @@ rho_j_biGaussian <- function(particle_set,
 #'                            is the sub-posterior mean of sub-posterior c
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
 #'                      (default is FALSE)
-#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh.
-#'                                 Items which can be included are data_size,
-#'                                 b (population variance if vanilla BF is used),
-#'                                 k3, k4 (determines CESS_j threshold), T2
-#'                                 (regular mesh recommended), vanilla (logical
-#'                                 value to indicate if vanilla BF guidance is used)
+#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -319,10 +329,13 @@ rho_j_biGaussian <- function(particle_set,
 #'   \item{particles}{particles returned from fusion sampler}
 #'   \item{proposed_samples}{proposal samples from fusion sampler}
 #'   \item{time}{run-time of fusion sampler}
+#'   \item{elapsed_time}{elapsed time of each step of the algorithm}
 #'   \item{ESS}{effective sample size of the particles after each step}
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
+#'   \item{E_nu_j}{Approximation of the average variation of the trajectories
+#'                 at each time step}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]] 
 #'                                are the pre-conditioning matrices that were used 
 #'                                and precondition_matrices[[1]] are the combined 
@@ -390,6 +403,7 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
   # pre-calculating the inverse precondition matrices
   inv_precondition_matrices <- lapply(precondition_matrices, solve)
   Lambda <- inverse_sum_matrices(inv_precondition_matrices)
+  pcm_rho_0 <- proc.time()
   particles <- rho_IS_multivariate(particles_to_fuse = particles_to_fuse,
                                    dim = 2,
                                    N = N,
@@ -402,6 +416,7 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
                                    resampling_method = resampling_method,
                                    seed = seed,
                                    n_cores = n_cores)
+  elapsed_time_rho_0 <- (proc.time()-pcm_rho_0)['elapsed']
   # ---------- iterative steps
   rho_j <- rho_j_biGaussian(particle_set = particles,
                             m = m,
@@ -440,9 +455,12 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
   return(list('particles' = rho_j$particle_set,
               'proposed_samples' = rho_j$proposed_samples,
               'time' = (proc.time()-pcm)['elapsed'],
+              'elapsed_time' = c(elapsed_time_rho_0, rho_j$time),
               'ESS' = rho_j$ESS,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
+              'E_nu_j' = rho_j$E_nu_j,
+              'E_nu_j_old' = rho_j$E_nu_j_old,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means))
 }

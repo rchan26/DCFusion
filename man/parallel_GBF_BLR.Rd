@@ -15,6 +15,8 @@ parallel_GBF_BLR(
   prior_variances,
   C,
   precondition_matrices,
+  inv_precondition_matrices = NULL,
+  Lambda = NULL,
   resampling_method = "multi",
   ESS_threshold = 0.5,
   cv_location = "hypercube_centre",
@@ -85,12 +87,7 @@ is the sub-posterior mean of sub-posterior c}
 \item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used
 (default is FALSE)}
 
-\item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh.
-Items which can be included are data_size,
-b (population variance if vanilla BF is used),
-k3, k4 (determines CESS_j threshold), T2
-(regular mesh recommended), vanilla (logical
-value to indicate if vanilla BF guidance is used)}
+\item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh}
 
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poisson estimator
@@ -126,10 +123,13 @@ A list with components:
   \item{particles}{particles returned from fusion sampler}
   \item{proposed_samples}{proposal samples from fusion sampler}
   \item{time}{run-time of fusion sampler}
+  \item{elapsed_time}{elapsed time of each step of the algorithm}
   \item{ESS}{effective sample size of the particles after each step}
   \item{CESS}{conditional effective sample size of the particles after each step}
   \item{resampled}{boolean value to indicate if particles were resampled
                    after each time step}
+  \item{E_nu_j}{Approximation of the average variation of the trajectories
+                at each time step}
   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
                                are the pre-conditioning matrices that were used
                                and precondition_matrices[[1]] are the combined
