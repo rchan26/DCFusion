@@ -502,5 +502,5 @@ for (i in 1:length(data_sizes)) {
   }
   # save progress
   print('saving progress')
-  save.image('similar_means_replicates.RData')
+  save.image('bivG_similar_means_replicates.RData')
 }
