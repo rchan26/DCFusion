@@ -487,8 +487,144 @@ for (i in 1:length(data_sizes)) {
                                                           marg_means = c(0,0),
                                                           marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
                                                           bw = opt_bw))
+    # save progress
+    print('saving progress')
+    save.image('bivG_dissimilar_means_replicates.RData')
   }
-  # save progress
-  print('saving progress')
-  save.image('bivG_dissimilar_means_replicates.RData')
 }
+
+##### IAD #####
+plot(x = data_sizes,
+     y = sapply(1:length(data_sizes), function(i) {
+       mean(sapply(1:number_of_replicates, function(rep) a_results$vanilla[[i]][[rep]]$IAD))
+     }),
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.2), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) a_results$vanilla[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 1)
+}
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) b_results$vanilla[[i]][[rep]]$IAD))
+      }),
+      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) b_results$vanilla[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, col = 'blue')
+}
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) c_results$vanilla[[i]][[rep]]$IAD))
+      }),
+      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) c_results$vanilla[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, col = 'red')
+}
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) d_results$vanilla[[i]][[rep]]$IAD))
+      }),
+      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) d_results$vanilla[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, col = 'green')
+}
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) SH_adaptive_results$vanilla[[i]][[rep]]$IAD))
+      }),
+      pch = 5, lty = 5, lwd = 3, type = 'b', col = 'purple')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) SH_adaptive_results$vanilla[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, col = 'purple')
+}
+axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 1.2, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.2, 0.1)),
+     font = 2, cex = 1.5)
+axis(2, at = seq(0, 1.2, 0.1), labels=rep("", 13), lwd.ticks = 0.5,
+     font = 2, cex = 1.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 250, y = 1.2,
+       legend = c('Fixed T, fixed n',
+                  'SSH rec. T, fixed n',
+                  'SSH rec. T, reg. mesh',
+                  'SSH rec. T, adapt. mesh',
+                  'SH rec. T, adapt. mesh'),
+       col = c('black', 'blue', 'red', 'green', 'purple'),
+       lty = 1:5,
+       pch = 1:5,
+       lwd = rep(3, 5),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+##### IAD #####
+plot(x = data_sizes,
+     y = sapply(1:length(data_sizes), function(i) {
+       mean(sapply(1:number_of_replicates, function(rep) a_results$generalised[[i]][[rep]]$IAD))
+     }),
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.2), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) a_results$generalised[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 1)
+}
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) b_results$generalised[[i]][[rep]]$IAD))
+      }),
+      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) b_results$generalised[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, col = 'blue')
+}
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) c_results$generalised[[i]][[rep]]$IAD))
+      }),
+      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) c_results$generalised[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, col = 'red')
+}
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) d_results$generalised[[i]][[rep]]$IAD))
+      }),
+      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) d_results$generalised[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, col = 'green')
+}
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) SH_adaptive_results$generalised[[i]][[rep]]$IAD))
+      }),
+      pch = 5, lty = 5, lwd = 3, type = 'b', col = 'purple')
+for (i in 1:length(data_sizes)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) SH_adaptive_results$generalised[[i]][[rep]]$IAD)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, col = 'purple')
+}
+axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
+axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
+mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 1.2, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.2, 0.1)),
+     font = 2, cex = 1.5)
+axis(2, at = seq(0, 1.2, 0.1), labels=rep("", 13), lwd.ticks = 0.5,
+     font = 2, cex = 1.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 250, y = 1.2,
+       legend = c('Fixed T, fixed n',
+                  'SSH rec. T, fixed n',
+                  'SSH rec. T, reg. mesh',
+                  'SSH rec. T, adapt. mesh',
+                  'SH rec. T, adapt. mesh'),
+       col = c('black', 'blue', 'red', 'green', 'purple'),
+       lty = 1:5,
+       pch = 1:5,
+       lwd = rep(3, 5),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
