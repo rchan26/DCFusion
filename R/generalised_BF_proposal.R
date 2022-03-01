@@ -75,6 +75,8 @@ construct_M <- function(s,
       stop("construct_M: if d==1, sub_posterior_samples must be a vector of length C")
     } else if (!all(sapply(1:C, function(c) is.double(precondition_matrices[[c]]) & length(precondition_matrices[[c]]==1)))) {
       stop("construct_M: if d==1, precondition_matrices[[c]] must a double")
+    } else if (length(sub_posterior_mean)!=1) {
+      stop("construct_M: if d==1, sub_posterior_mean must be a numeric of length 1")
     }
   } else if (d > 1)  {
     if (!is.matrix(sub_posterior_samples)){
@@ -85,6 +87,8 @@ construct_M <- function(s,
       stop("construct_M: if d>1, precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
     } else if (!all(sapply(1:C, function(c) all(dim(precondition_matrices)==d)))) {
       stop("construct_M: if d>1, precondition_matrices[[c]] must be a (d x d) matrix for all c=1,...,C")
+    } else if (length(sub_posterior_mean)!=d) {
+      stop("construct_M: if d>1, sub_posterior_mean must be a vector of length d")
     }
   } else {
     stop("construct_M: d must be greater than or equal to 1")
@@ -93,6 +97,9 @@ construct_M <- function(s,
   C2 <- (t-s)/(end_time-s)
   M <- rep(NA, C*d)
   M_list <- rep(list(rep(NA, d)), C)
+  if (d==1) {
+    sub_posterior_samples <- as.matrix(sub_posterior_samples)
+  }
   for (i in 1:C) {
     i_fill <- d*(i-1)+(1:d)
     M[i_fill] <- C1*sub_posterior_samples[i,] + C2*sub_posterior_mean

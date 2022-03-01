@@ -12,6 +12,7 @@ mean <- rep(0, 2)
 sd <- rep(1, 2)
 correlations <- c(seq(0, 0.9, 0.1), 0.95)
 fusion_time <- 1
+diffusion_estimator <- 'Poisson'
 number_of_replicates <- 100
 nsamples <- 10000
 opt_bw <- rep((4/(3*nsamples))^(1/5), 2)
@@ -41,6 +42,7 @@ for (i in 1:length(correlations)) {
                                                betas = rep(1, 2),
                                                precondition_matrices = rep(list(diag(1,2)), 2),
                                                ESS_threshold = 0,
+                                               diffusion_estimator = diffusion_estimator,
                                                seed = seed*rep*i)
     smc_fusion_standard[[i]][[rep]] <- list('ESS' = standard$ESS, 
                                             'CESS' = standard$CESS,
@@ -73,6 +75,7 @@ for (i in 1:length(correlations)) {
                                                    betas = rep(1, 2),
                                                    precondition_matrices = lapply(input_samples, cov),
                                                    ESS_threshold = 0,
+                                                   diffusion_estimator = diffusion_estimator,
                                                    seed = seed*rep*i)
     smc_fusion_precondition[[i]][[rep]] <- list('ESS' = precondition$ESS, 
                                                 'CESS' = precondition$CESS,

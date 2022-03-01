@@ -57,6 +57,9 @@ construct_M_vanilla <- function(s,
   } else {
     stop("construct_M_vanilla: d must be greater than or equal to 1")
   }
+  if (d==1) {
+    sub_posterior_samples <- as.matrix(sub_posterior_samples)
+  }
   C1 <- (end_time-t)/(end_time-s)
   C2 <- (t-s)/(end_time-s)
   M <- rep(NA, C*d)

@@ -23,7 +23,7 @@ double ea_phi_biGaussian_DL_vec(const arma::vec &x,
                            mult_term*((y.at(1)/var2)-(corr*y.at(0)/sd1sd2))};
   const double t1 = as_scalar((arma::trans(grad_log_fc)*precondition_mat)*grad_log_fc);
   arma::mat hessian = {{mult_term/var1, -mult_term*corr/sd1sd2},
-                       {-mult_term*corr/sd1sd2, mult_term/var2}};
+  {-mult_term*corr/sd1sd2, mult_term/var2}};
   const double t2 = arma::trace(precondition_mat*hessian);
   return(0.5*(t1+t2));
 }
@@ -84,9 +84,9 @@ Rcpp::List ea_phi_biGaussian_DL_bounds(const arma::vec &mean_vec,
     stop("ea_phi_biGaussian_DL_bounds: upper is not a vector of length 2");
   }
   arma::mat evaluate = {{lower[0], lower[1]},
-                        {lower[0], upper[1]},
-                        {upper[0], lower[1]},
-                        {upper[0], upper[1]}};
+  {lower[0], upper[1]},
+  {upper[0], lower[1]},
+  {upper[0], upper[1]}};
   Rcpp::NumericVector values = ea_phi_biGaussian_DL_matrix(evaluate,
                                                            mean_vec,
                                                            sd_vec,
@@ -150,14 +150,13 @@ double gamma_NB_biGaussian(const arma::vec &times,
   double sum_phi_eval = 0;
   for (int i=0; i < times.size(); ++i) {
     const arma::vec eval = (x0*(t-times.at(i))+y*(times.at(i)-s))/(t-s);
-    Rcpp::List phi = ea_phi_biGaussian_DL_vec(eval,
-                                              mean_vec,
-                                              sd_vec,
-                                              corr,
-                                              beta,
-                                              precondition_mat,
-                                              transform_mat);
-    const double &phi_eval = phi["phi"];
+    const double phi_eval = ea_phi_biGaussian_DL_vec(eval,
+                                                     mean_vec,
+                                                     sd_vec,
+                                                     corr,
+                                                     beta,
+                                                     precondition_mat,
+                                                     transform_mat);
     if (i==0 || i==times.size()-1) {
       sum_phi_eval += phi_eval;
     } else {

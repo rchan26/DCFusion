@@ -61,9 +61,9 @@ obtain_LR_MLE <- function(dim, data) {
 #' @param cv_location string to determine what the location of the control variate
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
-#'                    of the simualted hypercube
+#'                    of the simulated hypercube
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -268,9 +268,9 @@ ea_BLR_DL_PT <- function(dim,
 #' @param cv_location string to determine what the location of the control variate
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
-#'                    of the simualted hypercube
+#'                    of the simulated hypercube
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -371,14 +371,12 @@ Q_IS_BLR <- function(particle_set,
   if (is.null(cl)) {
     cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
     parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
+    parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
     close_cluster <- TRUE
   } else {
     close_cluster <- FALSE
   }
-  parallel::clusterExport(cl, envir = environment(), 
-                          varlist = c(ls(), "ea_phi_BLR_DL_matrix",
-                                      "ea_phi_BLR_DL_bounds",
-                                      "ea_BLR_DL_PT"))
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
@@ -505,9 +503,9 @@ Q_IS_BLR <- function(particle_set,
 #' @param cv_location string to determine what the location of the control variate
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
-#'                    of the simualted hypercube
+#'                    of the simulated hypercube
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -530,14 +528,10 @@ Q_IS_BLR <- function(particle_set,
 #'   \item{particles}{particles returned from fusion sampler}
 #'   \item{proposed_samples}{proposal samples from fusion sampler}
 #'   \item{time}{run-time of fusion sampler}
-#'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
-#'              sample size of the particles after each step BEFORE deciding
-#'              whether or not to resample for level l, node i}
-#'   \item{CESS}{list of length (L-1), where CESS[[l]][[i]] is the conditional
-#'               effective sample size of the particles after each step}
-#'   \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a
-#'                    boolean value to record if the particles were resampled
-#'                    after each step; rho and Q for level l, node i}
+#'   \item{ESS}{effective sample size of the particles after each step}
+#'   \item{CESS}{conditional effective sample size of the particles after each step}
+#'   \item{resampled}{boolean value to indicate if particles were resampled
+#'                    after each time step}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
 #'                                are the pre-conditioning matrices that were used
 #'                                and precondition_matrices[[1]] are the combined
@@ -748,9 +742,9 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #' @param cv_location string to determine what the location of the control variate
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
-#'                    of the simualted hypercube
+#'                    of the simulated hypercube
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -770,8 +764,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'                    particles for level l, node i}
 #'   \item{proposed_samples}{list of length (L-1), where proposed_samples[[l]][[i]]
 #'                           are the proposed samples for level l, node i}
-#'   \item{time}{list of length (L-1), where time[[l]] is the run time
-#'                     for level l, node i}
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time
+#'               for level l, node i}
 #'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
 #'              sample size of the particles after each step BEFORE deciding
 #'              whether or not to resample for level l, node i}
@@ -781,9 +775,8 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
 #'                    boolean value to record if the particles were resampled
 #'                    after each step; rho and Q for level l, node i}
 #'   \item{precondition_matrices}{pre-conditioning matrices that were used}
-#'   \item{resampling_method}{method that was used in resampling}
 #'   \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
-#'                      data input for the sub-posteiror in level l, node i}
+#'                      data input for the sub-posterior in level l, node i}
 #'   \item{diffusion_times}{vector of length (L-1), where diffusion_times[l]
 #'                          are the times for fusion in level l}
 #' }
@@ -851,9 +844,7 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
   } else {
     stop("bal_binary_fusion_SMC_BLR: m_schedule must be a vector of length (L-1)")
   }
-  # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   m_schedule <- c(m_schedule, 1)
-  # initialising results that we want to keep
   particles <- list()
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[L]] <- base_samples
@@ -896,13 +887,9 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
           length C, where precondition[[c]] is the preconditioning matrix for
           the c-th sub-posterior")
   }
-  # creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
-  parallel::clusterExport(cl, envir = environment(),
-                          varlist = c("rho_IS_multivariate_",
-                                      "ea_phi_BLR_DL_matrix",
-                                      "ea_phi_BLR_DL_bounds",
-                                      "ea_BLR_DL_PT"))
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_SMC_BLR.txt')
   for (k in ((L-1):1)) {
@@ -944,7 +931,6 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
                               node = i,
                               print_progress_iters = print_progress_iters)
     })
-    # need to combine the correct samples
     particles[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$particles)
     proposed_samples[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$proposed_samples)
     time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$time)

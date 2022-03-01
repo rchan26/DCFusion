@@ -4,12 +4,12 @@
 \alias{log_rho_univariate}
 \title{Calculate the logarithm of rho (univariate)}
 \usage{
-log_rho_univariate(x, weighted_mean, time, precondition_values)
+log_rho_univariate(x, x_mean, time, precondition_values)
 }
 \arguments{
 \item{x}{vector of sampled sub-posterior values}
 
-\item{weighted_mean}{weighted mean of sampled sub-posterior values}
+\item{x_mean}{weighted mean of sampled sub-posterior values}
 
 \item{time}{time T for fusion algorithm}
 
@@ -25,10 +25,10 @@ univariate
 \examples{
 x <- rnorm(4, 0, 1)
 precondition_vals <- c(1, 2, 3, 4)
-weighted_mean <- weighted_mean_univariate(x = x,
-                                          weights = 1/precondition_vals)
+x_mean <- weighted_mean_univariate(x = x,
+                                   weights = 1/precondition_vals)
 log_rho_univariate(x = x,
-                   weighted_mean = weighted_mean,
+                   x_mean = x_mean,
                    time = 0.5,
                    precondition_values = precondition_vals)
 }

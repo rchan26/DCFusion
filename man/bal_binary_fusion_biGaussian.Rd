@@ -57,7 +57,7 @@ A list with components:
 \describe{
  \item{samples}{list of length (L-1), where samples[[l]][[i]] are the samples 
                 for level l, node i}
- \item{time}{list of length (L-1), where time[[l]] is the run time for 
+ \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for 
              level l, node i}
  \item{rho_acc}{list of length (L-1), where rho_acc[[l]][i] is the acceptance 
                 rate for first fusion step for level l, node i}

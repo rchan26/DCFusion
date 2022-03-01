@@ -32,7 +32,7 @@ weighted_mean_univariate <- function(x, weights) {
 #' univariate
 #'
 #' @param x vector of sampled sub-posterior values
-#' @param weighted_mean weighted mean of sampled sub-posterior values
+#' @param x_mean weighted mean of sampled sub-posterior values
 #' @param time time T for fusion algorithm
 #' @param precondition_values precondition values associated to each sub-posterior
 #'
@@ -41,14 +41,71 @@ weighted_mean_univariate <- function(x, weights) {
 #' @examples
 #' x <- rnorm(4, 0, 1)
 #' precondition_vals <- c(1, 2, 3, 4)
-#' weighted_mean <- weighted_mean_univariate(x = x,
-#'                                           weights = 1/precondition_vals)
+#' x_mean <- weighted_mean_univariate(x = x,
+#'                                    weights = 1/precondition_vals)
 #' log_rho_univariate(x = x,
-#'                    weighted_mean = weighted_mean,
+#'                    x_mean = x_mean,
 #'                    time = 0.5,
 #'                    precondition_values = precondition_vals)
-log_rho_univariate <- function(x, weighted_mean, time, precondition_values) {
-    .Call(`_DCFusion_log_rho_univariate`, x, weighted_mean, time, precondition_values)
+log_rho_univariate <- function(x, x_mean, time, precondition_values) {
+    .Call(`_DCFusion_log_rho_univariate`, x, x_mean, time, precondition_values)
+}
+
+#' Calculate the variance of numbers (univariate)
+#' 
+#' Calculation of the weighted variance of numbers
+#'
+#' @param x vector of sampled sub-posterior values
+#' @param x_mean weighted mean of sampled sub-posterior values
+#' @param precondition_values precondition values associated to each sub-posterior
+#'
+#' @return the weighted variance of numbers
+#'
+#' @examples
+#' x <- rnorm(4, 0, 1)
+#' precondition_vals <- c(1, 2, 3, 4)
+#' x_mean <- weighted_mean_univariate(x = x,
+#'                                    weights = 1/precondition_vals)
+#' weighted_variance_univariate(x = x,
+#'                              x_mean = x_mean,
+#'                              precondition_values = precondition_vals)
+weighted_variance_univariate <- function(x, x_mean, precondition_values) {
+    .Call(`_DCFusion_weighted_variance_univariate`, x, x_mean, precondition_values)
+}
+
+#' Calculate approximation to expectation of nu_j (univariate)
+#' 
+#' Calculation of the scaled/weighted average variation of the C trajectories
+#' with respect to their individual sub-posterior means
+#'
+#' @param list where x_samples[[i]] ith collection of the C trajectories
+#' @param sub_posterior_means vector of length C of sub-posterior means
+#' @param precondition_values precondition values associated to each sub-posterior
+#'
+#' @return the approximated expectation of nu_j
+#'
+#' @examples
+#' # x_samples has 5 samples and C=4
+#' N <- 10
+#' C <- 4
+#' x_samples <- lapply(1:N, function(i) rnorm(C))
+#' normalised_weights <- rep(1/N, N)
+#' sub_posterior_means <- rnorm(C)
+#' precond <- 1:C
+#' weighted_trajectory_variation_univariate(x_samples = x_samples,
+#'                                          normalised_weights = normalised_weights,
+#'                                          sub_posterior_means = sub_posterior_means,
+#'                                          precondition_values = precond)
+#' # should be equal to the result of this:
+#' sum(sapply(1:N, function(i) {
+#'   sum((((x_samples[[i]]-sub_posterior_means)^2)/precond))/C
+#' }))/N
+weighted_trajectory_variation_univariate <- function(x_samples, normalised_weights, sub_posterior_means, precondition_values) {
+    .Call(`_DCFusion_weighted_trajectory_variation_univariate`, x_samples, normalised_weights, sub_posterior_means, precondition_values)
+}
+
+compute_max_E_nu_j_univariate <- function(N, sub_posterior_samples, log_weights, time, sub_posterior_means, precondition_values) {
+    .Call(`_DCFusion_compute_max_E_nu_j_univariate`, N, sub_posterior_samples, log_weights, time, sub_posterior_means, precondition_values)
 }
 
 #' Calculate the inverse of a sum of matrices
@@ -111,65 +168,6 @@ calculate_proposal_cov <- function(time, weights) {
     .Call(`_DCFusion_calculate_proposal_cov`, time, weights)
 }
 
-#' Scaled distance between two vectors
-#' 
-#' Calculates the scaled distance between two vectors, i.e. calculates the norm of matrix*(x-y)
-#' If matrix == identity matrix, this is just the Euclidean distance
-#'
-#' @param x vector
-#' @param y vector
-#' @param matrix matrix
-#'
-#' @return the scaled distance between vectors x and y with matrix 
-#' 
-#' @examples
-#' x <- c(0.3, 0.2, 0.5, 1.2)
-#' y <- c(-0.5, 0.8, 1.4, 0.9)
-#' scaled_distance(x, y, diag(1, 4))
-#' # should equal to the Euclidean distance:
-#' sqrt(0.8^2 + 0.6^2 + 0.9^2 + 0.3^2)
-scaled_distance <- function(x, y, matrix) {
-    .Call(`_DCFusion_scaled_distance`, x, y, matrix)
-}
-
-#' Spectral radius of a symmetric matrix
-#' 
-#' Calculates the spectral radius of a symmetric matrix A (the largest absolute eigenvalue)
-#' 
-#' @param A matrix
-#' 
-#' @return The spectral radius (largest absolute eigenvalue) of A
-#' 
-#' @examples
-#' # symmetric matrix
-#' # should equal 2.5
-#' spectral_radius(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
-#' # non-symmetrix matrix
-#' # should equal 10
-#' spectral_radius(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
-spectral_radius <- function(A) {
-    .Call(`_DCFusion_spectral_radius`, A)
-}
-
-#' Absolute eigenvalues of a matrix
-#' 
-#' Calculates the absolute eigenvalues of a matrix
-#' 
-#' @param A matrix matrix
-#' 
-#' @return The absolute eigenvalues of A
-#' 
-#' @examples
-#' # symmetric matrix
-#' # should equal 2.5, 1.5
-#' abs_eigenvals(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
-#' # non-symmetrix matrix
-#' # should equal 10, 10, 5
-#' abs_eigenvals(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
-abs_eigenvals <- function(A) {
-    .Call(`_DCFusion_abs_eigenvals`, A)
-}
-
 #' Row-wise subtraction of a vector to rows of a matrix
 #' 
 #' Calculates the subtraction of a vector to each row of a matrix
@@ -224,6 +222,82 @@ row_wise_subtraction <- function(X, vect) {
 #'                      inv_precondition_matrices = inv_precondition_matrices)
 log_rho_multivariate <- function(x, x_mean, time, inv_precondition_matrices) {
     .Call(`_DCFusion_log_rho_multivariate`, x, x_mean, time, inv_precondition_matrices)
+}
+
+#' Calculate the variance of vectors (multivariate)
+#' 
+#' Calculation of the weighted variance of vectors
+#'
+#' @param x an (m x n) matrix where the ith row is the ith sample
+#' @param x_mean a vector of length n (the weighted mean of x samples)
+#' @param inv_precondition_matrices list of length m of inverse 
+#'                                  preconditioning matrices
+#'
+#' @return the weighted variance of vectors
+#'
+#' @examples
+#' # set covariance matrices
+#' Sig1 <- diag(2)
+#' Sig2 <- matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2)
+#' Sig3 <- matrix(c(4, -3.2, -3.2, 4), nrow = 2, ncol = 2)
+#' # sample some x values and store in the rows
+#' x <- matrix(nrow = 3, ncol = 2)
+#' x[1,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig1)
+#' x[2,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig2)
+#' x[3,] <- mvrnormArma(N = 1, mu = c(0, 0), Sigma = Sig3)
+#' # calculate precondition matrices and their inverses
+#' precondition_matrices <- list(Sig1, Sig2, Sig3)
+#' inv_precondition_matrices <- lapply(precondition_matrices, solve)
+#' inverse_sum_weights <- inverse_sum_matrices(precondition_matrices)
+#' # calculate the weighted mean where weights are the inverse precondition matrices
+#' x_mean <- weighted_mean_multivariate(matrix = x,
+#'                                      weights = precondition_matrices,
+#'                                      inverse_sum_weights = inverse_sum_weights)
+#' weighted_variance_multivariate(x = x,
+#'                                x_mean = x_mean,
+#'                                inv_precondition_matrices = inv_precondition_matrices)
+weighted_variance_multivariate <- function(x, x_mean, inv_precondition_matrices) {
+    .Call(`_DCFusion_weighted_variance_multivariate`, x, x_mean, inv_precondition_matrices)
+}
+
+#' Calculate approximation to expectation of nu_j (multivariate)
+#' 
+#' Calculation of the scaled/weighted average variation of the C trajectories
+#' with respect to their individual sub-posterior means
+#'
+#' @param list where x_samples[[i]] ith collection of the C trajectories
+#' @param sub_posterior_means matrix with C rows of sub-posterior means
+#' @param inv_precondition_matrices list of length m of inverse 
+#'                                  preconditioning matrices
+#'
+#' @return the approximated expectation of nu_j
+#'
+#' @examples
+#' N <- 10
+#' C <- 4
+#' d <- 3
+#' x_samples <- lapply(1:N, function(i) mvrnormArma(C, rep(0,d), diag(1,d)))
+#' normalised_weights <- rep(1/N, N)
+#' sub_posterior_means <- mvrnormArma(C, rep(0,d), diag(1,d))
+#' precond <- lapply(1:C, function(c) diag(c, d))
+#' inv_precond <- lapply(precond, solve)
+#' weighted_trajectory_variation_multivariate(x_samples = x_samples,
+#'                                            normalised_weights = normalised_weights,
+#'                                            sub_posterior_means = sub_posterior_means,
+#'                                            inv_precondition_matrices = inv_precond)
+#' # should be equal to the result of this:
+#' sum(sapply(1:N, function(i) {
+#'   sum(sapply(1:C, function(c) {
+#'     diff <- x_samples[[i]][c,]-sub_posterior_means[c,]
+#'     return(t(diff) %*% inv_precond[[c]] %*% diff)
+#'   }))/C
+#' }))/N
+weighted_trajectory_variation_multivariate <- function(x_samples, normalised_weights, sub_posterior_means, inv_precondition_matrices) {
+    .Call(`_DCFusion_weighted_trajectory_variation_multivariate`, x_samples, normalised_weights, sub_posterior_means, inv_precondition_matrices)
+}
+
+compute_max_E_nu_j_multivariate <- function(N, dim, sub_posterior_samples, log_weights, time, sub_posterior_means, inv_precondition_matrices, Lambda) {
+    .Call(`_DCFusion_compute_max_E_nu_j_multivariate`, N, dim, sub_posterior_samples, log_weights, time, sub_posterior_means, inv_precondition_matrices, Lambda)
 }
 
 #' Calculate the logarithm of the sum of the exponentials of the arguments
@@ -313,12 +387,77 @@ mvrnormArma_tempered <- function(N, mu, Sigma, beta) {
     .Call(`_DCFusion_mvrnormArma_tempered`, N, mu, Sigma, beta)
 }
 
-maximal_distance_hypercube_to_cv <- function(beta_hat, hypercube_vertices, transform_to_X, transform_to_Z) {
-    .Call(`_DCFusion_maximal_distance_hypercube_to_cv`, beta_hat, hypercube_vertices, transform_to_X, transform_to_Z)
+#' Scaled distance between two vectors
+#' 
+#' Calculates the scaled distance between two vectors, i.e. calculates the norm of matrix*(x-y)
+#' If matrix == identity matrix, this is just the Euclidean distance
+#'
+#' @param x vector
+#' @param y vector
+#' @param matrix matrix
+#'
+#' @return the scaled distance between vectors x and y with matrix 
+#' 
+#' @examples
+#' x <- c(0.3, 0.2, 0.5, 1.2)
+#' y <- c(-0.5, 0.8, 1.4, 0.9)
+#' scaled_distance(x, y, diag(1, 4))
+#' # should equal to the Euclidean distance:
+#' sqrt(0.8^2 + 0.6^2 + 0.9^2 + 0.3^2)
+scaled_distance <- function(x, y, matrix) {
+    .Call(`_DCFusion_scaled_distance`, x, y, matrix)
 }
 
-log_rho_multivariate_additional <- function(y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices) {
-    .Call(`_DCFusion_log_rho_multivariate_additional`, y, x_mean, time, inv_precondition_matrices, inv_gamma_matrices)
+#' Spectral radius of a symmetric matrix
+#' 
+#' Calculates the spectral radius of a symmetric matrix A (the largest absolute eigenvalue)
+#' 
+#' @param A matrix
+#' 
+#' @return The spectral radius (largest absolute eigenvalue) of A
+#' 
+#' @examples
+#' # symmetric matrix
+#' # should equal 2.5
+#' spectral_radius(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
+#' # non-symmetrix matrix
+#' # should equal 10
+#' spectral_radius(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
+spectral_radius <- function(A) {
+    .Call(`_DCFusion_spectral_radius`, A)
+}
+
+#' Absolute eigenvalues of a matrix
+#' 
+#' Calculates the absolute eigenvalues of a matrix
+#' 
+#' @param A matrix matrix
+#' 
+#' @return The absolute eigenvalues of A
+#' 
+#' @examples
+#' # symmetric matrix
+#' # should equal 2.5, 1.5
+#' abs_eigenvals(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
+#' # non-symmetrix matrix
+#' # should equal 10, 10, 5
+#' abs_eigenvals(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
+abs_eigenvals <- function(A) {
+    .Call(`_DCFusion_abs_eigenvals`, A)
+}
+
+#' Maximal distance to hypercube
+#' 
+#' Calculates the maximal distance from a vector to a hypercube
+#' 
+#' @param beta_hat vector
+#' @param hypercube vertices matrix of hypercube vertices
+#' @param transform_to_X transformation matrix to X-space (original space)
+#' @param transform_to_X transformation matrix to Z-space (transformed space)
+#' 
+#' @return The maximal distance from beta_hat to point in hypercube
+maximal_distance_hypercube_to_cv <- function(beta_hat, hypercube_vertices, transform_to_X, transform_to_Z) {
+    .Call(`_DCFusion_maximal_distance_hypercube_to_cv`, beta_hat, hypercube_vertices, transform_to_X, transform_to_Z)
 }
 
 log_BLR_gradient <- function(beta, y_labels, X, X_beta, count, prior_means, prior_variances, C) {

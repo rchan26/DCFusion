@@ -78,10 +78,10 @@ out only when ESS < N*ESS_threshold)}
 \item{cv_location}{string to determine what the location of the control variate
 should be. Must be either 'mode' where the MLE estimator 
 will be used or 'hypercube_centre' (default) to use the centre
-of the simualted hypercube}
+of the simulated hypercube}
 
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
-between "Poisson" (default) for Poission estimator
+between "Poisson" (default) for Poisson estimator
 and "NB" for Negative Binomial estimator}
 
 \item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
@@ -108,8 +108,8 @@ A list with components:
                    particles for level l, node i}
   \item{proposed_samples}{list of length (L-1), where proposed_samples[[l]][[i]]
                           are the proposed samples for level l, node i}
-  \item{time}{list of length (L-1), where time[[l]] is the run time
-                    for level l, node i}
+  \item{time}{list of length (L-1), where time[[l]][[i]] is the run time
+              for level l, node i}
   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
              sample size of the particles after each step BEFORE deciding
              whether or not to resample for level l, node i}
@@ -119,9 +119,8 @@ A list with components:
                    boolean value to record if the particles were resampled
                    after each step; rho and Q for level l, node i}
   \item{precondition_matrices}{pre-conditioning matrices that were used}
-  \item{resampling_method}{method that was used in resampling}
   \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
-                     data input for the sub-posteiror in level l, node i}
+                     data input for the sub-posterior in level l, node i}
   \item{diffusion_times}{vector of length (L-1), where diffusion_times[l]
                          are the times for fusion in level l}
 }

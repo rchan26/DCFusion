@@ -39,7 +39,7 @@ ea_uniGaussian_DL_PT(
 the Langevin diffusion)}
 
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
-between "Poisson" (default) for Poission estimator
+between "Poisson" (default) for Poisson estimator
 and "NB" for Negative Binomial estimator}
 
 \item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}

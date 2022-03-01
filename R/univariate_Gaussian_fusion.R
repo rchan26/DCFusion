@@ -14,7 +14,7 @@
 #' @param precondition precondition value (i.e. the covariance for 
 #'                     the Langevin diffusion)
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -255,7 +255,7 @@ fusion_uniGaussian <- function(N,
     x <- sapply(samples_to_fuse, function(core) sample(x = core, size = 1))
     weighted_avg <- weighted_mean_univariate(x = x, weights = 1/precondition_values)
     log_rho_prob <- log_rho_univariate(x = x,
-                                       weighted_mean = weighted_avg,
+                                       x_mean = weighted_avg,
                                        time = time,
                                        precondition_values = precondition_values)
     if (log(runif(1, 0, 1)) < log_rho_prob) {
@@ -344,13 +344,8 @@ parallel_fusion_uniGaussian <- function(N,
   }
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  parallel::clusterExport(cl, envir = environment(),
-                          varlist = c(ls(), "ea_phi_uniGaussian_DL",
-                                      "ea_phi_uniGaussian_DL_bounds",
-                                      "ea_phi_uniGaussian_DL_LB",
-                                      "ea_uniGaussian_DL_PT",
-                                      "fusion_uniGaussian"))
-  # exporting functions from layeredBB package to simulate layered Brownian bridges
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
@@ -387,25 +382,18 @@ parallel_fusion_uniGaussian <- function(N,
   Q_acc <- N / Q_iterations
   rhoQ_acc <- N / rho_iterations
   if (identical(precondition_values, rep(1, m))) {
-    return(list('samples' = samples,
-                'rho' = rho_acc,
-                'Q' = Q_acc,
-                'rhoQ '= rhoQ_acc,
-                'time' = final['elapsed'],
-                'rho_iterations' = rho_iterations,
-                'Q_iterations' = Q_iterations,
-                'precondition_values' = list(1, precondition_values)))
+    new_precondition_values <- list(1, precondition_values)
   } else {
-    return(list('samples' = samples,
-                'rho' = rho_acc,
-                'Q' = Q_acc,
-                'rhoQ '= rhoQ_acc,
-                'time' = final['elapsed'],
-                'rho_iterations' = rho_iterations,
-                'Q_iterations' = Q_iterations,
-                'precondition_values' = list(1/sum(1/precondition_values), 
-                                             precondition_values)))
+    new_precondition_values <- list(1/sum(1/precondition_values), precondition_values)
   }
+  return(list('samples' = samples,
+              'rho' = rho_acc,
+              'Q' = Q_acc,
+              'rhoQ '= rhoQ_acc,
+              'time' = final['elapsed'],
+              'rho_iterations' = rho_iterations,
+              'Q_iterations' = Q_iterations,
+              'precondition_values' = new_precondition_values))
 }
 
 #' (Balanced Binary) D&C Monte Carlo Fusion (rejection sampling)
@@ -436,7 +424,7 @@ parallel_fusion_uniGaussian <- function(N,
 #' \describe{
 #'   \item{samples}{list of length (L-1), where samples[[l]][[i]] are the samples 
 #'                  for level l, node i}
-#'   \item{time}{list of length (L-1), where time[[l]] is the run time for level 
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for level 
 #'               l, node i}
 #'   \item{rho_acc}{list of length (L-1), where rho_acc[[l]][i] is the acceptance 
 #'                  rate for first fusion step for level l, node i}
@@ -489,12 +477,9 @@ bal_binary_fusion_uniGaussian <- function(N_schedule,
   } else {
     stop("bal_binary_fusion_uniGaussian: m_schedule must be a vector of length (L-1)")
   }
-  # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
-  # we need this so that we can set the right value for beta when fusing up the levels
   m_schedule <- c(m_schedule, 1)
-  # initialising results
   hier_samples <- list()
-  hier_samples[[L]] <- base_samples # base level
+  hier_samples[[L]] <- base_samples
   time <- list()
   rho <- list()
   Q <- list()
@@ -522,8 +507,6 @@ bal_binary_fusion_uniGaussian <- function(N_schedule,
   }
   cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_uniGaussian.txt')
   for (k in ((L-1):1)) {
-    # since previous level has (1/beta)/prod(m_schedule[L:(k-1)]) nodes and we 
-    # fuse m_schedule[k] of these
     n_nodes <- max((1/start_beta)/prod(m_schedule[L:k]), 1)
     cat('########################\n', file = 'bal_binary_fusion_uniGaussian.txt', 
         append = T)
@@ -552,15 +535,12 @@ bal_binary_fusion_uniGaussian <- function(N_schedule,
     })
     # need to combine the correct samples
     hier_samples[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$samples)
-    # obtaining the acceptance rates for all nodes in the current level
     rho[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$rho)
     Q[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$Q)
     rhoQ[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$rhoQ)
     time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$time)
-    # get number of iterations in this level
     sum_rho_iterations <- sum(unlist(lapply(1:n_nodes, function(i) fused[[i]]$rho_iterations)))
     sum_Q_iterations <- sum(unlist(lapply(1:n_nodes, function(i) fused[[i]]$Q_iterations)))
-    # acceptance rate for whole level
     overall_rho[k] <- sum_Q_iterations / sum_rho_iterations
     overall_Q[k] <- N_schedule[k]*n_nodes / sum_Q_iterations
     overall_rhoQ[k] <- N_schedule[k]*n_nodes / sum_rho_iterations
@@ -614,7 +594,7 @@ bal_binary_fusion_uniGaussian <- function(N_schedule,
 #' \describe{
 #'   \item{samples}{list of length (L-1), where samples[[l]][[i]] are the samples 
 #'                  for level l, node i}
-#'   \item{time}{list of length (L-1), where time[[l]] is the run time for level 
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for level 
 #'               l, node i}
 #'   \item{rho_acc}{list of length (L-1), where rho_acc[[l]][i] is the acceptance 
 #'                  rate for first fusion step for level l, node i}
@@ -645,9 +625,8 @@ progressive_fusion_uniGaussian <- function(N_schedule,
   } else if (!is.list(base_samples) | (length(base_samples)!=(1/start_beta))) {
     stop("progressive_fusion_uniGaussian: base_samples must be a list of length (1/start_beta)")
   }
-  # initialising results
   prog_samples <- list()
-  prog_samples[[(1/start_beta)]] <- base_samples # base level
+  prog_samples[[(1/start_beta)]] <- base_samples
   time <- rep(0, (1/start_beta)-1)
   rho <- rep(0, (1/start_beta)-1)
   Q <- rep(0, (1/start_beta)-1)
@@ -726,7 +705,6 @@ progressive_fusion_uniGaussian <- function(N_schedule,
     # need to combine the correct samples
     prog_samples[[k]] <- fused$samples
     precondition_values[[k]] <- fused$precondition_values[[1]]
-    # obtaining the acceptance rates for all nodes in the current level
     rho[k] <- fused$rho
     Q[k] <- fused$Q
     rhoQ[k] <- fused$rhoQ
@@ -759,7 +737,7 @@ progressive_fusion_uniGaussian <- function(N_schedule,
 #' @param precondition_values vector of length m, where precondition_values[c]
 #'                            is the precondition value for sub-posterior c
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -798,13 +776,8 @@ Q_IS_uniGaussian <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
-  parallel::clusterExport(cl, envir = environment(),
-                          varlist = c(ls(), "ea_phi_uniGaussian_DL",
-                                      "ea_phi_uniGaussian_DL_bounds",
-                                      "ea_phi_uniGaussian_DL_LB",
-                                      "ea_uniGaussian_DL_PT",
-                                      "fusion_uniGaussian"))
-  # exporting functions from layeredBB package to simulate layered Brownian bridges
+  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   if (!is.null(seed)) {
     parallel::clusterSetRNGStream(cl, iseed = seed)
@@ -889,7 +862,7 @@ Q_IS_uniGaussian <- function(particle_set,
 #'                      lower than for resampling (i.e. resampling is carried 
 #'                      out only when ESS < N*ESS_threshold)
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -903,14 +876,10 @@ Q_IS_uniGaussian <- function(particle_set,
 #'   \item{particles}{particles returned from fusion sampler}
 #'   \item{proposed_samples}{proposal samples from fusion sampler}
 #'   \item{time}{run-time of fusion sampler}
-#'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective 
-#'              sample size of the particles after each step BEFORE deciding 
-#'              whether or not to resample for level l, node i}
-#'   \item{CESS}{list of length (L-1), where CESS[[l]][[i]] is the conditional
-#'               effective sample size of the particles after each step}
-#'   \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a 
-#'                    boolean value to record if the particles were resampled
-#'                    after each step; rho and Q for level l, node i}
+#'   \item{ESS}{effective sample size of the particles after each step}
+#'   \item{CESS}{conditional effective sample size of the particles after each step}
+#'   \item{resampled}{boolean value to indicate if particles were resampled
+#'                    after each time step}
 #'   \item{precondition_values}{list of length 2 where precondition_values[[2]] 
 #'                              are the pre-conditioning values that were used 
 #'                              and precondition_values[[1]] are the combined 
@@ -1011,23 +980,17 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
     resampled['Q'] <- FALSE
   }
   if (identical(precondition_values, rep(1, m))) {
-    return(list('particles' = particles,
-                'proposed_samples' = proposed_samples,
-                'time' = (proc.time()-pcm)['elapsed'],
-                'ESS' = ESS,
-                'CESS' = CESS,
-                'resampled' = resampled,
-                'precondition_values' = list(1, precondition_values)))
+    new_precondition_values <- list(1, precondition_values)
   } else {
-    return(list('particles' = particles,
-                'proposed_samples' = proposed_samples,
-                'time' = (proc.time()-pcm)['elapsed'],
-                'ESS' = ESS,
-                'CESS' = CESS,
-                'resampled' = resampled,
-                'precondition_values' = list(1/sum(1/precondition_values),
-                                             precondition_values)))
+    new_precondition_values <- list(1/sum(1/precondition_values), precondition_values)
   }
+  return(list('particles' = particles,
+              'proposed_samples' = proposed_samples,
+              'time' = (proc.time()-pcm)['elapsed'],
+              'ESS' = ESS,
+              'CESS' = CESS,
+              'resampled' = resampled,
+              'precondition_values' = new_precondition_values))
 }
 
 #' (Balanced Binary) D&C Monte Carlo Fusion using SMC
@@ -1060,7 +1023,7 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
 #'                      lower than for resampling (i.e. resampling is carried 
 #'                      out only when ESS < N*ESS_threshold)
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -1075,7 +1038,7 @@ parallel_fusion_SMC_uniGaussian <- function(particles_to_fuse,
 #'                    particles for level l, node i}
 #'   \item{proposed_samples}{list of length (L-1), where proposed_samples[[l]][[i]]
 #'                           are the proposed samples for level l, node i}
-#'   \item{time}{list of length (L-1), where time[[l]] is the run time for level l,
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for level l,
 #'               node i}
 #'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective 
 #'              sample size of the particles after each step BEFORE deciding 
@@ -1129,9 +1092,7 @@ bal_binary_fusion_SMC_uniGaussian <- function(N_schedule,
   } else {
     stop("bal_binary_fusion_SMC_uniGaussian: m_schedule must be a vector of length (L-1)")
   }
-  # we append 1 to the vector m_schedule to make the indices work later on when we call fusion
   m_schedule <- c(m_schedule, 1)
-  # initialising results
   particles <- list()
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[L]] <- base_samples
@@ -1169,8 +1130,6 @@ bal_binary_fusion_SMC_uniGaussian <- function(N_schedule,
   }
   cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_SMC_uniGaussian.txt')
   for (k in ((L-1):1)) {
-    # since previous level has (1/beta)/prod(m_schedule[L:(k-1)]) nodes and we 
-    # fuse m_schedule[k] of these
     n_nodes <- max((1/start_beta)/prod(m_schedule[L:k]), 1)
     cat('########################\n', file = 'bal_binary_fusion_SMC_uniGaussian.txt',
         append = T)
@@ -1258,7 +1217,7 @@ bal_binary_fusion_SMC_uniGaussian <- function(N_schedule,
 #'                      lower than for resampling (i.e. resampling is carried 
 #'                      out only when ESS < N*ESS_threshold)
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
-#'                            between "Poisson" (default) for Poission estimator
+#'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
 #' @param beta_NB beta parameter for Negative Binomial estimator (default 10)
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
@@ -1273,7 +1232,7 @@ bal_binary_fusion_SMC_uniGaussian <- function(N_schedule,
 #'                    particles for level l, node i}
 #'   \item{proposed_samples}{list of length (L-1), where proposed_samples[[l]][[i]]
 #'                           are the proposed samples for level l, node i}
-#'   \item{time}{list of length (L-1), where time[[l]] is the run time for level l,
+#'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time for level l,
 #'               node i}
 #'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective 
 #'              sample size of the particles after each step BEFORE deciding 
@@ -1313,7 +1272,6 @@ progressive_fusion_SMC_uniGaussian <- function(N_schedule,
   } else if (ESS_threshold < 0 | ESS_threshold > 1) {
     stop("progressive_fusion_SMC_uniGaussian: ESS_threshold must be between 0 and 1")
   }
-  # initialising results
   particles <- list()
   if (all(sapply(base_samples, function(sub) class(sub)=='particle'))) {
     particles[[(1/start_beta)]] <- base_samples
