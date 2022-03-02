@@ -4,7 +4,7 @@ library(HMCBLR)
 ##### Initialise example #####
 seed <- 2021
 set.seed(seed)
-nsamples <- 10000
+nsamples <- 10
 ndata <- 1000
 C <- 4
 n_cores <- parallel::detectCores()
@@ -12,8 +12,8 @@ true_beta <- c(-3, 1.2, -0.5, 0.8, 3)
 frequencies <- c(0.2, 0.3, 0.5, 0.01)
 diffusion_estimator <- 'NB'
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.25
-CESS_j_threshold <- 0.25
+CESS_0_threshold <- 0.2
+CESS_j_threshold <- 0.2
 k1 <- NULL
 k2 <- NULL
 k3 <- -log(CESS_j_threshold)/2
@@ -54,6 +54,23 @@ sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                          warmup = 10000,
                                          seed = seed,
                                          output = T)
+
+
+##### Applying other methodologies #####
+
+# print('Applying other methodologies')
+consensus_mat_4 <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = F)
+consensus_sca_4 <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = T)
+neiswanger_true_4 <- neiswanger(S = 4,
+                                samples_to_combine = sub_posteriors_4,
+                                anneal = TRUE)
+neiswanger_false_4 <- neiswanger(S = 4,
+                                 samples_to_combine = sub_posteriors_4,
+                                 anneal = FALSE)
+weierstrass_importance_4 <- weierstrass(Samples = sub_posteriors_4,
+                                        method = 'importance')
+weierstrass_rejection_4 <- weierstrass(Samples = sub_posteriors_4,
+                                       method = 'reject')
 
 ##### all at once #####
 GBF_4 <- list('reg' = bal_binary_GBF_BLR(N_schedule = nsamples,
