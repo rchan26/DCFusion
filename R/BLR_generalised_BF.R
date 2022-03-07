@@ -439,6 +439,7 @@ rho_j_BLR <- function(particle_set,
 #'   \item{proposed_samples}{proposal samples from fusion sampler}
 #'   \item{time}{run-time of fusion sampler}
 #'   \item{elapsed_time}{elapsed time of each step of the algorithm}
+#'   \item{time_mesh}{time_mesh used}
 #'   \item{ESS}{effective sample size of the particles after each step}
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
@@ -623,6 +624,7 @@ parallel_GBF_BLR <- function(particles_to_fuse,
               'proposed_samples' = rho_j$proposed_samples,
               'time' = (proc.time()-pcm)['elapsed'],
               'elapsed_time' = c(elapsed_time_rho_0, rho_j$time),
+              'time_mesh' = rho_j$particle_set$time_mesh,
               'ESS' = rho_j$ESS,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
@@ -699,7 +701,11 @@ parallel_GBF_BLR <- function(particles_to_fuse,
 #'                           are the proposed samples for level l, node i}
 #'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time
 #'               for level l, node i}
-#'   \item{elapsed_time}{list of length (L-1), where}
+#'   \item{elapsed_time}{list of length (L-1), where elapsed_time[[l]][[i]]
+#'                       is the elapsed time of each step of the algorithm for
+#'                       level l, node i}
+#'   \item{time_mesh}{list of length (L-1), where time_mesh[[l]][[i]]
+#'                    is the time_mesh used for level l, node i}
 #'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
 #'              sample size of the particles after each step BEFORE deciding
 #'              whether or not to resample for level l, node i}
@@ -821,6 +827,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
   data_inputs[[L]] <- data_split
   time <- list()
   elapsed_time <- list()
+  time_mesh <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
@@ -931,6 +938,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
     proposed_samples[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$proposed_samples)
     time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$time)
     elapsed_time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$elapsed_time)
+    time_mesh[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$time_mesh)
     ESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$ESS)
     CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$CESS)
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$resampled)
@@ -948,6 +956,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
     proposed_samples[[1]] <- proposed_samples[[1]][[1]]
     time[[1]] <- time[[1]][[1]]
     elapsed_time[[1]] <- elapsed_time[[1]][[1]]
+    time_mesh[[1]] <- time_mesh[[1]][[1]]
     ESS[[1]] <- ESS[[1]][[1]]
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
@@ -961,6 +970,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
               'proposed_samples' = proposed_samples,
               'time' = time,
               'elapsed_time' = elapsed_time,
+              'time_mesh' = time_mesh,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,
