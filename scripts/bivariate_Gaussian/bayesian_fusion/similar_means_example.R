@@ -31,16 +31,16 @@ e_results <- list('vanilla' = list(), 'generalised' = list())
 SSH_adaptive_results <- list('vanilla' = list(), 'generalised' = list())
 
 for (i in 1:length(data_sizes)) {
+  print(paste('i:', i))
+  print(paste('data size:', data_sizes[i]))
   set.seed(seed*i)
   sd <- sqrt(rep(C, 2)/data_sizes[i])
-  # target_cov_mat <- matrix(c(sd[1]^2, sd[1]*sd[2]*corr, sd[1]*sd[2]*corr, sd[2]^2),
-  #                          nrow = 2, ncol = 2, byrow = T)/C
-  # target_samples <- mvrnormArma(N = nsamples, mu = mean, Sigma = target_cov_mat)
   cov_mat <- matrix(c(sd[1]^2, sd[1]*sd[2]*corr, sd[1]*sd[2]*corr, sd[2]^2),
                     nrow = 2, ncol = 2, byrow = T)
   opt_bw <- ((4*sd^5)/(3*nsamples))^(1/5)
   input_samples <- lapply(1:C, function(sub) mvrnormArma(N = nsamples, mu = mean, Sigma = cov_mat))
   input_particles <- initialise_particle_sets(samples_to_fuse = input_samples, multivariate = TRUE)
+  
   ##### Fixed user-specified parameters #####
   print('### performing standard Bayesian Fusion (with standard mesh)')
   input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
@@ -394,7 +394,7 @@ for (i in 1:length(data_sizes)) {
                                            diffusion_estimator = diffusion_estimator,
                                            seed = seed*i)
   print('### performing Bayesian Fusion with a preconditioning matrix (with recommended T, regular mesh (but with same n as adaptive))')
-  reg_mesh_gen <- seq(0, vanilla_guide[[i]]$min_T, length.out = length(d_BF_standard$particles$time_mesh))
+  reg_mesh_gen <- seq(0, gen_guide[[i]]$min_T, length.out = length(d_BF_generalised$particles$time_mesh))
   input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
                                               multivariate = TRUE,
                                               number_of_steps = length(reg_mesh_gen))
@@ -433,7 +433,7 @@ for (i in 1:length(data_sizes)) {
                                    marg_means = mean,
                                    marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
                                    bw = opt_bw))
-  d_results$generalised[[i]] <- list('CESS_0' = e_BF_generalised$CESS[1],
+  e_results$generalised[[i]] <- list('CESS_0' = e_BF_generalised$CESS[1],
                                      'CESS_j' = e_BF_generalised$CESS[2:length(e_BF_generalised$CESS)],
                                      'CESS_j_avg' = mean(e_BF_generalised$CESS[2:length(e_BF_generalised$CESS)]),
                                      'CESS_j_var' = var(e_BF_generalised$CESS[2:length(e_BF_generalised$CESS)]),
@@ -705,7 +705,7 @@ for (i in 1:length(data_sizes)) {
   resampled_times <- scaled_times[c_results$vanilla[[i]]$resampled]
   points(x = resampled_times,
          y = rep(data_sizes[i]-500, length(resampled_times)),
-         pch = 20, lty = 1, lwd = 3, col = 'blue')
+         pch = 20, lty = 1, lwd = 3, col = 'red')
 }
 # highlight the points where resampling was carried out
 for (i in 1:length(data_sizes)) {
@@ -713,7 +713,7 @@ for (i in 1:length(data_sizes)) {
   resampled_times <- scaled_times[d_results$vanilla[[i]]$resampled]
   points(x = resampled_times,
          y = rep(data_sizes[i]+500, length(resampled_times)),
-         pch = 4, lty = 1, lwd = 3, col = 'blue')
+         pch = 4, lty = 1, lwd = 3, col = 'red')
 }
 axis(1, at = seq(0, 1, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
 axis(1, at = seq(0, 1, 0.05), labels = rep("", 21), lwd.ticks = 0.5)
@@ -739,6 +739,27 @@ mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 # axis(2, at = c(1000, seq(10000, 50000, 10000)),      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 # axis(2, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 # mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
+
+##### Recommended scaling of T, regular mesh (with same n as adaptive mesh) #####
+plot(x = data_sizes,
+     y = sapply(1:length(data_sizes), function(i) e_results$vanilla[[i]]$CESS_0)/nsamples,
+     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) e_results$vanilla[[i]]$CESS_j_avg)/nsamples,
+      pch = 20, lty = 2, lwd = 3, type = 'b')
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) e_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii], length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = c(1000, seq(10000, 50000, 10000)),
+     labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
+axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
+mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
+     font = 2, cex = 1.5)
+axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
+     font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### SSH: Recommended scaling of T, adaptive mesh #####
 plot(x = data_sizes,
@@ -971,7 +992,7 @@ for (i in 1:length(data_sizes)) {
   resampled_times <- scaled_times[c_results$generalised[[i]]$resampled]
   points(x = resampled_times,
          y = rep(data_sizes[i]-500, length(resampled_times)),
-         pch = 20, lty = 1, lwd = 3, col = 'blue')
+         pch = 20, lty = 1, lwd = 3, col = 'red')
 }
 # highlight the points where resampling was carried out
 for (i in 1:length(data_sizes)) {
@@ -979,7 +1000,7 @@ for (i in 1:length(data_sizes)) {
   resampled_times <- scaled_times[d_results$generalised[[i]]$resampled]
   points(x = resampled_times,
          y = rep(data_sizes[i]+500, length(resampled_times)),
-         pch = 4, lty = 1, lwd = 3, col = 'blue')
+         pch = 4, lty = 1, lwd = 3, col = 'red')
 }
 axis(1, at = seq(0, 1, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
 axis(1, at = seq(0, 1, 0.05), labels = rep("", 21), lwd.ticks = 0.5)
@@ -988,6 +1009,27 @@ axis(2, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(2, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
+
+##### Recommended scaling of T, regular mesh (with same n as adaptive mesh) #####
+plot(x = data_sizes,
+     y = sapply(1:length(data_sizes), function(i) e_results$generalised[[i]]$CESS_0)/nsamples,
+     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) e_results$generalised[[i]]$CESS_j_avg)/nsamples,
+      pch = 20, lty = 2, lwd = 3, type = 'b')
+for (ii in 1:length(data_sizes)) {
+  cess_j <- lapply(1:length(data_sizes), function(i) e_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
+  points(x = rep(data_sizes[ii], length(cess_j)), y = cess_j, cex = 0.5)
+}
+axis(1, at = c(1000, seq(10000, 50000, 10000)),
+     labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
+axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
+mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
+     font = 2, cex = 1.5)
+axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
+     font = 2, cex = 1.5)
+mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
 ##### SSH: Recommended scaling of T, adaptive mesh #####
 plot(x = data_sizes,
