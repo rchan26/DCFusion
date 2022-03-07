@@ -827,7 +827,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
   data_inputs[[L]] <- data_split
   time <- list()
   elapsed_time <- list()
-  time_mesh <- list()
+  used_time_mesh <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
@@ -938,7 +938,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
     proposed_samples[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$proposed_samples)
     time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$time)
     elapsed_time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$elapsed_time)
-    time_mesh[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$time_mesh)
+    used_time_mesh[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$time_mesh)
     ESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$ESS)
     CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$CESS)
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$resampled)
@@ -956,7 +956,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
     proposed_samples[[1]] <- proposed_samples[[1]][[1]]
     time[[1]] <- time[[1]][[1]]
     elapsed_time[[1]] <- elapsed_time[[1]][[1]]
-    time_mesh[[1]] <- time_mesh[[1]][[1]]
+    used_time_mesh[[1]] <- used_time_mesh[[1]][[1]]
     ESS[[1]] <- ESS[[1]][[1]]
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
@@ -970,7 +970,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
               'proposed_samples' = proposed_samples,
               'time' = time,
               'elapsed_time' = elapsed_time,
-              'time_mesh' = time_mesh,
+              'time_mesh' = used_time_mesh,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,

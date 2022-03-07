@@ -17,7 +17,7 @@ k1 <- NULL
 k2 <- NULL
 k3 <- -log(CESS_j_threshold)/2
 k4 <- -log(CESS_j_threshold)/2
-dim <- c(5,6,7,8,9,10,15,20,30,40,50)
+dim <- c(5,10,15,20,30,40,50)
 true_beta <- list()
 frequencies <- list()
 simulated_data <- list()
