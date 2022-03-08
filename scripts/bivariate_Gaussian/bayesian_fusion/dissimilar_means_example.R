@@ -31,11 +31,10 @@ e_results <- list('vanilla' = list(), 'generalised' = list())
 SH_adaptive_results <- list('vanilla' = list(), 'generalised' = list())
 
 for (i in 1:length(data_sizes)) {
+  print(paste('i:', i))
+  print(paste('data size:', data_sizes[i]))
   set.seed(seed*i)
   sd <- sqrt(rep(C, 2)/data_sizes[i])
-  # target_cov_mat <- matrix(c(sd[1]^2, sd[1]*sd[2]*corr, sd[1]*sd[2]*corr, sd[2]^2),
-  #                          nrow = 2, ncol = 2, byrow = T)/C
-  # target_samples <- mvrnormArma(N = nsamples, mu = mean, Sigma = target_cov_mat)
   cov_mat <- matrix(c(sd[1]^2, sd[1]*sd[2]*corr, sd[1]*sd[2]*corr, sd[2]^2),
                     nrow = 2, ncol = 2, byrow = T)
   opt_bw <- ((4*sd^5)/(3*nsamples))^(1/5)
