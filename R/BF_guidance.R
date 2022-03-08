@@ -376,19 +376,15 @@ mesh_guidance_regular <- function(C,
       stop("mesh_guidance_regular: if threshold is not NULL, max_E_nu_j must be a numeric")
     }
     if (is.null(trial_k3_by)) {
-      trial_k3_by <- 0.000001
+      trial_k3_by <- 1e-6
     }
     i <- 1
-    trial_k3 <- c(-log(.Machine$double.xmin)+1, 100, 10, seq(5, trial_k3_by, -trial_k3_by))
+    trial_k3 <- unique(sort(c(.Machine$double.xmin, 1e-100, 1e-50, 1e-20, 
+                              1e-15, 1e-14, 1e-13, 1e-12, 1e-11,
+                              1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5,
+                              1e-4, 1e-3, 1e-2, 1e-1, seq(trial_k3_by, 10, trial_k3_by))))
     k3 <- trial_k3[i]
     k4 <- -log(threshold)-k3
-    # find the first k3 in trial_k3 such that k4 > 0
-    while (k4 < 0) {
-      i <- i+1
-      k3 <- trial_k3[i]
-      k4 <- -log(threshold)-k3
-    }
-    # compute T1 and T2 for current k3 and k4
     T1 <- mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size)
     T2 <- mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)
     # print(paste('k3:', k3))
@@ -396,54 +392,24 @@ mesh_guidance_regular <- function(C,
     # print(paste('exp(-k3-k4):', exp(-k3-k4)))
     # print(paste('T1:', T1))
     # print(paste('T2:', T2))
+    if (T1 > T2) {
+      stop("mesh_guidance_regular: even with k3 as small as possible, we can't find k3 and k4, try lower value for the threshold")
+    }
     while (T1 < T2) {
       # loop through possible k3, and compute the corresponding k4 such that the
       # user-specified lower bound is satisfied
+      # loop until we have T1 > T2 (should happen since we're increasing k3)
       if (i==length(trial_k3)) {
-        trial_k3[i+1] <- trial_k3[i]/10
+        trial_k3[i+1] <- trial_k3[i]*1.01
       }
       i <- i+1
       k3 <- trial_k3[i]
       k4 <- -log(threshold)-k3
       T1 <- mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size)
       T2 <- mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)
-      # print(paste('k3:', k3))
-      # print(paste('k4:', k4))
-      # print(paste('T1:', T1))
-      # print(paste('T2:', T2))
-      if (T1 == 0) {
-        # occurs when k3 is becoming too small and so T1 is 0
-        # we cannot make T2 less than 0, so we haven't been able to find k3, k4
-        # this can be solved sometimes by making the sequence of numbers that are
-        # trialed for k3 finer (i.e. making trial_k3_by smaller - it is 0.00001 by default)
-        stop("mesh_guidance_regular: couldn't find a k3 and k4. Try again with a smaller value for trial_k3_by (default is 0.00001)")
-      }
     }
-    # If we are able to find a suitable k3 and k4 that satisfies the bound,
-    # (the previous loop tries finds the first small enough k3 which where T1 > T2)
-    # we can continue to push k3 smaller and k4 larger while T1 > T2 to get a
-    # computationally more efficient algorithm, since we'd want k4 as large as
-    # possible until we cannot guarantee it will be smaller than T1 on average
-    while (T1 > T2) {
-      # print('pushing k3 lower')
-      if (i==length(trial_k3)) {
-        trial_k3[i+1] <- trial_k3[i]/10
-      }
-      i <- i+1
-      k3 <- trial_k3[i]
-      k4 <- -log(threshold)-k3
-      T1 <- mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size)
-      T2 <- mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)
-      # print(paste('k3:', k3))
-      # print(paste('k4:', k4))
-      # print(paste('T1:', T1))
-      # print(paste('T2:', T2))
-      if (T1 < T2) {
-        k3 <- trial_k3[i-1]
-        k4 <- -log(threshold)-k3
-      }
-    }
-    warning("mesh_guidance_regular: k3 set to ", k3, " and k4 set to ", k4, " || exp(-k3-k4) = ", exp(-k3-k4))
+    warning("mesh_guidance_regular: k3 set to ", k3, " and k4 set to ", k4, 
+            " || exp(-k3-k4) = ", exp(-k3-k4))
   } else {
     stop("mesh_guidance_regular: threshold either is NULL or is a numeric value between 0 and 1")
   }
