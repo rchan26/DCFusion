@@ -114,7 +114,11 @@ A list with components:
                           are the proposed samples for level l, node i}
   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time
               for level l, node i}
-  \item{elapsed_time}{list of length (L-1), where}
+  \item{elapsed_time}{list of length (L-1), where elapsed_time[[l]][[i]]
+                      is the elapsed time of each step of the algorithm for
+                      level l, node i}
+  \item{time_mesh}{list of length (L-1), where time_mesh[[l]][[i]]
+                   is the time_mesh used for level l, node i}
   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
              sample size of the particles after each step BEFORE deciding
              whether or not to resample for level l, node i}

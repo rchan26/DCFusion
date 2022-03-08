@@ -484,16 +484,16 @@ obtain_hypercube_centre_BLR <- function(bessel_layers, transform_to_X, y_labels,
     .Call(`_DCFusion_obtain_hypercube_centre_BLR`, bessel_layers, transform_to_X, y_labels, X, count, prior_means, prior_variances, C)
 }
 
-spectral_radius_bound_BLR_Z <- function(dim, V, X, count, prior_variances, C, sqrt_Lambda) {
-    .Call(`_DCFusion_spectral_radius_bound_BLR_Z`, dim, V, X, count, prior_variances, C, sqrt_Lambda)
+spectral_radius_bound_BLR_Z <- function(dim, V, transformed_X, count, prior_variances, C, sqrt_Lambda) {
+    .Call(`_DCFusion_spectral_radius_bound_BLR_Z`, dim, V, transformed_X, count, prior_variances, C, sqrt_Lambda)
 }
 
-spectral_radius_global_bound_BLR_Z <- function(dim, X, count, prior_variances, C, sqrt_Lambda) {
-    .Call(`_DCFusion_spectral_radius_global_bound_BLR_Z`, dim, X, count, prior_variances, C, sqrt_Lambda)
+spectral_radius_global_bound_BLR_Z <- function(dim, transformed_X, count, prior_variances, C, sqrt_Lambda) {
+    .Call(`_DCFusion_spectral_radius_global_bound_BLR_Z`, dim, transformed_X, count, prior_variances, C, sqrt_Lambda)
 }
 
-ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds) {
-    .Call(`_DCFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
+ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds) {
+    .Call(`_DCFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
 }
 
 gamma_NB_BLR <- function(times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {

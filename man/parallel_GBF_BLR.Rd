@@ -124,6 +124,7 @@ A list with components:
   \item{proposed_samples}{proposal samples from fusion sampler}
   \item{time}{run-time of fusion sampler}
   \item{elapsed_time}{elapsed time of each step of the algorithm}
+  \item{time_mesh}{time_mesh used}
   \item{ESS}{effective sample size of the particles after each step}
   \item{CESS}{conditional effective sample size of the particles after each step}
   \item{resampled}{boolean value to indicate if particles were resampled
