@@ -195,6 +195,7 @@ rho_j_BLR <- function(particle_set,
   }
   end_time <- time_mesh[length(time_mesh)]
   j <- 1
+  
   while (time_mesh[j]!=end_time) {
     pcm <- proc.time()
     j <- j+1
@@ -243,7 +244,8 @@ rho_j_BLR <- function(particle_set,
                      C = m,
                      d = dim,
                      precondition_matrices = precondition_matrices,
-                     Lambda = Lambda)
+                     Lambda = Lambda,
+                     iteration = j)
     rho_j_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
       split_N <- length(split_indices[[core]])
       x_mean_j <- matrix(data = NA, nrow = split_N, ncol = dim)
@@ -254,9 +256,9 @@ rho_j_BLR <- function(particle_set,
                          end_time = end_time,
                          C = m,
                          d = dim,
-                         precondition_matrices = precondition_matrices,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
-                         sub_posterior_mean = split_x_means[[core]][i,])$M
+                         sub_posterior_mean = split_x_means[[core]][i,],
+                         iteration = j)
         if (time_mesh[j]!=end_time) {
           return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = dim, byrow = TRUE))
         } else {

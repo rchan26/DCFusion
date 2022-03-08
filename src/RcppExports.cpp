@@ -11,6 +11,40 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// construct_V_cpp
+const arma::mat construct_V_cpp(const double& s, const double& t, const double& end_time, const int& C, const int& d, const Rcpp::List& precondition_matrices, const arma::mat& Lambda);
+RcppExport SEXP _DCFusion_construct_V_cpp(SEXP sSEXP, SEXP tSEXP, SEXP end_timeSEXP, SEXP CSEXP, SEXP dSEXP, SEXP precondition_matricesSEXP, SEXP LambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const double& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const double& >::type t(tSEXP);
+    Rcpp::traits::input_parameter< const double& >::type end_time(end_timeSEXP);
+    Rcpp::traits::input_parameter< const int& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const int& >::type d(dSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type precondition_matrices(precondition_matricesSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Lambda(LambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(construct_V_cpp(s, t, end_time, C, d, precondition_matrices, Lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
+// construct_M_cpp
+const arma::vec construct_M_cpp(const double& s, const double& t, const double& end_time, const int& C, const int& d, const arma::mat& sub_posterior_samples, const arma::rowvec& sub_posterior_mean);
+RcppExport SEXP _DCFusion_construct_M_cpp(SEXP sSEXP, SEXP tSEXP, SEXP end_timeSEXP, SEXP CSEXP, SEXP dSEXP, SEXP sub_posterior_samplesSEXP, SEXP sub_posterior_meanSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const double& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const double& >::type t(tSEXP);
+    Rcpp::traits::input_parameter< const double& >::type end_time(end_timeSEXP);
+    Rcpp::traits::input_parameter< const int& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const int& >::type d(dSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type sub_posterior_samples(sub_posterior_samplesSEXP);
+    Rcpp::traits::input_parameter< const arma::rowvec& >::type sub_posterior_mean(sub_posterior_meanSEXP);
+    rcpp_result_gen = Rcpp::wrap(construct_M_cpp(s, t, end_time, C, d, sub_posterior_samples, sub_posterior_mean));
+    return rcpp_result_gen;
+END_RCPP
+}
 // weighted_mean_univariate
 double weighted_mean_univariate(const Rcpp::NumericVector& x, const Rcpp::NumericVector& weights);
 RcppExport SEXP _DCFusion_weighted_mean_univariate(SEXP xSEXP, SEXP weightsSEXP) {
@@ -764,6 +798,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_DCFusion_construct_V_cpp", (DL_FUNC) &_DCFusion_construct_V_cpp, 7},
+    {"_DCFusion_construct_M_cpp", (DL_FUNC) &_DCFusion_construct_M_cpp, 7},
     {"_DCFusion_weighted_mean_univariate", (DL_FUNC) &_DCFusion_weighted_mean_univariate, 2},
     {"_DCFusion_log_rho_univariate", (DL_FUNC) &_DCFusion_log_rho_univariate, 4},
     {"_DCFusion_weighted_variance_univariate", (DL_FUNC) &_DCFusion_weighted_variance_univariate, 3},
