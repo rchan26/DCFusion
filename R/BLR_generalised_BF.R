@@ -159,6 +159,9 @@ rho_j_BLR <- function(particle_set,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
+  transformed_design_matrices <- lapply(1:m, function(c) {
+    as.matrix(subset(data_split[[c]]$design_count, select = -count)) %*% transform_matrices[[c]]$to_X
+  })
   N <- particle_set$N
   # ---------- creating parallel cluster
   if (is.null(cl)) {
@@ -190,7 +193,6 @@ rho_j_BLR <- function(particle_set,
   if (is.null(print_progress_iters)) {
     print_progress_iters <- split_N
   }
-  # iterative proposals
   end_time <- time_mesh[length(time_mesh)]
   j <- 1
   while (time_mesh[j]!=end_time) {
@@ -233,7 +235,6 @@ rho_j_BLR <- function(particle_set,
       E_nu_j_old[j] <- tilde_Delta_j$E_nu_j_old
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
-    # split the x samples from the previous time marginal (and their means) into approximately equal lists
     split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
     split_x_means <- lapply(split_indices, function(indices) particle_set$x_means[indices,,drop = FALSE])
     V <- construct_V(s = time_mesh[j-1],
@@ -279,6 +280,7 @@ rho_j_BLR <- function(particle_set,
                                        s = time_mesh[j-1],
                                        t = time_mesh[j],
                                        data = data_split[[c]][counts],
+                                       transformed_design_mat = transformed_design_matrices[[c]],
                                        prior_means = prior_means,
                                        prior_variances = prior_variances,
                                        C = C,
@@ -297,6 +299,7 @@ rho_j_BLR <- function(particle_set,
                                   s = time_mesh[j-1],
                                   t = time_mesh[j],
                                   data = data_split[[c]][counts],
+                                  transformed_design_mat = transformed_design_matrices[[c]],
                                   prior_means = prior_means,
                                   prior_variances = prior_variances,
                                   C = C,
@@ -315,17 +318,16 @@ rho_j_BLR <- function(particle_set,
               file = 'rho_j_BLR_progress.txt', append = T)
         }
       }
-      cat('Level:', level, '|| Step:', j, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
+      cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
+          '|| Node:', node, '|| Core:', core, '||', split_N, '/',
           split_N, '\n', file = 'rho_j_BLR_progress.txt', append = T)
       return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j))
     })
     # ---------- update particle set
-    # update the weights and return updated particle set
     particle_set$x_samples <- unlist(lapply(1:length(split_indices), function(i) {
       rho_j_weighted_samples[[i]]$x_j}), recursive = FALSE)
     particle_set$x_means <- do.call(rbind, lapply(1:length(split_indices), function(i) {
       rho_j_weighted_samples[[i]]$x_mean_j}))
-    # update weight and normalise
     log_rho_j <- unlist(lapply(1:length(split_indices), function(i) {
       rho_j_weighted_samples[[i]]$log_rho_j}))
     norm_weights <- particle_ESS(log_weights = particle_set$log_weights + log_rho_j)
@@ -333,8 +335,6 @@ rho_j_BLR <- function(particle_set,
     particle_set$normalised_weights <- norm_weights$normalised_weights
     particle_set$ESS <- norm_weights$ESS
     ESS[j] <- particle_set$ESS
-    # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
-    # where inc_change is the incremental change in weight (= log_rho_j)
     particle_set$CESS[j] <- particle_ESS(log_weights = log_rho_j)$ESS
     CESS[j] <- particle_set$CESS[j]
     elapsed_time[j-1] <- (proc.time()-pcm)['elapsed']
@@ -349,7 +349,6 @@ rho_j_BLR <- function(particle_set,
     particle_set$time_mesh <- time_mesh[1:j]
     elapsed_time <- elapsed_time[1:(j-1)]
   }
-  # set the y samples as the first element of each of the x_samples
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
   particle_set$y_samples <- proposed_samples
   # ----------- resample particle_set (only resample if ESS < N*ESS_threshold)
@@ -533,11 +532,9 @@ parallel_GBF_BLR <- function(particles_to_fuse,
   } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
     stop("parallel_generalised_BF_SMC_BLR: cl must be a \"cluster\" object or NULL")
   }
-  # set a seed if one is supplied
   if (!is.null(seed)) {
     set.seed(seed)
   }
-  # start time recording
   pcm <- proc.time()
   # ---------- creating parallel cluster
   if (is.null(cl)) {
@@ -553,7 +550,6 @@ parallel_GBF_BLR <- function(particles_to_fuse,
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
   # ---------- first importance sampling step
-  # pre-calculating the inverse precondition matrices
   if (is.null(inv_precondition_matrices)) {
     inv_precondition_matrices <- lapply(precondition_matrices, solve)  
   }

@@ -114,22 +114,6 @@ double spectral_radius_BLR(const arma::vec &beta,
                            const double &C,
                            const arma::mat &Lambda) {
   const arma::vec X_beta = X * beta;
-  // arma::mat hessian(dim, dim, arma::fill::zeros);
-  // for (int i=0; i < X.n_rows; ++i) {
-  //   const double exp_X_beta = exp(X_beta.at(i));
-  //   const double ratio = exp_X_beta/((1+exp_X_beta)*(1+exp_X_beta));
-  //   for (int j=0; j < dim; ++j) {
-  //     for (int k=0; k <= j; ++k) {
-  //       hessian.at(j,k) -= count.at(i)*X.at(i,j)*X.at(i,k)*ratio;
-  //     }
-  //   }
-  // }
-  // for (int j=0; j < dim; ++j) {
-  //   hessian.at(j,j) -= 1/(C*prior_variances.at(j));
-  //   for (int k=0; k < j; ++k) {
-  //     hessian.at(k,j) = hessian.at(j,k);
-  //   }
-  // }
   return(spectral_radius(Lambda * log_BLR_hessian(X,
                                                   X_beta,
                                                   count,
@@ -146,7 +130,6 @@ Rcpp::List obtain_hypercube_centre_BLR(const Rcpp::List &bessel_layers,
                                        const arma::vec &prior_means,
                                        const arma::vec &prior_variances,
                                        const double &C) {
-  // calculate the hypercube centre
   arma::vec centre(bessel_layers.size(), arma::fill::zeros);
   for (int i=0; i < bessel_layers.size(); ++i) {
     const Rcpp::List &b_layer = bessel_layers[i];
@@ -155,7 +138,6 @@ Rcpp::List obtain_hypercube_centre_BLR(const Rcpp::List &bessel_layers,
     centre.at(i) = 0.5*(L+U);
   }
   const arma::vec beta_hat = transform_to_X*centre;
-  // evaluate the gradient of the log posterior at the hypercube centre
   const arma::vec X_beta = X * beta_hat;
   return(Rcpp::List::create(Named("beta_hat", beta_hat),
                             Named("grad_log_hat", log_BLR_gradient(beta_hat,
@@ -171,16 +153,14 @@ Rcpp::List obtain_hypercube_centre_BLR(const Rcpp::List &bessel_layers,
 // [[Rcpp::export]]
 Rcpp::List spectral_radius_bound_BLR_Z(const int &dim,
                                        const arma::mat &V,
-                                       const arma::mat &X,
+                                       const arma::mat &transformed_X,
                                        const arma::vec &count,
                                        const arma::vec &prior_variances,
                                        const double &C,
                                        const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
-  // obtain the lower and upper bound on X_beta
-  const arma::mat transformed_X = X * sqrt_Lambda;
   arma::vec products(V.n_rows, arma::fill::zeros);
-  for (int i=0; i < X.n_rows; ++i) {
+  for (int i=0; i < transformed_X.n_rows; ++i) {
     for (int v=0; v < V.n_rows; ++v) {
       products.at(v) = arma::dot(transformed_X.row(i), V.row(v));
     }
@@ -210,15 +190,14 @@ Rcpp::List spectral_radius_bound_BLR_Z(const int &dim,
 
 // [[Rcpp::export]]
 Rcpp::List spectral_radius_global_bound_BLR_Z(const int &dim,
-                                              const arma::mat &X,
+                                              const arma::mat &transformed_X,
                                               const arma::vec &count,
                                               const arma::vec &prior_variances,
                                               const double &C,
                                               const arma::mat &sqrt_Lambda) {
   // ----- compute the matrix A = Hessian of the transformed log sub-posterior
-  const arma::mat transformed_X = X * sqrt_Lambda;
   arma::mat hessian(dim, dim, arma::fill::zeros);
-  for (int i=0; i < X.n_rows; ++i) {
+  for (int i=0; i < transformed_X.n_rows; ++i) {
     for (int k=0; k < dim; ++k) {
       for (int l=0; l <= k; ++l) {
         hessian.at(k,l) -= count.at(i)*transformed_X.at(i,k)*transformed_X.at(i,l)/4;
@@ -244,7 +223,7 @@ Rcpp::List spectral_radius_global_bound_BLR_Z(const int &dim,
 Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                 const arma::vec &grad_log_hat,
                                 const int &dim,
-                                const arma::mat &X,
+                                const arma::mat &transformed_X,
                                 const arma::vec &count,
                                 const arma::vec &prior_variances,
                                 const double &C,
@@ -265,7 +244,7 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
   if (local_bounds) {
     spectral_radius_bds = spectral_radius_bound_BLR_Z(dim,
                                                       V,
-                                                      X,
+                                                      transformed_X,
                                                       count,
                                                       prior_variances,
                                                       C,
@@ -273,7 +252,7 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
     P_n_Lambda = spectral_radius_bds["spectral_radius"];
   } else {
     spectral_radius_bds = spectral_radius_global_bound_BLR_Z(dim,
-                                                             X,
+                                                             transformed_X,
                                                              count,
                                                              prior_variances,
                                                              C,
