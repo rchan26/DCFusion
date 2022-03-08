@@ -4,7 +4,7 @@ library(HMCBLR)
 ##### Initialise example #####
 seed <- 2021
 set.seed(seed)
-nsamples <- 10
+nsamples <- 10000
 ndata <- 1000
 C <- 4
 n_cores <- parallel::detectCores()
@@ -54,7 +54,6 @@ sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                          warmup = 10000,
                                          seed = seed,
                                          output = T)
-
 
 ##### Applying other methodologies #####
 
@@ -127,7 +126,7 @@ GBF_4$reg$particles <- resample_particle_y_samples(particle_set = GBF_4$reg$part
                                                    multivariate = TRUE,
                                                    resampling_method = 'resid',
                                                    seed = seed)
-print(integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples))
+print(integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples)) 
 compare_samples_bivariate(posteriors = list(full_posterior,
                                             GBF_4$reg$proposed_samples[[1]],
                                             GBF_4$reg$particles$y_samples),
