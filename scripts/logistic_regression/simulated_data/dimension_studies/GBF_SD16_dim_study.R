@@ -12,7 +12,7 @@ diffusion_estimator <- 'NB'
 ESS_threshold <- 0.5
 resampling_method <- 'resid'
 CESS_0_threshold <- 0.2
-CESS_j_threshold <- 0.05
+CESS_j_threshold <- 0.02
 k1 <- NULL
 k2 <- NULL
 k3 <- -log(CESS_j_threshold)/2
