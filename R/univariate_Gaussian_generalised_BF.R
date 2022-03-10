@@ -110,10 +110,8 @@ rho_j_uniGaussian <- function(particle_set,
   resampled <- rep(FALSE, length(time_mesh))
   if (adaptive_mesh) {
     E_nu_j <- rep(NA, length(time_mesh))
-    E_nu_j_old <- rep(NA, length(time_mesh))
   } else {
     E_nu_j <- NA
-    E_nu_j_old <- NA
   }
   precondition_matrices <- lapply(precondition_values, as.matrix)
   Lambda <- inverse_sum_matrices(lapply(1/precondition_values, as.matrix))
@@ -157,7 +155,6 @@ rho_j_uniGaussian <- function(particle_set,
         adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
       }
       E_nu_j[j] <- tilde_Delta_j$E_nu_j
-      E_nu_j_old[j] <- tilde_Delta_j$E_nu_j_old
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     # split the x samples from the previous time marginal (and their means) into approximately equal lists
@@ -248,7 +245,6 @@ rho_j_uniGaussian <- function(particle_set,
     particle_set$time_mesh <- time_mesh[1:j]
     elapsed_time <- elapsed_time[1:(j-1)]
     E_nu_j <- E_nu_j[1:j]
-    E_nu_j_old <- E_nu_j_old[1:j]
   }
   return(list('particle_set' = particle_set,
               'proposed_samples' = proposed_samples,
@@ -256,8 +252,7 @@ rho_j_uniGaussian <- function(particle_set,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,
-              'E_nu_j' = E_nu_j,
-              'E_nu_j_old' = E_nu_j_old))
+              'E_nu_j' = E_nu_j))
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -421,7 +416,6 @@ parallel_GBF_uniGaussian <- function(particles_to_fuse,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
               'E_nu_j' = rho_j$E_nu_j,
-              'E_nu_j_old' = rho_j$E_nu_j_old,
               'precondition_matrices' = new_precondition_values,
               'sub_posterior_means' = new_sub_posterior_means))
 }

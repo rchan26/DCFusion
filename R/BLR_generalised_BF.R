@@ -185,10 +185,8 @@ rho_j_BLR <- function(particle_set,
   resampled <- rep(FALSE, length(time_mesh))
   if (adaptive_mesh) {
     E_nu_j <- rep(NA, length(time_mesh))
-    E_nu_j_old <- rep(NA, length(time_mesh))
   } else {
     E_nu_j <- NA
-    E_nu_j_old <- NA
   }
   if (is.null(print_progress_iters)) {
     print_progress_iters <- split_N
@@ -233,7 +231,6 @@ rho_j_BLR <- function(particle_set,
         adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
       }
       E_nu_j[j] <- tilde_Delta_j$E_nu_j
-      E_nu_j_old[j] <- tilde_Delta_j$E_nu_j_old
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
@@ -370,8 +367,7 @@ rho_j_BLR <- function(particle_set,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,
-              'E_nu_j' = E_nu_j,
-              'E_nu_j_old' = E_nu_j_old))
+              'E_nu_j' = E_nu_j))
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -627,7 +623,6 @@ parallel_GBF_BLR <- function(particles_to_fuse,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
               'E_nu_j' = rho_j$E_nu_j,
-              'E_nu_j_old' = rho_j$E_nu_j_old,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means,
               'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
@@ -830,7 +825,6 @@ bal_binary_GBF_BLR <- function(N_schedule,
   CESS <- list()
   resampled <- list()
   E_nu_j <- list()
-  E_nu_j_old <- list()
   recommended_mesh <- list()
   precondition_matrices <- list()
   if (is.logical(precondition)) {
@@ -941,7 +935,6 @@ bal_binary_GBF_BLR <- function(N_schedule,
     CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$CESS)
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$resampled)
     E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
-    E_nu_j_old[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j_old)
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
     sub_posterior_means[[k]] <- do.call(rbind, lapply(1:n_nodes, function(i) fused[[i]]$fusion$sub_posterior_means[[1]]))
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$combined_data)
@@ -959,7 +952,6 @@ bal_binary_GBF_BLR <- function(N_schedule,
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
     E_nu_j[[1]] <- E_nu_j[[1]][[1]]
-    E_nu_j_old[[1]] <- E_nu_j_old[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
     sub_posterior_means[[1]] <- sub_posterior_means[[1]][[1]]
     data_inputs[[1]] <- data_inputs[[1]][[1]]
@@ -973,7 +965,6 @@ bal_binary_GBF_BLR <- function(N_schedule,
               'CESS' = CESS,
               'resampled' = resampled,
               'E_nu_j' = E_nu_j,
-              'E_nu_j_old' = E_nu_j_old,
               'precondition_matrices' = precondition_matrices,
               'sub_posterior_means' = sub_posterior_means,
               'recommended_mesh' = recommended_mesh,

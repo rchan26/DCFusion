@@ -284,19 +284,11 @@ mesh_guidance_adaptive <- function(C,
                                                        normalised_weights = particle_set$normalised_weights,
                                                        sub_posterior_means = sub_posterior_means,
                                                        precondition_values = 1/inv_precondition_matrices)
-    E_nu_j_old <- weighted_trajectory_variation_univariate(x_samples = particle_set$x_samples,
-                                                           normalised_weights = rep(1/length(particle_set$x_samples), length(particle_set$x_samples)),
-                                                           sub_posterior_means = sub_posterior_means,
-                                                           precondition_values = 1/inv_precondition_matrices)
   } else {
     E_nu_j <- weighted_trajectory_variation_multivariate(x_samples = particle_set$x_samples,
                                                          normalised_weights = particle_set$normalised_weights,
                                                          sub_posterior_means = sub_posterior_means,
                                                          inv_precondition_matrices = inv_precondition_matrices)
-    E_nu_j_old <- weighted_trajectory_variation_multivariate(x_samples = particle_set$x_samples,
-                                                             normalised_weights = rep(1/length(particle_set$x_samples), length(particle_set$x_samples)),
-                                                             sub_posterior_means = sub_posterior_means,
-                                                             inv_precondition_matrices = inv_precondition_matrices)
   }
   if (is.null(k3)) {
     warning('mesh_guidance_adaptive: k3 is set to 0.5 by default')
@@ -322,8 +314,8 @@ mesh_guidance_adaptive <- function(C,
               'CESS_j_treshold' = exp(-k3-k4),
               'T1' = T1,
               'T2' = T2,
-              'E_nu_j' = E_nu_j,
-              'E_nu_j_old' = E_nu_j_old))
+              'chosen' = ifelse(T1 < T2, "T1", "T2"),
+              'E_nu_j' = E_nu_j))
 }
 
 #' @export
