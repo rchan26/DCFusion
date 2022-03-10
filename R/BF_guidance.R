@@ -379,17 +379,10 @@ mesh_guidance_regular <- function(C,
     k4 <- -log(threshold)-k3
     T1 <- mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size)
     T2 <- mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)
-    # print(paste('k3:', k3))
-    # print(paste('k4:', k4))
-    # print(paste('exp(-k3-k4):', exp(-k3-k4)))
-    # print(paste('T1:', T1))
-    # print(paste('T2:', T2))
     if (T1 > T2) {
       stop("mesh_guidance_regular: even with k3 as small as possible, we can't find k3 and k4, try lower value for the threshold")
     }
     while (T1 < T2) {
-      # loop through possible k3, and compute the corresponding k4 such that the
-      # user-specified lower bound is satisfied
       # loop until we have T1 > T2 (should happen since we're increasing k3)
       if (i==length(trial_k3)) {
         trial_k3[i+1] <- trial_k3[i]*1.01
@@ -485,12 +478,16 @@ BF_guidance <- function(condition,
                                       threshold = CESS_j_threshold,
                                       k3 = k3,
                                       k4 = k4,
-                                      max_E_nu_j = max_E_nu_j$sumed,
+                                      max_E_nu_j = max_E_nu_j$max_variation,
                                       trial_k3_by = trial_k3_by,
                                       vanilla = vanilla)
   rec_mesh <- seq(from = 0, to = T_guide$min_T, by = mesh_guide$max_delta_j)
   if (rec_mesh[length(rec_mesh)]!=T_guide$min_T) {
     rec_mesh[length(rec_mesh)+1] <- T_guide$min_T
   }
-  return(c(T_guide, mesh_guide, list('n' = length(rec_mesh), 'mesh' = rec_mesh)))
+  return(c(T_guide,
+           mesh_guide,
+           list('start_point_variation' = max_E_nu_j$start_variation_sumed,
+                'end_point_variation' = max_E_nu_j$end_variation_sumed),
+           list('n' = length(rec_mesh), 'mesh' = rec_mesh)))
 }

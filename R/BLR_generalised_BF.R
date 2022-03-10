@@ -59,8 +59,9 @@
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
-#'   \item{E_nu_j}{Approximation of the average variation of the trajectories
+#'   \item{E_nu_j}{approximation of the average variation of the trajectories
 #'                 at each time step}
+#'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
 #' }
 #' 
 #' @export
@@ -185,15 +186,16 @@ rho_j_BLR <- function(particle_set,
   resampled <- rep(FALSE, length(time_mesh))
   if (adaptive_mesh) {
     E_nu_j <- rep(NA, length(time_mesh))
+    chosen <- rep("", length(time_mesh))
   } else {
     E_nu_j <- NA
+    chosen <- NULL
   }
   if (is.null(print_progress_iters)) {
     print_progress_iters <- split_N
   }
   end_time <- time_mesh[length(time_mesh)]
   j <- 1
-  
   while (time_mesh[j]!=end_time) {
     pcm <- proc.time()
     j <- j+1
@@ -231,6 +233,7 @@ rho_j_BLR <- function(particle_set,
         adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
       }
       E_nu_j[j] <- tilde_Delta_j$E_nu_j
+      chosen[j] <- tilde_Delta_j$chosen
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
@@ -347,6 +350,8 @@ rho_j_BLR <- function(particle_set,
     resampled <- resampled[1:j]
     particle_set$time_mesh <- time_mesh[1:j]
     elapsed_time <- elapsed_time[1:(j-1)]
+    E_nu_j <- E_nu_j[1:j]
+    chosen <- chosen[1:j]
   }
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
   particle_set$y_samples <- proposed_samples
@@ -367,7 +372,8 @@ rho_j_BLR <- function(particle_set,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,
-              'E_nu_j' = E_nu_j))
+              'E_nu_j' = E_nu_j,
+              'chosen' = chosen))
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -441,8 +447,9 @@ rho_j_BLR <- function(particle_set,
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
-#'   \item{E_nu_j}{Approximation of the average variation of the trajectories
+#'   \item{E_nu_j}{approximation of the average variation of the trajectories
 #'                 at each time step}
+#'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
 #'                                are the pre-conditioning matrices that were used
 #'                                and precondition_matrices[[1]] are the combined
@@ -623,6 +630,7 @@ parallel_GBF_BLR <- function(particles_to_fuse,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
               'E_nu_j' = rho_j$E_nu_j,
+              'chosen' = rho_j$chosen,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means,
               'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
@@ -710,6 +718,9 @@ parallel_GBF_BLR <- function(particles_to_fuse,
 #'   \item{E_nu_j}{list of length (L-1), where E_nu_j[[l]][[i]] is the
 #'                 approximation of the average variation of the trajectories
 #'                 at each time step for level l, node i}
+#'   \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
+#'                 which term was chosen if using an adaptive mesh at each
+#'                 time step for level l, node i}
 #'   \item{precondition_matrices}{pre-conditioning matrices that were used}
 #'   \item{sub_posterior_means}{sub-posterior means that were used}
 #'   \item{recommended_mesh}{list of length (L-1), where recommended_mesh[[l]][[i]]
@@ -825,6 +836,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
   CESS <- list()
   resampled <- list()
   E_nu_j <- list()
+  chosen <- list()
   recommended_mesh <- list()
   precondition_matrices <- list()
   if (is.logical(precondition)) {
@@ -935,6 +947,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
     CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$CESS)
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$resampled)
     E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
+    chosen[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$chosen)
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
     sub_posterior_means[[k]] <- do.call(rbind, lapply(1:n_nodes, function(i) fused[[i]]$fusion$sub_posterior_means[[1]]))
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$combined_data)
@@ -952,6 +965,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
     E_nu_j[[1]] <- E_nu_j[[1]][[1]]
+    chosen[[1]] <- chosen[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
     sub_posterior_means[[1]] <- sub_posterior_means[[1]][[1]]
     data_inputs[[1]] <- data_inputs[[1]][[1]]
@@ -965,6 +979,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
               'CESS' = CESS,
               'resampled' = resampled,
               'E_nu_j' = E_nu_j,
+              'chosen' = chosen,
               'precondition_matrices' = precondition_matrices,
               'sub_posterior_means' = sub_posterior_means,
               'recommended_mesh' = recommended_mesh,

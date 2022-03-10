@@ -130,6 +130,9 @@ A list with components:
   \item{E_nu_j}{list of length (L-1), where E_nu_j[[l]][[i]] is the
                 approximation of the average variation of the trajectories
                 at each time step for level l, node i}
+  \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
+                which term was chosen if using an adaptive mesh at each
+                time step for level l, node i}
   \item{precondition_matrices}{pre-conditioning matrices that were used}
   \item{sub_posterior_means}{sub-posterior means that were used}
   \item{recommended_mesh}{list of length (L-1), where recommended_mesh[[l]][[i]]
