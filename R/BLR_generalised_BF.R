@@ -968,6 +968,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
     chosen[[1]] <- chosen[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
     sub_posterior_means[[1]] <- sub_posterior_means[[1]][[1]]
+    recommended_mesh[[1]] <- recommended_mesh[[1]][[1]]
     data_inputs[[1]] <- data_inputs[[1]][[1]]
   }
   return(list('particles' = particles,
