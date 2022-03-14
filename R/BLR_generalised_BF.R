@@ -184,6 +184,8 @@ rho_j_BLR <- function(particle_set,
   ESS <- c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
+  phi_bound_intensity <- rep(list(matrix(nrow = N, ncol = m)), length(time_mesh))
+  phi_kappa <- rep(list(matrix(nrow = N, ncol = m)), length(time_mesh))
   if (adaptive_mesh) {
     E_nu_j <- rep(NA, length(time_mesh))
     chosen <- rep("", length(time_mesh))
@@ -250,6 +252,8 @@ rho_j_BLR <- function(particle_set,
       split_N <- length(split_indices[[core]])
       x_mean_j <- matrix(data = NA, nrow = split_N, ncol = dim)
       log_rho_j <- rep(0, split_N)
+      bound_intensity <- matrix(nrow = split_N, ncol = m)
+      kap <- matrix(nrow = split_N, ncol = m)
       x_j <- lapply(1:split_N, function(i) {
         M <- construct_M(s = time_mesh[j-1],
                          t = time_mesh[j],
@@ -275,7 +279,7 @@ rho_j_BLR <- function(particle_set,
         x_mean_j[i,] <- weighted_mean_multivariate(matrix = x_j[[i]],
                                                    weights = inv_precondition_matrices,
                                                    inverse_sum_weights = Lambda)
-        log_rho_j[i] <- sum(sapply(1:m, function(c) {
+        phi <- lapply(1:m, function(c) {
           tryCatch(expr = ea_BLR_DL_PT(dim = dim,
                                        x0 = as.vector(split_x_samples[[core]][[i]][c,]),
                                        y = as.vector(x_j[[i]][c,]),
@@ -312,8 +316,10 @@ rho_j_BLR <- function(particle_set,
                                   beta_NB = beta_NB,
                                   gamma_NB_n_points = gamma_NB_n_points,
                                   local_bounds = FALSE,
-                                  logarithm = TRUE)})
-        }))
+                                  logarithm = TRUE)})})
+        log_rho_j[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
+        bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
+        kap[i,] <- sapply(1:m, function(c) phi[[c]]$kap)
         if (i%%print_progress_iters==0) {
           cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
               '|| Node:', node, '|| Core:', core, '||', i, '/', split_N, '\n',
@@ -323,7 +329,11 @@ rho_j_BLR <- function(particle_set,
       cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
           '|| Node:', node, '|| Core:', core, '||', split_N, '/',
           split_N, '\n', file = 'rho_j_BLR_progress.txt', append = T)
-      return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j))
+      return(list('x_j' = x_j,
+                  'x_mean_j' = x_mean_j,
+                  'log_rho_j' = log_rho_j,
+                  'bound_intensity' = bound_intensity,
+                  'kap' = kap))
     })
     # ---------- update particle set
     particle_set$x_samples <- unlist(lapply(1:length(split_indices), function(i) {
@@ -339,6 +349,10 @@ rho_j_BLR <- function(particle_set,
     ESS[j] <- particle_set$ESS
     particle_set$CESS[j] <- particle_ESS(log_weights = log_rho_j)$ESS
     CESS[j] <- particle_set$CESS[j]
+    phi_bound_intensity[[j]] <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
+      rho_j_weighted_samples[[i]]$bound_intensity}))
+    phi_kappa[[j]] <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
+      rho_j_weighted_samples[[i]]$kap}))
     elapsed_time[j-1] <- (proc.time()-pcm)['elapsed']
   }
   if (close_cluster) {
@@ -352,6 +366,8 @@ rho_j_BLR <- function(particle_set,
     elapsed_time <- elapsed_time[1:(j-1)]
     E_nu_j <- E_nu_j[1:j]
     chosen <- chosen[1:j]
+    phi_bound_intensity <- phi_bound_intensity[1:j]
+    phi_kappa <- phi_kappa[1:j]
   }
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
   particle_set$y_samples <- proposed_samples
@@ -373,7 +389,9 @@ rho_j_BLR <- function(particle_set,
               'CESS' = CESS,
               'resampled' = resampled,
               'E_nu_j' = E_nu_j,
-              'chosen' = chosen))
+              'chosen' = chosen,
+              'phi_bound_intensity' = phi_bound_intensity,
+              'phi_kappa' = phi_kappa))
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -629,6 +647,8 @@ parallel_GBF_BLR <- function(particles_to_fuse,
               'ESS' = rho_j$ESS,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
+              'phi_bound_intensity' = rho_j$phi_bound_intensity,
+              'phi_kappa' = rho_j$phi_kappa,
               'E_nu_j' = rho_j$E_nu_j,
               'chosen' = rho_j$chosen,
               'precondition_matrices' = new_precondition_matrices,
@@ -835,6 +855,8 @@ bal_binary_GBF_BLR <- function(N_schedule,
   ESS <- list()
   CESS <- list()
   resampled <- list()
+  phi_bound_intensity <- list()
+  phi_kappa <- list()
   E_nu_j <- list()
   chosen <- list()
   recommended_mesh <- list()
@@ -946,6 +968,8 @@ bal_binary_GBF_BLR <- function(N_schedule,
     ESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$ESS)
     CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$CESS)
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$resampled)
+    phi_bound_intensity[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$phi_bound_intensity)
+    phi_kappa[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$phi_kappa)
     E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
     chosen[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$chosen)
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
@@ -964,6 +988,8 @@ bal_binary_GBF_BLR <- function(N_schedule,
     ESS[[1]] <- ESS[[1]][[1]]
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
+    phi_bound_intensity[[1]] <- phi_bound_intensity[[1]][[1]]
+    phi_kappa[[1]] <- phi_kappa[[1]][[1]]
     E_nu_j[[1]] <- E_nu_j[[1]][[1]]
     chosen[[1]] <- chosen[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
@@ -979,6 +1005,8 @@ bal_binary_GBF_BLR <- function(N_schedule,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,
+              'phi_bound_intensity' = phi_bound_intensity,
+              'phi_kappa' = phi_kappa,
               'E_nu_j' = E_nu_j,
               'chosen' = chosen,
               'precondition_matrices' = precondition_matrices,
