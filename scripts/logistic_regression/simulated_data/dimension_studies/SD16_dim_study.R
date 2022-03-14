@@ -4,7 +4,7 @@ library(HMCBLR)
 ##### Initialise example #####
 seed <- 2021
 set.seed(seed)
-nsamples <- 10000
+nsamples <- 20000
 ndata <- 5000
 time_choice <- 0.5
 n_cores <- parallel::detectCores()
@@ -204,7 +204,7 @@ plot(x = dim, y = log(sapply(1:6, function(d) sum(unlist(Poisson_hc_16[[d]]$time
      xlab = '',
      ylab = '',
      xaxt = 'n', lwd = 3, pch = , type = 'l')
-mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
 mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
 axis(1, at=dim, labels = dim, font = 2, cex = 1.5)

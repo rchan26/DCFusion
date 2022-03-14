@@ -17,7 +17,7 @@ k1 <- NULL
 k2 <- NULL
 k3 <- -log(CESS_j_threshold)/2
 k4 <- -log(CESS_j_threshold)/2
-dim <- c(5,10,15,20,30,40,50)
+dim <- c(5, 10, 12, 14, 16, 18, 20, 30, 40, 50)
 true_beta <- list()
 frequencies <- list()
 simulated_data <- list()
@@ -173,67 +173,64 @@ for (d in 1:length(dim)) {
   save.image('GBF_SD16_dim_study.RData')
 }
 
-# dim <- 5:10
-# plot(x = dim,
-#      y = sapply(1:length(dim), function(d) {
-#        integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$reg$particles$y_samples)}),
-#      ylim = c(0, 0.6),
-#      xlab = '',
-#      ylab = '',
-#      xaxt = 'n', lwd = 3, pch = 1, type = 'l')
-# mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
-# mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-# axis(1, at=dim, labels=dim, font = 2, cex = 1.5)
-# axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
-# axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
-# lines(x = dim, y = sapply(1:6, function(d) {
-#   integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$adaptive$particles$y_samples)}),
-#   lty = 2, lwd = 3)
-# lines(x = dim, y = sapply(1:6, function(d) {
-#   integrated_abs_distance(full_posterior[[d]], consensus_mat_16[[d]]$samples)}),
-#   lty = 3, lwd = 3, col = 'red')
-# lines(x = dim, y = sapply(1:6, function(d) {
-#   integrated_abs_distance(full_posterior[[d]], neiswanger_false_16[[d]]$samples)}),
-#   lty = 4, lwd = 3, col = 'red')
-# lines(x = dim, y = sapply(1:6, function(d) {
-#   integrated_abs_distance(full_posterior[[d]], weierstrass_rejection_16[[d]]$samples)}),
-#   lty = 5, lwd = 3, col = 'red')
-# legend(x = 5, y = 0.6,
-#        legend = c('D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'CMC', 'KDEMC', 'WRS'),
-#        lwd = c(3, 3, 3, 3, 3),
-#        lty = c(1, 2, 3, 4, 5),
-#        col = c(rep('black', 2), rep('red', 3)),
-#        cex = 1.25,
-#        text.font = 2,
-#        bty = 'n')
-# 
-# plot(x = dim, y = log(sapply(1:6, function(d) sum(unlist(balanced_C16[[d]]$reg$time)))),
-#      ylim = c(-2, 14),
-#      xlab = '',
-#      ylab = '',
-#      xaxt = 'n', lwd = 3, pch = , type = 'l')
-# mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
-# mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
-# axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
-# axis(1, at=dim, labels = dim, font = 2, cex = 1.5)
-# axis(2, at=seq(-2, 14, 2), labels = seq(-2, 14, 2), font = 2, cex = 1.5)
-# axis(2, at=seq(-2, 14, 1), labels=rep("", 17), lwd.ticks = 0.5)
-# lines(x = dim, y = log(sapply(1:6, function(d) sum(unlist(balanced_C16[[d]]$adaptive$time)))),
-#       lty = 2, lwd = 3)
-# lines(x = dim, y = log(sapply(1:6, function(d) consensus_mat_16[[d]]$time)),
-#       lty = 3, lwd = 3, col = 'red')
-# lines(x = dim, y = log(sapply(1:6, function(d) neiswanger_false_16[[d]]$time)),
-#       lty = 4, lwd = 3, col = 'red')
-# lines(x = dim, y = log(sapply(1:6, function(d) weierstrass_rejection_16[[d]]$time)),
-#       lty = 5, lwd = 3, col = 'red')
-# legend(x = 5, y = 15,
-#        legend = c('D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'CMC', 'KDEMC', 'WRS'),
-#        lwd = c(3, 3, 3, 3, 3),
-#        lty = c(1, 2, 3, 4, 5),
-#        col = c(rep('black', 2), rep('red', 3)),
-#        cex = 1.25,
-#        text.font = 2,
-#        bty = 'n')
+dim <- c(5,10,12,14)
+plot(x = dim,
+     y = sapply(1:length(dim), function(d) {
+       integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$reg$particles$y_samples)}),
+     ylim = c(0, 0.6),
+     xlab = '',
+     ylab = '',
+     xaxt = 'n', lwd = 3, pch = 1, type = 'l')
+mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=dim, labels=dim, font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
+lines(x = dim, y = sapply(1:length(dim), function(d) {
+  integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$adaptive$particles$y_samples)}),
+  lty = 2, lwd = 3)
+lines(x = dim, y = sapply(1:length(dim), function(d) {
+  integrated_abs_distance(full_posterior[[d]], consensus_mat_16[[d]]$samples)}),
+  lty = 3, lwd = 3, col = 'red')
+lines(x = dim, y = sapply(1:length(dim), function(d) {
+  integrated_abs_distance(full_posterior[[d]], neiswanger_false_16[[d]]$samples)}),
+  lty = 4, lwd = 3, col = 'red')
+lines(x = dim, y = sapply(1:length(dim), function(d) {
+  integrated_abs_distance(full_posterior[[d]], weierstrass_rejection_16[[d]]$samples)}),
+  lty = 5, lwd = 3, col = 'red')
+legend(x = 5, y = 0.6,
+       legend = c('D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'CMC', 'KDEMC', 'WRS'),
+       lwd = c(3, 3, 3, 3, 3),
+       lty = c(1, 2, 3, 4, 5),
+       col = c(rep('black', 2), rep('red', 3)),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+plot(x = dim, y = log(sapply(1:length(dim), function(d) sum(unlist(balanced_C16[[d]]$reg$time)))),
+     ylim = c(-2, 14), xlab = '', ylab = '', yaxt = 'n', xaxt = 'n', lwd = 3, pch = , type = 'l')
+mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(1, at=dim, labels = dim, font = 2, cex = 1.5)
+axis(2, at=seq(-2, 14, 2), labels = seq(-2, 14, 2), font = 2, cex = 1.5)
+axis(2, at=seq(-2, 14, 1), labels=rep("", 17), lwd.ticks = 0.5)
+lines(x = dim, y = log(sapply(1:length(dim), function(d) sum(unlist(balanced_C16[[d]]$adaptive$time)))),
+      lty = 2, lwd = 3)
+lines(x = dim, y = log(sapply(1:length(dim), function(d) consensus_mat_16[[d]]$time)),
+      lty = 3, lwd = 3, col = 'red')
+lines(x = dim, y = log(sapply(1:length(dim), function(d) neiswanger_false_16[[d]]$time)),
+      lty = 4, lwd = 3, col = 'red')
+lines(x = dim, y = log(sapply(1:length(dim), function(d) weierstrass_rejection_16[[d]]$time)),
+      lty = 5, lwd = 3, col = 'red')
+legend(x = 5, y = 14,
+       legend = c('D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'CMC', 'KDEMC', 'WRS'),
+       lwd = c(3, 3, 3, 3, 3),
+       lty = c(1, 2, 3, 4, 5),
+       col = c(rep('black', 2), rep('red', 3)),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
 
 ##### Save data #####
 

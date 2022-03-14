@@ -13,7 +13,7 @@ frequencies <- c(0.2, 0.3, 0.5, 0.01)
 diffusion_estimator <- 'NB'
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.2
-CESS_j_threshold <- 0.2
+CESS_j_threshold <- 0.1
 k1 <- NULL
 k2 <- NULL
 k3 <- -log(CESS_j_threshold)/2
@@ -173,7 +173,7 @@ balanced_C64 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 6),
                                                      m_schedule = rep(2, 6),
                                                      time_mesh = NULL,
                                                      base_samples = sub_posteriors_64,
-                                                     L = 7
+                                                     L = 7,
                                                      dim = 5,
                                                      data_split = data_split_64,
                                                      prior_means = rep(0, 5),
