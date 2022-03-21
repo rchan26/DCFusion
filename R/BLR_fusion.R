@@ -105,7 +105,7 @@ ea_BLR_DL_PT <- function(dim,
                                                          y = zt,
                                                          s = s,
                                                          t = t,
-                                                         mult = 0.1)
+                                                         mult = 0.05)
   lbound_Z <- sapply(1:dim, function(d) bes_layers[[d]]$L)
   ubound_Z <- sapply(1:dim, function(d) bes_layers[[d]]$U)
   # calculate the lower and upper bounds of phi
