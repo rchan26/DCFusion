@@ -17,7 +17,8 @@ k1 <- NULL
 k2 <- NULL
 k3 <- -log(CESS_j_threshold)/2
 k4 <- -log(CESS_j_threshold)/2
-dim <- c(5, 10, 12, 14, 16, 18, 20, 30, 40, 50)
+# dim <- c(5, 10, 12, 14, 16, 18, 20, 30, 40, 50)
+dim <- c(5,6,7,8,9,10)
 true_beta <- list()
 frequencies <- list()
 simulated_data <- list()
@@ -32,7 +33,7 @@ weierstrass_importance_16 <- list()
 weierstrass_rejection_16 <- list()
 balanced_C16 <- list()
 
-for (d in 1:length(dim)) {
+for (d in 6:length(dim)) {
   print(paste('$$$$$$$$$$ d:', d))
   print(paste('dim:', dim[d]))
   set.seed(seed)
@@ -170,10 +171,10 @@ for (d in 1:length(dim)) {
   print(integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$adaptive$particles$y_samples))
   
   print('save_progress')
-  save.image('GBF_SD16_dim_study.RData')
+  save.image('GBF_SD16_dim_study_TURING.RData')
 }
 
-dim <- c(5,10,12,14)
+dim <- c(5,6,7,8,9)
 plot(x = dim,
      y = sapply(1:length(dim), function(d) {
        integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$reg$particles$y_samples)}),
@@ -234,4 +235,4 @@ legend(x = 5, y = 14,
 
 ##### Save data #####
 
-save.image('GBF_SD16_dim_study.RData')
+save.image('GBF_SD16_dim_study_TURING.RData')
