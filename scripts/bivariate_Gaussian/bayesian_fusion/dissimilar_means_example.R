@@ -16,12 +16,8 @@ CESS_j_threshold <- 0.2
 vanilla_b <- 1
 k1 <- NULL
 k2 <- NULL
-k3_d1 <- -log(CESS_j_threshold)/2
-k4_d1 <- -log(CESS_j_threshold)/2
-k3_d2 <- -log(CESS_j_threshold)*3/4
-k4_d2 <- -log(CESS_j_threshold)/4
-k3_d3 <- -log(CESS_j_threshold)/4
-k4_d3 <- -log(CESS_j_threshold)*3/4
+k3 <- -log(CESS_j_threshold)/2
+k4 <- -log(CESS_j_threshold)/2
 data_sizes <- c(250, 500, 1000, 1500, 2000, 2500)
 vanilla_guide <- list()
 gen_guide <- list()
@@ -33,8 +29,6 @@ c_results <- list('vanilla' = list(), 'generalised' = list())
 c_check_results <- list('vanilla' = list(), 'generalised' = list())
 d1_results <- list('vanilla' = list(), 'generalised' = list())
 d2_results <- list('vanilla' = list(), 'generalised' = list())
-d3_results <- list('vanilla' = list(), 'generalised' = list())
-e_results <- list('vanilla' = list(), 'generalised' = list())
 SH_adaptive_results <- list('vanilla' = list(), 'generalised' = list())
 
 collect_results <- function(results) {
@@ -49,6 +43,7 @@ collect_results <- function(results) {
               'ESS' = results$ESS,
               'E_nu_j' = results$E_nu_j,
               'chosen' = results$chosen,
+              'mesh_terms' = results$mesh_terms,
               'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
                 particle_set = results$particles,
                 multivariate = TRUE,
@@ -173,128 +168,128 @@ for (i in 1:length(data_sizes)) {
   # b_results$vanilla[[i]] <- collect_results(b_BF_standard)
   # b_results$generalised[[i]] <- collect_results(b_BF_generalised)
   
-  # ##### Recommended scaling of T, regular mesh #####
-  # print('### performing standard Bayesian Fusion (with recommended T, regular mesh)')
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(vanilla_guide[[i]]$mesh))
-  # c_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                          N = nsamples,
-  #                                          m = C,
-  #                                          time_mesh = vanilla_guide[[i]]$mesh,
-  #                                          mean_vecs = means,
-  #                                          sd_vecs = rep(list(sd), C),
-  #                                          corrs = rep(corr, C),
-  #                                          betas = rep(beta, C),
-  #                                          precondition_matrices = rep(list(diag(1,2)), C),
-  #                                          ESS_threshold = ESS_threshold,
-  #                                          diffusion_estimator = diffusion_estimator,
-  #                                          seed = seed*i)
-  # print('### performing Generalised Bayesian Fusion (with recommended T, regular mesh)')
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(gen_guide[[i]]$mesh))
-  # c_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                             N = nsamples,
-  #                                             m = C,
-  #                                             time_mesh = gen_guide[[i]]$mesh,
-  #                                             mean_vecs = means,
-  #                                             sd_vecs = rep(list(sd), C),
-  #                                             corrs = rep(corr, C),
-  #                                             betas = rep(beta, C),
-  #                                             precondition_matrices = lapply(input_samples, cov),
-  #                                             ESS_threshold = ESS_threshold,
-  #                                             diffusion_estimator = diffusion_estimator,
-  #                                             seed = seed*i)
-  # # save results
-  # c_results$vanilla[[i]] <- collect_results(c_BF_standard)
-  # c_results$generalised[[i]] <- collect_results(c_BF_generalised)
-  # 
-  # ##### Checking regular mesh #####
-  # print('### performing standard Bayesian Fusion (checking regular mesh)')
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(vanilla_guide[[i]]$mesh))
-  # c_check_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                             N = nsamples,
-  #                                             m = C,
-  #                                             time_mesh = vanilla_guide[[i]]$mesh,
-  #                                             mean_vecs = means,
-  #                                             sd_vecs = rep(list(sd), C),
-  #                                             corrs = rep(corr, C),
-  #                                             betas = rep(beta, C),
-  #                                             precondition_matrices = rep(list(diag(1,2)), C),
-  #                                             ESS_threshold = ESS_threshold,
-  #                                             sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
-  #                                             adaptive_mesh = TRUE,
-  #                                             adaptive_mesh_parameters = list('data_size' = data_sizes[i],
-  #                                                                             'b' = vanilla_b,
-  #                                                                             'k3' = vanilla_guide[[i]]$k3,
-  #                                                                             'k4' = vanilla_guide[[i]]$k4,
-  #                                                                             'vanilla' = TRUE),
-  #                                             diffusion_estimator = diffusion_estimator,
-  #                                             seed = seed*i)
-  # print('### performing Generalised Bayesian Fusion (checking regular mesh)')
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(gen_guide[[i]]$mesh))
-  # c_check_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                                N = nsamples,
-  #                                                m = C,
-  #                                                time_mesh = gen_guide[[i]]$mesh,
-  #                                                mean_vecs = means,
-  #                                                sd_vecs = rep(list(sd), C),
-  #                                                corrs = rep(corr, C),
-  #                                                betas = rep(beta, C),
-  #                                                precondition_matrices = lapply(input_samples, cov),
-  #                                                ESS_threshold = ESS_threshold,
-  #                                                sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
-  #                                                adaptive_mesh = TRUE,
-  #                                                adaptive_mesh_parameters = list('data_size' = data_sizes[i],
-  #                                                                                'k3' = gen_guide[[i]]$k3,
-  #                                                                                'k4' = gen_guide[[i]]$k4,
-  #                                                                                'vanilla' = FALSE),
-  #                                                diffusion_estimator = diffusion_estimator,
-  #                                                seed = seed*i)
-  # # save results
-  # c_check_results$vanilla[[i]] <- list('CESS_0' = c_check_standard$CESS[1],
-  #                                      'CESS_j' = c_check_standard$CESS[2:length(c_check_standard$CESS)],
-  #                                      'CESS_j_avg' = mean(c_check_standard$CESS[2:length(c_check_standard$CESS)]),
-  #                                      'n' = length(c_check_standard$CESS),
-  #                                      'time_mesh' = c_check_standard$particles$time_mesh,
-  #                                      'time' = c_check_standard$time,
-  #                                      'elapsed_time' = c_check_standard$elapsed_time,
-  #                                      'resampled' = c_check_standard$resampled,
-  #                                      'ESS' = c_check_standard$ESS,
-  #                                      'E_nu_j' = c_check_standard$E_nu_j,
-  #                                      'chosen' = c_check_standard$chosen,
-  #                                      'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-  #                                        particle_set = c_check_standard$particles,
-  #                                        multivariate = TRUE,
-  #                                        resampling_method = 'resid',
-  #                                        seed = seed*i)$y_samples,
-  #                                        marg_means = c(0,0),
-  #                                        marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-  #                                        bw = opt_bw))
-  # c_check_results$generalised[[i]] <- list('CESS_0' = c_check_generalised$CESS[1],
-  #                                          'CESS_j' = c_check_generalised$CESS[2:length(c_check_generalised$CESS)],
-  #                                          'CESS_j_avg' = mean(c_check_generalised$CESS[2:length(c_check_generalised$CESS)]),
-  #                                          'n' = length(c_check_generalised$CESS),
-  #                                          'time_mesh' = c_check_generalised$particles$time_mesh,
-  #                                          'time' = c_check_generalised$time,
-  #                                          'elapsed_time' = c_check_generalised$elapsed_time,
-  #                                          'resampled' = c_check_generalised$resampled,
-  #                                          'ESS' = c_check_generalised$ESS,
-  #                                          'E_nu_j' = c_check_generalised$E_nu_j,
-  #                                          'chosen' = c_check_generalised$chosen,
-  #                                          'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-  #                                            particle_set = c_check_generalised$particles,
-  #                                            multivariate = TRUE,
-  #                                            resampling_method = 'resid',
-  #                                            seed = seed*i)$y_samples,
-  #                                            marg_means = c(0,0),
-  #                                            marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-  #                                            bw = opt_bw))
+  ##### Recommended scaling of T, regular mesh #####
+  print('### performing standard Bayesian Fusion (with recommended T, regular mesh)')
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(vanilla_guide[[i]]$mesh))
+  c_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                           N = nsamples,
+                                           m = C,
+                                           time_mesh = vanilla_guide[[i]]$mesh,
+                                           mean_vecs = means,
+                                           sd_vecs = rep(list(sd), C),
+                                           corrs = rep(corr, C),
+                                           betas = rep(beta, C),
+                                           precondition_matrices = rep(list(diag(1,2)), C),
+                                           ESS_threshold = ESS_threshold,
+                                           diffusion_estimator = diffusion_estimator,
+                                           seed = seed*i)
+  print('### performing Generalised Bayesian Fusion (with recommended T, regular mesh)')
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(gen_guide[[i]]$mesh))
+  c_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                              N = nsamples,
+                                              m = C,
+                                              time_mesh = gen_guide[[i]]$mesh,
+                                              mean_vecs = means,
+                                              sd_vecs = rep(list(sd), C),
+                                              corrs = rep(corr, C),
+                                              betas = rep(beta, C),
+                                              precondition_matrices = lapply(input_samples, cov),
+                                              ESS_threshold = ESS_threshold,
+                                              diffusion_estimator = diffusion_estimator,
+                                              seed = seed*i)
+  # save results
+  c_results$vanilla[[i]] <- collect_results(c_BF_standard)
+  c_results$generalised[[i]] <- collect_results(c_BF_generalised)
+
+  ##### Checking regular mesh #####
+  print('### performing standard Bayesian Fusion (checking regular mesh)')
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(vanilla_guide[[i]]$mesh))
+  c_check_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                              N = nsamples,
+                                              m = C,
+                                              time_mesh = vanilla_guide[[i]]$mesh,
+                                              mean_vecs = means,
+                                              sd_vecs = rep(list(sd), C),
+                                              corrs = rep(corr, C),
+                                              betas = rep(beta, C),
+                                              precondition_matrices = rep(list(diag(1,2)), C),
+                                              ESS_threshold = ESS_threshold,
+                                              sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
+                                              adaptive_mesh = TRUE,
+                                              adaptive_mesh_parameters = list('data_size' = data_sizes[i],
+                                                                              'b' = vanilla_b,
+                                                                              'k3' = vanilla_guide[[i]]$k3,
+                                                                              'k4' = vanilla_guide[[i]]$k4,
+                                                                              'vanilla' = TRUE),
+                                              diffusion_estimator = diffusion_estimator,
+                                              seed = seed*i)
+  print('### performing Generalised Bayesian Fusion (checking regular mesh)')
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(gen_guide[[i]]$mesh))
+  c_check_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                                 N = nsamples,
+                                                 m = C,
+                                                 time_mesh = gen_guide[[i]]$mesh,
+                                                 mean_vecs = means,
+                                                 sd_vecs = rep(list(sd), C),
+                                                 corrs = rep(corr, C),
+                                                 betas = rep(beta, C),
+                                                 precondition_matrices = lapply(input_samples, cov),
+                                                 ESS_threshold = ESS_threshold,
+                                                 sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
+                                                 adaptive_mesh = TRUE,
+                                                 adaptive_mesh_parameters = list('data_size' = data_sizes[i],
+                                                                                 'k3' = gen_guide[[i]]$k3,
+                                                                                 'k4' = gen_guide[[i]]$k4,
+                                                                                 'vanilla' = FALSE),
+                                                 diffusion_estimator = diffusion_estimator,
+                                                 seed = seed*i)
+  # save results
+  c_check_results$vanilla[[i]] <- list('CESS_0' = c_check_standard$CESS[1],
+                                       'CESS_j' = c_check_standard$CESS[2:length(c_check_standard$CESS)],
+                                       'CESS_j_avg' = mean(c_check_standard$CESS[2:length(c_check_standard$CESS)]),
+                                       'n' = length(c_check_standard$CESS),
+                                       'time_mesh' = c_check_standard$particles$time_mesh,
+                                       'time' = c_check_standard$time,
+                                       'elapsed_time' = c_check_standard$elapsed_time,
+                                       'resampled' = c_check_standard$resampled,
+                                       'ESS' = c_check_standard$ESS,
+                                       'E_nu_j' = c_check_standard$E_nu_j,
+                                       'chosen' = c_check_standard$chosen,
+                                       'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
+                                         particle_set = c_check_standard$particles,
+                                         multivariate = TRUE,
+                                         resampling_method = 'resid',
+                                         seed = seed*i)$y_samples,
+                                         marg_means = c(0,0),
+                                         marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
+                                         bw = opt_bw))
+  c_check_results$generalised[[i]] <- list('CESS_0' = c_check_generalised$CESS[1],
+                                           'CESS_j' = c_check_generalised$CESS[2:length(c_check_generalised$CESS)],
+                                           'CESS_j_avg' = mean(c_check_generalised$CESS[2:length(c_check_generalised$CESS)]),
+                                           'n' = length(c_check_generalised$CESS),
+                                           'time_mesh' = c_check_generalised$particles$time_mesh,
+                                           'time' = c_check_generalised$time,
+                                           'elapsed_time' = c_check_generalised$elapsed_time,
+                                           'resampled' = c_check_generalised$resampled,
+                                           'ESS' = c_check_generalised$ESS,
+                                           'E_nu_j' = c_check_generalised$E_nu_j,
+                                           'chosen' = c_check_generalised$chosen,
+                                           'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
+                                             particle_set = c_check_generalised$particles,
+                                             multivariate = TRUE,
+                                             resampling_method = 'resid',
+                                             seed = seed*i)$y_samples,
+                                             marg_means = c(0,0),
+                                             marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
+                                             bw = opt_bw))
   
   ##### Recommended scaling of T, adaptive mesh (equal k3,k4) #####
   print('### performing standard Bayesian Fusion (with recommended T, adaptive mesh with equal k3,k4)')
@@ -315,8 +310,8 @@ for (i in 1:length(data_sizes)) {
                                             adaptive_mesh = TRUE,
                                             adaptive_mesh_parameters = list('data_size' = data_sizes[i],
                                                                             'b' = vanilla_b,
-                                                                            'k3' = k3_d1,
-                                                                            'k4' = k4_d1,
+                                                                            'k3' = k3,
+                                                                            'k4' = k4,
                                                                             'vanilla' = TRUE),
                                             diffusion_estimator = diffusion_estimator,
                                             seed = seed*i)
@@ -337,8 +332,8 @@ for (i in 1:length(data_sizes)) {
                                                sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
                                                adaptive_mesh = TRUE,
                                                adaptive_mesh_parameters = list('data_size' = data_sizes[i],
-                                                                               'k3' = k3_d1,
-                                                                               'k4' = k4_d1,
+                                                                               'k3' = k3,
+                                                                               'k4' = k4,
                                                                                'vanilla' = FALSE),
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed*i)
@@ -347,7 +342,7 @@ for (i in 1:length(data_sizes)) {
   d1_results$generalised[[i]] <- collect_results(d1_BF_generalised)
   
   ##### Recommended scaling of T, adaptive mesh (un-equal k3,k4) #####
-  print('### performing standard Bayesian Fusion (with recommended T, adaptive mesh with un-equal k3,k4)')
+  print('### performing standard Bayesian Fusion (with recommended T, adaptive mesh)')
   input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
                                               multivariate = TRUE,
                                               number_of_steps = length(vanilla_guide[[i]]$mesh))
@@ -365,12 +360,11 @@ for (i in 1:length(data_sizes)) {
                                             adaptive_mesh = TRUE,
                                             adaptive_mesh_parameters = list('data_size' = data_sizes[i],
                                                                             'b' = vanilla_b,
-                                                                            'k3' = k3_d2,
-                                                                            'k4' = k4_d2,
+                                                                            'threshold' = CESS_j_threshold,
                                                                             'vanilla' = TRUE),
                                             diffusion_estimator = diffusion_estimator,
                                             seed = seed*i)
-  print('### performing Generalised Bayesian Fusion (with recommended T, adaptive mesh with un-equal k3,k4)')
+  print('### performing Generalised Bayesian Fusion (with recommended T, adaptive mesh)')
   input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
                                               multivariate = TRUE,
                                               number_of_steps = length(gen_guide[[i]]$mesh))
@@ -387,107 +381,13 @@ for (i in 1:length(data_sizes)) {
                                                sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
                                                adaptive_mesh = TRUE,
                                                adaptive_mesh_parameters = list('data_size' = data_sizes[i],
-                                                                               'k3' = k3_d2,
-                                                                               'k4' = k4_d2,
+                                                                               'threshold' = CESS_j_threshold,
                                                                                'vanilla' = FALSE),
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed*i)
   # save results
   d2_results$vanilla[[i]] <- collect_results(d2_BF_standard)
   d2_results$generalised[[i]] <- collect_results(d2_BF_generalised)
-  
-  ##### Recommended scaling of T, adaptive mesh (un-equal k3,k4) #####
-  print('### performing standard Bayesian Fusion (with recommended T, adaptive mesh with un-equal k3,k4)')
-  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-                                              multivariate = TRUE,
-                                              number_of_steps = length(vanilla_guide[[i]]$mesh))
-  d3_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-                                            N = nsamples,
-                                            m = C,
-                                            time_mesh = vanilla_guide[[i]]$mesh,
-                                            mean_vecs = means,
-                                            sd_vecs = rep(list(sd), C),
-                                            corrs = rep(corr, C),
-                                            betas = rep(beta, C),
-                                            precondition_matrices = rep(list(diag(1,2)), C),
-                                            ESS_threshold = ESS_threshold,
-                                            sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
-                                            adaptive_mesh = TRUE,
-                                            adaptive_mesh_parameters = list('data_size' = data_sizes[i],
-                                                                            'b' = vanilla_b,
-                                                                            'k3' = k3_d3,
-                                                                            'k4' = k4_d3,
-                                                                            'vanilla' = TRUE),
-                                            diffusion_estimator = diffusion_estimator,
-                                            seed = seed*i)
-  print('### performing Generalised Bayesian Fusion (with recommended T, adaptive mesh with un-equal k3,k4)')
-  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-                                              multivariate = TRUE,
-                                              number_of_steps = length(gen_guide[[i]]$mesh))
-  d3_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-                                               N = nsamples,
-                                               m = C,
-                                               time_mesh = gen_guide[[i]]$mesh,
-                                               mean_vecs = means,
-                                               sd_vecs = rep(list(sd), C),
-                                               corrs = rep(corr, C),
-                                               betas = rep(beta, C),
-                                               precondition_matrices = lapply(input_samples, cov),
-                                               ESS_threshold = ESS_threshold,
-                                               sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
-                                               adaptive_mesh = TRUE,
-                                               adaptive_mesh_parameters = list('data_size' = data_sizes[i],
-                                                                               'k3' = k3_d3,
-                                                                               'k4' = k4_d3,
-                                                                               'vanilla' = FALSE),
-                                               diffusion_estimator = diffusion_estimator,
-                                               seed = seed*i)
-  # save results
-  d3_results$vanilla[[i]] <- collect_results(d3_BF_standard)
-  d3_results$generalised[[i]] <- collect_results(d3_BF_generalised)
-  
-  ##### Recommended scaling of T, regular mesh (with same n as adaptive mesh) #####
-  print('### performing standard Bayesian Fusion (with recommended T, regular mesh (but with same n as adaptive))')
-  reg_mesh_vanilla <- seq(0, vanilla_guide[[i]]$min_T, length.out = length(d1_BF_standard$particles$time_mesh))
-  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-                                              multivariate = TRUE,
-                                              number_of_steps = length(reg_mesh_vanilla))
-  e_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-                                           N = nsamples,
-                                           m = C,
-                                           time_mesh = reg_mesh_vanilla,
-                                           mean_vecs = means,
-                                           sd_vecs = rep(list(sd), C),
-                                           corrs = rep(corr, C),
-                                           betas = rep(beta, C),
-                                           precondition_matrices = rep(list(diag(1,2)), C),
-                                           ESS_threshold = ESS_threshold,
-                                           sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
-                                           adaptive_mesh = FALSE,
-                                           diffusion_estimator = diffusion_estimator,
-                                           seed = seed*i)
-  print('### performing Generalised Bayesian Fusion (with recommended T, regular mesh (but with same n as adaptive))')
-  reg_mesh_gen <- seq(0, gen_guide[[i]]$min_T, length.out = length(d1_BF_generalised$particles$time_mesh))
-  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-                                              multivariate = TRUE,
-                                              number_of_steps = length(reg_mesh_gen))
-  e_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-                                              N = nsamples,
-                                              m = C,
-                                              time_mesh = reg_mesh_gen,
-                                              mean_vecs = means,
-                                              sd_vecs = rep(list(sd), C),
-                                              corrs = rep(corr, C),
-                                              betas = rep(beta, C),
-                                              precondition_matrices = lapply(input_samples, cov),
-                                              ESS_threshold = ESS_threshold,
-                                              sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
-                                              adaptive_mesh = FALSE,
-                                              diffusion_estimator = diffusion_estimator,
-                                              seed = seed*i)
-  # save results
-  e_results$vanilla[[i]] <- collect_results(e_BF_standard)
-  e_results$generalised[[i]] <- collect_results(e_BF_generalised)
   
   ##### SH: Recommended scaling of T, adaptive mesh #####
   print('### SH: performing standard Bayesian Fusion (with recommended T, adaptive mesh)')
@@ -519,8 +419,7 @@ for (i in 1:length(data_sizes)) {
                                                   adaptive_mesh = TRUE,
                                                   adaptive_mesh_parameters = list('data_size' = data_sizes[i],
                                                                                   'b' = vanilla_b,
-                                                                                  'k3' = k3_d1,
-                                                                                  'k4' = k4_d1,
+                                                                                  'threshold' = CESS_j_threshold,
                                                                                   'vanilla' = TRUE),
                                                   diffusion_estimator = diffusion_estimator,
                                                   seed = seed*i)
@@ -554,8 +453,7 @@ for (i in 1:length(data_sizes)) {
                                                      sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
                                                      adaptive_mesh = TRUE,
                                                      adaptive_mesh_parameters = list('data_size' = data_sizes[i],
-                                                                                     'k3' = k3_d1,
-                                                                                     'k4' = k4_d1,
+                                                                                     'threshold' = CESS_j_threshold,
                                                                                      'vanilla' = FALSE),
                                                      diffusion_estimator = diffusion_estimator,
                                                      seed = seed*i)
