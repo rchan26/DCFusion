@@ -100,6 +100,7 @@ A list with components:
   \item{E_nu_j}{approximation of the average variation of the trajectories
                 at each time step}
   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
+  \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
 }
 }
 \description{

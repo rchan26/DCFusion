@@ -133,6 +133,9 @@ A list with components:
   \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
                 which term was chosen if using an adaptive mesh at each
                 time step for level l, node i}
+  \item{mesh_terms}{list of length(L-1), where mesh_terms[[l]][[i]] indicates
+                    the evaluated terms in deciding the mesh at each time step
+                    for level l, node i}
   \item{precondition_matrices}{pre-conditioning matrices that were used}
   \item{sub_posterior_means}{sub-posterior means that were used}
   \item{recommended_mesh}{list of length (L-1), where recommended_mesh[[l]][[i]]

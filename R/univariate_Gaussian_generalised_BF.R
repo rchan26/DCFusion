@@ -144,16 +144,13 @@ rho_j_uniGaussian <- function(particle_set,
                                               d = 1,
                                               data_size = adaptive_mesh_parameters$data_size,
                                               b = adaptive_mesh_parameters$b,
+                                              threshold = adaptive_mesh_parameters$threshold,
                                               particle_set = particle_set,
                                               sub_posterior_means = sub_posterior_means,
                                               inv_precondition_matrices = 1/precondition_values,
                                               k3 = adaptive_mesh_parameters$k3,
                                               k4 = adaptive_mesh_parameters$k4,
-                                              T2 = adaptive_mesh_parameters$T2,
                                               vanilla = adaptive_mesh_parameters$vanilla)
-      if (is.null(adaptive_mesh_parameters$T2)) {
-        adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
-      }
       E_nu_j[j] <- tilde_Delta_j$E_nu_j
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }

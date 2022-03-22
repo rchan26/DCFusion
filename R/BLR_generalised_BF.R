@@ -62,6 +62,7 @@
 #'   \item{E_nu_j}{approximation of the average variation of the trajectories
 #'                 at each time step}
 #'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
+#'   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
 #' }
 #' 
 #' @export
@@ -189,9 +190,11 @@ rho_j_BLR <- function(particle_set,
   if (adaptive_mesh) {
     E_nu_j <- rep(NA, length(time_mesh))
     chosen <- rep("", length(time_mesh))
+    mesh_terms <- rep(list(c(NA,NA)), length(time_mesh))
   } else {
     E_nu_j <- NA
     chosen <- NULL
+    mesh_terms <- NULL
   }
   if (is.null(print_progress_iters)) {
     print_progress_iters <- split_N
@@ -224,18 +227,16 @@ rho_j_BLR <- function(particle_set,
                                               d = dim,
                                               data_size = adaptive_mesh_parameters$data_size,
                                               b = adaptive_mesh_parameters$b,
+                                              threshold = adaptive_mesh_parameters$threshold,
                                               particle_set = particle_set,
                                               sub_posterior_means = sub_posterior_means,
                                               inv_precondition_matrices = inv_precondition_matrices,
                                               k3 = adaptive_mesh_parameters$k3,
                                               k4 = adaptive_mesh_parameters$k4,
-                                              T2 = adaptive_mesh_parameters$T2,
                                               vanilla = adaptive_mesh_parameters$vanilla)
-      if (is.null(adaptive_mesh_parameters$T2)) {
-        adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
-      }
       E_nu_j[j] <- tilde_Delta_j$E_nu_j
       chosen[j] <- tilde_Delta_j$chosen
+      mesh_terms[[j]] <- c(tilde_Delta_j$T1, tilde_Delta_j$T2)
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
@@ -366,6 +367,7 @@ rho_j_BLR <- function(particle_set,
     elapsed_time <- elapsed_time[1:(j-1)]
     E_nu_j <- E_nu_j[1:j]
     chosen <- chosen[1:j]
+    mesh_terms <- mesh_terms[1:j]
     phi_bound_intensity <- phi_bound_intensity[1:j]
     phi_kappa <- phi_kappa[1:j]
   }
@@ -390,6 +392,7 @@ rho_j_BLR <- function(particle_set,
               'resampled' = resampled,
               'E_nu_j' = E_nu_j,
               'chosen' = chosen,
+              'mesh_terms' = mesh_terms,
               'phi_bound_intensity' = phi_bound_intensity,
               'phi_kappa' = phi_kappa))
 }
@@ -468,6 +471,7 @@ rho_j_BLR <- function(particle_set,
 #'   \item{E_nu_j}{approximation of the average variation of the trajectories
 #'                 at each time step}
 #'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
+#'   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
 #'                                are the pre-conditioning matrices that were used
 #'                                and precondition_matrices[[1]] are the combined
@@ -651,6 +655,7 @@ parallel_GBF_BLR <- function(particles_to_fuse,
               'phi_kappa' = rho_j$phi_kappa,
               'E_nu_j' = rho_j$E_nu_j,
               'chosen' = rho_j$chosen,
+              'mesh_terms' = rho_j$mesh_terms,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means,
               'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
@@ -741,6 +746,9 @@ parallel_GBF_BLR <- function(particles_to_fuse,
 #'   \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
 #'                 which term was chosen if using an adaptive mesh at each
 #'                 time step for level l, node i}
+#'   \item{mesh_terms}{list of length(L-1), where mesh_terms[[l]][[i]] indicates
+#'                     the evaluated terms in deciding the mesh at each time step
+#'                     for level l, node i}
 #'   \item{precondition_matrices}{pre-conditioning matrices that were used}
 #'   \item{sub_posterior_means}{sub-posterior means that were used}
 #'   \item{recommended_mesh}{list of length (L-1), where recommended_mesh[[l]][[i]]
@@ -859,6 +867,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
   phi_kappa <- list()
   E_nu_j <- list()
   chosen <- list()
+  mesh_terms <- list()
   recommended_mesh <- list()
   precondition_matrices <- list()
   if (is.logical(precondition)) {
@@ -972,6 +981,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
     phi_kappa[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$phi_kappa)
     E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
     chosen[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$chosen)
+    mesh_terms[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$mesh_terms)
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
     sub_posterior_means[[k]] <- do.call(rbind, lapply(1:n_nodes, function(i) fused[[i]]$fusion$sub_posterior_means[[1]]))
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$combined_data)
@@ -992,6 +1002,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
     phi_kappa[[1]] <- phi_kappa[[1]][[1]]
     E_nu_j[[1]] <- E_nu_j[[1]][[1]]
     chosen[[1]] <- chosen[[1]][[1]]
+    mesh_terms[[1]] <- mesh_terms[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
     sub_posterior_means[[1]] <- sub_posterior_means[[1]][[1]]
     recommended_mesh[[1]] <- recommended_mesh[[1]][[1]]
@@ -1009,6 +1020,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
               'phi_kappa' = phi_kappa,
               'E_nu_j' = E_nu_j,
               'chosen' = chosen,
+              'mesh_terms' = mesh_terms,
               'precondition_matrices' = precondition_matrices,
               'sub_posterior_means' = sub_posterior_means,
               'recommended_mesh' = recommended_mesh,

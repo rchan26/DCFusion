@@ -204,17 +204,23 @@ mesh_T2 <- function(k4, b, C, data_size, d, logarithm = FALSE) {
   }
 }
 
+quad_solve <- function(a, b, c) {
+  term_1 <- sqrt(b^2-4*a*c)
+  term_2 <- 2*a
+  return(c((-b-term_1)/term_2, (-b+term_1)/term_2))
+}
+
 #' @export
 mesh_guidance_adaptive <- function(C,
                                    d,
                                    data_size = NULL,
                                    b = NULL,
+                                   threshold = NULL,
                                    particle_set,
                                    sub_posterior_means,
                                    inv_precondition_matrices = NULL,
                                    k3 = NULL,
                                    k4 = NULL,
-                                   T2 = NULL,
                                    vanilla = NULL) {
   if (!("particle" %in% class(particle_set))) {
     stop("mesh_guidance_adaptive: particle_set must be a \"particle\" object")
@@ -290,26 +296,53 @@ mesh_guidance_adaptive <- function(C,
                                                          sub_posterior_means = sub_posterior_means,
                                                          inv_precondition_matrices = inv_precondition_matrices)
   }
-  if (is.null(k3)) {
-    warning('mesh_guidance_adaptive: k3 is set to 0.5 by default')
-    k3 <- 0.5
-  } else {
-    if (k3 < 0) {
+  
+  if (!is.numeric(threshold)) {
+    if (!is.numeric(k3)) {
+      stop("mesh_guidance_adaptive: if threshold is not passed, k3 must be passed in")
+    } else if (k3 < 0) {
       stop("mesh_guidance_adaptive: k3 must be greater than 0")
     }
-  }
-  if (is.null(k4)) {
-    warning('mesh_guidance_adaptive: k4 is set to 0.5 by default')
-    k4 <- 0.5
-  } else {
-    if (k4< 0) {
+    if (!is.numeric(k4)) {
+      stop("mesh_guidance_adaptive: if threshold is not passed, k4 must be passed in")
+    } else if (k4 < 0) {
       stop("mesh_guidance_adaptive: k4 must be greater than 0")
     }
+  } else {
+    if ((threshold < 0) | (threshold > 1)) {
+      stop("mesh_guidance_adaptive: threshold must be between 0 and 1")
+    }
+    if (is.null(k3) | is.null(k4)) {
+      roots <- quad_solve(a = 1,
+                          b = 2*log(threshold)-((E_nu_j^2)*(data_size^2)/(2*(b^2)*C*d)),
+                          c = log(threshold)^2)
+      k4 <- max(roots[which(roots > 0 & roots < -log(threshold))])
+      k3 <- -log(threshold)-k4
+      warning('mesh_guidance_adaptive: k3 is set to ', k3)
+      warning('mesh_guidance_adaptive: k4 is set to ', k4)
+      if (k3 < 0 | k4 < 0) {
+        stop("mesh_guidance_adaptive: k3 or k4 was less than 0. Try setting k3=k4=-log(threshold)")
+      }
+    }
+    # if (is.null(k3)) {
+    #   warning('mesh_guidance_adaptive: k3 is set to -log(threshold)/2 by default')
+    #   k3 <- -log(threshold)/2
+    # } else {
+    #   if (k3 < 0) {
+    #     stop("mesh_guidance_adaptive: k3 must be greater than 0")
+    #   }
+    # }
+    # if (is.null(k4)) {
+    #   warning('mesh_guidance_adaptive: k4 is set to -log(threshold)/2 by default')
+    #   k4 <- -log(threshold)/2
+    # } else {
+    #   if (k4< 0) {
+    #     stop("mesh_guidance_adaptive: k4 must be greater than 0")
+    #   }
+    # }
   }
   T1 <- mesh_T1(k3, b, C, E_nu_j, data_size)
-  if (is.null(T2)) {
-    T2 <- mesh_T2(k4, b, C, data_size, d)
-  }
+  T2 <- mesh_T2(k4, b, C, data_size, d)
   return(list('max_delta_j' = min(T1, T2),
               'CESS_j_treshold' = exp(-k3-k4),
               'T1' = T1,
@@ -354,13 +387,18 @@ mesh_guidance_regular <- function(C,
       stop("mesh_guidance_regular: b must be greater than 0")
     }
   }
-  if (is.null(threshold)) {
-    if (is.null(k3)) {
-      stop("mesh_guidance_regular: if threshold is not passed, k3 must be passed in")
-    } else if (is.null(k4)) {
-      stop("mesh_guidance_regular: if threshold is not passed, k4 must be passed in")
+  if (!is.numeric(threshold)) {
+    if (!is.numeric(k3)) {
+      stop("mesh_guidance_adaptive: if threshold is not passed, k3 must be passed in")
+    } else if (k3 < 0) {
+      stop("mesh_guidance_adaptive: k3 must be greater than 0")
     }
-  } else if (is.numeric(threshold)) {
+    if (!is.numeric(k4)) {
+      stop("mesh_guidance_adaptive: if threshold is not passed, k4 must be passed in")
+    } else if (k4 < 0) {
+      stop("mesh_guidance_adaptive: k4 must be greater than 0")
+    }
+  } else {
     if ((threshold < 0) | (threshold > 1)) {
       stop("mesh_guidance_regular: threshold must be between 0 and 1")
     }
@@ -395,8 +433,6 @@ mesh_guidance_regular <- function(C,
     }
     warning("mesh_guidance_regular: k3 set to ", k3, " and k4 set to ", k4, 
             " || exp(-k3-k4) = ", exp(-k3-k4))
-  } else {
-    stop("mesh_guidance_regular: threshold either is NULL or is a numeric value between 0 and 1")
   }
   return(list('max_delta_j' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d),
               'CESS_j_treshold' = exp(-k3-k4),
