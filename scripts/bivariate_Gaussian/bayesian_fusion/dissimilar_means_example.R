@@ -11,8 +11,8 @@ a_mesh_vanilla <- seq(0, 0.01, length.out = 6)
 a_mesh_gen <- seq(0, 2, length.out = 6)
 diffusion_estimator <- 'NB'
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.2
-CESS_j_threshold <- 0.2
+CESS_0_threshold <- 0.5
+CESS_j_threshold <- 0.5
 vanilla_b <- 1
 k1 <- NULL
 k2 <- NULL
@@ -64,42 +64,42 @@ for (i in 1:length(data_sizes)) {
   opt_bw <- ((4*sd^5)/(3*nsamples))^(1/5)
   input_samples <- lapply(1:C, function(sub) mvrnormArma(N = nsamples, mu = means[[sub]], Sigma = cov_mat))
   
-  ##### Fixed user-specified parameters #####
-  # print('### performing standard Bayesian Fusion (with standard mesh)')
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(a_mesh_vanilla))
-  # a_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                          N = nsamples,
-  #                                          m = C,
-  #                                          time_mesh = a_mesh_vanilla,
-  #                                          mean_vecs = means,
-  #                                          sd_vecs = rep(list(sd), C),
-  #                                          corrs = rep(corr, C),
-  #                                          betas = rep(beta, C),
-  #                                          precondition_matrices = rep(list(diag(1,2)), C),
-  #                                          ESS_threshold = ESS_threshold,
-  #                                          diffusion_estimator = diffusion_estimator,
-  #                                          seed = seed*i)
-  # print('### performing Generalised Bayesian Fusion (with standard mesh)')
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(a_mesh_gen))
-  # a_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                             N = nsamples,
-  #                                             m = C,
-  #                                             time_mesh = a_mesh_gen,
-  #                                             mean_vecs = means,
-  #                                             sd_vecs = rep(list(sd), C),
-  #                                             corrs = rep(corr, C),
-  #                                             betas = rep(beta, C),
-  #                                             precondition_matrices = lapply(input_samples, cov),
-  #                                             ESS_threshold = ESS_threshold,
-  #                                             diffusion_estimator = diffusion_estimator,
-  #                                             seed = seed*i)
-  # # save results
-  # a_results$vanilla[[i]] <- collect_results(a_BF_standard)
-  # a_results$generalised[[i]] <- collect_results(a_BF_generalised)
+  #### Fixed user-specified parameters #####
+  print('### performing standard Bayesian Fusion (with standard mesh)')
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(a_mesh_vanilla))
+  a_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                           N = nsamples,
+                                           m = C,
+                                           time_mesh = a_mesh_vanilla,
+                                           mean_vecs = means,
+                                           sd_vecs = rep(list(sd), C),
+                                           corrs = rep(corr, C),
+                                           betas = rep(beta, C),
+                                           precondition_matrices = rep(list(diag(1,2)), C),
+                                           ESS_threshold = ESS_threshold,
+                                           diffusion_estimator = diffusion_estimator,
+                                           seed = seed*i)
+  print('### performing Generalised Bayesian Fusion (with standard mesh)')
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(a_mesh_gen))
+  a_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                              N = nsamples,
+                                              m = C,
+                                              time_mesh = a_mesh_gen,
+                                              mean_vecs = means,
+                                              sd_vecs = rep(list(sd), C),
+                                              corrs = rep(corr, C),
+                                              betas = rep(beta, C),
+                                              precondition_matrices = lapply(input_samples, cov),
+                                              ESS_threshold = ESS_threshold,
+                                              diffusion_estimator = diffusion_estimator,
+                                              seed = seed*i)
+  # save results
+  a_results$vanilla[[i]] <- collect_results(a_BF_standard)
+  a_results$generalised[[i]] <- collect_results(a_BF_generalised)
   
   ##### Recommended scaling of T, fixed n #####
   # print('### performing standard Bayesian Fusion (with recommended T, fixed n)')
@@ -115,24 +115,24 @@ for (i in 1:length(data_sizes)) {
                                     k1 = k1,
                                     k2 = k2,
                                     vanilla = TRUE)
-  # print(paste('vanilla recommened regular mesh n:', vanilla_guide[[i]]$n))
-  # b_mesh_vanilla <- seq(0, vanilla_guide[[i]]$min_T, length.out = 6)
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(b_mesh_vanilla))
-  # b_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                          N = nsamples,
-  #                                          m = C,
-  #                                          time_mesh = b_mesh_vanilla,
-  #                                          mean_vecs = means,
-  #                                          sd_vecs = rep(list(sd), C),
-  #                                          corrs = rep(corr, C),
-  #                                          betas = rep(beta, C),
-  #                                          precondition_matrices = rep(list(diag(1,2)), C),
-  #                                          ESS_threshold = ESS_threshold,
-  #                                          diffusion_estimator = diffusion_estimator,
-  #                                          seed = seed*i)
-  # print('### performing Generalised Bayesian Fusion (with recommended T, fixed n)')
+  print(paste('vanilla recommened regular mesh n:', vanilla_guide[[i]]$n))
+  b_mesh_vanilla <- seq(0, vanilla_guide[[i]]$min_T, length.out = 6)
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(b_mesh_vanilla))
+  b_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                           N = nsamples,
+                                           m = C,
+                                           time_mesh = b_mesh_vanilla,
+                                           mean_vecs = means,
+                                           sd_vecs = rep(list(sd), C),
+                                           corrs = rep(corr, C),
+                                           betas = rep(beta, C),
+                                           precondition_matrices = rep(list(diag(1,2)), C),
+                                           ESS_threshold = ESS_threshold,
+                                           diffusion_estimator = diffusion_estimator,
+                                           seed = seed*i)
+  print('### performing Generalised Bayesian Fusion (with recommended T, fixed n)')
   gen_guide[[i]] <- BF_guidance(condition = 'SSH',
                                 CESS_0_threshold = CESS_0_threshold,
                                 CESS_j_threshold = CESS_j_threshold,
@@ -147,26 +147,26 @@ for (i in 1:length(data_sizes)) {
                                 k1 = k1,
                                 k2 = k2,
                                 vanilla = FALSE)
-  # print(paste('generalised recommened regular mesh n:', gen_guide[[i]]$n))
-  # b_mesh_gen <- seq(0, gen_guide[[i]]$min_T, length.out = 6)
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(b_mesh_gen))
-  # b_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                             N = nsamples,
-  #                                             m = C,
-  #                                             time_mesh = b_mesh_gen,
-  #                                             mean_vecs = means,
-  #                                             sd_vecs = rep(list(sd), C),
-  #                                             corrs = rep(corr, C),
-  #                                             betas = rep(beta, C),
-  #                                             precondition_matrices = lapply(input_samples, cov),
-  #                                             ESS_threshold = ESS_threshold,
-  #                                             diffusion_estimator = diffusion_estimator,
-  #                                             seed = seed*i)
-  # # save results
-  # b_results$vanilla[[i]] <- collect_results(b_BF_standard)
-  # b_results$generalised[[i]] <- collect_results(b_BF_generalised)
+  print(paste('generalised recommened regular mesh n:', gen_guide[[i]]$n))
+  b_mesh_gen <- seq(0, gen_guide[[i]]$min_T, length.out = 6)
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(b_mesh_gen))
+  b_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                              N = nsamples,
+                                              m = C,
+                                              time_mesh = b_mesh_gen,
+                                              mean_vecs = means,
+                                              sd_vecs = rep(list(sd), C),
+                                              corrs = rep(corr, C),
+                                              betas = rep(beta, C),
+                                              precondition_matrices = lapply(input_samples, cov),
+                                              ESS_threshold = ESS_threshold,
+                                              diffusion_estimator = diffusion_estimator,
+                                              seed = seed*i)
+  # save results
+  b_results$vanilla[[i]] <- collect_results(b_BF_standard)
+  b_results$generalised[[i]] <- collect_results(b_BF_generalised)
   
   ##### Recommended scaling of T, regular mesh #####
   print('### performing standard Bayesian Fusion (with recommended T, regular mesh)')
@@ -587,46 +587,6 @@ axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
 
-##### Recommended scaling of T, adaptive mesh (un-equal k3,k4) #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) d3_results$vanilla[[i]]$CESS_0)/nsamples,
-     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) d3_results$vanilla[[i]]$CESS_j_avg)/nsamples,
-      pch = 20, lty = 2, lwd = 3, type = 'b')
-for (ii in 1:length(data_sizes)) {
-  cess_j <- lapply(1:length(data_sizes), function(i) d3_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
-  points(x = rep(data_sizes[ii], length(cess_j)), y = cess_j, cex = 0.5)
-}
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
-     font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
-     font = 2, cex = 1.5)
-mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
-
-##### Recommended scaling of T, regular mesh (with same n as adaptive mesh) #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) e_results$vanilla[[i]]$CESS_0)/nsamples,
-     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) e_results$vanilla[[i]]$CESS_j_avg)/nsamples,
-      pch = 20, lty = 2, lwd = 3, type = 'b')
-for (ii in 1:length(data_sizes)) {
-  cess_j <- lapply(1:length(data_sizes), function(i) e_results$vanilla[[i]]$CESS_j/nsamples)[[ii]]
-  points(x = rep(data_sizes[ii], length(cess_j)), y = cess_j, cex = 0.5)
-}
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
-     font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
-     font = 2, cex = 1.5)
-mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
-
 ##### SH: Recommended scaling of T, adaptive mesh #####
 plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) SH_adaptive_results$vanilla[[i]]$CESS_0)/nsamples,
@@ -746,44 +706,6 @@ axis(2, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(2, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 
-##### Compare regular mesh and adaptive mesh times (same scale) #####
-plot(x = c_results$vanilla[[1]]$time_mesh / tail(c_results$vanilla[[1]]$time_mesh, n = 1),
-     y = rep(data_sizes[1]-25, length(c_results$vanilla[[1]]$time_mesh)),
-     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,2500),
-     xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-for (i in  2:length(data_sizes)) {
-  lines(x = c_results$vanilla[[i]]$time_mesh / tail(c_results$vanilla[[i]]$time_mesh, n = 1),
-        y = rep(data_sizes[i]-25, length(c_results$vanilla[[i]]$time_mesh)),
-        type = 'b', pch = 20, lty = 1, lwd = 3)
-}
-for (i in  1:length(data_sizes)) {
-  lines(x = d3_results$vanilla[[i]]$time_mesh / tail(d3_results$vanilla[[i]]$time_mesh, n = 1),
-        y = rep(data_sizes[i]+25, length(d3_results$vanilla[[i]]$time_mesh)),
-        type = 'b', pch = 4, lty = 2, lwd = 3)
-}
-# highlight the points where resampling was carried out
-for (i in 1:length(data_sizes)) {
-  scaled_times <- (c_results$vanilla[[i]]$time_mesh / tail(c_results$vanilla[[i]]$time_mesh, n = 1))
-  resampled_times <- scaled_times[c_results$vanilla[[i]]$resampled]
-  points(x = resampled_times,
-         y = rep(data_sizes[i]-25, length(resampled_times)),
-         pch = 20, lty = 1, lwd = 3, col = 'red')
-}
-# highlight the points where resampling was carried out
-for (i in 1:length(data_sizes)) {
-  scaled_times <- (d3_results$vanilla[[i]]$time_mesh / tail(d3_results$vanilla[[i]]$time_mesh, n = 1))
-  resampled_times <- scaled_times[d3_results$vanilla[[i]]$resampled]
-  points(x = resampled_times,
-         y = rep(data_sizes[i]+25, length(resampled_times)),
-         pch = 4, lty = 1, lwd = 3, col = 'red')
-}
-axis(1, at = seq(0, 1, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
-axis(1, at = seq(0, 1, 0.05), labels = rep("", 21), lwd.ticks = 0.5)
-mtext('Time (scaled)', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(2, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
-
 ##### IAD #####
 plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) a_results$vanilla[[i]]$IAD),
@@ -798,7 +720,7 @@ lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) d1_results$vanilla[[i]]$IAD),
       pch = 4, lty = 4, lwd = 3, type = 'b')
 lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) e_results$vanilla[[i]]$IAD),
+      y = sapply(1:length(data_sizes), function(i) d2_results$vanilla[[i]]$IAD),
       pch = 5, lty = 5, lwd = 3, type = 'b')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) SH_adaptive_results$vanilla[[i]]$IAD),
@@ -816,44 +738,11 @@ legend(x = 250, y = 1.2,
                   'SSH rec. T, fixed n',
                   'SSH rec. T, reg. mesh',
                   'SSH rec. T, adapt. mesh (k3=k4)',
-                  'SSH rec. T, reg. mesh (same n as adapt.)',
+                  'SSH rec. T, adapt. mesh',
                   'SH rec. T, adapt. mesh'),
        lty = 1:6,
        pch = 1:6,
        lwd = rep(3, 6),
-       cex = 1.25,
-       text.font = 2,
-       bty = 'n')
-
-##### IAD #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) d1_results$vanilla[[i]]$IAD),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) d2_results$vanilla[[i]]$IAD),
-      pch = 2, lty = 2, lwd = 3, type = 'b')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) d3_results$vanilla[[i]]$IAD),
-      pch = 3, lty = 3, lwd = 3, type = 'b')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$IAD),
-      pch = 4, lty = 4, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
-     font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 16), lwd.ticks = 0.5,
-     font = 2, cex = 1.5)
-mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 1,
-       legend = c('SSH rec. T, adapt. mesh (k3=k4)',
-                  'SSH rec. T, adapt. mesh (k3 larger, k4 smaller)',
-                  'SSH rec. T, adapt. mesh (k3 smaller, k4 larger)',
-                  'SSH rec. T, reg. mesh'),
-       lty = 1:4,
-       pch = 1:4,
-       lwd = rep(3, 4),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -872,7 +761,7 @@ lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) d1_results$vanilla[[i]]$time)),
       pch = 4, lty = 4, lwd = 3, type = 'b')
 lines(x = data_sizes,
-      y = log(sapply(1:length(data_sizes), function(i) e_results$vanilla[[i]]$time)),
+      y = log(sapply(1:length(data_sizes), function(i) d2_results$vanilla[[i]]$time)),
       pch = 5, lty = 5, lwd = 3, type = 'b')
 lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) SH_adaptive_results$vanilla[[i]]$time)),
@@ -887,41 +776,11 @@ legend(x = 250, y = 10.5,
                   'SSH rec. T, fixed n',
                   'SSH rec. T, reg. mesh',
                   'SSH rec. T, adapt. mesh (k3=k4)',
-                  'SSH rec. T, reg. mesh (same n as adapt.)',
+                  'SSH rec. T, adapt. mesh',
                   'SH rec. T, adapt. mesh'),
        lty = 1:6,
        pch = 1:6,
        lwd = rep(3, 6),
-       cex = 1.25,
-       text.font = 2,
-       bty = 'n')
-
-##### time #####
-plot(x = data_sizes,
-     y = log(sapply(1:length(data_sizes), function(i) d1_results$vanilla[[i]]$time)),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(2,10), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = log(sapply(1:length(data_sizes), function(i) d2_results$vanilla[[i]]$time)),
-      pch = 2, lty = 2, lwd = 3, type = 'b')
-lines(x = data_sizes,
-      y = log(sapply(1:length(data_sizes), function(i) d3_results$vanilla[[i]]$time)),
-      pch = 3, lty = 3, lwd = 3, type = 'b')
-lines(x = data_sizes,
-      y = log(sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$time)),
-      pch = 4, lty = 4, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 13, 1), labels = seq(0, 13, 1), font = 2, cex = 1.5)
-mtext('log(Elapsed time in seconds)', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 10,
-       legend = c('SSH rec. T, adapt. mesh (k3=k4)',
-                  'SSH rec. T, adapt. mesh (k3 larger, k4 smaller)',
-                  'SSH rec. T, adapt. mesh (k3 smaller, k4 larger)',
-                  'SSH rec. T, reg. mesh'),
-       lty = 1:4,
-       pch = 1:4,
-       lwd = rep(3, 4),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -1040,46 +899,6 @@ lines(x = data_sizes,
       pch = 20, lty = 2, lwd = 3, type = 'b')
 for (ii in 1:length(data_sizes)) {
   cess_j <- lapply(1:length(data_sizes), function(i) d2_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
-  points(x = rep(data_sizes[ii], length(cess_j)), y = cess_j, cex = 0.5)
-}
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
-     font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
-     font = 2, cex = 1.5)
-mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
-
-##### Recommended scaling of T, adaptive mesh (un-equal k3,k4) #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) d3_results$generalised[[i]]$CESS_0)/nsamples,
-     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) d3_results$generalised[[i]]$CESS_j_avg)/nsamples,
-      pch = 20, lty = 2, lwd = 3, type = 'b')
-for (ii in 1:length(data_sizes)) {
-  cess_j <- lapply(1:length(data_sizes), function(i) d3_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
-  points(x = rep(data_sizes[ii], length(cess_j)), y = cess_j, cex = 0.5)
-}
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.2), labels = c("0.0", seq(0.2, 0.8, 0.2), "1.0"),
-     font = 2, cex = 1.5)
-axis(2, at = seq(0, 1, 0.1), labels = rep("", 11), lwd.ticks = 0.5,
-     font = 2, cex = 1.5)
-mtext('CESS / N', 2, 2.75, font = 2, cex = 1.5)
-
-##### Recommended scaling of T, regular mesh (with same n as adaptive mesh) #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) e_results$generalised[[i]]$CESS_0)/nsamples,
-     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) e_results$generalised[[i]]$CESS_j_avg)/nsamples,
-      pch = 20, lty = 2, lwd = 3, type = 'b')
-for (ii in 1:length(data_sizes)) {
-  cess_j <- lapply(1:length(data_sizes), function(i) e_results$generalised[[i]]$CESS_j/nsamples)[[ii]]
   points(x = rep(data_sizes[ii], length(cess_j)), y = cess_j, cex = 0.5)
 }
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
@@ -1210,44 +1029,6 @@ axis(2, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(2, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 
-##### Compare regular mesh and adaptive mesh times (same scale) #####
-plot(x = c_results$generalised[[1]]$time_mesh / tail(c_results$generalised[[1]]$time_mesh, n = 1),
-     y = rep(data_sizes[1]-25, length(c_results$generalised[[1]]$time_mesh)),
-     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,2500),
-     xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-for (i in  2:length(data_sizes)) {
-  lines(x = c_results$generalised[[i]]$time_mesh / tail(c_results$generalised[[i]]$time_mesh, n = 1),
-        y = rep(data_sizes[i]-25, length(c_results$generalised[[i]]$time_mesh)),
-        type = 'b', pch = 20, lty = 1, lwd = 3)
-}
-for (i in  1:length(data_sizes)) {
-  lines(x = d3_results$generalised[[i]]$time_mesh / tail(d3_results$generalised[[i]]$time_mesh, n = 1),
-        y = rep(data_sizes[i]+25, length(d3_results$generalised[[i]]$time_mesh)),
-        type = 'b', pch = 4, lty = 2, lwd = 3)
-}
-# highlight the points where resampling was carried out
-for (i in 1:length(data_sizes)) {
-  scaled_times <- (c_results$generalised[[i]]$time_mesh / tail(c_results$generalised[[i]]$time_mesh, n = 1))
-  resampled_times <- scaled_times[c_results$generalised[[i]]$resampled]
-  points(x = resampled_times,
-         y = rep(data_sizes[i]-25, length(resampled_times)),
-         pch = 20, lty = 1, lwd = 3, col = 'red')
-}
-# highlight the points where resampling was carried out
-for (i in 1:length(data_sizes)) {
-  scaled_times <- (d3_results$generalised[[i]]$time_mesh / tail(d3_results$generalised[[i]]$time_mesh, n = 1))
-  resampled_times <- scaled_times[d3_results$generalised[[i]]$resampled]
-  points(x = resampled_times,
-         y = rep(data_sizes[i]+25, length(resampled_times)),
-         pch = 4, lty = 1, lwd = 3, col = 'red')
-}
-axis(1, at = seq(0, 1, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
-axis(1, at = seq(0, 1, 0.05), labels = rep("", 21), lwd.ticks = 0.5)
-mtext('Time (scaled)', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(2, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
-
 ##### IAD #####
 plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) a_results$generalised[[i]]$IAD),
@@ -1262,7 +1043,7 @@ lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) d1_results$generalised[[i]]$IAD),
       pch = 4, lty = 4, lwd = 3, type = 'b')
 lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) e_results$generalised[[i]]$IAD),
+      y = sapply(1:length(data_sizes), function(i) d2_results$generalised[[i]]$IAD),
       pch = 5, lty = 5, lwd = 3, type = 'b')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) SH_adaptive_results$generalised[[i]]$IAD),
@@ -1280,44 +1061,11 @@ legend(x = 250, y = 1.2,
                   'SSH rec. T, fixed n',
                   'SSH rec. T, reg. mesh',
                   'SSH rec. T, adapt. mesh (k3=k4)',
-                  'SSH rec. T, reg. mesh (with same n as adapt. mesh)',
+                  'SSH rec. T, adapt. mesh',
                   'SH rec. T, adapt. mesh'),
        lty = 1:6,
        pch = 1:6,
        lwd = rep(3, 6),
-       cex = 1.25,
-       text.font = 2,
-       bty = 'n')
-
-##### IAD #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) d1_results$generalised[[i]]$IAD),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) d2_results$generalised[[i]]$IAD),
-      pch = 2, lty = 2, lwd = 3, type = 'b')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) d3_results$generalised[[i]]$IAD),
-      pch = 3, lty = 3, lwd = 3, type = 'b')
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$IAD),
-      pch = 4, lty = 4, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
-     font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 16), lwd.ticks = 0.5,
-     font = 2, cex = 1.5)
-mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 1,
-       legend = c('SSH rec. T, adapt. mesh (k3=k4)',
-                  'SSH rec. T, adapt. mesh (k3 larger, k4 smaller)',
-                  'SSH rec. T, adapt. mesh (k3 smaller, k4 larger)',
-                  'SSH rec. T, reg. mesh'),
-       lty = 1:4,
-       pch = 1:4,
-       lwd = rep(3, 4),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -1336,7 +1084,7 @@ lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) d1_results$generalised[[i]]$time)),
       pch = 4, lty = 4, lwd = 3, type = 'b')
 lines(x = data_sizes,
-      y = log(sapply(1:length(data_sizes), function(i) e_results$generalised[[i]]$time)),
+      y = log(sapply(1:length(data_sizes), function(i) d2_results$generalised[[i]]$time)),
       pch = 5, lty = 5, lwd = 3, type = 'b')
 lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) SH_adaptive_results$generalised[[i]]$time)),
@@ -1351,7 +1099,7 @@ legend(x = 250, y = 10.5,
                   'SSH rec. T, fixed n',
                   'SSH rec. T, reg. mesh',
                   'SSH rec. T, adapt. mesh (k3=k4)',
-                  'SSH rec. T, reg. mesh (with same n as adapt. mesh)',
+                  'SSH rec. T, adapt. mesh',
                   'SH rec. T, adapt. mesh'),
        lty = 1:6,
        pch = 1:6,
@@ -1360,35 +1108,4 @@ legend(x = 250, y = 10.5,
        text.font = 2,
        bty = 'n')
 
-##### time #####
-plot(x = data_sizes,
-     y = log(sapply(1:length(data_sizes), function(i) d1_results$generalised[[i]]$time)),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,10), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-lines(x = data_sizes,
-      y = log(sapply(1:length(data_sizes), function(i) d2_results$generalised[[i]]$time)),
-      pch = 2, lty = 2, lwd = 3, type = 'b')
-lines(x = data_sizes,
-      y = log(sapply(1:length(data_sizes), function(i) d3_results$generalised[[i]]$time)),
-      pch = 3, lty = 3, lwd = 3, type = 'b')
-lines(x = data_sizes,
-      y = log(sapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$time)),
-      pch = 4, lty = 4, lwd = 3, type = 'b')
-axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
-axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 13, 1), labels = seq(0, 13, 1), font = 2, cex = 1.5)
-mtext('log(Elapsed time in seconds)', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 10,
-       legend = c('SSH rec. T, adapt. mesh (k3=k4)',
-                  'SSH rec. T, adapt. mesh (k3 larger, k4 smaller)',
-                  'SSH rec. T, adapt. mesh (k3 smaller, k4 larger)',
-                  'SSH rec. T, reg. mesh'),
-       lty = 1:4,
-       pch = 1:4,
-       lwd = rep(3, 4),
-       cex = 1.25,
-       text.font = 2,
-       bty = 'n')
-
-
-save.image('bf_bivG_dissimilar_means.RData')
+save.image('bf_bivG_dissimilar_means_thresh_05.RData')

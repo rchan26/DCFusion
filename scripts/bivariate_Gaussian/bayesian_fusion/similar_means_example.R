@@ -11,8 +11,8 @@ a_mesh_vanilla <- seq(0, 0.005, length.out = 6)
 a_mesh_gen <- seq(0, 1, length.out = 6)
 diffusion_estimator <- 'NB'
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.2
-CESS_j_threshold <- 0.2
+CESS_0_threshold <- 0.5
+CESS_j_threshold <- 0.5
 vanilla_b <- 1
 k1 <- NULL
 k2 <- NULL
@@ -64,42 +64,42 @@ for (i in 1:length(data_sizes)) {
   opt_bw <- ((4*sd^5)/(3*nsamples))^(1/5)
   input_samples <- lapply(1:C, function(sub) mvrnormArma(N = nsamples, mu = mean, Sigma = cov_mat))
   
-  # #### Fixed user-specified parameters #####
-  # print('### performing standard Bayesian Fusion (with standard mesh)')
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(a_mesh_vanilla))
-  # a_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                          N = nsamples,
-  #                                          m = C,
-  #                                          time_mesh = a_mesh_vanilla,
-  #                                          mean_vecs = rep(list(mean), C),
-  #                                          sd_vecs = rep(list(sd), C),
-  #                                          corrs = rep(corr, C),
-  #                                          betas = rep(beta, C),
-  #                                          precondition_matrices = rep(list(diag(1,2)), C),
-  #                                          ESS_threshold = ESS_threshold,
-  #                                          diffusion_estimator = diffusion_estimator,
-  #                                          seed = seed*i)
-  # print('### performing Generalised Bayesian Fusion (with standard mesh)')
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(a_mesh_gen))
-  # a_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                             N = nsamples,
-  #                                             m = C,
-  #                                             time_mesh = a_mesh_gen,
-  #                                             mean_vecs = rep(list(mean), C),
-  #                                             sd_vecs = rep(list(sd), C),
-  #                                             corrs = rep(corr, C),
-  #                                             betas = rep(beta, C),
-  #                                             precondition_matrices = lapply(input_samples, cov),
-  #                                             ESS_threshold = ESS_threshold,
-  #                                             diffusion_estimator = diffusion_estimator,
-  #                                             seed = seed*i)
-  # # save results
-  # a_results$vanilla[[i]] <- collect_results(a_BF_standard)
-  # a_results$generalised[[i]] <- collect_results(a_BF_generalised)
+  #### Fixed user-specified parameters #####
+  print('### performing standard Bayesian Fusion (with standard mesh)')
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(a_mesh_vanilla))
+  a_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                           N = nsamples,
+                                           m = C,
+                                           time_mesh = a_mesh_vanilla,
+                                           mean_vecs = rep(list(mean), C),
+                                           sd_vecs = rep(list(sd), C),
+                                           corrs = rep(corr, C),
+                                           betas = rep(beta, C),
+                                           precondition_matrices = rep(list(diag(1,2)), C),
+                                           ESS_threshold = ESS_threshold,
+                                           diffusion_estimator = diffusion_estimator,
+                                           seed = seed*i)
+  print('### performing Generalised Bayesian Fusion (with standard mesh)')
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(a_mesh_gen))
+  a_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                              N = nsamples,
+                                              m = C,
+                                              time_mesh = a_mesh_gen,
+                                              mean_vecs = rep(list(mean), C),
+                                              sd_vecs = rep(list(sd), C),
+                                              corrs = rep(corr, C),
+                                              betas = rep(beta, C),
+                                              precondition_matrices = lapply(input_samples, cov),
+                                              ESS_threshold = ESS_threshold,
+                                              diffusion_estimator = diffusion_estimator,
+                                              seed = seed*i)
+  # save results
+  a_results$vanilla[[i]] <- collect_results(a_BF_standard)
+  a_results$generalised[[i]] <- collect_results(a_BF_generalised)
   
   ##### Recommended scaling of T, fixed n #####
   # print('### performing standard Bayesian Fusion (with recommended T, fixed n)')
@@ -114,24 +114,24 @@ for (i in 1:length(data_sizes)) {
                                     sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
                                     k1 = k1,
                                     vanilla = TRUE)
-  # print(paste('vanilla recommened regular mesh n:', vanilla_guide[[i]]$n))
-  # b_mesh_vanilla <- seq(0, vanilla_guide[[i]]$min_T, length.out = 6)
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(b_mesh_vanilla))
-  # b_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                          N = nsamples,
-  #                                          m = C,
-  #                                          time_mesh = b_mesh_vanilla,
-  #                                          mean_vecs = rep(list(mean), C),
-  #                                          sd_vecs = rep(list(sd), C),
-  #                                          corrs = rep(corr, C),
-  #                                          betas = rep(beta, C),
-  #                                          precondition_matrices = rep(list(diag(1,2)), C),
-  #                                          ESS_threshold = ESS_threshold,
-  #                                          diffusion_estimator = diffusion_estimator,
-  #                                          seed = seed*i)
-  # print('### performing Generalised Bayesian Fusion (with recommended T, fixed n)')
+  print(paste('vanilla recommened regular mesh n:', vanilla_guide[[i]]$n))
+  b_mesh_vanilla <- seq(0, vanilla_guide[[i]]$min_T, length.out = 6)
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(b_mesh_vanilla))
+  b_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                           N = nsamples,
+                                           m = C,
+                                           time_mesh = b_mesh_vanilla,
+                                           mean_vecs = rep(list(mean), C),
+                                           sd_vecs = rep(list(sd), C),
+                                           corrs = rep(corr, C),
+                                           betas = rep(beta, C),
+                                           precondition_matrices = rep(list(diag(1,2)), C),
+                                           ESS_threshold = ESS_threshold,
+                                           diffusion_estimator = diffusion_estimator,
+                                           seed = seed*i)
+  print('### performing Generalised Bayesian Fusion (with recommended T, fixed n)')
   gen_guide[[i]] <- BF_guidance(condition = 'SH',
                                 CESS_0_threshold = CESS_0_threshold,
                                 CESS_j_threshold = CESS_j_threshold,
@@ -145,26 +145,26 @@ for (i in 1:length(data_sizes)) {
                                 Lambda = inverse_sum_matrices(lapply(input_samples, function(sub) solve(cov(sub)))),
                                 k1 = k1,
                                 vanilla = FALSE)
-  # print(paste('generalised recommened regular mesh n:', gen_guide[[i]]$n))
-  # b_mesh_gen <- seq(0, gen_guide[[i]]$min_T, length.out = 6)
-  # input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
-  #                                             multivariate = TRUE,
-  #                                             number_of_steps = length(b_mesh_gen))
-  # b_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
-  #                                             N = nsamples,
-  #                                             m = C,
-  #                                             time_mesh = b_mesh_gen,
-  #                                             mean_vecs = rep(list(mean), C),
-  #                                             sd_vecs = rep(list(sd), C),
-  #                                             corrs = rep(corr, C),
-  #                                             betas = rep(beta, C),
-  #                                             precondition_matrices = lapply(input_samples, cov),
-  #                                             ESS_threshold = ESS_threshold,
-  #                                             diffusion_estimator = diffusion_estimator,
-  #                                             seed = seed*i)
-  # # save results
-  # b_results$vanilla[[i]] <- collect_results(b_BF_standard)
-  # b_results$generalised[[i]] <- collect_results(b_BF_generalised)
+  print(paste('generalised recommened regular mesh n:', gen_guide[[i]]$n))
+  b_mesh_gen <- seq(0, gen_guide[[i]]$min_T, length.out = 6)
+  input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                              multivariate = TRUE,
+                                              number_of_steps = length(b_mesh_gen))
+  b_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                              N = nsamples,
+                                              m = C,
+                                              time_mesh = b_mesh_gen,
+                                              mean_vecs = rep(list(mean), C),
+                                              sd_vecs = rep(list(sd), C),
+                                              corrs = rep(corr, C),
+                                              betas = rep(beta, C),
+                                              precondition_matrices = lapply(input_samples, cov),
+                                              ESS_threshold = ESS_threshold,
+                                              diffusion_estimator = diffusion_estimator,
+                                              seed = seed*i)
+  # save results
+  b_results$vanilla[[i]] <- collect_results(b_BF_standard)
+  b_results$generalised[[i]] <- collect_results(b_BF_generalised)
   
   ##### Recommended scaling of T, regular mesh #####
   print('### performing standard Bayesian Fusion (with recommended T, regular mesh)')
@@ -1096,4 +1096,4 @@ legend(x = 1000, y = 10,
        text.font = 2,
        bty = 'n')
 
-save.image('bf_bivG_similar_means.RData')
+save.image('bf_bivG_similar_means_thresh_05.RData')
