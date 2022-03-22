@@ -59,8 +59,10 @@
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
-#'   \item{E_nu_j}{Approximation of the average variation of the trajectories
+#'   \item{E_nu_j}{approximation of the average variation of the trajectories
 #'                 at each time step}
+#'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
+#'   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
 #' }
 #' 
 #' @export
@@ -159,6 +161,9 @@ rho_j_BLR <- function(particle_set,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
+  transformed_design_matrices <- lapply(1:m, function(c) {
+    as.matrix(subset(data_split[[c]]$design_count, select = -count)) %*% transform_matrices[[c]]$to_X
+  })
   N <- particle_set$N
   # ---------- creating parallel cluster
   if (is.null(cl)) {
@@ -180,17 +185,20 @@ rho_j_BLR <- function(particle_set,
   ESS <- c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
+  phi_bound_intensity <- rep(list(matrix(nrow = N, ncol = m)), length(time_mesh))
+  phi_kappa <- rep(list(matrix(nrow = N, ncol = m)), length(time_mesh))
   if (adaptive_mesh) {
     E_nu_j <- rep(NA, length(time_mesh))
-    E_nu_j_old <- rep(NA, length(time_mesh))
+    chosen <- rep("", length(time_mesh))
+    mesh_terms <- rep(list(c(NA,NA)), length(time_mesh))
   } else {
     E_nu_j <- NA
-    E_nu_j_old <- NA
+    chosen <- NULL
+    mesh_terms <- NULL
   }
   if (is.null(print_progress_iters)) {
     print_progress_iters <- split_N
   }
-  # iterative proposals
   end_time <- time_mesh[length(time_mesh)]
   j <- 1
   while (time_mesh[j]!=end_time) {
@@ -219,21 +227,18 @@ rho_j_BLR <- function(particle_set,
                                               d = dim,
                                               data_size = adaptive_mesh_parameters$data_size,
                                               b = adaptive_mesh_parameters$b,
+                                              threshold = adaptive_mesh_parameters$threshold,
                                               particle_set = particle_set,
                                               sub_posterior_means = sub_posterior_means,
                                               inv_precondition_matrices = inv_precondition_matrices,
                                               k3 = adaptive_mesh_parameters$k3,
                                               k4 = adaptive_mesh_parameters$k4,
-                                              T2 = adaptive_mesh_parameters$T2,
                                               vanilla = adaptive_mesh_parameters$vanilla)
-      if (is.null(adaptive_mesh_parameters$T2)) {
-        adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
-      }
       E_nu_j[j] <- tilde_Delta_j$E_nu_j
-      E_nu_j_old[j] <- tilde_Delta_j$E_nu_j_old
+      chosen[j] <- tilde_Delta_j$chosen
+      mesh_terms[[j]] <- c(tilde_Delta_j$T1, tilde_Delta_j$T2)
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
-    # split the x samples from the previous time marginal (and their means) into approximately equal lists
     split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
     split_x_means <- lapply(split_indices, function(indices) particle_set$x_means[indices,,drop = FALSE])
     V <- construct_V(s = time_mesh[j-1],
@@ -242,20 +247,23 @@ rho_j_BLR <- function(particle_set,
                      C = m,
                      d = dim,
                      precondition_matrices = precondition_matrices,
-                     Lambda = Lambda)
+                     Lambda = Lambda,
+                     iteration = j)
     rho_j_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
       split_N <- length(split_indices[[core]])
       x_mean_j <- matrix(data = NA, nrow = split_N, ncol = dim)
       log_rho_j <- rep(0, split_N)
+      bound_intensity <- matrix(nrow = split_N, ncol = m)
+      kap <- matrix(nrow = split_N, ncol = m)
       x_j <- lapply(1:split_N, function(i) {
         M <- construct_M(s = time_mesh[j-1],
                          t = time_mesh[j],
                          end_time = end_time,
                          C = m,
                          d = dim,
-                         precondition_matrices = precondition_matrices,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
-                         sub_posterior_mean = split_x_means[[core]][i,])$M
+                         sub_posterior_mean = split_x_means[[core]][i,],
+                         iteration = j)
         if (time_mesh[j]!=end_time) {
           return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = dim, byrow = TRUE))
         } else {
@@ -272,13 +280,14 @@ rho_j_BLR <- function(particle_set,
         x_mean_j[i,] <- weighted_mean_multivariate(matrix = x_j[[i]],
                                                    weights = inv_precondition_matrices,
                                                    inverse_sum_weights = Lambda)
-        log_rho_j[i] <- sum(sapply(1:m, function(c) {
+        phi <- lapply(1:m, function(c) {
           tryCatch(expr = ea_BLR_DL_PT(dim = dim,
                                        x0 = as.vector(split_x_samples[[core]][[i]][c,]),
                                        y = as.vector(x_j[[i]][c,]),
                                        s = time_mesh[j-1],
                                        t = time_mesh[j],
                                        data = data_split[[c]][counts],
+                                       transformed_design_mat = transformed_design_matrices[[c]],
                                        prior_means = prior_means,
                                        prior_variances = prior_variances,
                                        C = C,
@@ -297,6 +306,7 @@ rho_j_BLR <- function(particle_set,
                                   s = time_mesh[j-1],
                                   t = time_mesh[j],
                                   data = data_split[[c]][counts],
+                                  transformed_design_mat = transformed_design_matrices[[c]],
                                   prior_means = prior_means,
                                   prior_variances = prior_variances,
                                   C = C,
@@ -307,25 +317,30 @@ rho_j_BLR <- function(particle_set,
                                   beta_NB = beta_NB,
                                   gamma_NB_n_points = gamma_NB_n_points,
                                   local_bounds = FALSE,
-                                  logarithm = TRUE)})
-        }))
+                                  logarithm = TRUE)})})
+        log_rho_j[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
+        bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
+        kap[i,] <- sapply(1:m, function(c) phi[[c]]$kap)
         if (i%%print_progress_iters==0) {
           cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
               '|| Node:', node, '|| Core:', core, '||', i, '/', split_N, '\n',
               file = 'rho_j_BLR_progress.txt', append = T)
         }
       }
-      cat('Level:', level, '|| Step:', j, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
+      cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
+          '|| Node:', node, '|| Core:', core, '||', split_N, '/',
           split_N, '\n', file = 'rho_j_BLR_progress.txt', append = T)
-      return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j))
+      return(list('x_j' = x_j,
+                  'x_mean_j' = x_mean_j,
+                  'log_rho_j' = log_rho_j,
+                  'bound_intensity' = bound_intensity,
+                  'kap' = kap))
     })
     # ---------- update particle set
-    # update the weights and return updated particle set
     particle_set$x_samples <- unlist(lapply(1:length(split_indices), function(i) {
       rho_j_weighted_samples[[i]]$x_j}), recursive = FALSE)
     particle_set$x_means <- do.call(rbind, lapply(1:length(split_indices), function(i) {
       rho_j_weighted_samples[[i]]$x_mean_j}))
-    # update weight and normalise
     log_rho_j <- unlist(lapply(1:length(split_indices), function(i) {
       rho_j_weighted_samples[[i]]$log_rho_j}))
     norm_weights <- particle_ESS(log_weights = particle_set$log_weights + log_rho_j)
@@ -333,10 +348,12 @@ rho_j_BLR <- function(particle_set,
     particle_set$normalised_weights <- norm_weights$normalised_weights
     particle_set$ESS <- norm_weights$ESS
     ESS[j] <- particle_set$ESS
-    # calculate the conditional ESS (i.e. the 1/sum(inc_change^2))
-    # where inc_change is the incremental change in weight (= log_rho_j)
     particle_set$CESS[j] <- particle_ESS(log_weights = log_rho_j)$ESS
     CESS[j] <- particle_set$CESS[j]
+    phi_bound_intensity[[j]] <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
+      rho_j_weighted_samples[[i]]$bound_intensity}))
+    phi_kappa[[j]] <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
+      rho_j_weighted_samples[[i]]$kap}))
     elapsed_time[j-1] <- (proc.time()-pcm)['elapsed']
   }
   if (close_cluster) {
@@ -348,8 +365,12 @@ rho_j_BLR <- function(particle_set,
     resampled <- resampled[1:j]
     particle_set$time_mesh <- time_mesh[1:j]
     elapsed_time <- elapsed_time[1:(j-1)]
+    E_nu_j <- E_nu_j[1:j]
+    chosen <- chosen[1:j]
+    mesh_terms <- mesh_terms[1:j]
+    phi_bound_intensity <- phi_bound_intensity[1:j]
+    phi_kappa <- phi_kappa[1:j]
   }
-  # set the y samples as the first element of each of the x_samples
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
   particle_set$y_samples <- proposed_samples
   # ----------- resample particle_set (only resample if ESS < N*ESS_threshold)
@@ -370,7 +391,10 @@ rho_j_BLR <- function(particle_set,
               'CESS' = CESS,
               'resampled' = resampled,
               'E_nu_j' = E_nu_j,
-              'E_nu_j_old' = E_nu_j_old))
+              'chosen' = chosen,
+              'mesh_terms' = mesh_terms,
+              'phi_bound_intensity' = phi_bound_intensity,
+              'phi_kappa' = phi_kappa))
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -439,12 +463,15 @@ rho_j_BLR <- function(particle_set,
 #'   \item{proposed_samples}{proposal samples from fusion sampler}
 #'   \item{time}{run-time of fusion sampler}
 #'   \item{elapsed_time}{elapsed time of each step of the algorithm}
+#'   \item{time_mesh}{time_mesh used}
 #'   \item{ESS}{effective sample size of the particles after each step}
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
-#'   \item{E_nu_j}{Approximation of the average variation of the trajectories
+#'   \item{E_nu_j}{approximation of the average variation of the trajectories
 #'                 at each time step}
+#'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
+#'   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
 #'                                are the pre-conditioning matrices that were used
 #'                                and precondition_matrices[[1]] are the combined
@@ -532,11 +559,9 @@ parallel_GBF_BLR <- function(particles_to_fuse,
   } else if (!any(class(cl)=="cluster") & !is.null(cl)) {
     stop("parallel_generalised_BF_SMC_BLR: cl must be a \"cluster\" object or NULL")
   }
-  # set a seed if one is supplied
   if (!is.null(seed)) {
     set.seed(seed)
   }
-  # start time recording
   pcm <- proc.time()
   # ---------- creating parallel cluster
   if (is.null(cl)) {
@@ -552,7 +577,6 @@ parallel_GBF_BLR <- function(particles_to_fuse,
     parallel::clusterSetRNGStream(cl, iseed = seed)
   }
   # ---------- first importance sampling step
-  # pre-calculating the inverse precondition matrices
   if (is.null(inv_precondition_matrices)) {
     inv_precondition_matrices <- lapply(precondition_matrices, solve)  
   }
@@ -623,11 +647,15 @@ parallel_GBF_BLR <- function(particles_to_fuse,
               'proposed_samples' = rho_j$proposed_samples,
               'time' = (proc.time()-pcm)['elapsed'],
               'elapsed_time' = c(elapsed_time_rho_0, rho_j$time),
+              'time_mesh' = rho_j$particle_set$time_mesh,
               'ESS' = rho_j$ESS,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
+              'phi_bound_intensity' = rho_j$phi_bound_intensity,
+              'phi_kappa' = rho_j$phi_kappa,
               'E_nu_j' = rho_j$E_nu_j,
-              'E_nu_j_old' = rho_j$E_nu_j_old,
+              'chosen' = rho_j$chosen,
+              'mesh_terms' = rho_j$mesh_terms,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means,
               'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
@@ -699,7 +727,11 @@ parallel_GBF_BLR <- function(particles_to_fuse,
 #'                           are the proposed samples for level l, node i}
 #'   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time
 #'               for level l, node i}
-#'   \item{elapsed_time}{list of length (L-1), where}
+#'   \item{elapsed_time}{list of length (L-1), where elapsed_time[[l]][[i]]
+#'                       is the elapsed time of each step of the algorithm for
+#'                       level l, node i}
+#'   \item{time_mesh}{list of length (L-1), where time_mesh[[l]][[i]]
+#'                    is the time_mesh used for level l, node i}
 #'   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
 #'              sample size of the particles after each step BEFORE deciding
 #'              whether or not to resample for level l, node i}
@@ -711,6 +743,12 @@ parallel_GBF_BLR <- function(particles_to_fuse,
 #'   \item{E_nu_j}{list of length (L-1), where E_nu_j[[l]][[i]] is the
 #'                 approximation of the average variation of the trajectories
 #'                 at each time step for level l, node i}
+#'   \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
+#'                 which term was chosen if using an adaptive mesh at each
+#'                 time step for level l, node i}
+#'   \item{mesh_terms}{list of length(L-1), where mesh_terms[[l]][[i]] indicates
+#'                     the evaluated terms in deciding the mesh at each time step
+#'                     for level l, node i}
 #'   \item{precondition_matrices}{pre-conditioning matrices that were used}
 #'   \item{sub_posterior_means}{sub-posterior means that were used}
 #'   \item{recommended_mesh}{list of length (L-1), where recommended_mesh[[l]][[i]]
@@ -821,11 +859,15 @@ bal_binary_GBF_BLR <- function(N_schedule,
   data_inputs[[L]] <- data_split
   time <- list()
   elapsed_time <- list()
+  used_time_mesh <- list()
   ESS <- list()
   CESS <- list()
   resampled <- list()
+  phi_bound_intensity <- list()
+  phi_kappa <- list()
   E_nu_j <- list()
-  E_nu_j_old <- list()
+  chosen <- list()
+  mesh_terms <- list()
   recommended_mesh <- list()
   precondition_matrices <- list()
   if (is.logical(precondition)) {
@@ -931,11 +973,15 @@ bal_binary_GBF_BLR <- function(N_schedule,
     proposed_samples[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$proposed_samples)
     time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$time)
     elapsed_time[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$elapsed_time)
+    used_time_mesh[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$time_mesh)
     ESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$ESS)
     CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$CESS)
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$resampled)
+    phi_bound_intensity[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$phi_bound_intensity)
+    phi_kappa[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$phi_kappa)
     E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
-    E_nu_j_old[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j_old)
+    chosen[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$chosen)
+    mesh_terms[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$mesh_terms)
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
     sub_posterior_means[[k]] <- do.call(rbind, lapply(1:n_nodes, function(i) fused[[i]]$fusion$sub_posterior_means[[1]]))
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$combined_data)
@@ -948,24 +994,33 @@ bal_binary_GBF_BLR <- function(N_schedule,
     proposed_samples[[1]] <- proposed_samples[[1]][[1]]
     time[[1]] <- time[[1]][[1]]
     elapsed_time[[1]] <- elapsed_time[[1]][[1]]
+    used_time_mesh[[1]] <- used_time_mesh[[1]][[1]]
     ESS[[1]] <- ESS[[1]][[1]]
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
+    phi_bound_intensity[[1]] <- phi_bound_intensity[[1]][[1]]
+    phi_kappa[[1]] <- phi_kappa[[1]][[1]]
     E_nu_j[[1]] <- E_nu_j[[1]][[1]]
-    E_nu_j_old[[1]] <- E_nu_j_old[[1]][[1]]
+    chosen[[1]] <- chosen[[1]][[1]]
+    mesh_terms[[1]] <- mesh_terms[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
     sub_posterior_means[[1]] <- sub_posterior_means[[1]][[1]]
+    recommended_mesh[[1]] <- recommended_mesh[[1]][[1]]
     data_inputs[[1]] <- data_inputs[[1]][[1]]
   }
   return(list('particles' = particles,
               'proposed_samples' = proposed_samples,
               'time' = time,
               'elapsed_time' = elapsed_time,
+              'time_mesh' = used_time_mesh,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,
+              'phi_bound_intensity' = phi_bound_intensity,
+              'phi_kappa' = phi_kappa,
               'E_nu_j' = E_nu_j,
-              'E_nu_j_old' = E_nu_j_old,
+              'chosen' = chosen,
+              'mesh_terms' = mesh_terms,
               'precondition_matrices' = precondition_matrices,
               'sub_posterior_means' = sub_posterior_means,
               'recommended_mesh' = recommended_mesh,

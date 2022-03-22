@@ -216,19 +216,30 @@ Rcpp::List compute_max_E_nu_j_univariate(const double &N,
   const Rcpp::List ESS = particle_ESS(log_rho_weights);
   const Rcpp::NumericVector &normalised_weights = ESS["normalised_weights"];
   // using those normalised weights to compute the maximum E[nu_j]
-  Rcpp::NumericVector variation(N);
+  Rcpp::NumericVector start_variation(N);
+  Rcpp::NumericVector end_variation(N);
   for (int i=0; i < N; ++i) {
     Rcpp::checkUserInterrupt();
-    double ith_variation = 0.0;
+    double ith_start_variation = 0.0;
+    double ith_end_variation = 0.0;
     for (int c=0; c < C; ++c) {
-      const double D = x_means[i] - sub_posterior_means[c];
-      ith_variation += D*D/precondition_values[c];
+      // start point variation
+      const Rcpp::NumericVector &sub_post_c = sub_posterior_samples[c];
+      const double start_D = sub_post_c.at(i) - sub_posterior_means[c];
+      ith_start_variation += start_D*start_D/precondition_values[c];
+      // end point variation
+      const double end_D = x_means[i] - sub_posterior_means[c];
+      ith_end_variation += end_D*end_D/precondition_values[c];
     }
-    variation.at(i) += normalised_weights.at(i)*ith_variation/C;
+    start_variation.at(i) += normalised_weights.at(i)*ith_start_variation/C;
+    end_variation.at(i) += normalised_weights.at(i)*ith_end_variation/C;
   }
-  const double sumed = Rcpp::sum(variation);
-  const double maxed = N*Rcpp::max(variation);
-  return Rcpp::List::create(Named("sumed", sumed), Named("maxed", maxed));
+  const double start_variation_sumed = 1.05*Rcpp::sum(start_variation);
+  const double end_variation_sumed = Rcpp::sum(end_variation);
+  const double max_variation = std::max(start_variation_sumed, end_variation_sumed);
+  return Rcpp::List::create(Named("start_variation_sumed", start_variation_sumed),
+                            Named("end_variation_sumed", end_variation_sumed),
+                            Named("max_variation", max_variation));
 }
 
 //' Calculate the inverse of a sum of matrices
@@ -545,21 +556,32 @@ Rcpp::List compute_max_E_nu_j_multivariate(const double &N,
   const Rcpp::List ESS = particle_ESS(log_rho_weights);
   const Rcpp::NumericVector &normalised_weights = ESS["normalised_weights"];
   // using those normalised weights to compute the maximum E[nu_j]
-  Rcpp::NumericVector variation(N);
+  Rcpp::NumericVector start_variation(N);
+  Rcpp::NumericVector end_variation(N);
   for (int i=0; i < N; ++i) {
     Rcpp::checkUserInterrupt();
-    double ith_variation = 0.0;
+    double ith_start_variation = 0.0;
+    double ith_end_variation = 0.0;
     for (int c=0; c < C; ++c) {
       const arma::rowvec &a_c = sub_posterior_means.row(c);
-      const arma::rowvec D = x_means.row(i) - a_c;
       const arma::mat &inv_precond = inv_precondition_matrices[c];
-      ith_variation += as_scalar((D*inv_precond)*trans(D));
+      // start point variation
+      const arma::mat &sub_post_c = sub_posterior_samples[c];
+      const arma::rowvec start_D = sub_post_c.row(i) - a_c;
+      ith_start_variation += as_scalar((start_D*inv_precond)*trans(start_D));
+      // end point variation
+      const arma::rowvec end_D = x_means.row(i) - a_c;
+      ith_end_variation += as_scalar((end_D*inv_precond)*trans(end_D));
     }
-    variation.at(i) += normalised_weights.at(i)*ith_variation/C;
+    start_variation.at(i) += normalised_weights.at(i)*ith_start_variation/C;
+    end_variation.at(i) += normalised_weights.at(i)*ith_end_variation/C;
   }
-  const double sumed = Rcpp::sum(variation);
-  const double maxed = N*Rcpp::max(variation);
-  return Rcpp::List::create(Named("sumed", sumed), Named("maxed", maxed));
+  const double start_variation_sumed = 1.05*Rcpp::sum(start_variation);
+  const double end_variation_sumed = Rcpp::sum(end_variation);
+  const double max_variation = std::max(start_variation_sumed, end_variation_sumed);
+  return Rcpp::List::create(Named("start_variation_sumed", start_variation_sumed),
+                            Named("end_variation_sumed", end_variation_sumed),
+                            Named("max_variation", max_variation));
 }
 
 //' Calculate the logarithm of the sum of the exponentials of the arguments

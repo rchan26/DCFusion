@@ -114,7 +114,11 @@ A list with components:
                           are the proposed samples for level l, node i}
   \item{time}{list of length (L-1), where time[[l]][[i]] is the run time
               for level l, node i}
-  \item{elapsed_time}{list of length (L-1), where}
+  \item{elapsed_time}{list of length (L-1), where elapsed_time[[l]][[i]]
+                      is the elapsed time of each step of the algorithm for
+                      level l, node i}
+  \item{time_mesh}{list of length (L-1), where time_mesh[[l]][[i]]
+                   is the time_mesh used for level l, node i}
   \item{ESS}{list of length (L-1), where ESS[[l]][[i]] is the effective
              sample size of the particles after each step BEFORE deciding
              whether or not to resample for level l, node i}
@@ -126,6 +130,12 @@ A list with components:
   \item{E_nu_j}{list of length (L-1), where E_nu_j[[l]][[i]] is the
                 approximation of the average variation of the trajectories
                 at each time step for level l, node i}
+  \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
+                which term was chosen if using an adaptive mesh at each
+                time step for level l, node i}
+  \item{mesh_terms}{list of length(L-1), where mesh_terms[[l]][[i]] indicates
+                    the evaluated terms in deciding the mesh at each time step
+                    for level l, node i}
   \item{precondition_matrices}{pre-conditioning matrices that were used}
   \item{sub_posterior_means}{sub-posterior means that were used}
   \item{recommended_mesh}{list of length (L-1), where recommended_mesh[[l]][[i]]

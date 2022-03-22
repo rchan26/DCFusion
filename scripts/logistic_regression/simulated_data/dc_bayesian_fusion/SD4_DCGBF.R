@@ -12,8 +12,8 @@ true_beta <- c(-3, 1.2, -0.5, 0.8, 3)
 frequencies <- c(0.2, 0.3, 0.5, 0.01)
 diffusion_estimator <- 'NB'
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.25
-CESS_j_threshold <- 0.25
+CESS_0_threshold <- 0.2
+CESS_j_threshold <- 0.1
 k1 <- NULL
 k2 <- NULL
 k3 <- -log(CESS_j_threshold)/2
@@ -54,6 +54,22 @@ sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                          warmup = 10000,
                                          seed = seed,
                                          output = T)
+
+##### Applying other methodologies #####
+
+# print('Applying other methodologies')
+consensus_mat_4 <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = F)
+consensus_sca_4 <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = T)
+neiswanger_true_4 <- neiswanger(S = 4,
+                                samples_to_combine = sub_posteriors_4,
+                                anneal = TRUE)
+neiswanger_false_4 <- neiswanger(S = 4,
+                                 samples_to_combine = sub_posteriors_4,
+                                 anneal = FALSE)
+weierstrass_importance_4 <- weierstrass(Samples = sub_posteriors_4,
+                                        method = 'importance')
+weierstrass_rejection_4 <- weierstrass(Samples = sub_posteriors_4,
+                                       method = 'reject')
 
 ##### all at once #####
 GBF_4 <- list('reg' = bal_binary_GBF_BLR(N_schedule = nsamples,
@@ -110,7 +126,7 @@ GBF_4$reg$particles <- resample_particle_y_samples(particle_set = GBF_4$reg$part
                                                    multivariate = TRUE,
                                                    resampling_method = 'resid',
                                                    seed = seed)
-print(integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples))
+print(integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples)) 
 compare_samples_bivariate(posteriors = list(full_posterior,
                                             GBF_4$reg$proposed_samples[[1]],
                                             GBF_4$reg$particles$y_samples),

@@ -117,8 +117,10 @@ A list with components:
   \item{CESS}{conditional effective sample size of the particles after each step}
   \item{resampled}{boolean value to indicate if particles were resampled
                    after each time step}
-  \item{E_nu_j}{Approximation of the average variation of the trajectories
+  \item{E_nu_j}{approximation of the average variation of the trajectories
                 at each time step}
+  \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
+  \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
 }
 }
 \description{

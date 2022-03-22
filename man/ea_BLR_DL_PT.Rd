@@ -12,6 +12,7 @@ ea_BLR_DL_PT(
   s,
   t,
   data,
+  transformed_design_mat,
   prior_means,
   prior_variances,
   C,

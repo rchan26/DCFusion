@@ -12,8 +12,8 @@ true_beta <- c(-3, 1.2, -0.5, 0.8, 3)
 frequencies <- c(0.2, 0.3, 0.5, 0.01)
 diffusion_estimator <- 'NB'
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.25
-CESS_j_threshold <- 0.25
+CESS_0_threshold <- 0.2
+CESS_j_threshold <- 0.1
 k1 <- NULL
 k2 <- NULL
 k3 <- -log(CESS_j_threshold)/2

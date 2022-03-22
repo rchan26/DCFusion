@@ -28,7 +28,30 @@ a_results <- list('vanilla' = list(), 'generalised' = list())
 b_results <- list('vanilla' = list(), 'generalised' = list())
 c_results <- list('vanilla' = list(), 'generalised' = list())
 d_results <- list('vanilla' = list(), 'generalised' = list())
+e_results <- list('vanilla' = list(), 'generalised' = list())
 SSH_adaptive_results <- list('vanilla' = list(), 'generalised' = list())
+
+collect_results <- function(results) {
+  return(list('CESS_0' = results$CESS[1],
+              'CESS_j' = results$CESS[2:length(results$CESS)],
+              'CESS_j_avg' = mean(results$CESS[2:length(results$CESS)]),
+              'n' = length(results$CESS),
+              'time_mesh' = results$particles$time_mesh,
+              'time' = results$time,
+              'elapsed_time' = results$elapsed_time,
+              'resampled' = results$resampled,
+              'ESS' = results$ESS,
+              'E_nu_j' = results$E_nu_j,
+              'chosen' = results$chosen,
+              'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
+                particle_set = results$particles,
+                multivariate = TRUE,
+                resampling_method = 'resid',
+                seed = seed*i)$y_samples,
+                marg_means = c(0,0),
+                marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
+                bw = opt_bw)))
+}
 
 for (i in 1:length(data_sizes)) {
   print(paste('i:', i))
@@ -45,6 +68,8 @@ for (i in 1:length(data_sizes)) {
   c_results$generalised[[i]] <- list()
   d_results$vanilla[[i]] <- list()
   d_results$generalised[[i]] <- list()
+  e_results$vanilla[[i]] <- list()
+  e_results$generalised[[i]] <- list()
   SSH_adaptive_results$vanilla[[i]] <- list()
   SSH_adaptive_results$generalised[[i]] <- list()
   for (rep in 1:number_of_replicates) {
@@ -55,6 +80,7 @@ for (i in 1:length(data_sizes)) {
                       nrow = 2, ncol = 2, byrow = T)
     opt_bw <- ((4*sd^5)/(3*nsamples))^(1/5)
     input_samples <- lapply(1:C, function(sub) mvrnormArma(N = nsamples, mu = mean, Sigma = cov_mat))
+    
     ##### Fixed user-specified parameters #####
     print('### performing standard Bayesian Fusion (with standard mesh)')
     input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
@@ -89,42 +115,8 @@ for (i in 1:length(data_sizes)) {
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed*rep*i)
     # save results
-    a_results$vanilla[[i]][[rep]] <- list('CESS_0' = a_BF_standard$CESS[1],
-                                          'CESS_j' = a_BF_standard$CESS[2:length(a_BF_standard$CESS)],
-                                          'CESS_j_avg' = mean(a_BF_standard$CESS[2:length(a_BF_standard$CESS)]),
-                                          'CESS_j_var' = var(a_BF_standard$CESS[2:length(a_BF_standard$CESS)]),
-                                          'n' = length(a_BF_standard$CESS),
-                                          'time_mesh' = a_BF_standard$particles$time_mesh,
-                                          'time' = a_BF_standard$time,
-                                          'elapsed_time' = a_BF_standard$elapsed_time,
-                                          'resampled' = a_BF_standard$resampled,
-                                          'ESS' = a_BF_standard$ESS,
-                                          'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                            particle_set = a_BF_standard$particles,
-                                            multivariate = TRUE,
-                                            resampling_method = 'resid',
-                                            seed = seed*rep*i)$y_samples,
-                                            marg_means = mean,
-                                            marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                            bw = opt_bw))
-    a_results$generalised[[i]][[rep]] <- list('CESS_0' = a_BF_generalised$CESS[1],
-                                              'CESS_j' = a_BF_generalised$CESS[2:length(a_BF_generalised$CESS)],
-                                              'CESS_j_avg' = mean(a_BF_generalised$CESS[2:length(a_BF_generalised$CESS)]),
-                                              'CESS_j_var' = var(a_BF_generalised$CESS[2:length(a_BF_generalised$CESS)]),
-                                              'n' = length(a_BF_generalised$CESS),
-                                              'time_mesh' = a_BF_generalised$particles$time_mesh,
-                                              'time' = a_BF_generalised$time,
-                                              'elapsed_time' = a_BF_generalised$elapsed_time,
-                                              'resampled' = a_BF_generalised$resampled,
-                                              'ESS' = a_BF_generalised$ESS,
-                                              'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                                particle_set = a_BF_generalised$particles,
-                                                multivariate = TRUE,
-                                                resampling_method = 'resid',
-                                                seed = seed*rep*i)$y_samples,
-                                                marg_means = mean,
-                                                marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                                bw = opt_bw))
+    a_results$vanilla[[i]][[rep]] <- collect_results(a_BF_standard)
+    a_results$generalised[[i]][[rep]] <- collect_results(a_BF_generalised)
     
     ##### Recommended scaling of T, fixed n #####
     print('### performing standard Bayesian Fusion (with recommended T, fixed n)')
@@ -137,9 +129,6 @@ for (i in 1:length(data_sizes)) {
                                              data_size = data_sizes[i],
                                              b = vanilla_b,
                                              sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
-                                             precondition_matrices = rep(list(diag(1,2)), C),
-                                             inv_precondition_matrices = rep(list(diag(1,2)), C),
-                                             Lambda = inverse_sum_matrices(rep(list(diag(1,2)), C)),
                                              k1 = k1,
                                              vanilla = TRUE)
     print(paste('vanilla recommened regular mesh n:', vanilla_guide[[i]][[rep]]$n))
@@ -191,42 +180,8 @@ for (i in 1:length(data_sizes)) {
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed*rep*i)
     # save results
-    b_results$vanilla[[i]][[rep]] <- list('CESS_0' = b_BF_standard$CESS[1],
-                                          'CESS_j' = b_BF_standard$CESS[2:length(b_BF_standard$CESS)],
-                                          'CESS_j_avg' = mean(b_BF_standard$CESS[2:length(b_BF_standard$CESS)]),
-                                          'CESS_j_var' = var(b_BF_standard$CESS[2:length(b_BF_standard$CESS)]),
-                                          'n' = length(b_BF_standard$CESS),
-                                          'time_mesh' = b_BF_standard$particles$time_mesh,
-                                          'time' = b_BF_standard$time,
-                                          'elapsed_time' = b_BF_standard$elapsed_time,
-                                          'resampled' = b_BF_standard$resampled,
-                                          'ESS' = b_BF_standard$ESS,
-                                          'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                            particle_set = b_BF_standard$particles,
-                                            multivariate = TRUE,
-                                            resampling_method = 'resid',
-                                            seed = seed*rep*i)$y_samples,
-                                            marg_means = mean,
-                                            marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                            bw = opt_bw))
-    b_results$generalised[[i]][[rep]] <- list('CESS_0' = b_BF_generalised$CESS[1],
-                                              'CESS_j' = b_BF_generalised$CESS[2:length(b_BF_generalised$CESS)],
-                                              'CESS_j_avg' = mean(b_BF_generalised$CESS[2:length(b_BF_generalised$CESS)]),
-                                              'CESS_j_var' = var(b_BF_generalised$CESS[2:length(b_BF_generalised$CESS)]),
-                                              'n' = length(b_BF_generalised$CESS),
-                                              'time_mesh' = b_BF_generalised$particles$time_mesh,
-                                              'time' = b_BF_generalised$time,
-                                              'elapsed_time' = b_BF_generalised$elapsed_time,
-                                              'resampled' = b_BF_generalised$resampled,
-                                              'ESS' = b_BF_generalised$ESS,
-                                              'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                                particle_set = b_BF_generalised$particles,
-                                                multivariate = TRUE,
-                                                resampling_method = 'resid',
-                                                seed = seed*rep*i)$y_samples,
-                                                marg_means = mean,
-                                                marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                                bw = opt_bw))
+    b_results$vanilla[[i]][[rep]] <- collect_results(b_BF_standard)
+    b_results$generalised[[i]][[rep]] <- collect_results(b_BF_generalised)
     
     ##### Recommended scaling of T, regular mesh #####
     print('### performing standard Bayesian Fusion (with recommended T, regular mesh)')
@@ -262,42 +217,8 @@ for (i in 1:length(data_sizes)) {
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed*rep*i)
     # save results
-    c_results$vanilla[[i]][[rep]] <- list('CESS_0' = c_BF_standard$CESS[1],
-                                          'CESS_j' = c_BF_standard$CESS[2:length(c_BF_standard$CESS)],
-                                          'CESS_j_avg' = mean(c_BF_standard$CESS[2:length(c_BF_standard$CESS)]),
-                                          'CESS_j_var' = var(c_BF_standard$CESS[2:length(c_BF_standard$CESS)]),
-                                          'n' = length(c_BF_standard$CESS),
-                                          'time_mesh' = c_BF_standard$particles$time_mesh,
-                                          'time' = c_BF_standard$time,
-                                          'elapsed_time' = c_BF_standard$elapsed_time,
-                                          'resampled' = c_BF_standard$resampled,
-                                          'ESS' = c_BF_standard$ESS,
-                                          'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                            particle_set = c_BF_standard$particles,
-                                            multivariate = TRUE,
-                                            resampling_method = 'resid',
-                                            seed = seed*rep*i)$y_samples,
-                                            marg_means = mean,
-                                            marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                            bw = opt_bw))
-    c_results$generalised[[i]][[rep]] <- list('CESS_0' = c_BF_generalised$CESS[1],
-                                              'CESS_j' = c_BF_generalised$CESS[2:length(c_BF_generalised$CESS)],
-                                              'CESS_j_avg' = mean(c_BF_generalised$CESS[2:length(c_BF_generalised$CESS)]),
-                                              'CESS_j_var' = var(c_BF_generalised$CESS[2:length(c_BF_generalised$CESS)]),
-                                              'n' = length(c_BF_generalised$CESS),
-                                              'time_mesh' = c_BF_generalised$particles$time_mesh,
-                                              'time' = c_BF_generalised$time,
-                                              'elapsed_time' = c_BF_generalised$elapsed_time,
-                                              'resampled' = c_BF_generalised$resampled,
-                                              'ESS' = c_BF_generalised$ESS,
-                                              'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                                particle_set = c_BF_generalised$particles,
-                                                multivariate = TRUE,
-                                                resampling_method = 'resid',
-                                                seed = seed*rep*i)$y_samples,
-                                                marg_means = mean,
-                                                marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                                bw = opt_bw))
+    c_results$vanilla[[i]][[rep]] <- collect_results(c_BF_standard)
+    c_results$generalised[[i]][[rep]] <- collect_results(c_BF_generalised)
     
     ##### Recommended scaling of T, adaptive mesh #####
     print('### performing standard Bayesian Fusion (with recommended T, adaptive mesh)')
@@ -346,46 +267,51 @@ for (i in 1:length(data_sizes)) {
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed*rep*i)
     # save results
-    d_results$vanilla[[i]][[rep]] <- list('CESS_0' = d_BF_standard$CESS[1],
-                                          'CESS_j' = d_BF_standard$CESS[2:length(d_BF_standard$CESS)],
-                                          'CESS_j_avg' = mean(d_BF_standard$CESS[2:length(d_BF_standard$CESS)]),
-                                          'CESS_j_var' = var(d_BF_standard$CESS[2:length(d_BF_standard$CESS)]),
-                                          'n' = length(d_BF_standard$CESS),
-                                          'time_mesh' = d_BF_standard$particles$time_mesh,
-                                          'time' = d_BF_standard$time,
-                                          'elapsed_time' = d_BF_standard$elapsed_time,
-                                          'resampled' = d_BF_standard$resampled,
-                                          'ESS' = d_BF_standard$ESS,
-                                          'E_nu_j' = d_BF_standard$E_nu_j,
-                                          'E_nu_j_old' = d_BF_standard$E_nu_j_old,
-                                          'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                            particle_set = d_BF_standard$particles,
-                                            multivariate = TRUE,
-                                            resampling_method = 'resid',
-                                            seed = seed*rep*i)$y_samples,
-                                            marg_means = mean,
-                                            marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                            bw = opt_bw))
-    d_results$generalised[[i]][[rep]] <- list('CESS_0' = d_BF_generalised$CESS[1],
-                                              'CESS_j' = d_BF_generalised$CESS[2:length(d_BF_generalised$CESS)],
-                                              'CESS_j_avg' = mean(d_BF_generalised$CESS[2:length(d_BF_generalised$CESS)]),
-                                              'CESS_j_var' = var(d_BF_generalised$CESS[2:length(d_BF_generalised$CESS)]),
-                                              'n' = length(d_BF_generalised$CESS),
-                                              'time_mesh' = d_BF_generalised$particles$time_mesh,
-                                              'time' = d_BF_generalised$time,
-                                              'elapsed_time' = d_BF_generalised$elapsed_time,
-                                              'resampled' = d_BF_generalised$resampled,
-                                              'ESS' = d_BF_generalised$ESS,
-                                              'E_nu_j' = d_BF_generalised$E_nu_j,
-                                              'E_nu_j_old' = d_BF_generalised$E_nu_j_old,
-                                              'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                                particle_set = d_BF_generalised$particles,
+    d_results$vanilla[[i]][[rep]] <- collect_results(d_BF_standard)
+    d_results$generalised[[i]][[rep]] <- collect_results(d_BF_generalised)
+    
+    ##### Recommended scaling of T, regular mesh (with same n as adaptive mesh) #####
+    print('### performing standard Bayesian Fusion (with recommended T, regular mesh (but with same n as adaptive))')
+    reg_mesh_vanilla <- seq(0, vanilla_guide[[i]][[rep]]$min_T, length.out = length(d_BF_standard$particles$time_mesh))
+    input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
                                                 multivariate = TRUE,
-                                                resampling_method = 'resid',
-                                                seed = seed*rep*i)$y_samples,
-                                                marg_means = mean,
-                                                marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                                bw = opt_bw))
+                                                number_of_steps = length(reg_mesh_vanilla))
+    e_BF_standard <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                             N = nsamples,
+                                             m = C,
+                                             time_mesh = reg_mesh_vanilla,
+                                             mean_vecs = rep(list(mean), C),
+                                             sd_vecs = rep(list(sd), C),
+                                             corrs = rep(corr, C),
+                                             betas = rep(beta, C),
+                                             precondition_matrices = rep(list(diag(1,2)), C),
+                                             ESS_threshold = ESS_threshold,
+                                             sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
+                                             adaptive_mesh = FALSE,
+                                             diffusion_estimator = diffusion_estimator,
+                                             seed = seed*i)
+    print('### performing Bayesian Fusion with a preconditioning matrix (with recommended T, regular mesh (but with same n as adaptive))')
+    reg_mesh_gen <- seq(0, gen_guide[[i]][[rep]]$min_T, length.out = length(d_BF_generalised$particles$time_mesh))
+    input_particles <- initialise_particle_sets(samples_to_fuse = input_samples,
+                                                multivariate = TRUE,
+                                                number_of_steps = length(reg_mesh_gen))
+    e_BF_generalised <- parallel_GBF_biGaussian(particles_to_fuse = input_particles,
+                                                N = nsamples,
+                                                m = C,
+                                                time_mesh = reg_mesh_gen,
+                                                mean_vecs = rep(list(mean), C),
+                                                sd_vecs = rep(list(sd), C),
+                                                corrs = rep(corr, C),
+                                                betas = rep(beta, C),
+                                                precondition_matrices = lapply(input_samples, cov),
+                                                ESS_threshold = ESS_threshold,
+                                                sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
+                                                adaptive_mesh = FALSE,
+                                                diffusion_estimator = diffusion_estimator,
+                                                seed = seed*i)
+    # save results
+    e_results$vanilla[[i]][[rep]] <- collect_results(e_BF_standard)
+    e_results$generalised[[i]][[rep]] <- collect_results(e_BF_generalised)
     
     ##### SSH: Recommended scaling of T, adaptive mesh #####
     print('### SSH: performing standard Bayesian Fusion (with recommended T, adaptive mesh)')
@@ -460,186 +386,169 @@ for (i in 1:length(data_sizes)) {
                                                         diffusion_estimator = diffusion_estimator,
                                                         seed = seed*rep*i)
     # save results
-    SSH_adaptive_results$vanilla[[i]][[rep]] <- list('CESS_0' = SSH_adaptive_standard$CESS[1],
-                                                     'CESS_j' = SSH_adaptive_standard$CESS[2:length(SSH_adaptive_standard$CESS)],
-                                                     'CESS_j_avg' = mean(SSH_adaptive_standard$CESS[2:length(SSH_adaptive_standard$CESS)]),
-                                                     'CESS_j_var' = var(SSH_adaptive_standard$CESS[2:length(SSH_adaptive_standard$CESS)]),
-                                                     'n' = length(SSH_adaptive_standard$CESS),
-                                                     'time_mesh' = SSH_adaptive_standard$particles$time_mesh,
-                                                     'time' = SSH_adaptive_standard$time,
-                                                     'elapsed_time' = SSH_adaptive_standard$elapsed_time,
-                                                     'resampled' = SSH_adaptive_standard$resampled,
-                                                     'ESS' = SSH_adaptive_standard$ESS,
-                                                     'E_nu_j' = SSH_adaptive_standard$E_nu_j,
-                                                     'E_nu_j_old' = SSH_adaptive_standard$E_nu_j_old,
-                                                     'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                                       particle_set = SSH_adaptive_standard$particles,
-                                                       multivariate = TRUE,
-                                                       resampling_method = 'resid',
-                                                       seed = seed*rep*i)$y_samples,
-                                                       marg_means = mean,
-                                                       marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                                       bw = opt_bw))
-    SSH_adaptive_results$generalised[[i]][[rep]] <- list('CESS_0' = SSH_adaptive_generalised$CESS[1],
-                                                         'CESS_j' = SSH_adaptive_generalised$CESS[2:length(SSH_adaptive_generalised$CESS)],
-                                                         'CESS_j_avg' = mean(SSH_adaptive_generalised$CESS[2:length(SSH_adaptive_generalised$CESS)]),
-                                                         'n' = length(SSH_adaptive_generalised$CESS),
-                                                         'time_mesh' = SSH_adaptive_generalised$particles$time_mesh,
-                                                         'time' = SSH_adaptive_generalised$time,
-                                                         'elapsed_time' = SSH_adaptive_generalised$elapsed_time,
-                                                         'resampled' = SSH_adaptive_generalised$resampled,
-                                                         'ESS' = SSH_adaptive_generalised$ESS,
-                                                         'E_nu_j' = SSH_adaptive_generalised$E_nu_j,
-                                                         'E_nu_j_old' = SSH_adaptive_generalised$E_nu_j_old,
-                                                         'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
-                                                           particle_set = SSH_adaptive_generalised$particles,
-                                                           multivariate = TRUE,
-                                                           resampling_method = 'resid',
-                                                           seed = seed*rep*i)$y_samples,
-                                                           marg_means = mean,
-                                                           marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
-                                                           bw = opt_bw))
+    SSH_adaptive_results$vanilla[[i]][[rep]] <- collect_results(SSH_adaptive_standard)
+    SSH_adaptive_results$generalised[[i]][[rep]] <- collect_results(SSH_adaptive_generalised)
+    
     # save progress
     print('saving progress')
     save.image('bivG_similar_means_replicates.RData')
   }
 }
 
-##### IAD #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) {
-       mean(sapply(1:number_of_replicates, function(rep) a_results$vanilla[[i]][[rep]]$IAD))
-     }),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.6), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) a_results$vanilla[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 1)
-}
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) b_results$vanilla[[i]][[rep]]$IAD))
-      }),
-      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) b_results$vanilla[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, col = 'blue')
-}
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) c_results$vanilla[[i]][[rep]]$IAD))
-      }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) c_results$vanilla[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, col = 'red')
-}
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) d_results$vanilla[[i]][[rep]]$IAD))
-      }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) d_results$vanilla[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, col = 'green')
-}
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) SH_adaptive_results$vanilla[[i]][[rep]]$IAD))
-      }),
-      pch = 5, lty = 5, lwd = 3, type = 'b', col = 'purple')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) SH_adaptive_results$vanilla[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, col = 'purple')
-}
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
-     labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
-axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
-     font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
-     font = 2, cex = 1.5)
-mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 1000, y = 1.6,
-       legend = c('Fixed T, fixed n',
-                  'SH rec. T, fixed n',
-                  'SH rec. T, reg. mesh',
-                  'SH rec. T, adapt. mesh',
-                  'SSH rec. T, adapt. mesh'),
-       col = c('black', 'blue', 'red', 'green', 'purple'),
-       lty = 1:5,
-       pch = 1:5,
-       lwd = rep(3, 5),
-       cex = 1.25,
-       text.font = 2,
-       bty = 'n')
-
-##### IAD #####
-plot(x = data_sizes,
-     y = sapply(1:length(data_sizes), function(i) {
-       mean(sapply(1:number_of_replicates, function(rep) a_results$generalised[[i]][[rep]]$IAD))
-     }),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.6), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) a_results$generalised[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 1)
-}
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) b_results$generalised[[i]][[rep]]$IAD))
-      }),
-      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) b_results$generalised[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, col = 'blue')
-}
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) c_results$generalised[[i]][[rep]]$IAD))
-      }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) c_results$generalised[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, col = 'red')
-}
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) d_results$generalised[[i]][[rep]]$IAD))
-      }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) d_results$generalised[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, col = 'green')
-}
-lines(x = data_sizes,
-      y = sapply(1:length(data_sizes), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) SH_adaptive_results$generalised[[i]][[rep]]$IAD))
-      }),
-      pch = 5, lty = 5, lwd = 3, type = 'b', col = 'purple')
-for (i in 1:length(data_sizes)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) SH_adaptive_results$generalised[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, col = 'purple')
-}
-axis(1, at = c(1000, seq(10000, 50000, 10000)),
-     labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
-axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
-mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
-     font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
-     font = 2, cex = 1.5)
-mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 1000, y = 1.6,
-       legend = c('Fixed T, fixed n',
-                  'SH rec. T, fixed n',
-                  'SH rec. T, reg. mesh',
-                  'SH rec. T, adapt. mesh',
-                  'SSH rec. T, adapt. mesh'),
-       col = c('black', 'blue', 'red', 'green', 'purple'),
-       lty = 1:5,
-       pch = 1:5,
-       lwd = rep(3, 5),
-       cex = 1.25,
-       text.font = 2,
-       bty = 'n')
-
+# ##### IAD #####
+# plot(x = data_sizes,
+#      y = sapply(1:length(data_sizes), function(i) {
+#        mean(sapply(1:number_of_replicates, function(rep) a_results$vanilla[[i]][[rep]]$IAD))
+#      }),
+#      type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.6), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) a_results$vanilla[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 1)
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) b_results$vanilla[[i]][[rep]]$IAD))
+#       }),
+#       pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) b_results$vanilla[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, col = 'blue')
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) c_results$vanilla[[i]][[rep]]$IAD))
+#       }),
+#       pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) c_results$vanilla[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, col = 'red')
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) d_results$vanilla[[i]][[rep]]$IAD))
+#       }),
+#       pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) d_results$vanilla[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, col = 'green')
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) e_results$vanilla[[i]][[rep]]$IAD))
+#       }),
+#       pch = 5, lty = 5, lwd = 3, type = 'b', col = 'orange')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) e_results$vanilla[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, col = 'orange')
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) SSH_adaptive_results$vanilla[[i]][[rep]]$IAD))
+#       }),
+#       pch = 6, lty = 6, lwd = 3, type = 'b', col = 'purple')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) SSH_adaptive_results$vanilla[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 6, col = 'purple')
+# }
+# axis(1, at = c(1000, seq(10000, 50000, 10000)),
+#      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
+# axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
+# mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
+# axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
+#      font = 2, cex = 1.5)
+# axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
+#      font = 2, cex = 1.5)
+# mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+# legend(x = 1000, y = 1.6,
+#        legend = c('Fixed T, fixed n',
+#                   'SH rec. T, fixed n',
+#                   'SH rec. T, reg. mesh',
+#                   'SH rec. T, adapt. mesh',
+#                   'SH rec. T, reg. mesh (same n as adapt.)',
+#                   'SSH rec. T, adapt. mesh'),
+#        col = c('black', 'blue', 'red', 'green', 'orange', 'purple'),
+#        lty = 1:6,
+#        pch = 1:6,
+#        lwd = rep(3, 6),
+#        cex = 1.25,
+#        text.font = 2,
+#        bty = 'n')
+# 
+# ##### IAD #####
+# plot(x = data_sizes,
+#      y = sapply(1:length(data_sizes), function(i) {
+#        mean(sapply(1:number_of_replicates, function(rep) a_results$generalised[[i]][[rep]]$IAD))
+#      }),
+#      type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.6), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) a_results$generalised[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 1)
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) b_results$generalised[[i]][[rep]]$IAD))
+#       }),
+#       pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) b_results$generalised[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, col = 'blue')
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) c_results$generalised[[i]][[rep]]$IAD))
+#       }),
+#       pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) c_results$generalised[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, col = 'red')
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) d_results$generalised[[i]][[rep]]$IAD))
+#       }),
+#       pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) d_results$generalised[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, col = 'green')
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) e_results$generalised[[i]][[rep]]$IAD))
+#       }),
+#       pch = 5, lty = 5, lwd = 3, type = 'b', col = 'orange')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) e_results$generalised[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, col = 'orange')
+# }
+# lines(x = data_sizes,
+#       y = sapply(1:length(data_sizes), function(i) {
+#         mean(sapply(1:number_of_replicates, function(rep) SH_adaptive_results$generalised[[i]][[rep]]$IAD))
+#       }),
+#       pch = 6, lty = 6, lwd = 3, type = 'b', col = 'purple')
+# for (i in 1:length(data_sizes)) {
+#   IAD <- sapply(1:number_of_replicates, function(rep) SH_adaptive_results$generalised[[i]][[rep]]$IAD)
+#   points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 6, col = 'purple')
+# }
+# axis(1, at = c(1000, seq(10000, 50000, 10000)),
+#      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
+# axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
+# mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
+# axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
+#      font = 2, cex = 1.5)
+# axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
+#      font = 2, cex = 1.5)
+# mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+# legend(x = 1000, y = 1.6,
+#        legend = c('Fixed T, fixed n',
+#                   'SH rec. T, fixed n',
+#                   'SH rec. T, reg. mesh',
+#                   'SH rec. T, adapt. mesh',
+#                   'SH rec. T, reg. mesh (same n as adapt.)',
+#                   'SSH rec. T, adapt. mesh'),
+#        col = c('black', 'blue', 'red', 'green', 'orange', 'purple'),
+#        lty = 1:6,
+#        pch = 1:6,
+#        lwd = rep(3, 6),
+#        cex = 1.25,
+#        text.font = 2,
+#        bty = 'n')

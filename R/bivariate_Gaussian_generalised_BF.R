@@ -51,8 +51,10 @@
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
-#'   \item{E_nu_j}{Approximation of the average variation of the trajectories
+#'   \item{E_nu_j}{approximation of the average variation of the trajectories
 #'                 at each time step}
+#'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
+#'   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
 #' }
 #' 
 #' @export
@@ -127,10 +129,12 @@ rho_j_biGaussian <- function(particle_set,
   resampled <- rep(FALSE, length(time_mesh))
   if (adaptive_mesh) {
     E_nu_j <- rep(NA, length(time_mesh))
-    E_nu_j_old <- rep(NA, length(time_mesh))
+    chosen <- rep("", length(time_mesh))
+    mesh_terms <- rep(list(c(NA,NA)), length(time_mesh))
   } else {
     E_nu_j <- NA
-    E_nu_j_old <- NA
+    chosen <- NULL
+    mesh_terms <- NULL
   }
   # iterative proposals
   end_time <- time_mesh[length(time_mesh)]
@@ -161,18 +165,16 @@ rho_j_biGaussian <- function(particle_set,
                                               d = 2,
                                               data_size = adaptive_mesh_parameters$data_size,
                                               b = adaptive_mesh_parameters$b,
+                                              threshold = adaptive_mesh_parameters$threshold,
                                               particle_set = particle_set,
                                               sub_posterior_means = sub_posterior_means,
                                               inv_precondition_matrices = inv_precondition_matrices,
                                               k3 = adaptive_mesh_parameters$k3,
                                               k4 = adaptive_mesh_parameters$k4,
-                                              T2 = adaptive_mesh_parameters$T2,
                                               vanilla = adaptive_mesh_parameters$vanilla)
-      if (is.null(adaptive_mesh_parameters$T2)) {
-        adaptive_mesh_parameters$T2 <- tilde_Delta_j$T2
-      }
       E_nu_j[j] <- tilde_Delta_j$E_nu_j
-      E_nu_j_old[j] <- tilde_Delta_j$E_nu_j_old
+      chosen[j] <- tilde_Delta_j$chosen
+      mesh_terms[[j]] <- c(tilde_Delta_j$T1, tilde_Delta_j$T2)
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     # split the x samples from the previous time marginal (and their means) into approximately equal lists
@@ -195,9 +197,8 @@ rho_j_biGaussian <- function(particle_set,
                          end_time = end_time,
                          C = m,
                          d = 2,
-                         precondition_matrices = precondition_matrices,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
-                         sub_posterior_mean = split_x_means[[core]][i,])$M
+                         sub_posterior_mean = split_x_means[[core]][i,])
         if (time_mesh[j]!=end_time) {
           return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = 2, byrow = TRUE))
         } else {
@@ -268,7 +269,8 @@ rho_j_biGaussian <- function(particle_set,
     particle_set$time_mesh <- time_mesh[1:j]
     elapsed_time <- elapsed_time[1:(j-1)]
     E_nu_j <- E_nu_j[1:j]
-    E_nu_j_old <- E_nu_j_old[1:j]
+    chosen <- chosen[1:j]
+    mesh_terms <- mesh_terms[1:j]
   }
   return(list('particle_set' = particle_set,
               'proposed_samples' = proposed_samples,
@@ -277,7 +279,8 @@ rho_j_biGaussian <- function(particle_set,
               'CESS' = CESS,
               'resampled' = resampled,
               'E_nu_j' = E_nu_j,
-              'E_nu_j_old' = E_nu_j_old))
+              'chosen' = chosen,
+              'mesh_terms' = mesh_terms))
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -334,8 +337,10 @@ rho_j_biGaussian <- function(particle_set,
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
-#'   \item{E_nu_j}{Approximation of the average variation of the trajectories
+#'   \item{E_nu_j}{approximation of the average variation of the trajectories
 #'                 at each time step}
+#'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
+#'   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]] 
 #'                                are the pre-conditioning matrices that were used 
 #'                                and precondition_matrices[[1]] are the combined 
@@ -460,7 +465,8 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
               'CESS' = rho_j$CESS,
               'resampled' = rho_j$resampled,
               'E_nu_j' = rho_j$E_nu_j,
-              'E_nu_j_old' = rho_j$E_nu_j_old,
+              'chosen' = rho_j$chosen,
+              'mesh_terms' = rho_j$mesh_terms,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means))
 }
