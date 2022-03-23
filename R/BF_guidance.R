@@ -171,8 +171,8 @@ T_guidance <- function(condition,
       }
     }
     T1 <- b*(C^(1.5))*k1/data_size
-    T2 <- (C^(0.5))*k2
-    CESS_0_threshold <- exp(-(gamma/(k1*k2))-(d/(2*k1^2)))
+    T2 <- sqrt(C)*k2
+    CESS_0_threshold <- exp(-((b*gamma)/(k1*k2))-(d/(2*k1*k1)))
     return(list('min_T' = max(T1, T2),
                 'CESS_0_threshold' = CESS_0_threshold,
                 'T1' = T1,
@@ -324,22 +324,6 @@ mesh_guidance_adaptive <- function(C,
         stop("mesh_guidance_adaptive: k3 or k4 was less than 0. Try setting k3=k4=-log(threshold)")
       }
     }
-    # if (is.null(k3)) {
-    #   warning('mesh_guidance_adaptive: k3 is set to -log(threshold)/2 by default')
-    #   k3 <- -log(threshold)/2
-    # } else {
-    #   if (k3 < 0) {
-    #     stop("mesh_guidance_adaptive: k3 must be greater than 0")
-    #   }
-    # }
-    # if (is.null(k4)) {
-    #   warning('mesh_guidance_adaptive: k4 is set to -log(threshold)/2 by default')
-    #   k4 <- -log(threshold)/2
-    # } else {
-    #   if (k4< 0) {
-    #     stop("mesh_guidance_adaptive: k4 must be greater than 0")
-    #   }
-    # }
   }
   T1 <- mesh_T1(k3, b, C, E_nu_j, data_size)
   T2 <- mesh_T2(k4, b, C, data_size, d)
