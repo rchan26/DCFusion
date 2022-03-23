@@ -8,11 +8,10 @@
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
 #'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
-#'                   data_split[[c]]$x is the design matrix for the covariates for
-#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
-#'                   rows of the full data set with their counts and 
-#'                   data_split[[c]]$design_count is the unique rows of the design
-#'                   matrix and their counts
+#'                   data_split[[c]]$X is the design matrix for the covariates for
+#'                   sub-posterior c
+#' @param nu degrees of freedom in t-distribution
+#' @param sigma scale parameter in t-distribution
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C overall number of sub-posteriors
@@ -38,8 +37,6 @@
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
@@ -71,6 +68,8 @@ rho_j_BRR <- function(particle_set,
                       time_mesh,
                       dim,
                       data_split,
+                      nu,
+                      sigma,
                       prior_means,
                       prior_variances,
                       C,
@@ -86,7 +85,6 @@ rho_j_BRR <- function(particle_set,
                       diffusion_estimator,
                       beta_NB = 10,
                       gamma_NB_n_points = 2,
-                      local_bounds = TRUE,
                       seed = NULL,
                       n_cores = parallel::detectCores(),
                       cl = NULL,
@@ -97,10 +95,6 @@ rho_j_BRR <- function(particle_set,
     stop("rho_j_BRR: particle_set must be a \"particle\" object")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("rho_j_BRR: data_split must be a list of length m")
-  } else if (!all(sapply(data_split, function(sub_posterior) {
-    is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count"))}))) {
-    stop("rho_j_BRR: each item in data_split must be a list of length 4 with names
-         \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!is.vector(time_mesh)) {
     stop("rho_j_BRR: time_mesh must be an ordered vector of length >= 2")
   } else if (length(time_mesh) < 2) {
@@ -115,10 +109,6 @@ rho_j_BRR <- function(particle_set,
     stop("rho_j_BRR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
   } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
     stop("rho_j_BRR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
-  } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("rho_j_BRR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
-  } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("rho_j_BRR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("rho_j_BRR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -142,13 +132,13 @@ rho_j_BRR <- function(particle_set,
   if (cv_location == 'mode') {
     cv_location <- lapply(1:m, function(c) {
       MLE <- obtain_LR_MLE(dim = dim, data = data_split[[c]])
-      X <- as.matrix(subset(data_split[[c]]$full_data_count, select = -c(y, count)))
       list('beta_hat' = MLE,
            'grad_log_hat' = log_BRR_gradient(beta = MLE,
-                                             y_labels = data_split[[c]]$full_data_count$y,
-                                             X = X,
+                                             y_resp = data_split[[c]]$y,
+                                             X = data_split[[c]]$X,
                                              X_beta = as.vector(X %*% MLE),
-                                             count = data_split[[c]]$full_data_count$count,
+                                             nu = nu,
+                                             sigma = sigma,
                                              prior_means = prior_means,
                                              prior_variances = prior_variances,
                                              C = C))})
@@ -161,9 +151,7 @@ rho_j_BRR <- function(particle_set,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
-  transformed_design_matrices <- lapply(1:m, function(c) {
-    as.matrix(subset(data_split[[c]]$design_count, select = -count)) %*% transform_matrices[[c]]$to_X
-  })
+  transformed_design_matrices <- lapply(1:m, function(c) data_split[[c]]$X %*% transform_matrices[[c]]$to_X)
   N <- particle_set$N
   # ---------- creating parallel cluster
   if (is.null(cl)) {
@@ -180,7 +168,6 @@ rho_j_BRR <- function(particle_set,
   }
   max_samples_per_core <- ceiling(N/n_cores)
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
-  counts <- c('full_data_count', 'design_count')
   elapsed_time <- rep(NA, length(time_mesh)-1)
   ESS <- c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
@@ -286,7 +273,7 @@ rho_j_BRR <- function(particle_set,
                                        y = as.vector(x_j[[i]][c,]),
                                        s = time_mesh[j-1],
                                        t = time_mesh[j],
-                                       data = data_split[[c]][counts],
+                                       data = data_split[[c]],
                                        transformed_design_mat = transformed_design_matrices[[c]],
                                        prior_means = prior_means,
                                        prior_variances = prior_variances,
@@ -297,7 +284,6 @@ rho_j_BRR <- function(particle_set,
                                        diffusion_estimator = diffusion_estimator,
                                        beta_NB = beta_NB,
                                        gamma_NB_n_points = gamma_NB_n_points,
-                                       local_bounds = local_bounds,
                                        logarithm = TRUE),
                    error = function(e) {
                      ea_BRR_DL_PT(dim = dim,
@@ -305,7 +291,7 @@ rho_j_BRR <- function(particle_set,
                                   y = as.vector(x_j[[i]][c,]),
                                   s = time_mesh[j-1],
                                   t = time_mesh[j],
-                                  data = data_split[[c]][counts],
+                                  data = data_split[[c]],
                                   transformed_design_mat = transformed_design_matrices[[c]],
                                   prior_means = prior_means,
                                   prior_variances = prior_variances,
@@ -316,7 +302,6 @@ rho_j_BRR <- function(particle_set,
                                   diffusion_estimator = diffusion_estimator,
                                   beta_NB = beta_NB,
                                   gamma_NB_n_points = gamma_NB_n_points,
-                                  local_bounds = FALSE,
                                   logarithm = TRUE)})})
         log_rho_j[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
         bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
@@ -411,11 +396,10 @@ rho_j_BRR <- function(particle_set,
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
 #'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
-#'                   data_split[[c]]$x is the design matrix for the covariates for
-#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
-#'                   rows of the full data set with their counts and 
-#'                   data_split[[c]]$design_count is the unique rows of the design
-#'                   matrix and their counts
+#'                   data_split[[c]]$X is the design matrix for the covariates for
+#'                   sub-posterior c
+#' @param nu degrees of freedom in t-distribution
+#' @param sigma scale parameter in t-distribution
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C overall number of sub-posteriors
@@ -445,8 +429,6 @@ rho_j_BRR <- function(particle_set,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
@@ -490,6 +472,8 @@ parallel_GBF_BRR <- function(particles_to_fuse,
                              time_mesh,
                              dim,
                              data_split,
+                             nu,
+                             sigma,
                              prior_means,
                              prior_variances,
                              C,
@@ -505,7 +489,6 @@ parallel_GBF_BRR <- function(particles_to_fuse,
                              diffusion_estimator = 'Poisson',
                              beta_NB = 10,
                              gamma_NB_n_points = 2,
-                             local_bounds = TRUE,
                              seed = NULL,
                              n_cores = parallel::detectCores(),
                              cl = NULL,
@@ -528,10 +511,6 @@ parallel_GBF_BRR <- function(particles_to_fuse,
     stop("parallel_generalised_BF_SMC_BRR: time_mesh must be an ordered vector of length >= 2")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("parallel_generalised_BF_SMC_BRR: data_split must be a list of length m")
-  } else if (!all(sapply(data_split, function(sub_posterior) {
-    is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count"))}))) {
-    stop("parallel_generalised_BF_SMC_BRR: each item in data_split must be a list of length 4 with names
-         \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
     stop("parallel_generalised_BF_SMC_BRR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
@@ -540,10 +519,6 @@ parallel_GBF_BRR <- function(particles_to_fuse,
     stop("parallel_generalised_BF_SMC_BRR: for each i in 1:m, data_split[[i]]$X must be a matrix with dim columns")
   } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
     stop("parallel_generalised_BF_SMC_BRR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
-  } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("parallel_generalised_BF_SMC_BRR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
-  } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("parallel_generalised_BF_SMC_BRR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("parallel_generalised_BF_SMC_BRR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -604,6 +579,8 @@ parallel_GBF_BRR <- function(particles_to_fuse,
                      time_mesh = time_mesh,
                      dim = dim,
                      data_split = data_split,
+                     nu = nu,
+                     sigma = sigma,
                      prior_means = prior_means,
                      prior_variances = prior_variances,
                      C = C,
@@ -619,7 +596,6 @@ parallel_GBF_BRR <- function(particles_to_fuse,
                      diffusion_estimator = diffusion_estimator,
                      beta_NB = beta_NB,
                      gamma_NB_n_points = gamma_NB_n_points,
-                     local_bounds = local_bounds,
                      seed = seed,
                      n_cores = n_cores,
                      cl = cl,
@@ -679,11 +655,10 @@ parallel_GBF_BRR <- function(particles_to_fuse,
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
 #'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
-#'                   data_split[[c]]$x is the design matrix for the covariates for
-#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
-#'                   rows of the full data set with their counts and 
-#'                   data_split[[c]]$design_count is the unique rows of the design
-#'                   matrix and their counts
+#'                   data_split[[c]]$X is the design matrix for the covariates for
+#'                   sub-posterior c
+#' @param nu degrees of freedom in t-distribution
+#' @param sigma scale parameter in t-distribution
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C number of sub-posteriors at the base level
@@ -711,8 +686,6 @@ parallel_GBF_BRR <- function(particles_to_fuse,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param print_progress_iters number of iterations between each progress update
@@ -765,6 +738,8 @@ bal_binary_GBF_BRR <- function(N_schedule,
                                L,
                                dim,
                                data_split,
+                               nu,
+                               sigma,
                                prior_means,
                                prior_variances,
                                C,
@@ -777,7 +752,6 @@ bal_binary_GBF_BRR <- function(N_schedule,
                                diffusion_estimator = 'Poisson',
                                beta_NB = 10,
                                gamma_NB_n_points = 2,
-                               local_bounds = TRUE,
                                seed = NULL,
                                n_cores = parallel::detectCores(),
                                print_progress_iters = 100) {
@@ -789,10 +763,6 @@ bal_binary_GBF_BRR <- function(N_schedule,
     stop("bal_binary_GBF_BRR: base_samples must be a list of length C")
   } else if (!is.list(data_split) | length(data_split)!=C) {
     stop("bal_binary_GBF_BRR: data_split must be a list of length C")
-  } else if (!all(sapply(data_split, function(sub_posterior) {
-    is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count"))}))) {
-    stop("bal_binary_GBF_BRR: each item in data_split must be a list of length 4 with names
-         \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:C, function(i) is.vector(data_split[[i]]$y)))) {
     stop("bal_binary_GBF_BRR: for each i in 1:C, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:C, function(i) is.matrix(data_split[[i]]$X)))) {
@@ -801,10 +771,6 @@ bal_binary_GBF_BRR <- function(N_schedule,
     stop("bal_binary_GBF_BRR: for each i in 1:C, data_split[[i]]$X must be a matrix with dim columns")
   } else if (!all(sapply(1:C, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
     stop("bal_binary_GBF_BRR: for each i in 1:C, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
-  } else if (!all(sapply(1:C, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("bal_binary_GBF_BRR: for each i in 1:C, data_split[[i]]$full_data_count must be a data frame")
-  } else if (!all(sapply(1:C, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("bal_binary_GBF_BRR: for each i in 1:C, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("bal_binary_GBF_BRR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -946,6 +912,8 @@ bal_binary_GBF_BRR <- function(N_schedule,
                                               time_mesh = recommendation$mesh,
                                               dim = dim,
                                               data_split = data_inputs[[k+1]][previous_nodes],
+                                              nu = nu,
+                                              sigma = sigma,
                                               prior_means = prior_means,
                                               prior_variances = prior_variances,
                                               C = (C/prod(m_schedule[L:(k+1)])),
@@ -961,7 +929,6 @@ bal_binary_GBF_BRR <- function(N_schedule,
                                               diffusion_estimator = diffusion_estimator,
                                               beta_NB = beta_NB,
                                               gamma_NB_n_points = gamma_NB_n_points,
-                                              local_bounds = local_bounds,
                                               seed = seed,
                                               n_cores = n_cores,
                                               cl = cl,

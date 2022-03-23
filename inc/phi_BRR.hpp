@@ -61,6 +61,28 @@ Rcpp::List obtain_hypercube_centre_BRR(const Rcpp::List &bessel_layers,
                                        const arma::vec &prior_variances,
                                        const double &C);
 
+Rcpp::List spectral_radius_bound_BRR_Z(const int &dim,
+                                       const arma::mat &V,
+                                       const arma::vec &y_resp,
+                                       const arma::mat &transformed_X,
+                                       const double &nu,
+                                       const double &sigma,
+                                       const arma::vec &prior_variances,
+                                       const double &C,
+                                       const arma::mat &sqrt_Lambda);
+
+Rcpp::List ea_phi_BRR_DL_bounds(const arma::vec &beta_hat,
+                                const arma::vec &grad_log_hat,
+                                const int &dim,
+                                const arma::vec &y_resp,
+                                const arma::mat &transformed_X,
+                                const double &nu,
+                                const double &sigma,
+                                const arma::vec &prior_variances,
+                                const double &C,
+                                const Rcpp::List &transform_mats,
+                                const Rcpp::List &hypercube_vertices);
+
 double gamma_NB_BRR(const arma::vec &times,
                     const double &h,
                     const arma::vec &x0,

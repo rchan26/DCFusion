@@ -180,6 +180,7 @@ Rcpp::List obtain_hypercube_centre_BRR(const Rcpp::List &bessel_layers,
 // [[Rcpp::export]]
 Rcpp::List spectral_radius_bound_BRR_Z(const int &dim,
                                        const arma::mat &V,
+                                       const arma::vec &y_resp,
                                        const arma::mat &transformed_X,
                                        const double &nu,
                                        const double &sigma,
@@ -193,7 +194,7 @@ Rcpp::List spectral_radius_bound_BRR_Z(const int &dim,
   for (int i=0; i < transformed_X.n_rows; ++i) {
     for (int v=0; v < V.n_rows; ++v) {
       const double product = arma::dot(transformed_X.row(i), V.row(v));
-      const double denominator = (y.at(i)-product)*(y.at(i)-product) + nu_sigma_sq;
+      const double denominator = (y_resp.at(i)-product)*(y_resp.at(i)-product) + nu_sigma_sq;
       terms.at(v) = (1/denominator)-((2*nu_sigma_sq)/(denominator*denominator));
     }
     const double max_term = terms.max();
@@ -255,14 +256,14 @@ Rcpp::List spectral_radius_bound_BRR_Z(const int &dim,
 Rcpp::List ea_phi_BRR_DL_bounds(const arma::vec &beta_hat,
                                 const arma::vec &grad_log_hat,
                                 const int &dim,
+                                const arma::vec &y_resp,
                                 const arma::mat &transformed_X,
                                 const double &nu,
                                 const double &sigma,
                                 const arma::vec &prior_variances,
                                 const double &C,
                                 const Rcpp::List &transform_mats,
-                                const Rcpp::List &hypercube_vertices,
-                                const bool &local_bounds) {
+                                const Rcpp::List &hypercube_vertices) {
   const arma::mat &transform_to_X = transform_mats["to_X"];
   const arma::mat &transform_to_Z = transform_mats["to_Z"];
   const double vec_norm = std::sqrt(arma::sum(arma::square(transform_to_X*grad_log_hat)));
@@ -276,6 +277,7 @@ Rcpp::List ea_phi_BRR_DL_bounds(const arma::vec &beta_hat,
   double P_n_Lambda;
   spectral_radius_bds = spectral_radius_bound_BRR_Z(dim,
                                                     V,
+                                                    y_resp,
                                                     transformed_X,
                                                     nu,
                                                     sigma,
@@ -331,109 +333,111 @@ double gamma_NB_BRR(const arma::vec &times,
   return(h*sum_phi_eval/2);
 }
 
-// [[Rcpp::export]]
-arma::vec log_BRR_gradient_Z(const arma::vec &beta,
-                             const arma::vec &y_resp,
-                             const arma::vec &X_beta,
-                             const arma::mat &transformed_X,
-                             const double &nu,
-                             const double &sigma,
-                             const arma::vec &prior_means,
-                             const arma::vec &prior_variances,
-                             const double &C,
-                             const arma::mat &sqrt_precondition_mat) {
-  arma::vec gradient(beta.size(), arma::fill::zeros);
-  const double nu_sigma_sq = nu*sigma*sigma;
-  for (int k=0; k < transformed_X.n_cols; ++k) {
-    double sum = 0;
-    for (int i=0; i < transformed_X.n_rows; ++i) {
-      const double diff = y_resp.at(i)-X_beta.at(i);
-      sum += (transformed_X.at(i,k)*diff) / (nu_sigma_sq + (diff*diff));
-    }
-    gradient.at(k) = (nu+1)*sum;
-    for (int j=0; j < transformed_X.n_cols; ++j) {
-      gradient.at(k) -= (sqrt_precondition_mat.at(j,k)*(beta.at(j)-prior_means.at(j)))/(C*prior_variances.at(j));
-    }
-  }
-  return(gradient);
-}
-
-// [[Rcpp::export]]
-double term2_Z(const arma::vec &y_resp,
-               const arma::vec &X_beta,
-               const arma::mat &transformed_X,
-               const double &nu,
-               const double &sigma,
-               const arma::vec &prior_variances,
-               const double &C,
-               const arma::mat &precondition_mat,
-               const arma::mat &sqrt_precondition_mat) {
-  double divergence = 0;
-  const double nu_sigma_sq = nu*sigma*sigma;
-  for (int k=0; k < transformed_X.n_cols; ++k) {
-    for (int i=0; i < transformed_X.n_rows; ++i) {
-      double diff_sq = (y_resp.at(i)-X_beta.at(i))*(y_resp.at(i)-X_beta.at(i));
-      const double ratio = (diff_sq-nu_sigma_sq) /
-        ((diff_sq+nu_sigma_sq)*(diff_sq+nu_sigma_sq));
-      divergence += (nu+1)*(transformed_X.at(i,k)*transformed_X.at(i,k)*ratio);
-    }
-    for (int j=0; j < transformed_X.n_cols; ++j) {
-      divergence -= (sqrt_precondition_mat.at(j,k)*sqrt_precondition_mat.at(j,k))/(C*prior_variances.at(k));
-    }
-  }
-  return(divergence);
-}
-
-// [[Rcpp::export]]
-double ea_phi_BRR_DL_vec_Z(const arma::vec &beta,
-                           const arma::vec &y_resp,
-                           const arma::mat &X,
-                           const double &nu,
-                           const double &sigma,
-                           const arma::vec &prior_means,
-                           const arma::vec &prior_variances,
-                           const double &C,
-                           const arma::mat &precondition_mat,
-                           const arma::mat &sqrt_precondition_mat) {
-  const arma::vec X_beta = X * beta;
-  const arma::mat transformed_X = X * sqrt_precondition_mat;
-  const arma::vec gradient = log_BRR_gradient_Z(beta,
-                                                y_resp,
-                                                X_beta,
-                                                transformed_X,
-                                                nu,
-                                                sigma,
-                                                prior_means,
-                                                prior_variances,
-                                                C,
-                                                sqrt_precondition_mat);
-  const double t1 = arma::dot(gradient, gradient);
-  const double t2 = term2_Z(y_resp,
-                            X_beta,
-                            transformed_X,
-                            nu,
-                            sigma,
-                            prior_variances,
-                            C,
-                            precondition_mat,
-                            sqrt_precondition_mat);
-  return(0.5*(t1+t2));
-}
-
-// [[Rcpp::export]]
-double term2_X(const arma::vec &y_resp,
-               const arma::mat &X,
-               const arma::vec &X_beta,
-               const double &nu,
-               const double &sigma,
-               const arma::vec &prior_variances,
-               const double &C,
-               const arma::mat &precondition_mat) {
-  return(arma::trace(precondition_mat * log_BRR_hessian(y_resp,
-                                                        X,
-                                                        X_beta,
-                                                        nu,
-                                                        sigma,
-                                                        prior_variances,
-                                                        C)));
-}
+// // [[Rcpp::export]]
+// arma::vec log_BRR_gradient_Z(const arma::vec &beta,
+//                              const arma::vec &y_resp,
+//                              const arma::vec &X_beta,
+//                              const arma::mat &transformed_X,
+//                              const double &nu,
+//                              const double &sigma,
+//                              const arma::vec &prior_means,
+//                              const arma::vec &prior_variances,
+//                              const double &C,
+//                              const arma::mat &sqrt_precondition_mat) {
+//   arma::vec gradient(beta.size(), arma::fill::zeros);
+//   const double nu_sigma_sq = nu*sigma*sigma;
+//   for (int k=0; k < transformed_X.n_cols; ++k) {
+//     double sum = 0;
+//     for (int i=0; i < transformed_X.n_rows; ++i) {
+//       const double diff = y_resp.at(i)-X_beta.at(i);
+//       sum += (transformed_X.at(i,k)*diff) / (nu_sigma_sq + (diff*diff));
+//     }
+//     gradient.at(k) = (nu+1)*sum;
+//     for (int j=0; j < transformed_X.n_cols; ++j) {
+//       gradient.at(k) -= (sqrt_precondition_mat.at(j,k)*(beta.at(j)-prior_means.at(j)))/(C*prior_variances.at(j));
+//     }
+//   }
+//   return(gradient);
+// }
+// 
+// // [[Rcpp::export]]
+// double term2_Z(const arma::vec &y_resp,
+//                const arma::vec &X_beta,
+//                const arma::mat &transformed_X,
+//                const double &nu,
+//                const double &sigma,
+//                const arma::vec &prior_variances,
+//                const double &C,
+//                const arma::mat &precondition_mat,
+//                const arma::mat &sqrt_precondition_mat) {
+//   double divergence = 0;
+//   const double nu_sigma_sq = nu*sigma*sigma;
+//   for (int k=0; k < transformed_X.n_cols; ++k) {
+//     for (int i=0; i < transformed_X.n_rows; ++i) {
+//       double diff_sq = (y_resp.at(i)-X_beta.at(i))*(y_resp.at(i)-X_beta.at(i));
+//       const double ratio = (diff_sq-nu_sigma_sq) /
+//         ((diff_sq+nu_sigma_sq)*(diff_sq+nu_sigma_sq));
+//       divergence += (nu+1)*(transformed_X.at(i,k)*transformed_X.at(i,k)*ratio);
+//     }
+//     for (int j=0; j < transformed_X.n_cols; ++j) {
+//       divergence -= (sqrt_precondition_mat.at(j,k)*sqrt_precondition_mat.at(j,k))/(C*prior_variances.at(k));
+//     }
+//   }
+//   return(divergence);
+// }
+// 
+// // [[Rcpp::export]]
+// Rcpp::List ea_phi_BRR_DL_vec_Z(const arma::vec &beta,
+//                                const arma::vec &y_resp,
+//                                const arma::mat &X,
+//                                const double &nu,
+//                                const double &sigma,
+//                                const arma::vec &prior_means,
+//                                const arma::vec &prior_variances,
+//                                const double &C,
+//                                const arma::mat &precondition_mat,
+//                                const arma::mat &sqrt_precondition_mat) {
+//   const arma::vec X_beta = X * beta;
+//   const arma::mat transformed_X = X * sqrt_precondition_mat;
+//   const arma::vec gradient = log_BRR_gradient_Z(beta,
+//                                                 y_resp,
+//                                                 X_beta,
+//                                                 transformed_X,
+//                                                 nu,
+//                                                 sigma,
+//                                                 prior_means,
+//                                                 prior_variances,
+//                                                 C,
+//                                                 sqrt_precondition_mat);
+//   const double t1 = arma::dot(gradient, gradient);
+//   const double t2 = term2_Z(y_resp,
+//                             X_beta,
+//                             transformed_X,
+//                             nu,
+//                             sigma,
+//                             prior_variances,
+//                             C,
+//                             precondition_mat,
+//                             sqrt_precondition_mat);
+//   return(Rcpp::List::create(Named("phi", 0.5*(t1+t2)),
+//                             Named("t1", t1),
+//                             Named("t2", t2)));
+// }
+// 
+// // [[Rcpp::export]]
+// double term2_X(const arma::vec &y_resp,
+//                const arma::mat &X,
+//                const arma::vec &X_beta,
+//                const double &nu,
+//                const double &sigma,
+//                const arma::vec &prior_variances,
+//                const double &C,
+//                const arma::mat &precondition_mat) {
+//   return(arma::trace(precondition_mat * log_BRR_hessian(y_resp,
+//                                                         X,
+//                                                         X_beta,
+//                                                         nu,
+//                                                         sigma,
+//                                                         prior_variances,
+//                                                         C)));
+// }

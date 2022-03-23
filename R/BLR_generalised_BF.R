@@ -8,7 +8,7 @@
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
 #'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
-#'                   data_split[[c]]$x is the design matrix for the covariates for
+#'                   data_split[[c]]$X is the design matrix for the covariates for
 #'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
 #'                   rows of the full data set with their counts and 
 #'                   data_split[[c]]$design_count is the unique rows of the design
@@ -411,7 +411,7 @@ rho_j_BLR <- function(particle_set,
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
 #'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
-#'                   data_split[[c]]$x is the design matrix for the covariates for
+#'                   data_split[[c]]$X is the design matrix for the covariates for
 #'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
 #'                   rows of the full data set with their counts and 
 #'                   data_split[[c]]$design_count is the unique rows of the design
@@ -679,7 +679,7 @@ parallel_GBF_BLR <- function(particles_to_fuse,
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
 #'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
-#'                   data_split[[c]]$x is the design matrix for the covariates for
+#'                   data_split[[c]]$X is the design matrix for the covariates for
 #'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
 #'                   rows of the full data set with their counts and 
 #'                   data_split[[c]]$design_count is the unique rows of the design

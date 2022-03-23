@@ -1,26 +1,29 @@
 #' @export
 ea_phi_BRR_DL <- function(beta,
-                          y_labels,
+                          y_resp,
                           X,
-                          count,
+                          nu,
+                          sigma,
                           prior_means,
                           prior_variances,
                           C,
                           precondition_mat) {
   if (is.vector(beta)) {
     return(ea_phi_BRR_DL_vec(beta = beta,
-                             y_labels = y_labels,
+                             y_resp = y_resp,
                              X = X,
-                             count = count,
+                             nu = nu,
+                             sigma = sigma,
                              prior_means = prior_means,
                              prior_variances = prior_variances,
                              C = C,
                              precondition_mat = precondition_mat))
   } else if (is.matrix(beta)) {
     return(ea_phi_BRR_DL_matrix(beta = beta,
-                                y_labels = y_labels,
+                                y_resp = y_resp,
                                 X = X,
-                                count = count,
+                                nu = nu,
+                                sigma = sigma,
                                 prior_means = prior_means,
                                 prior_variances = prior_variances,
                                 C = C,
@@ -30,7 +33,7 @@ ea_phi_BRR_DL <- function(beta,
 }
 
 obtain_LR_MLE <- function(dim, data) {
-  return(as.vector(unname(glm(formula = data$y ~ data$X[,2:dim], family = 'binomial')$coeff)))
+  return(as.vector(unname(lm(formula = data$y ~ data$X[,2:dim], family = 'binomial')$coeff)))
 }
 
 #' Diffusion probability for the Exact Algorithm for Langevin diffusion for
@@ -45,11 +48,10 @@ obtain_LR_MLE <- function(dim, data) {
 #' @param s start time
 #' @param t end time
 #' @param data list of length 4 where data[[c]]$y is the vector for y responses 
-#'             and data[[c]]$x is the design matrix for the covariates for
-#'             sub-posterior c, data[[c]]$full_data_count is the unique
-#'             rows of the full data set with their counts and 
-#'             data[[c]]$design_count is the unique rows of the design
-#'             matrix and their counts
+#'             and data[[c]]$X is the design matrix for the covariates for
+#'             sub-posterior c
+#' @param nu degrees of freedom in t-distribution
+#' @param sigma scale parameter in t-distribution
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C overall number of sub-posteriors
@@ -69,8 +71,6 @@ obtain_LR_MLE <- function(dim, data) {
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param logarithm logical value to determine if log probability is
 #'                  returned (TRUE) or not (FALSE)
 #' 
@@ -85,6 +85,8 @@ ea_BRR_DL_PT <- function(dim,
                          t,
                          data,
                          transformed_design_mat,
+                         nu,
+                         sigma,
                          prior_means,
                          prior_variances,
                          C,
@@ -94,7 +96,6 @@ ea_BRR_DL_PT <- function(dim,
                          diffusion_estimator,
                          beta_NB = 10,
                          gamma_NB_n_points = 2,
-                         local_bounds = TRUE,
                          logarithm) {
   # transform to preconditioned space
   z0 <- transform_mats$to_Z %*% x0
@@ -116,22 +117,24 @@ ea_BRR_DL_PT <- function(dim,
       bounds <- ea_phi_BRR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                      grad_log_hat = as.vector(cv_location$grad_log_hat),
                                      dim = dim,
+                                     y_resp = data$X,
                                      transformed_X = transformed_design_mat,
-                                     count = data$design_count$count,
+                                     nu = nu,
+                                     sigma = sigma,
                                      prior_variances = prior_variances,
                                      C = C,
                                      transform_mats = transform_mats,
-                                     hypercube_vertices = hypercube_vertices,
-                                     local_bounds = local_bounds)
+                                     hypercube_vertices = hypercube_vertices)
     } else {
       stop("ea_BRR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
     }
   } else if (cv_location == 'hypercube_centre') {
     cv_location <- obtain_hypercube_centre_BRR(bessel_layers = bes_layers,
                                                transform_to_X = transform_mats$to_X,
-                                               y_labels = data$full_data_count$y,
-                                               X = as.matrix(subset(data$full_data_count, select = -c(y, count))),
-                                               count = data$full_data_count$count,
+                                               y_resp = data$y,
+                                               X = data$X,
+                                               nu = nu,
+                                               sigma = sigma,
                                                prior_means = prior_means,
                                                prior_variances = prior_variances,
                                                C = C)
@@ -140,13 +143,14 @@ ea_BRR_DL_PT <- function(dim,
     bounds <- ea_phi_BRR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                    grad_log_hat = as.vector(cv_location$grad_log_hat),
                                    dim = dim,
+                                   y_resp = data$X,
                                    transformed_X = transformed_design_mat,
-                                   count = data$design_count$count,
+                                   nu = nu,
+                                   sigma = sigma,
                                    prior_variances = prior_variances,
                                    C = C,
                                    transform_mats = transform_mats,
-                                   hypercube_vertices = hypercube_vertices,
-                                   local_bounds = local_bounds)
+                                   hypercube_vertices = hypercube_vertices)
   } else {
     stop("ea_BRR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
   }
@@ -166,9 +170,10 @@ ea_BRR_DL_PT <- function(dim,
                                                              times = runif(kap, s, t))
       sim_path <- t(transform_mats$to_X %*% layered_bb$simulated_path[1:dim,])
       phi <- ea_phi_BRR_DL_matrix(beta = sim_path,
-                                  y_labels = data$full_data_count$y,
-                                  X = as.matrix(subset(data$full_data_count, select = -c(y, count))),
-                                  count = data$full_data_count$count,
+                                  y_resp = data$y,
+                                  X = data$X,
+                                  nu = nu,
+                                  sigma = sigma,
                                   prior_means = prior_means,
                                   prior_variances = prior_variances,
                                   C = C,
@@ -176,9 +181,9 @@ ea_BRR_DL_PT <- function(dim,
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
-        stop('Some of (UX-phi) are < 0. Try local_bounds = FALSE to use global bounds.')
+        stop('Some of (UX-phi) are < 0.')
       } else if (any((phi$phi - LX) < 0)) {
-        stop('Some of (phi-LX) are < 0. Try local_bounds = FALSE to use global bounds.')
+        stop('Some of (phi-LX) are < 0.')
       }
     }
     if (logarithm) {
@@ -198,9 +203,10 @@ ea_BRR_DL_PT <- function(dim,
                                       y = y,
                                       s = s,
                                       t = t,
-                                      y_labels = data$full_data_count$y,
-                                      X = as.matrix(subset(data$full_data_count, select = -c(y, count))),
-                                      count = data$full_data_count$count,
+                                      y_resp = data$y,
+                                      X = data$X,
+                                      nu = nu,
+                                      sigma = sigma,
                                       prior_means = prior_means,
                                       prior_variances = prior_variances,
                                       C = C,
@@ -218,9 +224,10 @@ ea_BRR_DL_PT <- function(dim,
                                                              times = runif(kap, s, t))
       sim_path <- t(transform_mats$to_X %*% layered_bb$simulated_path[1:dim,])
       phi <- ea_phi_BRR_DL_matrix(beta = sim_path,
-                                  y_labels = data$full_data_count$y,
-                                  X = as.matrix(subset(data$full_data_count, select = -c(y, count))),
-                                  count = data$full_data_count$count,
+                                  y_resp = data$y,
+                                  X = data$X,
+                                  nu = nu,
+                                  sigma = sigma,
                                   prior_means = prior_means,
                                   prior_variances = prior_variances,
                                   C = C,
@@ -228,9 +235,9 @@ ea_BRR_DL_PT <- function(dim,
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
-        stop('Some of (UX-phi) are < 0. Try local_bounds = FALSE to use global bounds.')
+        stop('Some of (UX-phi) are < 0.')
       } else if (any((phi$phi - LX) < 0)) {
-        stop('Some of (phi-LX) are < 0. Try local_bounds = FALSE to use global bounds.')
+        stop('Some of (phi-LX) are < 0.')
       }
     }
     log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) -
@@ -257,11 +264,10 @@ ea_BRR_DL_PT <- function(dim,
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
 #'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
-#'                   data_split[[c]]$x is the design matrix for the covariates for
-#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
-#'                   rows of the full data set with their counts and 
-#'                   data_split[[c]]$design_count is the unique rows of the design
-#'                   matrix and their counts
+#'                   data_split[[c]]$X is the design matrix for the covariates for
+#'                   sub-posterior c
+#' @param nu degrees of freedom in t-distribution
+#' @param sigma scale parameter in t-distribution
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C overall number of sub-posteriors
@@ -281,8 +287,6 @@ ea_BRR_DL_PT <- function(dim,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
@@ -301,6 +305,8 @@ Q_IS_BRR <- function(particle_set,
                      time,
                      dim,
                      data_split,
+                     nu,
+                     sigma,
                      prior_means,
                      prior_variances,
                      C,
@@ -311,7 +317,6 @@ Q_IS_BRR <- function(particle_set,
                      diffusion_estimator,
                      beta_NB = 10,
                      gamma_NB_n_points = 2,
-                     local_bounds = TRUE,
                      seed = NULL,
                      n_cores = parallel::detectCores(),
                      cl = NULL,
@@ -322,8 +327,6 @@ Q_IS_BRR <- function(particle_set,
     stop("Q_IS_BRR: particle_set must be a \"particle\" object")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("Q_IS_BRR: data_split must be a list of length m")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
-    stop("Q_IS_BRR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
     stop("Q_IS_BRR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
@@ -332,10 +335,6 @@ Q_IS_BRR <- function(particle_set,
     stop("Q_IS_BRR: for each i in 1:m, ncol(data_split[[i]]$X) must be equal to dim")
   } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
     stop("Q_IS_BRR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
-  } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("Q_IS_BRR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
-  } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("Q_IS_BRR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("Q_IS_BRR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -352,13 +351,13 @@ Q_IS_BRR <- function(particle_set,
   if (cv_location == 'mode') {
     cv_location <- lapply(1:m, function(c) {
       MLE <- obtain_LR_MLE(dim = dim, data = data_split[[c]])
-      X <- as.matrix(subset(data_split[[c]]$full_data_count, select = -c(y, count)))
       list('beta_hat' = MLE,
            'grad_log_hat' = log_BRR_gradient(beta = MLE,
-                                             y_labels = data_split[[c]]$full_data_count$y,
-                                             X = X,
+                                             y_resp = data_split[[c]]$y,
+                                             X = data_split[[c]]$X,
                                              X_beta = as.vector(X %*% MLE),
-                                             count = data_split[[c]]$full_data_count$count,
+                                             nu = nu,
+                                             sigma = sigma,
                                              prior_means = prior_means,
                                              prior_variances = prior_variances,
                                              C = C))})
@@ -371,9 +370,7 @@ Q_IS_BRR <- function(particle_set,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
-  transformed_design_matrices <- lapply(1:m, function(c) {
-    as.matrix(subset(data_split[[c]]$design_count, select = -count)) %*% transform_matrices[[c]]$to_X
-  })
+  transformed_design_matrices <- lapply(1:m, function(c) data_split[[c]]$X %*% transform_matrices[[c]]$to_X)
   N <- particle_set$N
   # ---------- creating parallel cluster
   if (is.null(cl)) {
@@ -393,7 +390,6 @@ Q_IS_BRR <- function(particle_set,
   split_indices <- split(1:N, ceiling(seq_along(1:N)/max_samples_per_core))
   split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
   split_x_means <- lapply(split_indices, function(indices) particle_set$x_means[indices,,drop = FALSE])
-  counts <- c('full_data_count', 'design_count')
   # for each set of x samples, we propose a new value y and assign a weight for it
   # sample for y and importance weight in parallel to split computation
   Q_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
@@ -414,8 +410,10 @@ Q_IS_BRR <- function(particle_set,
                                      y = as.vector(y_samples[i,]),
                                      s = 0,
                                      t = time,
-                                     data = data_split[[c]][counts],
+                                     data = data_split[[c]],
                                      transformed_design_mat = transformed_design_matrices[[c]],
+                                     nu = nu,
+                                     sigma = sigma,
                                      prior_means = prior_means,
                                      prior_variances = prior_variances,
                                      C = C,
@@ -425,7 +423,6 @@ Q_IS_BRR <- function(particle_set,
                                      diffusion_estimator = diffusion_estimator,
                                      beta_NB = beta_NB,
                                      gamma_NB_n_points = gamma_NB_n_points,
-                                     local_bounds = local_bounds,
                                      logarithm = TRUE),
                  error = function(e) {
                    ea_BRR_DL_PT(dim = dim,
@@ -433,8 +430,10 @@ Q_IS_BRR <- function(particle_set,
                                 y = as.vector(y_samples[i,]),
                                 s = 0,
                                 t = time,
-                                data = data_split[[c]][counts],
+                                data = data_split[[c]],
                                 transformed_design_mat = transformed_design_matrices[[c]],
+                                nu = nu,
+                                sigma = sigma,
                                 prior_means = prior_means,
                                 prior_variances = prior_variances,
                                 C = C,
@@ -444,7 +443,6 @@ Q_IS_BRR <- function(particle_set,
                                 diffusion_estimator = diffusion_estimator,
                                 beta_NB = beta_NB,
                                 gamma_NB_n_points = gamma_NB_n_points,
-                                local_bounds = FALSE,
                                 logarithm = TRUE)})})
       log_Q_weights[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
       bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
@@ -502,11 +500,10 @@ Q_IS_BRR <- function(particle_set,
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
 #'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
-#'                   data_split[[c]]$x is the design matrix for the covariates for
-#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
-#'                   rows of the full data set with their counts and 
-#'                   data_split[[c]]$design_count is the unique rows of the design
-#'                   matrix and their counts
+#'                   data_split[[c]]$X is the design matrix for the covariates for
+#'                   sub-posterior c
+#' @param nu degrees of freedom in t-distribution
+#' @param sigma scale parameter in t-distribution
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C overall number of sub-posteriors
@@ -531,8 +528,6 @@ Q_IS_BRR <- function(particle_set,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
@@ -566,6 +561,8 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
                                     time,
                                     dim,
                                     data_split,
+                                    nu,
+                                    sigma,
                                     prior_means,
                                     prior_variances,
                                     C,
@@ -576,7 +573,6 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
                                     diffusion_estimator = 'Poisson',
                                     beta_NB = 10,
                                     gamma_NB_n_points = 2,
-                                    local_bounds = TRUE,
                                     seed = NULL,
                                     n_cores = parallel::detectCores(),
                                     cl = NULL,
@@ -593,8 +589,6 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_BRR: the particles' samples for y should all be matrices with dim columns")
   } else if (!is.list(data_split) | length(data_split)!=m) {
     stop("parallel_fusion_SMC_BRR: data_split must be a list of length m")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
-    stop("parallel_fusion_SMC_BRR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:m, function(i) is.vector(data_split[[i]]$y)))) {
     stop("parallel_fusion_SMC_BRR: for each i in 1:m, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:m, function(i) is.matrix(data_split[[i]]$X)))) {
@@ -603,10 +597,6 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
     stop("parallel_fusion_SMC_BRR: for each i in 1:m, data_split[[i]]$X must be a matrix with dim columns")
   } else if (!all(sapply(1:m, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
     stop("parallel_fusion_SMC_BRR: for each i in 1:m, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
-  } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("parallel_fusion_SMC_BRR: for each i in 1:m, data_split[[i]]$full_data_count must be a data frame")
-  } else if (!all(sapply(1:m, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("parallel_fusion_SMC_BRR: for each i in 1:m, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("parallel_fusion_SMC_BRR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -666,6 +656,8 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
                 time = time,
                 dim = dim,
                 data_split = data_split,
+                nu = nu,
+                sigma = sigma,
                 prior_means = prior_means,
                 prior_variances = prior_variances,
                 C = C,
@@ -676,7 +668,6 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
                 diffusion_estimator = diffusion_estimator,
                 beta_NB = beta_NB,
                 gamma_NB_n_points = gamma_NB_n_points,
-                local_bounds = local_bounds,
                 seed = seed,
                 n_cores = n_cores,
                 cl = cl,
@@ -735,11 +726,10 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
 #' @param dim dimension of the predictors (= p+1)
 #' @param data_split list of length m where each item is a list of length 4 where
 #'                   for c=1,...,m, data_split[[c]]$y is the vector for y responses and
-#'                   data_split[[c]]$x is the design matrix for the covariates for
-#'                   sub-posterior c, data_split[[c]]$full_data_count is the unique
-#'                   rows of the full data set with their counts and 
-#'                   data_split[[c]]$design_count is the unique rows of the design
-#'                   matrix and their counts
+#'                   data_split[[c]]$X is the design matrix for the covariates for
+#'                   sub-posterior c
+#' @param nu degrees of freedom in t-distribution
+#' @param sigma scale parameter in t-distribution
 #' @param prior_means prior for means of predictors
 #' @param prior_variances prior for variances of predictors
 #' @param C number of sub-posteriors at the base level
@@ -767,8 +757,6 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param print_progress_iters number of iterations between each progress update
@@ -806,6 +794,8 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
                                       L,
                                       dim,
                                       data_split,
+                                      nu,
+                                      sigma,
                                       prior_means,
                                       prior_variances,
                                       C,
@@ -816,7 +806,6 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
                                       diffusion_estimator = 'Poisson',
                                       beta_NB = 10,
                                       gamma_NB_n_points = 2,
-                                      local_bounds = TRUE,
                                       seed = NULL,
                                       n_cores = parallel::detectCores(),
                                       print_progress_iters = 100) {
@@ -830,8 +819,6 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
     stop("bal_binary_fusion_SMC_BRR: base_samples must be a list of length C")
   } else if (!is.list(data_split) | length(data_split)!=C) {
     stop("bal_binary_fusion_SMC_BRR: data_split must be a list of length C")
-  } else if (!all(sapply(data_split, function(sub_posterior) (is.list(sub_posterior) & identical(names(sub_posterior), c("y", "X", "full_data_count", "design_count")))))) {
-    stop("bal_binary_fusion_SMC_BRR: each item in data_split must be a list of length 4 with names \'y\', \'X\', \'full_data_count\', \'design_count\'")
   } else if (!all(sapply(1:C, function(i) is.vector(data_split[[i]]$y)))) {
     stop("bal_binary_fusion_SMC_BRR: for each i in 1:C, data_split[[i]]$y must be a vector")
   } else if (!all(sapply(1:C, function(i) is.matrix(data_split[[i]]$X)))) {
@@ -840,10 +827,6 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
     stop("bal_binary_fusion_SMC_BRR: for each i in 1:C, data_split[[i]]$X must be a matrix with dim columns")
   } else if (!all(sapply(1:C, function(i) length(data_split[[i]]$y)==nrow(data_split[[i]]$X)))) {
     stop("bal_binary_fusion_SMC_BRR: for each i in 1:C, length(data_split[[i]]$y) and nrow(data_split[[i]]$X) must be equal")
-  } else if (!all(sapply(1:C, function(i) is.data.frame(data_split[[i]]$full_data_count)))) {
-    stop("bal_binary_fusion_SMC_BRR: for each i in 1:C, data_split[[i]]$full_data_count must be a data frame")
-  } else if (!all(sapply(1:C, function(i) is.data.frame(data_split[[i]]$design_count)))) {
-    stop("bal_binary_fusion_SMC_BRR: for each i in 1:C, data_split[[i]]$design_count must be a data frame")
   } else if (!is.vector(prior_means) | length(prior_means)!=dim) {
     stop("bal_binary_fusion_SMC_BRR: prior_means must be vectors of length dim")
   } else if (!is.vector(prior_variances) | length(prior_variances)!=dim) {
@@ -932,6 +915,8 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
                               time = time_schedule[k],
                               dim = dim,
                               data_split = data_inputs[[k+1]][previous_nodes],
+                              nu = nu,
+                              sigma = sigma,
                               prior_means = prior_means,
                               prior_variances = prior_variances,
                               C = (C/prod(m_schedule[L:(k+1)])),
@@ -942,7 +927,6 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
                               diffusion_estimator = diffusion_estimator,
                               beta_NB = beta_NB,
                               gamma_NB_n_points = gamma_NB_n_points,
-                              local_bounds = local_bounds,
                               seed = seed,
                               n_cores = n_cores,
                               cl = cl,

@@ -47,14 +47,6 @@ obtain_hypercube_vertices <- function(bessel_layers, dim) {
     colnames(V) <- c()
     return(list('vertices' = vertices, 'V' = V))
   } else {
-    stop("dim must be greater than or equal to 1")
+    stop("hypercube_vertices: dim must be greater than or equal to 1")
   }
 }
-
-#' #' @export
-#' surrounding_hypercube_vertices <- function(hypercube_vertices) {
-#'   bounds <- lapply(1:ncol(hypercube_vertices), function(d) c(min(hypercube_vertices[,d]), max(hypercube_vertices[,d])))
-#'   vertices <- as.matrix(expand.grid(bounds))
-#'   colnames(vertices) <- c()
-#'   return(vertices)
-#' }
