@@ -54,7 +54,7 @@ collect_results <- function(results) {
                 bw = opt_bw)))
 }
 
-for (i in rev(1:length(data_sizes))) {
+for (i in rev(1:4)) {
   print(paste('i:', i))
   print(paste('data size:', data_sizes[i]))
   set.seed(seed*i)
