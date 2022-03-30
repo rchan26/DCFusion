@@ -137,7 +137,7 @@ Rcpp::List obtain_hypercube_centre_BLR(const Rcpp::List &bessel_layers,
     const double &U = b_layer["U"];
     centre.at(i) = 0.5*(L+U);
   }
-  const arma::vec beta_hat = transform_to_X*centre;
+  const arma::vec beta_hat = transform_to_X * centre;
   const arma::vec X_beta = X * beta_hat;
   return(Rcpp::List::create(Named("beta_hat", beta_hat),
                             Named("grad_log_hat", log_BLR_gradient(beta_hat,

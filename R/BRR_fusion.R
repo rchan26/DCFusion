@@ -181,8 +181,50 @@ ea_BRR_DL_PT <- function(dim,
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
+        P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
+          spectral_radius_BRR(beta = sim_path[i,],
+                              dim = dim,
+                              y_resp = data$y,
+                              X = data$X,
+                              nu = nu,
+                              sigma = sigma,
+                              prior_variances = prior_variances,
+                              C = C,
+                              Lambda = precondition_mat)})
+        cat('##########', '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('UX:', UX, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('LX:', LX, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.text', append = TRUE)
         stop('Some of (UX-phi) are < 0.')
       } else if (any((phi$phi - LX) < 0)) {
+        P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
+          spectral_radius_BRR(beta = sim_path[i,],
+                              dim = dim,
+                              y_resp = data$y,
+                              X = data$X,
+                              nu = nu,
+                              sigma = sigma,
+                              prior_variances = prior_variances,
+                              C = C,
+                              Lambda = precondition_mat)})
+        cat('%%%%%%%%%%', '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('UX:', UX, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('LX:', LX, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.text', append = TRUE)
         stop('Some of (phi-LX) are < 0.')
       }
     }
@@ -235,8 +277,50 @@ ea_BRR_DL_PT <- function(dim,
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
       if (any(terms < 0)) {
+        P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
+          spectral_radius_BRR(beta = sim_path[i,],
+                              dim = dim,
+                              y_resp = data$y,
+                              X = data$X,
+                              nu = nu,
+                              sigma = sigma,
+                              prior_variances = prior_variances,
+                              C = C,
+                              Lambda = precondition_mat)})
+        cat('##########', '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('UX:', UX, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('LX:', LX, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.text', append = TRUE)
         stop('Some of (UX-phi) are < 0.')
       } else if (any((phi$phi - LX) < 0)) {
+        P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
+          spectral_radius_BRR(beta = sim_path[i,],
+                              dim = dim,
+                              y_resp = data$y,
+                              X = data$X,
+                              nu = nu,
+                              sigma = sigma,
+                              prior_variances = prior_variances,
+                              C = C,
+                              Lambda = precondition_mat)})
+        cat('%%%%%%%%%%', '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('UX:', UX, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('LX:', LX, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.text', append = TRUE)
         stop('Some of (phi-LX) are < 0.')
       }
     }

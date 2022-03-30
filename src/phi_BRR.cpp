@@ -21,9 +21,9 @@ arma::vec log_BRR_gradient(const arma::vec &beta,
     double sum = 0;
     for (int i=0; i < X.n_rows; ++i) {
       const double diff = y_resp.at(i)-X_beta.at(i);
-      sum += (X.at(i,k)*diff) / (nu_sigma_sq+(diff*diff));
+      sum += X.at(i,k)*diff / (nu_sigma_sq+(diff*diff));
     }
-    gradient.at(k) = ((nu+1)*sum) - (beta.at(k)-prior_means.at(k))/(C*prior_variances.at(k));
+      gradient.at(k) = ((nu+1)*sum) - ((beta.at(k)-prior_means.at(k))/(C*prior_variances.at(k)));
   }
   return(gradient);
 }
@@ -49,7 +49,7 @@ arma::mat log_BRR_hessian(const arma::vec &y_resp,
     }
   }
   for (int j=0; j < X.n_cols; ++j) {
-    hessian.at(j,j) = (nu+1)*hessian.at(j,j) - 1/(C*prior_variances.at(j));
+    hessian.at(j,j) = (nu+1)*hessian.at(j,j) - (1/(C*prior_variances.at(j)));
     for (int k=0; k < j; ++k) {
       hessian.at(j,k) = (nu+1)*hessian.at(j,k);
       hessian.at(k,j) = hessian.at(j,k);
@@ -154,7 +154,6 @@ Rcpp::List obtain_hypercube_centre_BRR(const Rcpp::List &bessel_layers,
                                        const arma::vec &prior_means,
                                        const arma::vec &prior_variances,
                                        const double &C) {
-  // calculate the hypercube centre
   arma::vec centre(bessel_layers.size(), arma::fill::zeros);
   for (int i=0; i < bessel_layers.size(); ++i) {
     const Rcpp::List &b_layer = bessel_layers[i];
@@ -162,8 +161,7 @@ Rcpp::List obtain_hypercube_centre_BRR(const Rcpp::List &bessel_layers,
     const double &U = b_layer["U"];
     centre.at(i) = 0.5*(L+U);
   }
-  const arma::vec beta_hat = transform_to_X*centre;
-  // evaluate the gradient of the log posterior at the hypercube centre
+  const arma::vec beta_hat = transform_to_X * centre;
   const arma::vec X_beta = X * beta_hat;
   return(Rcpp::List::create(Named("beta_hat", beta_hat),
                             Named("grad_log_hat", log_BRR_gradient(beta_hat,
@@ -188,7 +186,6 @@ Rcpp::List spectral_radius_bound_BRR_Z(const int &dim,
                                        const double &C,
                                        const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
-  // obtain the lower and upper bound on X_beta
   arma::vec terms(V.n_rows, arma::fill::zeros);
   const double nu_sigma_sq = nu*sigma*sigma;
   for (int i=0; i < transformed_X.n_rows; ++i) {
@@ -274,7 +271,6 @@ Rcpp::List ea_phi_BRR_DL_bounds(const arma::vec &beta_hat,
                                                        transform_to_Z);
   const arma::mat &V = hypercube_vertices["V"];
   Rcpp::List spectral_radius_bds;
-  double P_n_Lambda;
   spectral_radius_bds = spectral_radius_bound_BRR_Z(dim,
                                                     V,
                                                     y_resp,
@@ -284,7 +280,7 @@ Rcpp::List ea_phi_BRR_DL_bounds(const arma::vec &beta_hat,
                                                     prior_variances,
                                                     C,
                                                     transform_to_X);
-  P_n_Lambda = spectral_radius_bds["spectral_radius"];
+  double P_n_Lambda = spectral_radius_bds["spectral_radius"];
   return(Rcpp::List::create(Named("LB", -0.5*dim*P_n_Lambda),
                             Named("UB", 0.5*((vec_norm+dist*P_n_Lambda)*(vec_norm+dist*P_n_Lambda)+dim*P_n_Lambda)),
                             Named("dist", dist),
