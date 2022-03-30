@@ -593,9 +593,9 @@ for (i in  1:length(data_sizes)) {
         y = rep(data_sizes[i]+500, length(d1_results$vanilla[[i]]$time_mesh)),
         type = 'b', pch = 4, lty = 2, lwd = 3)
 }
-# max(sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$time_mesh))
-axis(1, at = seq(0, 0.03, 0.01), labels = seq(0, 0.03, 0.01), font = 2, cex = 1.5)
-axis(1, at = seq(0, 0.03, 0.005), labels = rep("", 7), lwd.ticks = 0.5)
+max(sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$time_mesh))
+axis(1, at = seq(0, 0.05, 0.01), labels = seq(0, 0.05, 0.01), font = 2, cex = 1.5)
+axis(1, at = seq(0, 0.05, 0.005), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Time', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
@@ -679,6 +679,36 @@ axis(2, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(2, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
+
+##### Compare number of mesh points #####
+plot(x = data_sizes,
+     y = sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$n),
+     type = 'b', pch = 3, lty = 3, lwd = 3, ylim = c(0,300), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) d1_results$vanilla[[i]]$n),
+      pch = 4, lty = 4, lwd = 3, type = 'b')
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) d2_results$vanilla[[i]]$n),
+      pch = 5, lty = 5, lwd = 3, type = 'b')
+axis(1, at = c(1000, seq(10000, 50000, 10000)),
+     labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
+axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
+mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 300, 100), labels = seq(0, 300, 100),
+     font = 2, cex = 1.5)
+axis(2, at = seq(0, 300, 50), labels=rep("", 7), lwd.ticks = 0.5,
+     font = 2, cex = 1.5)
+mtext('n', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 250, y = 300,
+       legend = c('SH rec. T, reg. mesh',
+                  'SH rec. T, adapt. mesh (k3=k4)',
+                  'SH rec. T, adapt. mesh'),
+       lty = 3:5,
+       pch = 3:5,
+       lwd = rep(3, 6),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
 
 ##### IAD #####
 plot(x = data_sizes,
@@ -929,8 +959,8 @@ for (i in  1:length(data_sizes)) {
         type = 'b', pch = 4, lty = 2, lwd = 3)
 }
 max(sapply(1:length(data_sizes), function(i) max(c_results$generalised[[i]]$time_mesh)))
-axis(1, at = seq(0, 3, 1), labels = seq(0, 3, 1), font = 2, cex = 1.5)
-axis(1, at = seq(0, 3, 0.5), labels = rep("", 7), lwd.ticks = 0.5)
+axis(1, at = seq(0, 6, 1), labels = seq(0, 6, 1), font = 2, cex = 1.5)
+axis(1, at = seq(0, 6, 0.5), labels = rep("", 13), lwd.ticks = 0.5)
 mtext('Time', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
@@ -1014,6 +1044,36 @@ axis(2, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(2, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
 mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
+
+##### Compare number of mesh points #####
+plot(x = data_sizes,
+     y = sapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$n),
+     type = 'b', pch = 3, lty = 3, lwd = 3, ylim = c(0,300), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) d1_results$generalised[[i]]$n),
+      pch = 4, lty = 4, lwd = 3, type = 'b')
+lines(x = data_sizes,
+      y = sapply(1:length(data_sizes), function(i) d2_results$generalised[[i]]$n),
+      pch = 5, lty = 5, lwd = 3, type = 'b')
+axis(1, at = c(1000, seq(10000, 50000, 10000)),
+     labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
+axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
+mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 300, 100), labels = seq(0, 300, 100),
+     font = 2, cex = 1.5)
+axis(2, at = seq(0, 300, 50), labels=rep("", 7), lwd.ticks = 0.5,
+     font = 2, cex = 1.5)
+mtext('n', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 250, y = 300,
+       legend = c('SH rec. T, reg. mesh',
+                  'SH rec. T, adapt. mesh (k3=k4)',
+                  'SH rec. T, adapt. mesh'),
+       lty = 3:5,
+       pch = 3:5,
+       lwd = rep(3, 6),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
 
 ##### IAD #####
 plot(x = data_sizes,
