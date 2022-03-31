@@ -75,17 +75,17 @@ full_posterior <-  hmc_sample_BRR(noise_error = 'student_t',
                                   seed = seed,
                                   output = T)
 
-##### Sampling from sub-posterior C=4 #####
+##### Sampling from sub-posterior C=8 #####
 
-data_split_4 <- split_data(power_plant$data,
+data_split_8 <- split_data(power_plant$data,
                            y_col_index = 1,
                            X_col_index = 2:5,
-                           C = 4,
+                           C = 8,
                            as_dataframe = F)
-sub_posteriors_4 <- hmc_base_sampler_BRR(noise_error = 'student_t',
+sub_posteriors_8 <- hmc_base_sampler_BRR(noise_error = 'student_t',
                                          nsamples = nsamples_MCF,
-                                         data_split = data_split_4,
-                                         C = 4,
+                                         data_split = data_split_8,
+                                         C = 8,
                                          nu = nu,
                                          sigma = sigma,
                                          prior_means = prior_means,
@@ -94,38 +94,36 @@ sub_posteriors_4 <- hmc_base_sampler_BRR(noise_error = 'student_t',
                                          seed = seed,
                                          output = T)
 
-# compare_samples_bivariate(sub_posteriors_4, colours = c('red', 'blue', 'green', 'orange'), c(-4,4))
-
 ##### Applying other methodologies #####
 
 print('Applying other methodologies')
-consensus_mat_4 <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = F)
-consensus_sca_4 <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = T)
-neiswanger_true_4 <- neiswanger(S = 4,
-                                samples_to_combine = sub_posteriors_4,
+consensus_mat_8 <- consensus_scott(S = 8, samples_to_combine = sub_posteriors_8, indep = F)
+consensus_sca_8 <- consensus_scott(S = 8, samples_to_combine = sub_posteriors_8, indep = T)
+neiswanger_true_8 <- neiswanger(S = 8,
+                                samples_to_combine = sub_posteriors_8,
                                 anneal = TRUE)
-neiswanger_false_4 <- neiswanger(S = 4,
-                                 samples_to_combine = sub_posteriors_4,
+neiswanger_false_8 <- neiswanger(S = 8,
+                                 samples_to_combine = sub_posteriors_8,
                                  anneal = FALSE)
-weierstrass_importance_4 <- weierstrass(Samples = sub_posteriors_4,
+weierstrass_importance_8 <- weierstrass(Samples = sub_posteriors_8,
                                         method = 'importance')
-weierstrass_rejection_4 <- weierstrass(Samples = sub_posteriors_4,
+weierstrass_rejection_8 <- weierstrass(Samples = sub_posteriors_8,
                                        method = 'reject')
 
 ##### Poisson (Hypercube Centre) #####
 print('Poisson Fusion (hypercube centre)')
-Poisson_hc_4 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 2),
-                                          m_schedule = rep(2, 2),
-                                          time_schedule = rep(time_choice, 2),
-                                          base_samples = sub_posteriors_4,
-                                          L = 3,
+Poisson_hc_8 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 3),
+                                          m_schedule = rep(2, 3),
+                                          time_schedule = rep(time_choice, 3),
+                                          base_samples = sub_posteriors_8,
+                                          L = 4,
                                           dim = 5,
-                                          data_split = data_split_4,
+                                          data_split = data_split_8,
                                           nu = nu,
                                           sigma = sigma,
                                           prior_means = prior_means,
                                           prior_variances = prior_variances,
-                                          C = 4,
+                                          C = 8,
                                           precondition = TRUE,
                                           resampling_method = 'resid',
                                           ESS_threshold = ESS_threshold,
@@ -135,58 +133,57 @@ Poisson_hc_4 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 2),
                                           seed = seed,
                                           n_cores = n_cores,
                                           print_progress_iters = 500)
-Poisson_hc_4$particles <- resample_particle_y_samples(particle_set = Poisson_hc_4$particles[[1]],
+Poisson_hc_8$particles <- resample_particle_y_samples(particle_set = Poisson_hc_8$particles[[1]],
                                                       multivariate = TRUE,
                                                       resampling_method = 'resid',
                                                       seed = seed)
-Poisson_hc_4$proposed_samples <- Poisson_hc_4$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, Poisson_hc_4$particles$y_samples))
+Poisson_hc_8$proposed_samples <- Poisson_hc_8$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, Poisson_hc_8$particles$y_samples))
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
-NB_hc_4 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 2),
-                                     m_schedule = rep(2, 2),
-                                     time_schedule = rep(time_choice, 2),
-                                     base_samples = sub_posteriors_4,
-                                     L = 3,
+NB_hc_8 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 3),
+                                     m_schedule = rep(2, 3),
+                                     time_schedule = rep(time_choice, 3),
+                                     base_samples = sub_posteriors_8,
+                                     L = 4,
                                      dim = 5,
-                                     data_split = data_split_4,
+                                     data_split = data_split_8,
                                      nu = nu,
                                      sigma = sigma,
                                      prior_means = prior_means,
                                      prior_variances = prior_variances,
-                                     C = 4,
+                                     C = 8,
                                      precondition = TRUE,
                                      resampling_method = 'resid',
                                      ESS_threshold = ESS_threshold,
                                      cv_location = 'hypercube_centre',
                                      diffusion_estimator = 'NB',
-                                     local_bounds = FALSE,
                                      seed = seed,
                                      n_cores = n_cores,
                                      print_progress_iters = 500)
-NB_hc_4$particles <- resample_particle_y_samples(particle_set = NB_hc_4$particles[[1]],
+NB_hc_8$particles <- resample_particle_y_samples(particle_set = NB_hc_8$particles[[1]],
                                                  multivariate = TRUE,
                                                  resampling_method = 'resid',
                                                  seed = seed)
-NB_hc_4$proposed_samples <- NB_hc_4$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, NB_hc_4$particles$y_samples))
+NB_hc_8$proposed_samples <- NB_hc_8$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, NB_hc_8$particles$y_samples))
 
 ##### Generalised Bayesian Fusion #####
 
 ##### all at once #####
-GBF_4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
-                                         m_schedule = 4,
+GBF_8 <- list('reg' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
+                                         m_schedule = 8,
                                          time_mesh = NULL,
-                                         base_samples = sub_posteriors_4,
+                                         base_samples = sub_posteriors_8,
                                          L = 2,
                                          dim = 5,
-                                         data_split = data_split_4,
+                                         data_split = data_split_8,
                                          nu = nu,
                                          sigma = sigma,
                                          prior_means = prior_means,
                                          prior_variances = prior_variances,
-                                         C = 4,
+                                         C = 8,
                                          precondition = TRUE,
                                          resampling_method = 'resid',
                                          ESS_threshold = ESS_threshold,
@@ -199,17 +196,17 @@ GBF_4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
                                          local_bounds = FALSE,
                                          seed = seed),
               'adaptive' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
-                                              m_schedule = 4,
+                                              m_schedule = 8,
                                               time_mesh = NULL,
-                                              base_samples = sub_posteriors_4,
+                                              base_samples = sub_posteriors_8,
                                               L = 2,
                                               dim = 5,
-                                              data_split = data_split_4,
+                                              data_split = data_split_8,
                                               nu = nu,
                                               sigma = sigma,
                                               prior_means = prior_means,
                                               prior_variances = prior_variances,
-                                              C = 4,
+                                              C = 8,
                                               precondition = TRUE,
                                               resampling_method = 'resid',
                                               ESS_threshold = ESS_threshold,
@@ -223,41 +220,41 @@ GBF_4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
                                               seed = seed))
 
 # regular mesh
-GBF_4$reg$particles <- resample_particle_y_samples(particle_set = GBF_4$reg$particles[[1]],
+GBF_8$reg$particles <- resample_particle_y_samples(particle_set = GBF_8$reg$particles[[1]],
                                                    multivariate = TRUE,
                                                    resampling_method = 'resid',
                                                    seed = seed)
-print(integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples)) 
+print(integrated_abs_distance(full_posterior, GBF_8$reg$particles$y_samples)) 
 compare_samples_bivariate(posteriors = list(full_posterior,
-                                            GBF_4$reg$proposed_samples[[1]],
-                                            GBF_4$reg$particles$y_samples),
+                                            GBF_8$reg$proposed_samples[[1]],
+                                            GBF_8$reg$particles$y_samples),
                           colours = c('black', 'green', 'red'),
                           common_limit = c(-4, 4))
 # adaptive mesh
-GBF_4$adaptive$particles <- resample_particle_y_samples(particle_set = GBF_4$adaptive$particles[[1]],
+GBF_8$adaptive$particles <- resample_particle_y_samples(particle_set = GBF_8$adaptive$particles[[1]],
                                                         multivariate = TRUE,
                                                         resampling_method = 'resid',
                                                         seed = seed)
-print(integrated_abs_distance(full_posterior, GBF_4$adaptive$particles$y_samples))
+print(integrated_abs_distance(full_posterior, GBF_8$adaptive$particles$y_samples))
 compare_samples_bivariate(posteriors = list(full_posterior,
-                                            GBF_4$adaptive$proposed_samples[[1]],
-                                            GBF_4$adaptive$particles$y_samples),
+                                            GBF_8$adaptive$proposed_samples[[1]],
+                                            GBF_8$adaptive$particles$y_samples),
                           colours = c('black', 'green', 'red'),
                           common_limit = c(-4, 4))
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 2),
-                                               m_schedule = rep(2, 2),
+balanced_C8 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 3),
+                                               m_schedule = rep(2, 3),
                                                time_mesh = NULL,
-                                               base_samples = sub_posteriors_4,
-                                               L = 3,
+                                               base_samples = sub_posteriors_8,
+                                               L = 4,
                                                dim = 5,
-                                               data_split = data_split_4,
+                                               data_split = data_split_8,
                                                nu = nu,
                                                sigma = sigma,
                                                prior_means = prior_means,
                                                prior_variances = prior_variances,
-                                               C = 4,
+                                               C = 8,
                                                precondition = TRUE,
                                                resampling_method = 'resid',
                                                ESS_threshold = ESS_threshold,
@@ -269,18 +266,18 @@ balanced_C4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 2)
                                                diffusion_estimator = diffusion_estimator,
                                                local_bounds = FALSE,
                                                seed = seed),
-                    'adaptive' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 2),
-                                                    m_schedule = rep(2, 2),
+                    'adaptive' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 3),
+                                                    m_schedule = rep(2, 3),
                                                     time_mesh = NULL,
-                                                    base_samples = sub_posteriors_4,
-                                                    L = 3,
+                                                    base_samples = sub_posteriors_8,
+                                                    L = 4,
                                                     dim = 5,
-                                                    data_split = data_split_4,
+                                                    data_split = data_split_8,
                                                     nu = nu,
                                                     sigma = sigma,
                                                     prior_means = prior_means,
                                                     prior_variances = prior_variances,
-                                                    C = 4,
+                                                    C = 8,
                                                     precondition = TRUE,
                                                     resampling_method = 'resid',
                                                     ESS_threshold = ESS_threshold,
@@ -294,42 +291,41 @@ balanced_C4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 2)
                                                     seed = seed))
 
 # regular mesh
-balanced_C4$reg$particles <- resample_particle_y_samples(particle_set = balanced_C4$reg$particles[[1]],
+balanced_C8$reg$particles <- resample_particle_y_samples(particle_set = balanced_C8$reg$particles[[1]],
                                                          multivariate = TRUE,
                                                          resampling_method = 'resid',
                                                          seed = seed)
-print(integrated_abs_distance(full_posterior, balanced_C4$reg$particles$y_samples))
+print(integrated_abs_distance(full_posterior, balanced_C8$reg$particles$y_samples))
 compare_samples_bivariate(posteriors = list(full_posterior,
-                                            balanced_C4$reg$proposed_samples[[1]],
-                                            balanced_C4$reg$particles$y_samples),
+                                            balanced_C8$reg$proposed_samples[[1]],
+                                            balanced_C8$reg$particles$y_samples),
                           colours = c('black', 'green', 'red'),
                           common_limit = c(-4, 4))
 # adaptive mesh
-balanced_C4$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C4$adaptive$particles[[1]],
+balanced_C8$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C8$adaptive$particles[[1]],
                                                               multivariate = TRUE,
                                                               resampling_method = 'resid',
                                                               seed = seed)
-print(integrated_abs_distance(full_posterior, balanced_C4$adaptive$particles$y_samples))
+print(integrated_abs_distance(full_posterior, balanced_C8$adaptive$particles$y_samples))
 compare_samples_bivariate(posteriors = list(full_posterior,
-                                            balanced_C4$adaptive$proposed_samples[[1]],
-                                            balanced_C4$adaptive$particles$y_samples),
+                                            balanced_C8$adaptive$proposed_samples[[1]],
+                                            balanced_C8$adaptive$particles$y_samples),
                           colours = c('black', 'green', 'red'),
                           common_limit = c(-4, 4))
 
 ##### IAD #####
 
-integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples)
-integrated_abs_distance(full_posterior, GBF_4$adaptive$particles$y_samples)
-integrated_abs_distance(full_posterior, balanced_C4$reg$particles$y_samples)
-integrated_abs_distance(full_posterior, balanced_C4$adaptive$particles$y_samples)
-integrated_abs_distance(full_posterior, Poisson_hc_4$particles$y_samples)
-integrated_abs_distance(full_posterior, NB_hc_4$particles$y_samples)
-integrated_abs_distance(full_posterior, consensus_mat_4$samples)
-integrated_abs_distance(full_posterior, consensus_sca_4$samples)
-integrated_abs_distance(full_posterior, neiswanger_true_4$samples)
-integrated_abs_distance(full_posterior, neiswanger_false_4$samples)
-integrated_abs_distance(full_posterior, weierstrass_importance_4$samples)
-integrated_abs_distance(full_posterior, weierstrass_rejection_4$samples)
+integrated_abs_distance(full_posterior, GBF_8$reg$particles$y_samples)
+integrated_abs_distance(full_posterior, GBF_8$adaptive$particles$y_samples)
+integrated_abs_distance(full_posterior, balanced_C8$reg$particles$y_samples)
+integrated_abs_distance(full_posterior, balanced_C8$adaptive$particles$y_samples)
+integrated_abs_distance(full_posterior, Poisson_hc_8$particles$y_samples)
+integrated_abs_distance(full_posterior, NB_hc_8$particles$y_samples)
+integrated_abs_distance(full_posterior, consensus_mat_8$samples)
+integrated_abs_distance(full_posterior, consensus_sca_8$samples)
+integrated_abs_distance(full_posterior, neiswanger_true_8$samples)
+integrated_abs_distance(full_posterior, neiswanger_false_8$samples)
+integrated_abs_distance(full_posterior, weierstrass_importance_8$samples)
+integrated_abs_distance(full_posterior, weierstrass_rejection_8$samples)
 
-save.image('PP4.RData')
-
+save.image('PP8.RData')
