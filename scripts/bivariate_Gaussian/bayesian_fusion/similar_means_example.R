@@ -322,7 +322,7 @@ for (i in 1:length(data_sizes)) {
                                             adaptive_mesh = TRUE,
                                             adaptive_mesh_parameters = list('data_size' = data_sizes[i],
                                                                             'b' = vanilla_b,
-                                                                            'threshold' = CESS_j_threshold,
+                                                                            'CESS_j_threshold' = CESS_j_threshold,
                                                                             'vanilla' = TRUE),
                                             diffusion_estimator = diffusion_estimator,
                                             seed = seed*i)
@@ -343,7 +343,7 @@ for (i in 1:length(data_sizes)) {
                                                sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
                                                adaptive_mesh = TRUE,
                                                adaptive_mesh_parameters = list('data_size' = data_sizes[i],
-                                                                               'threshold' = CESS_j_threshold,
+                                                                               'CESS_j_threshold' = CESS_j_threshold,
                                                                                'vanilla' = FALSE),
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed*i)
@@ -382,7 +382,7 @@ for (i in 1:length(data_sizes)) {
                                                    adaptive_mesh = TRUE,
                                                    adaptive_mesh_parameters = list('data_size' = data_sizes[i],
                                                                                    'b' = vanilla_b,
-                                                                                   'threshold' = CESS_j_threshold,
+                                                                                   'CESS_j_threshold' = CESS_j_threshold,
                                                                                    'vanilla' = TRUE),
                                                    diffusion_estimator = diffusion_estimator,
                                                    seed = seed*i)
@@ -417,7 +417,7 @@ for (i in 1:length(data_sizes)) {
                                                       sub_posterior_means = t(sapply(input_samples, function(sub) apply(sub, 2, mean))),
                                                       adaptive_mesh = TRUE,
                                                       adaptive_mesh_parameters = list('data_size' = data_sizes[i],
-                                                                                      'threshold' = CESS_j_threshold,
+                                                                                      'CESS_j_threshold' = CESS_j_threshold,
                                                                                       'vanilla' = FALSE),
                                                       diffusion_estimator = diffusion_estimator,
                                                       seed = seed*i)
