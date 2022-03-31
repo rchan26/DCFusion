@@ -27,6 +27,7 @@ rho_j_BRR(
   diffusion_estimator,
   beta_NB = 10,
   gamma_NB_n_points = 2,
+  local_bounds = TRUE,
   seed = NULL,
   n_cores = parallel::detectCores(),
   cl = NULL,

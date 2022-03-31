@@ -42,7 +42,6 @@ Rcpp::List ea_phi_BRR_DL_matrix(const arma::mat &beta,
                                 const arma::mat &precondition_mat);
 
 double spectral_radius_BRR(const arma::vec &beta,
-                           const int &dim,
                            const arma::vec &y_resp,
                            const arma::mat &X,
                            const double &nu,

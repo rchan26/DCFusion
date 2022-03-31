@@ -107,7 +107,6 @@ Rcpp::List ea_phi_BLR_DL_matrix(const arma::mat &beta,
 
 // [[Rcpp::export]]
 double spectral_radius_BLR(const arma::vec &beta,
-                           const int &dim,
                            const arma::mat &X,
                            const arma::vec &count,
                            const arma::vec &prior_variances,
@@ -195,7 +194,6 @@ Rcpp::List spectral_radius_global_bound_BLR_Z(const int &dim,
                                               const arma::vec &prior_variances,
                                               const double &C,
                                               const arma::mat &sqrt_Lambda) {
-  // ----- compute the matrix A = Hessian of the transformed log sub-posterior
   arma::mat hessian(dim, dim, arma::fill::zeros);
   for (int i=0; i < transformed_X.n_rows; ++i) {
     for (int k=0; k < dim; ++k) {

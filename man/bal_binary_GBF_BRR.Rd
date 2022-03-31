@@ -26,6 +26,7 @@ bal_binary_GBF_BRR(
   diffusion_estimator = "Poisson",
   beta_NB = 10,
   gamma_NB_n_points = 2,
+  local_bounds = TRUE,
   seed = NULL,
   n_cores = parallel::detectCores(),
   print_progress_iters = 100

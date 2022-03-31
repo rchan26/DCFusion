@@ -32,7 +32,7 @@ ea_phi_BRR_DL <- function(beta,
   stop("ea_phi_BRR_DL: beta must be a vector or a matrix")
 }
 
-obtain_LR_MLE <- function(dim, data) {
+obtain_RR_MLE <- function(dim, data) {
   return(as.vector(unname(lm(formula = data$y ~ data$X[,2:dim], family = 'binomial')$coeff)))
 }
 
@@ -71,6 +71,8 @@ obtain_LR_MLE <- function(dim, data) {
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
 #' @param logarithm logical value to determine if log probability is
 #'                  returned (TRUE) or not (FALSE)
 #' 
@@ -96,6 +98,7 @@ ea_BRR_DL_PT <- function(dim,
                          diffusion_estimator,
                          beta_NB = 10,
                          gamma_NB_n_points = 2,
+                         local_bounds = TRUE,
                          logarithm) {
   # transform to preconditioned space
   z0 <- transform_mats$to_Z %*% x0
@@ -124,7 +127,8 @@ ea_BRR_DL_PT <- function(dim,
                                      prior_variances = prior_variances,
                                      C = C,
                                      transform_mats = transform_mats,
-                                     hypercube_vertices = hypercube_vertices)
+                                     hypercube_vertices = hypercube_vertices,
+                                     local_bounds = local_bounds)
     } else {
       stop("ea_BRR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
     }
@@ -150,7 +154,8 @@ ea_BRR_DL_PT <- function(dim,
                                    prior_variances = prior_variances,
                                    C = C,
                                    transform_mats = transform_mats,
-                                   hypercube_vertices = hypercube_vertices)
+                                   hypercube_vertices = hypercube_vertices,
+                                   local_bounds = local_bounds)
   } else {
     stop("ea_BRR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
   }
@@ -180,10 +185,9 @@ ea_BRR_DL_PT <- function(dim,
                                   precondition_mat = precondition_mat)
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
-      if (any(terms < 0)) {
+      tryCatch(expr = {if (any(terms < 0)) {
         P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BRR(beta = sim_path[i,],
-                              dim = dim,
                               y_resp = data$y,
                               X = data$X,
                               nu = nu,
@@ -191,22 +195,21 @@ ea_BRR_DL_PT <- function(dim,
                               prior_variances = prior_variances,
                               C = C,
                               Lambda = precondition_mat)})
-        cat('##########', '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('UX:', UX, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('LX:', LX, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('##########', '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('UX:', UX, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('LX:', LX, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.txt', append = TRUE)
         stop('Some of (UX-phi) are < 0.')
       } else if (any((phi$phi - LX) < 0)) {
         P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BRR(beta = sim_path[i,],
-                              dim = dim,
                               y_resp = data$y,
                               X = data$X,
                               nu = nu,
@@ -214,19 +217,20 @@ ea_BRR_DL_PT <- function(dim,
                               prior_variances = prior_variances,
                               C = C,
                               Lambda = precondition_mat)})
-        cat('%%%%%%%%%%', '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('UX:', UX, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('LX:', LX, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('%%%%%%%%%%', '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('UX:', UX, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('LX:', LX, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.txt', append = TRUE)
         stop('Some of (phi-LX) are < 0.')
-      }
+      }},
+      error = function(e) {cat('terms:', terms, '\n', file = 'phi_BRR_error.txt', append = TRUE)})
     }
     if (logarithm) {
       return(list('phi' = -LX*(t-s) - kap*log(UX-LX) + log_acc_prob,
@@ -253,8 +257,41 @@ ea_BRR_DL_PT <- function(dim,
                                       prior_variances = prior_variances,
                                       C = C,
                                       precondition_mat = precondition_mat)
-    gamma_NB <- (t-s)*UX - integral_estimate
+    gamma_NB <- (t-s)*UX - integral_estimate$gamma_NB
     kap <- rnbinom(1, size = beta_NB, mu = gamma_NB)
+    if (is.nan(kap)) {
+      cat('%%%%%%%%%%', '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('times:', times_to_eval, '\n', file = 'kap_nan_error.txt', append = T)
+      cat('gamma_NB_n_points:', gamma_NB_n_points, '\n', file = 'kap_nan_error.txt', append = T)
+      cat('h:', h, '\n', file = 'kap_nan_error.txt', append = T)
+      cat('x0:', x0, '\n', file = 'kap_nan_error.txt', append = T)
+      cat('y:', y, '\n', file = 'kap_nan_error.txt', append = T)
+      cat('s:', s, '\n', file = 'kap_nan_error.txt', append = T)
+      cat('t:', t, '\n', file = 'kap_nan_error.txt', append = T)
+      cat('UX:', UX, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('LX:', LX, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('(t-s)*UX:', (t-s)*UX, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('integral_estimate:', integral_estimate$gamma_NB, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('gamma_NB:', gamma_NB, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('phi_eval:', integral_estimate$phi, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('P_n_Lambda:', integral_estimate$spectral_radius, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('max(P_n_Lambda):', max(integral_estimate$spectral_radius), '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('t1_bds:', bounds$t1_bds, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('t1:', integral_estimate$t1, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('t2_bds:', bounds$t2_bds, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('t2:', integral_estimate$t2, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('dist_bound:', bounds$dist, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      cat('dist:', integral_estimate$dist, '\n', file = 'kap_nan_error.txt', append = TRUE)
+      for (i in 1:nrow(integral_estimate$eval)) {
+        cat('i:',i,'|| eval_point:', as.vector(integral_estimate$eval[i,]), '\n', file = 'kap_nan_error.txt', append = TRUE)
+        trans_point <- as.vector(transform_mats$to_Z %*% as.vector(integral_estimate$eval[i,]))
+        cat('eval_point in Bessel layer:',
+            all(sapply(1:length(trans_point), function(d) {
+              bes_layers[[d]]$L < trans_point[d] & trans_point[d] < bes_layers[[d]]})),
+            '\n', file = 'kap_nan_error.txt', append = TRUE)
+      }
+    }
     log_acc_prob <- 0
     if (kap > 0) {
       layered_bb <- layeredBB::multi_layered_brownian_bridge(dim = dim,
@@ -276,10 +313,9 @@ ea_BRR_DL_PT <- function(dim,
                                   precondition_mat = precondition_mat)
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
-      if (any(terms < 0)) {
+      tryCatch(expr = {if (any(terms < 0)) {
         P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BRR(beta = sim_path[i,],
-                              dim = dim,
                               y_resp = data$y,
                               X = data$X,
                               nu = nu,
@@ -287,22 +323,21 @@ ea_BRR_DL_PT <- function(dim,
                               prior_variances = prior_variances,
                               C = C,
                               Lambda = precondition_mat)})
-        cat('##########', '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('UX:', UX, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('LX:', LX, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('##########', '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('UX:', UX, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('LX:', LX, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.txt', append = TRUE)
         stop('Some of (UX-phi) are < 0.')
       } else if (any((phi$phi - LX) < 0)) {
         P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BRR(beta = sim_path[i,],
-                              dim = dim,
                               y_resp = data$y,
                               X = data$X,
                               nu = nu,
@@ -310,19 +345,20 @@ ea_BRR_DL_PT <- function(dim,
                               prior_variances = prior_variances,
                               C = C,
                               Lambda = precondition_mat)})
-        cat('%%%%%%%%%%', '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('UX:', UX, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('LX:', LX, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.text', append = TRUE)
-        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.text', append = TRUE)
+        cat('%%%%%%%%%%', '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('UX:', UX, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('LX:', LX, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('phi:', phi$phi, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('P_n_Lambda_bound:', bounds$P_n_Lambda, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('P_n_Lambda:', P_n_Lam, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('max(P_n_Lambda):', max(P_n_Lam), '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t1_bds:', bounds$t1_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t1:', phi$t1, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
+        cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.txt', append = TRUE)
         stop('Some of (phi-LX) are < 0.')
-      }
+      }},
+      error = function(e) {cat('terms:', terms, '\n', file = 'phi_BRR_error.txt', append = TRUE)})
     }
     log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) -
       lgamma(beta_NB+kap) - beta_NB*log(beta_NB) - kap*log(gamma_NB)
@@ -371,6 +407,8 @@ ea_BRR_DL_PT <- function(dim,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
@@ -401,6 +439,7 @@ Q_IS_BRR <- function(particle_set,
                      diffusion_estimator,
                      beta_NB = 10,
                      gamma_NB_n_points = 2,
+                     local_bounds = TRUE,
                      seed = NULL,
                      n_cores = parallel::detectCores(),
                      cl = NULL,
@@ -434,7 +473,7 @@ Q_IS_BRR <- function(particle_set,
   }
   if (cv_location == 'mode') {
     cv_location <- lapply(1:m, function(c) {
-      MLE <- obtain_LR_MLE(dim = dim, data = data_split[[c]])
+      MLE <- obtain_RR_MLE(dim = dim, data = data_split[[c]])
       list('beta_hat' = MLE,
            'grad_log_hat' = log_BRR_gradient(beta = MLE,
                                              y_resp = data_split[[c]]$y,
@@ -507,6 +546,7 @@ Q_IS_BRR <- function(particle_set,
                                      diffusion_estimator = diffusion_estimator,
                                      beta_NB = beta_NB,
                                      gamma_NB_n_points = gamma_NB_n_points,
+                                     local_bounds = local_bounds,
                                      logarithm = TRUE),
                  error = function(e) {
                    ea_BRR_DL_PT(dim = dim,
@@ -527,6 +567,7 @@ Q_IS_BRR <- function(particle_set,
                                 diffusion_estimator = diffusion_estimator,
                                 beta_NB = beta_NB,
                                 gamma_NB_n_points = gamma_NB_n_points,
+                                local_bounds = FALSE,
                                 logarithm = TRUE)})})
       log_Q_weights[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
       bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
@@ -612,6 +653,8 @@ Q_IS_BRR <- function(particle_set,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
@@ -657,6 +700,7 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
                                     diffusion_estimator = 'Poisson',
                                     beta_NB = 10,
                                     gamma_NB_n_points = 2,
+                                    local_bounds = TRUE,
                                     seed = NULL,
                                     n_cores = parallel::detectCores(),
                                     cl = NULL,
@@ -752,6 +796,7 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
                 diffusion_estimator = diffusion_estimator,
                 beta_NB = beta_NB,
                 gamma_NB_n_points = gamma_NB_n_points,
+                local_bounds = local_bounds,
                 seed = seed,
                 n_cores = n_cores,
                 cl = cl,
@@ -841,6 +886,8 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
+#' @param local_bounds logical value indicating if local bounds for the phi function
+#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param print_progress_iters number of iterations between each progress update
@@ -890,6 +937,7 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
                                       diffusion_estimator = 'Poisson',
                                       beta_NB = 10,
                                       gamma_NB_n_points = 2,
+                                      local_bounds = TRUE,
                                       seed = NULL,
                                       n_cores = parallel::detectCores(),
                                       print_progress_iters = 100) {
@@ -1011,6 +1059,7 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
                               diffusion_estimator = diffusion_estimator,
                               beta_NB = beta_NB,
                               gamma_NB_n_points = gamma_NB_n_points,
+                              local_bounds = local_bounds,
                               seed = seed,
                               n_cores = n_cores,
                               cl = cl,

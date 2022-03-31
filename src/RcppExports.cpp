@@ -421,19 +421,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // spectral_radius_BLR
-double spectral_radius_BLR(const arma::vec& beta, const int& dim, const arma::mat& X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const arma::mat& Lambda);
-RcppExport SEXP _DCFusion_spectral_radius_BLR(SEXP betaSEXP, SEXP dimSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP LambdaSEXP) {
+double spectral_radius_BLR(const arma::vec& beta, const arma::mat& X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const arma::mat& Lambda);
+RcppExport SEXP _DCFusion_spectral_radius_BLR(SEXP betaSEXP, SEXP XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP LambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type count(countSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Lambda(LambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(spectral_radius_BLR(beta, dim, X, count, prior_variances, C, Lambda));
+    rcpp_result_gen = Rcpp::wrap(spectral_radius_BLR(beta, X, count, prior_variances, C, Lambda));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -606,13 +605,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // spectral_radius_BRR
-double spectral_radius_BRR(const arma::vec& beta, const int& dim, const arma::vec& y_resp, const arma::mat& X, const double& nu, const double& sigma, const arma::vec& prior_variances, const double& C, const arma::mat& Lambda);
-RcppExport SEXP _DCFusion_spectral_radius_BRR(SEXP betaSEXP, SEXP dimSEXP, SEXP y_respSEXP, SEXP XSEXP, SEXP nuSEXP, SEXP sigmaSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP LambdaSEXP) {
+double spectral_radius_BRR(const arma::vec& beta, const arma::vec& y_resp, const arma::mat& X, const double& nu, const double& sigma, const arma::vec& prior_variances, const double& C, const arma::mat& Lambda);
+RcppExport SEXP _DCFusion_spectral_radius_BRR(SEXP betaSEXP, SEXP y_respSEXP, SEXP XSEXP, SEXP nuSEXP, SEXP sigmaSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP LambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type y_resp(y_respSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const double& >::type nu(nuSEXP);
@@ -620,7 +618,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Lambda(LambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(spectral_radius_BRR(beta, dim, y_resp, X, nu, sigma, prior_variances, C, Lambda));
+    rcpp_result_gen = Rcpp::wrap(spectral_radius_BRR(beta, y_resp, X, nu, sigma, prior_variances, C, Lambda));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -662,9 +660,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// spectral_radius_global_bound_BRR_Z
+Rcpp::List spectral_radius_global_bound_BRR_Z(const int& dim, const arma::mat& transformed_X, const double& nu, const double& sigma, const arma::vec& prior_variances, const double& C, const arma::mat& sqrt_Lambda);
+RcppExport SEXP _DCFusion_spectral_radius_global_bound_BRR_Z(SEXP dimSEXP, SEXP transformed_XSEXP, SEXP nuSEXP, SEXP sigmaSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_LambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type transformed_X(transformed_XSEXP);
+    Rcpp::traits::input_parameter< const double& >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< const double& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
+    Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type sqrt_Lambda(sqrt_LambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(spectral_radius_global_bound_BRR_Z(dim, transformed_X, nu, sigma, prior_variances, C, sqrt_Lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ea_phi_BRR_DL_bounds
-Rcpp::List ea_phi_BRR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const int& dim, const arma::vec& y_resp, const arma::mat& transformed_X, const double& nu, const double& sigma, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices);
-RcppExport SEXP _DCFusion_ea_phi_BRR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP dimSEXP, SEXP y_respSEXP, SEXP transformed_XSEXP, SEXP nuSEXP, SEXP sigmaSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP) {
+Rcpp::List ea_phi_BRR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const int& dim, const arma::vec& y_resp, const arma::mat& transformed_X, const double& nu, const double& sigma, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices, const bool& local_bounds);
+RcppExport SEXP _DCFusion_ea_phi_BRR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP dimSEXP, SEXP y_respSEXP, SEXP transformed_XSEXP, SEXP nuSEXP, SEXP sigmaSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP, SEXP local_boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -679,7 +694,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type transform_mats(transform_matsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type hypercube_vertices(hypercube_verticesSEXP);
-    rcpp_result_gen = Rcpp::wrap(ea_phi_BRR_DL_bounds(beta_hat, grad_log_hat, dim, y_resp, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices));
+    Rcpp::traits::input_parameter< const bool& >::type local_bounds(local_boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(ea_phi_BRR_DL_bounds(beta_hat, grad_log_hat, dim, y_resp, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices, local_bounds));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1003,7 +1019,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_log_BLR_hessian", (DL_FUNC) &_DCFusion_log_BLR_hessian, 5},
     {"_DCFusion_ea_phi_BLR_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_vec, 8},
     {"_DCFusion_ea_phi_BLR_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_matrix, 8},
-    {"_DCFusion_spectral_radius_BLR", (DL_FUNC) &_DCFusion_spectral_radius_BLR, 7},
+    {"_DCFusion_spectral_radius_BLR", (DL_FUNC) &_DCFusion_spectral_radius_BLR, 6},
     {"_DCFusion_obtain_hypercube_centre_BLR", (DL_FUNC) &_DCFusion_obtain_hypercube_centre_BLR, 8},
     {"_DCFusion_spectral_radius_bound_BLR_Z", (DL_FUNC) &_DCFusion_spectral_radius_bound_BLR_Z, 7},
     {"_DCFusion_spectral_radius_global_bound_BLR_Z", (DL_FUNC) &_DCFusion_spectral_radius_global_bound_BLR_Z, 6},
@@ -1013,10 +1029,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_log_BRR_hessian", (DL_FUNC) &_DCFusion_log_BRR_hessian, 7},
     {"_DCFusion_ea_phi_BRR_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_BRR_DL_vec, 9},
     {"_DCFusion_ea_phi_BRR_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_BRR_DL_matrix, 9},
-    {"_DCFusion_spectral_radius_BRR", (DL_FUNC) &_DCFusion_spectral_radius_BRR, 9},
+    {"_DCFusion_spectral_radius_BRR", (DL_FUNC) &_DCFusion_spectral_radius_BRR, 8},
     {"_DCFusion_obtain_hypercube_centre_BRR", (DL_FUNC) &_DCFusion_obtain_hypercube_centre_BRR, 9},
     {"_DCFusion_spectral_radius_bound_BRR_Z", (DL_FUNC) &_DCFusion_spectral_radius_bound_BRR_Z, 9},
-    {"_DCFusion_ea_phi_BRR_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_BRR_DL_bounds, 11},
+    {"_DCFusion_spectral_radius_global_bound_BRR_Z", (DL_FUNC) &_DCFusion_spectral_radius_global_bound_BRR_Z, 7},
+    {"_DCFusion_ea_phi_BRR_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_BRR_DL_bounds, 12},
     {"_DCFusion_gamma_NB_BRR", (DL_FUNC) &_DCFusion_gamma_NB_BRR, 14},
     {"_DCFusion_ea_phi_biGaussian_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_biGaussian_DL_vec, 7},
     {"_DCFusion_ea_phi_biGaussian_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_biGaussian_DL_matrix, 7},

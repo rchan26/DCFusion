@@ -22,6 +22,7 @@ Q_IS_BRR(
   diffusion_estimator,
   beta_NB = 10,
   gamma_NB_n_points = 2,
+  local_bounds = TRUE,
   seed = NULL,
   n_cores = parallel::detectCores(),
   cl = NULL,
@@ -76,6 +77,9 @@ and "NB" for Negative Binomial estimator}
 \item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
 of the integral found in the mean of the negative
 binomial estimator (default is 2)}
+
+\item{local_bounds}{logical value indicating if local bounds for the phi function
+are used (default is TRUE)}
 
 \item{seed}{seed number - default is NULL, meaning there is no seed}
 
