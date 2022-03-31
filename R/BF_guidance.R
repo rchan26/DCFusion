@@ -296,7 +296,7 @@ mesh_guidance_adaptive <- function(C,
                                                          sub_posterior_means = sub_posterior_means,
                                                          inv_precondition_matrices = inv_precondition_matrices)
   }
-  
+  k4_choice <- NULL
   if (!is.numeric(threshold)) {
     if (!is.numeric(k3)) {
       stop("mesh_guidance_adaptive: if threshold is not passed, k3 must be passed in")
@@ -317,6 +317,7 @@ mesh_guidance_adaptive <- function(C,
                           b = 2*log(threshold)-((E_nu_j^2)*(data_size^2)/(2*(b^2)*C*d)),
                           c = log(threshold)^2)
       k4 <- max(roots[which(roots > 0 & roots < -log(threshold))])
+      k4_choice <- which(k4==roots)
       k3 <- -log(threshold)-k4
       warning('mesh_guidance_adaptive: k3 is set to ', k3)
       warning('mesh_guidance_adaptive: k4 is set to ', k4)
@@ -332,7 +333,8 @@ mesh_guidance_adaptive <- function(C,
               'T1' = T1,
               'T2' = T2,
               'chosen' = ifelse(T1 < T2, "T1", "T2"),
-              'E_nu_j' = E_nu_j))
+              'E_nu_j' = E_nu_j,
+              'k4_choice' = k4_choice))
 }
 
 #' @export

@@ -185,7 +185,7 @@ ea_BRR_DL_PT <- function(dim,
                                   precondition_mat = precondition_mat)
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
-      tryCatch(expr = {if (any(terms < 0)) {
+      if (any(terms < 0)) {
         P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BRR(beta = sim_path[i,],
                               y_resp = data$y,
@@ -229,8 +229,7 @@ ea_BRR_DL_PT <- function(dim,
         cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
         cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.txt', append = TRUE)
         stop('Some of (phi-LX) are < 0.')
-      }},
-      error = function(e) {cat('terms:', terms, '\n', file = 'phi_BRR_error.txt', append = TRUE)})
+      }
     }
     if (logarithm) {
       return(list('phi' = -LX*(t-s) - kap*log(UX-LX) + log_acc_prob,
@@ -257,9 +256,25 @@ ea_BRR_DL_PT <- function(dim,
                                       prior_variances = prior_variances,
                                       C = C,
                                       precondition_mat = precondition_mat)
-    gamma_NB <- (t-s)*UX - integral_estimate$gamma_NB
+    gamma_NB <- (t-s)*UX - integral_estimate
     kap <- rnbinom(1, size = beta_NB, mu = gamma_NB)
     if (is.nan(kap)) {
+      integral_estimate <- gamma_NB_BRR_study(times = times_to_eval,
+                                              h = h,
+                                              x0 = x0,
+                                              y = y,
+                                              s = s,
+                                              t = t,
+                                              y_resp = data$y,
+                                              X = data$X,
+                                              nu = nu,
+                                              sigma = sigma,
+                                              prior_means = prior_means,
+                                              prior_variances = prior_variances,
+                                              C = C,
+                                              precondition_mat = precondition_mat,
+                                              transform_mats = transform_mats,
+                                              beta_hat = as.vector(cv_location$beta_hat))
       cat('%%%%%%%%%%', '\n', file = 'kap_nan_error.txt', append = TRUE)
       cat('times:', times_to_eval, '\n', file = 'kap_nan_error.txt', append = T)
       cat('gamma_NB_n_points:', gamma_NB_n_points, '\n', file = 'kap_nan_error.txt', append = T)
@@ -291,6 +306,7 @@ ea_BRR_DL_PT <- function(dim,
               bes_layers[[d]]$L < trans_point[d] & trans_point[d] < bes_layers[[d]]})),
             '\n', file = 'kap_nan_error.txt', append = TRUE)
       }
+      stop("ea_BRR_BL_PT: kap < 0")
     }
     log_acc_prob <- 0
     if (kap > 0) {
@@ -313,7 +329,7 @@ ea_BRR_DL_PT <- function(dim,
                                   precondition_mat = precondition_mat)
       terms <- (UX-phi$phi)
       log_acc_prob <- sum(log(terms))
-      tryCatch(expr = {if (any(terms < 0)) {
+      if (any(terms < 0)) {
         P_n_Lam <- sapply(1:nrow(sim_path), function(i) {
           spectral_radius_BRR(beta = sim_path[i,],
                               y_resp = data$y,
@@ -357,8 +373,7 @@ ea_BRR_DL_PT <- function(dim,
         cat('t2_bds:', bounds$t2_bds, '\n', file = 'phi_BRR_error.txt', append = TRUE)
         cat('t2:', phi$t2, '\n', file = 'phi_BRR_error.txt', append = TRUE)
         stop('Some of (phi-LX) are < 0.')
-      }},
-      error = function(e) {cat('terms:', terms, '\n', file = 'phi_BRR_error.txt', append = TRUE)})
+      }
     }
     log_middle_term <- kap*log(t-s) + lgamma(beta_NB) + (beta_NB+kap)*log(beta_NB+gamma_NB) -
       lgamma(beta_NB+kap) - beta_NB*log(beta_NB) - kap*log(gamma_NB)

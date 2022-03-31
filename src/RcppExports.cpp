@@ -723,6 +723,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// gamma_NB_BRR_study
+Rcpp::List gamma_NB_BRR_study(const arma::vec& times, const double& h, const arma::vec& x0, const arma::vec& y, const double& s, const double& t, const arma::vec& y_resp, const arma::mat& X, const double& nu, const double& sigma, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C, const arma::mat& precondition_mat, const Rcpp::List& transform_mats, const arma::vec& beta_hat);
+RcppExport SEXP _DCFusion_gamma_NB_BRR_study(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP y_respSEXP, SEXP XSEXP, SEXP nuSEXP, SEXP sigmaSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP precondition_matSEXP, SEXP transform_matsSEXP, SEXP beta_hatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< const double& >::type h(hSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const double& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const double& >::type t(tSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y_resp(y_respSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const double& >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< const double& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type prior_means(prior_meansSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
+    Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type transform_mats(transform_matsSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type beta_hat(beta_hatSEXP);
+    rcpp_result_gen = Rcpp::wrap(gamma_NB_BRR_study(times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat, transform_mats, beta_hat));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ea_phi_biGaussian_DL_vec
 double ea_phi_biGaussian_DL_vec(const arma::vec& x, const arma::vec& mean_vec, const arma::vec& sd_vec, const double& corr, const double& beta, const arma::mat& precondition_mat, const arma::mat& transform_mat);
 RcppExport SEXP _DCFusion_ea_phi_biGaussian_DL_vec(SEXP xSEXP, SEXP mean_vecSEXP, SEXP sd_vecSEXP, SEXP corrSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP transform_matSEXP) {
@@ -1035,6 +1061,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_spectral_radius_global_bound_BRR_Z", (DL_FUNC) &_DCFusion_spectral_radius_global_bound_BRR_Z, 7},
     {"_DCFusion_ea_phi_BRR_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_BRR_DL_bounds, 12},
     {"_DCFusion_gamma_NB_BRR", (DL_FUNC) &_DCFusion_gamma_NB_BRR, 14},
+    {"_DCFusion_gamma_NB_BRR_study", (DL_FUNC) &_DCFusion_gamma_NB_BRR_study, 16},
     {"_DCFusion_ea_phi_biGaussian_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_biGaussian_DL_vec, 7},
     {"_DCFusion_ea_phi_biGaussian_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_biGaussian_DL_matrix, 7},
     {"_DCFusion_ea_phi_biGaussian_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_biGaussian_DL_bounds, 9},

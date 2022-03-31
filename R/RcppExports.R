@@ -548,6 +548,10 @@ gamma_NB_BRR <- function(times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_mean
     .Call(`_DCFusion_gamma_NB_BRR`, times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat)
 }
 
+gamma_NB_BRR_study <- function(times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat, transform_mats, beta_hat) {
+    .Call(`_DCFusion_gamma_NB_BRR_study`, times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat, transform_mats, beta_hat)
+}
+
 ea_phi_biGaussian_DL_vec <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {
     .Call(`_DCFusion_ea_phi_biGaussian_DL_vec`, x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat)
 }

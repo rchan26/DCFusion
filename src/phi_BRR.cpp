@@ -340,75 +340,73 @@ double gamma_NB_BRR(const arma::vec &times,
   return(h*sum_phi_eval/2);
 }
 
-// // [[Rcpp::export]]
-// Rcpp::List gamma_NB_BRR(const arma::vec &times,
-//                         const double &h,
-//                         const arma::vec &x0,
-//                         const arma::vec &y,
-//                         const double &s,
-//                         const double &t,
-//                         const arma::vec &y_resp,
-//                         const arma::mat &X,
-//                         const double &nu,
-//                         const double &sigma,
-//                         const arma::vec &prior_means,
-//                         const arma::vec &prior_variances,
-//                         const double &C,
-//                         const arma::mat &precondition_mat,
-//                         const Rcpp::List &transform_mats,
-//                         const arma::vec &beta_hat) {
-//   const arma::mat &transform_to_X = transform_mats["to_X"];
-//   const arma::mat &transform_to_Z = transform_mats["to_Z"];
-//   if (times.size() < 2) {
-//     stop("gamma_NB_BRR: length of times must be at least 2");
-//   }
-//   double sum_phi_eval = 0;
-//   Rcpp::NumericVector spec_rad(times.size());
-//   Rcpp::NumericVector phi_vect(times.size());
-//   arma::mat points(times.size(), x0.size());
-//   Rcpp::NumericVector t1(times.size());
-//   Rcpp::NumericVector t2(times.size());
-//   Rcpp::NumericVector dist(times.size());
-//   for (int i=0; i < times.size(); ++i) {
-//     // const arma::vec eval = (x0*(t-s-times.at(i)) + y*times.at(i))/(t-s);
-//     const arma::vec eval = (x0*(t-times.at(i))+y*(times.at(i)-s))/(t-s);
-//     Rcpp::List phi = ea_phi_BRR_DL_vec(eval,
-//                                        y_resp,
-//                                        X,
-//                                        nu,
-//                                        sigma,
-//                                        prior_means,
-//                                        prior_variances,
-//                                        C,
-//                                        precondition_mat);
-//     const double &phi_eval = phi["phi"];
-//     spec_rad[i] = spectral_radius_BRR(eval,
-//                                       y_resp,
-//                                       X,
-//                                       nu,
-//                                       sigma,
-//                                       prior_variances,
-//                                       C,
-//                                       precondition_mat);
-//     phi_vect[i] = phi_eval;
-//     points.row(i) = arma::trans(eval);
-//     t1[i] = phi["t1"];
-//     t2[i] = phi["t2"];
-//     dist[i] = scaled_distance(beta_hat, eval, transform_to_Z);
-//     if (i==0 || i==times.size()-1) {
-//       sum_phi_eval += phi_eval;
-//     } else {
-//       sum_phi_eval += 2*phi_eval;
-//     }
-//   }
-//   return(Rcpp::List::create(Named("gamma_NB", h*sum_phi_eval/2),
-//                             Named("phi", phi_vect),
-//                             Named("spectral_radius", spec_rad),
-//                             Named("eval", points),
-//                             Named("t1", t1),
-//                             Named("t2:", t2),
-//                             Named("dist:", dist)));
-// }
+// [[Rcpp::export]]
+Rcpp::List gamma_NB_BRR_study(const arma::vec &times,
+                              const double &h,
+                              const arma::vec &x0,
+                              const arma::vec &y,
+                              const double &s,
+                              const double &t,
+                              const arma::vec &y_resp,
+                              const arma::mat &X,
+                              const double &nu,
+                              const double &sigma,
+                              const arma::vec &prior_means,
+                              const arma::vec &prior_variances,
+                              const double &C,
+                              const arma::mat &precondition_mat,
+                              const Rcpp::List &transform_mats,
+                              const arma::vec &beta_hat) {
+  const arma::mat &transform_to_Z = transform_mats["to_Z"];
+  if (times.size() < 2) {
+    stop("gamma_NB_BRR: length of times must be at least 2");
+  }
+  double sum_phi_eval = 0;
+  Rcpp::NumericVector spec_rad(times.size());
+  Rcpp::NumericVector phi_vect(times.size());
+  arma::mat points(times.size(), x0.size());
+  Rcpp::NumericVector t1(times.size());
+  Rcpp::NumericVector t2(times.size());
+  Rcpp::NumericVector dist(times.size());
+  for (int i=0; i < times.size(); ++i) {
+    const arma::vec eval = (x0*(t-times.at(i))+y*(times.at(i)-s))/(t-s);
+    Rcpp::List phi = ea_phi_BRR_DL_vec(eval,
+                                       y_resp,
+                                       X,
+                                       nu,
+                                       sigma,
+                                       prior_means,
+                                       prior_variances,
+                                       C,
+                                       precondition_mat);
+    const double &phi_eval = phi["phi"];
+    spec_rad[i] = spectral_radius_BRR(eval,
+                                      y_resp,
+                                      X,
+                                      nu,
+                                      sigma,
+                                      prior_variances,
+                                      C,
+                                      precondition_mat);
+    phi_vect[i] = phi_eval;
+    points.row(i) = arma::trans(eval);
+    t1[i] = phi["t1"];
+    t2[i] = phi["t2"];
+    dist[i] = scaled_distance(beta_hat, eval, transform_to_Z);
+    if (i==0 || i==times.size()-1) {
+      sum_phi_eval += phi_eval;
+    } else {
+      sum_phi_eval += 2*phi_eval;
+    }
+  }
+  return(Rcpp::List::create(Named("gamma_NB", h*sum_phi_eval/2),
+                            Named("phi", phi_vect),
+                            Named("spectral_radius", spec_rad),
+                            Named("eval", points),
+                            Named("t1", t1),
+                            Named("t2:", t2),
+                            Named("dist:", dist)));
+}
 
 // // [[Rcpp::export]]
 // arma::vec log_BRR_gradient_Z(const arma::vec &beta,

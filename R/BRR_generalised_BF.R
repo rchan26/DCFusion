@@ -179,10 +179,12 @@ rho_j_BRR <- function(particle_set,
     E_nu_j <- rep(NA, length(time_mesh))
     chosen <- rep("", length(time_mesh))
     mesh_terms <- rep(list(c(NA,NA)), length(time_mesh))
+    k4_choice <- rep(NA, length(time_mesh))
   } else {
     E_nu_j <- NA
     chosen <- NULL
     mesh_terms <- NULL
+    k4_choice <- NULL
   }
   if (is.null(print_progress_iters)) {
     print_progress_iters <- split_N
@@ -225,6 +227,7 @@ rho_j_BRR <- function(particle_set,
       E_nu_j[j] <- tilde_Delta_j$E_nu_j
       chosen[j] <- tilde_Delta_j$chosen
       mesh_terms[[j]] <- c(tilde_Delta_j$T1, tilde_Delta_j$T2)
+      k4_choice[j] <- tilde_Delta_j$k4_choice
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
@@ -360,6 +363,7 @@ rho_j_BRR <- function(particle_set,
     E_nu_j <- E_nu_j[1:j]
     chosen <- chosen[1:j]
     mesh_terms <- mesh_terms[1:j]
+    k4_choice <- k4_choice[1:j]
     phi_bound_intensity <- phi_bound_intensity[1:j]
     phi_kappa <- phi_kappa[1:j]
   }
@@ -385,6 +389,7 @@ rho_j_BRR <- function(particle_set,
               'E_nu_j' = E_nu_j,
               'chosen' = chosen,
               'mesh_terms' = mesh_terms,
+              'k4_choice' = k4_choice,
               'phi_bound_intensity' = phi_bound_intensity,
               'phi_kappa' = phi_kappa))
 }
@@ -641,6 +646,7 @@ parallel_GBF_BRR <- function(particles_to_fuse,
               'E_nu_j' = rho_j$E_nu_j,
               'chosen' = rho_j$chosen,
               'mesh_terms' = rho_j$mesh_terms,
+              'k4_choice' = rho_j$k4_choice,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means,
               'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
@@ -844,6 +850,7 @@ bal_binary_GBF_BRR <- function(N_schedule,
   E_nu_j <- list()
   chosen <- list()
   mesh_terms <- list()
+  k4_choice <- list()
   recommended_mesh <- list()
   precondition_matrices <- list()
   if (is.logical(precondition)) {
@@ -960,6 +967,7 @@ bal_binary_GBF_BRR <- function(N_schedule,
     E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
     chosen[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$chosen)
     mesh_terms[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$mesh_terms)
+    k4_choice[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$k4_choice)
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
     sub_posterior_means[[k]] <- do.call(rbind, lapply(1:n_nodes, function(i) fused[[i]]$fusion$sub_posterior_means[[1]]))
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$combined_data)
@@ -981,6 +989,7 @@ bal_binary_GBF_BRR <- function(N_schedule,
     E_nu_j[[1]] <- E_nu_j[[1]][[1]]
     chosen[[1]] <- chosen[[1]][[1]]
     mesh_terms[[1]] <- mesh_terms[[1]][[1]]
+    k4_choice[[1]] <- k4_choice[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
     sub_posterior_means[[1]] <- sub_posterior_means[[1]][[1]]
     recommended_mesh[[1]] <- recommended_mesh[[1]][[1]]
@@ -999,6 +1008,7 @@ bal_binary_GBF_BRR <- function(N_schedule,
               'E_nu_j' = E_nu_j,
               'chosen' = chosen,
               'mesh_terms' = mesh_terms,
+              'k4_choice' = k4_choice,
               'precondition_matrices' = precondition_matrices,
               'sub_posterior_means' = sub_posterior_means,
               'recommended_mesh' = recommended_mesh,

@@ -131,10 +131,12 @@ rho_j_biGaussian <- function(particle_set,
     E_nu_j <- rep(NA, length(time_mesh))
     chosen <- rep("", length(time_mesh))
     mesh_terms <- rep(list(c(NA,NA)), length(time_mesh))
+    k4_choice <- rep(NA, length(time_mesh))
   } else {
     E_nu_j <- NA
     chosen <- NULL
     mesh_terms <- NULL
+    k4_choice <- NULL
   }
   # iterative proposals
   end_time <- time_mesh[length(time_mesh)]
@@ -175,6 +177,7 @@ rho_j_biGaussian <- function(particle_set,
       E_nu_j[j] <- tilde_Delta_j$E_nu_j
       chosen[j] <- tilde_Delta_j$chosen
       mesh_terms[[j]] <- c(tilde_Delta_j$T1, tilde_Delta_j$T2)
+      k4_choice[j] <- tilde_Delta_j$k4_choice
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     # split the x samples from the previous time marginal (and their means) into approximately equal lists
@@ -271,6 +274,7 @@ rho_j_biGaussian <- function(particle_set,
     E_nu_j <- E_nu_j[1:j]
     chosen <- chosen[1:j]
     mesh_terms <- mesh_terms[1:j]
+    k4_choice <- k4_choice[1:j]
   }
   return(list('particle_set' = particle_set,
               'proposed_samples' = proposed_samples,
@@ -280,7 +284,8 @@ rho_j_biGaussian <- function(particle_set,
               'resampled' = resampled,
               'E_nu_j' = E_nu_j,
               'chosen' = chosen,
-              'mesh_terms' = mesh_terms))
+              'mesh_terms' = mesh_terms,
+              'k4_choice' = k4_choice))
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -467,6 +472,7 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
               'E_nu_j' = rho_j$E_nu_j,
               'chosen' = rho_j$chosen,
               'mesh_terms' = rho_j$mesh_terms,
+              'k4_choice' = rho_j$k4_choice,
               'precondition_matrices' = new_precondition_matrices,
               'sub_posterior_means' = new_sub_posterior_means))
 }
