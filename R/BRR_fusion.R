@@ -71,8 +71,6 @@ obtain_RR_MLE <- function(dim, data) {
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param logarithm logical value to determine if log probability is
 #'                  returned (TRUE) or not (FALSE)
 #' 
@@ -98,7 +96,6 @@ ea_BRR_DL_PT <- function(dim,
                          diffusion_estimator,
                          beta_NB = 10,
                          gamma_NB_n_points = 2,
-                         local_bounds = TRUE,
                          logarithm) {
   # transform to preconditioned space
   z0 <- transform_mats$to_Z %*% x0
@@ -127,8 +124,7 @@ ea_BRR_DL_PT <- function(dim,
                                      prior_variances = prior_variances,
                                      C = C,
                                      transform_mats = transform_mats,
-                                     hypercube_vertices = hypercube_vertices,
-                                     local_bounds = local_bounds)
+                                     hypercube_vertices = hypercube_vertices)
     } else {
       stop("ea_BRR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
     }
@@ -154,8 +150,7 @@ ea_BRR_DL_PT <- function(dim,
                                    prior_variances = prior_variances,
                                    C = C,
                                    transform_mats = transform_mats,
-                                   hypercube_vertices = hypercube_vertices,
-                                   local_bounds = local_bounds)
+                                   hypercube_vertices = hypercube_vertices)
   } else {
     stop("ea_BRR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
   }
@@ -422,8 +417,6 @@ ea_BRR_DL_PT <- function(dim,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
@@ -454,7 +447,6 @@ Q_IS_BRR <- function(particle_set,
                      diffusion_estimator,
                      beta_NB = 10,
                      gamma_NB_n_points = 2,
-                     local_bounds = TRUE,
                      seed = NULL,
                      n_cores = parallel::detectCores(),
                      cl = NULL,
@@ -543,54 +535,32 @@ Q_IS_BRR <- function(particle_set,
     }
     for (i in 1:split_N) {
       phi <- lapply(1:m, function(c) {
-        tryCatch(expr = ea_BRR_DL_PT(dim = dim,
-                                     x0 = as.vector(split_x_samples[[core]][[i]][c,]),
-                                     y = as.vector(y_samples[i,]),
-                                     s = 0,
-                                     t = time,
-                                     data = data_split[[c]],
-                                     transformed_design_mat = transformed_design_matrices[[c]],
-                                     nu = nu,
-                                     sigma = sigma,
-                                     prior_means = prior_means,
-                                     prior_variances = prior_variances,
-                                     C = C,
-                                     precondition_mat = precondition_matrices[[c]],
-                                     transform_mats = transform_matrices[[c]],
-                                     cv_location = cv_location[[c]],
-                                     diffusion_estimator = diffusion_estimator,
-                                     beta_NB = beta_NB,
-                                     gamma_NB_n_points = gamma_NB_n_points,
-                                     local_bounds = local_bounds,
-                                     logarithm = TRUE),
-                 error = function(e) {
-                   ea_BRR_DL_PT(dim = dim,
-                                x0 = as.vector(split_x_samples[[core]][[i]][c,]),
-                                y = as.vector(y_samples[i,]),
-                                s = 0,
-                                t = time,
-                                data = data_split[[c]],
-                                transformed_design_mat = transformed_design_matrices[[c]],
-                                nu = nu,
-                                sigma = sigma,
-                                prior_means = prior_means,
-                                prior_variances = prior_variances,
-                                C = C,
-                                precondition_mat = precondition_matrices[[c]],
-                                transform_mats = transform_matrices[[c]],
-                                cv_location = cv_location[[c]],
-                                diffusion_estimator = diffusion_estimator,
-                                beta_NB = beta_NB,
-                                gamma_NB_n_points = gamma_NB_n_points,
-                                local_bounds = FALSE,
-                                logarithm = TRUE)})})
+        ea_BRR_DL_PT(dim = dim,
+                     x0 = as.vector(split_x_samples[[core]][[i]][c,]),
+                     y = as.vector(y_samples[i,]),
+                     s = 0,
+                     t = time,
+                     data = data_split[[c]],
+                     transformed_design_mat = transformed_design_matrices[[c]],
+                     nu = nu,
+                     sigma = sigma,
+                     prior_means = prior_means,
+                     prior_variances = prior_variances,
+                     C = C,
+                     precondition_mat = precondition_matrices[[c]],
+                     transform_mats = transform_matrices[[c]],
+                     cv_location = cv_location[[c]],
+                     diffusion_estimator = diffusion_estimator,
+                     beta_NB = beta_NB,
+                     gamma_NB_n_points = gamma_NB_n_points,
+                     logarithm = TRUE)})
       log_Q_weights[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
       bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
       kap[i,] <- sapply(1:m, function(c) phi[[c]]$kap)
-    }
-    if (i%%print_progress_iters==0) {
-      cat('Level:', level, '|| Node:', node, '|| Core:', core, '||', i, '/',
-          split_N, '\n', file = 'Q_IS_BRR_progress.txt', append = T)
+      if (i%%print_progress_iters==0) {
+        cat('Level:', level, '|| Node:', node, '|| Core:', core, '||', i, '/',
+            split_N, '\n', file = 'Q_IS_BRR_progress.txt', append = T)
+      }
     }
     cat('Completed: Level:', level, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
         split_N, '\n', file = 'Q_IS_BRR_progress.txt', append = T)
@@ -668,8 +638,6 @@ Q_IS_BRR <- function(particle_set,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param cl an object of class "cluster" for parallel computation in R. If none
@@ -715,7 +683,6 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
                                     diffusion_estimator = 'Poisson',
                                     beta_NB = 10,
                                     gamma_NB_n_points = 2,
-                                    local_bounds = TRUE,
                                     seed = NULL,
                                     n_cores = parallel::detectCores(),
                                     cl = NULL,
@@ -811,7 +778,6 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
                 diffusion_estimator = diffusion_estimator,
                 beta_NB = beta_NB,
                 gamma_NB_n_points = gamma_NB_n_points,
-                local_bounds = local_bounds,
                 seed = seed,
                 n_cores = n_cores,
                 cl = cl,
@@ -901,8 +867,6 @@ parallel_fusion_SMC_BRR <- function(particles_to_fuse,
 #' @param gamma_NB_n_points number of points used in the trapezoidal estimation
 #'                          of the integral found in the mean of the negative
 #'                          binomial estimator (default is 2)
-#' @param local_bounds logical value indicating if local bounds for the phi function
-#'                     are used (default is TRUE)
 #' @param seed seed number - default is NULL, meaning there is no seed
 #' @param n_cores number of cores to use
 #' @param print_progress_iters number of iterations between each progress update
@@ -952,10 +916,9 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
                                       diffusion_estimator = 'Poisson',
                                       beta_NB = 10,
                                       gamma_NB_n_points = 2,
-                                      local_bounds = TRUE,
                                       seed = NULL,
                                       n_cores = parallel::detectCores(),
-                                      print_progress_iters = 100) {
+                                      print_progress_iters = 1000) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
     stop("bal_binary_fusion_SMC_BRR: N_schedule must be a vector of length (L-1)")
   } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
@@ -1074,7 +1037,6 @@ bal_binary_fusion_SMC_BRR <- function(N_schedule,
                               diffusion_estimator = diffusion_estimator,
                               beta_NB = beta_NB,
                               gamma_NB_n_points = gamma_NB_n_points,
-                              local_bounds = local_bounds,
                               seed = seed,
                               n_cores = n_cores,
                               cl = cl,

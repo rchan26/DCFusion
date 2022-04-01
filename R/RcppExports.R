@@ -532,24 +532,16 @@ obtain_hypercube_centre_BRR <- function(bessel_layers, transform_to_X, y_resp, X
     .Call(`_DCFusion_obtain_hypercube_centre_BRR`, bessel_layers, transform_to_X, y_resp, X, nu, sigma, prior_means, prior_variances, C)
 }
 
-spectral_radius_bound_BRR_Z <- function(dim, V, y_resp, transformed_X, nu, sigma, prior_variances, C, sqrt_Lambda) {
-    .Call(`_DCFusion_spectral_radius_bound_BRR_Z`, dim, V, y_resp, transformed_X, nu, sigma, prior_variances, C, sqrt_Lambda)
-}
-
 spectral_radius_global_bound_BRR_Z <- function(dim, transformed_X, nu, sigma, prior_variances, C, sqrt_Lambda) {
     .Call(`_DCFusion_spectral_radius_global_bound_BRR_Z`, dim, transformed_X, nu, sigma, prior_variances, C, sqrt_Lambda)
 }
 
-ea_phi_BRR_DL_bounds <- function(beta_hat, grad_log_hat, dim, y_resp, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices, local_bounds) {
-    .Call(`_DCFusion_ea_phi_BRR_DL_bounds`, beta_hat, grad_log_hat, dim, y_resp, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
+ea_phi_BRR_DL_bounds <- function(beta_hat, grad_log_hat, dim, y_resp, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices) {
+    .Call(`_DCFusion_ea_phi_BRR_DL_bounds`, beta_hat, grad_log_hat, dim, y_resp, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices)
 }
 
 gamma_NB_BRR <- function(times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat) {
     .Call(`_DCFusion_gamma_NB_BRR`, times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat)
-}
-
-gamma_NB_BRR_study <- function(times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat, transform_mats, beta_hat) {
-    .Call(`_DCFusion_gamma_NB_BRR_study`, times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat, transform_mats, beta_hat)
 }
 
 ea_phi_biGaussian_DL_vec <- function(x, mean_vec, sd_vec, corr, beta, precondition_mat, transform_mat) {

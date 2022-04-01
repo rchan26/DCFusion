@@ -449,10 +449,10 @@ Q_IS_BLR <- function(particle_set,
       log_Q_weights[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
       bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
       kap[i,] <- sapply(1:m, function(c) phi[[c]]$kap)
-    }
-    if (i%%print_progress_iters==0) {
-      cat('Level:', level, '|| Node:', node, '|| Core:', core, '||', i, '/',
-          split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
+      if (i%%print_progress_iters==0) {
+        cat('Level:', level, '|| Node:', node, '|| Core:', core, '||', i, '/',
+            split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
+      }
     }
     cat('Completed: Level:', level, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
         split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
@@ -819,7 +819,7 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
                                       local_bounds = TRUE,
                                       seed = NULL,
                                       n_cores = parallel::detectCores(),
-                                      print_progress_iters = 100) {
+                                      print_progress_iters = 1000) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
     stop("bal_binary_fusion_SMC_BLR: N_schedule must be a vector of length (L-1)")
   } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {

@@ -27,7 +27,7 @@ bal_binary_GBF_BLR(
   local_bounds = TRUE,
   seed = NULL,
   n_cores = parallel::detectCores(),
-  print_progress_iters = 100
+  print_progress_iters = 1000
 )
 }
 \arguments{

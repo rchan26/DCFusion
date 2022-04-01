@@ -24,7 +24,6 @@ ea_BRR_DL_PT(
   diffusion_estimator,
   beta_NB = 10,
   gamma_NB_n_points = 2,
-  local_bounds = TRUE,
   logarithm
 )
 }
@@ -74,9 +73,6 @@ and "NB" for Negative Binomial estimator}
 \item{gamma_NB_n_points}{number of points used in the trapezoidal estimation
 of the integral found in the mean of the negative
 binomial estimator (default is 2)}
-
-\item{local_bounds}{logical value indicating if local bounds for the phi function
-are used (default is TRUE)}
 
 \item{logarithm}{logical value to determine if log probability is
 returned (TRUE) or not (FALSE)}

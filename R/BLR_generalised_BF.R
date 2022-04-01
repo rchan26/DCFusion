@@ -786,7 +786,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
                                local_bounds = TRUE,
                                seed = NULL,
                                n_cores = parallel::detectCores(),
-                               print_progress_iters = 100) {
+                               print_progress_iters = 1000) {
   if (!is.vector(N_schedule) | (length(N_schedule)!=(L-1))) {
     stop("bal_binary_GBF_BLR: N_schedule must be a vector of length (L-1)")
   } else if (!is.vector(m_schedule) | (length(m_schedule)!=(L-1))) {
