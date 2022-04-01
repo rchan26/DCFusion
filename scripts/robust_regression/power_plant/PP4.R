@@ -131,10 +131,8 @@ Poisson_hc_4 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 2),
                                           ESS_threshold = ESS_threshold,
                                           cv_location = 'hypercube_centre',
                                           diffusion_estimator = 'Poisson',
-                                          local_bounds = FALSE,
                                           seed = seed,
-                                          n_cores = n_cores,
-                                          print_progress_iters = 500)
+                                          n_cores = n_cores)
 Poisson_hc_4$particles <- resample_particle_y_samples(particle_set = Poisson_hc_4$particles[[1]],
                                                       multivariate = TRUE,
                                                       resampling_method = 'resid',
@@ -161,10 +159,8 @@ NB_hc_4 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 2),
                                      ESS_threshold = ESS_threshold,
                                      cv_location = 'hypercube_centre',
                                      diffusion_estimator = 'NB',
-                                     local_bounds = FALSE,
                                      seed = seed,
-                                     n_cores = n_cores,
-                                     print_progress_iters = 500)
+                                     n_cores = n_cores)
 NB_hc_4$particles <- resample_particle_y_samples(particle_set = NB_hc_4$particles[[1]],
                                                  multivariate = TRUE,
                                                  resampling_method = 'resid',
@@ -196,7 +192,6 @@ GBF_4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
                                                                 'CESS_j_threshold' = CESS_j_threshold,
                                                                 'vanilla' = FALSE),
                                          diffusion_estimator = diffusion_estimator,
-                                         local_bounds = FALSE,
                                          seed = seed),
               'adaptive' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
                                               m_schedule = 4,
@@ -219,7 +214,6 @@ GBF_4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
                                                                      'CESS_j_threshold' = CESS_j_threshold,
                                                                      'vanilla' = FALSE),
                                               diffusion_estimator = diffusion_estimator,
-                                              local_bounds = FALSE,
                                               seed = seed))
 
 # regular mesh
@@ -227,7 +221,7 @@ GBF_4$reg$particles <- resample_particle_y_samples(particle_set = GBF_4$reg$part
                                                    multivariate = TRUE,
                                                    resampling_method = 'resid',
                                                    seed = seed)
-print(integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples)) 
+print(integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples))
 compare_samples_bivariate(posteriors = list(full_posterior,
                                             GBF_4$reg$proposed_samples[[1]],
                                             GBF_4$reg$particles$y_samples),
@@ -267,7 +261,6 @@ balanced_C4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 2)
                                                                       'CESS_j_threshold' = CESS_j_threshold,
                                                                       'vanilla' = FALSE),
                                                diffusion_estimator = diffusion_estimator,
-                                               local_bounds = FALSE,
                                                seed = seed),
                     'adaptive' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 2),
                                                     m_schedule = rep(2, 2),
@@ -290,7 +283,6 @@ balanced_C4 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 2)
                                                                            'CESS_j_threshold' = CESS_j_threshold,
                                                                            'vanilla' = FALSE),
                                                     diffusion_estimator = diffusion_estimator,
-                                                    local_bounds = FALSE,
                                                     seed = seed))
 
 # regular mesh
@@ -332,4 +324,3 @@ integrated_abs_distance(full_posterior, weierstrass_importance_4$samples)
 integrated_abs_distance(full_posterior, weierstrass_rejection_4$samples)
 
 save.image('PP4.RData')
-

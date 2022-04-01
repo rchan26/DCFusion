@@ -1,6 +1,5 @@
 library(DCFusion)
 library(HMCBRR)
-library(readxl)
 
 ##### Initialise example #####
 seed <- 2022
@@ -11,8 +10,8 @@ warmup <- 10000
 time_choice <- 1
 nu <- 5
 sigma <- 1
-prior_means <- rep(0, 5)
-prior_variances <- rep(10, 5)
+prior_means <- rep(0, 8)
+prior_variances <- rep(10000, 8)
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.5
 CESS_j_threshold <- 0.2
@@ -21,18 +20,19 @@ n_cores <- parallel::detectCores()
 
 ##### Loading in Data #####
 
-# Features consist of hourly average ambient variables
-# - Temperature (T) in the range 1.81°C and 37.11°C,
-# - Ambient Pressure (AP) in the range 992.89-1033.30 millibar,
-# - Relative Humidity (RH) in the range 25.56% to 100.16%
-# - Exhaust Vacuum (V) in the range 25.36-81.56 cm Hg
-# - Net hourly electrical energy output (EP) 420.26-495.76 MW
-
-load_pp_data <- function(file, standardise_variables = TRUE) {
-  original_data <- as.data.frame(readxl::read_xlsx(file))
-  colnames(original_data) <- c('T', 'V', 'AP', 'RH', 'EP')
+load_tv_data <- function(file, standardise_variables = TRUE) {
+  original_data <- read.csv(file)
+  original_data$hour <- format(strptime(original_data$date_time, format = "%Y-%m-%d %H:%M:%S"), format = "%H")
+  traffic_volume <- data.frame(holiday = as.numeric(original_data$holiday!="None"),
+                               temp = original_data$temp,
+                               rain = original_data$rain_1h,
+                               snow = original_data$snow_1h,
+                               clouds = original_data$clouds_all,
+                               weather = as.numeric(original_data$weather_main %in% c("Clear", "Clouds")),
+                               rush_hour = as.numeric(original_data$hour %in% c("07", "08", "09", "16", "17", "18", "19")),
+                               tv = original_data$traffic_volume)
   if (standardise_variables) {
-    X <- subset(original_data, select = -c(EP))
+    X <- subset(traffic_volume, select = -c(holiday, weather, rush_hour, tv))
     variable_means <- rep(NA, ncol(X))
     variable_sds <- rep(NA, ncol(X))
     for (col in 1:ncol(X)) {
@@ -40,57 +40,59 @@ load_pp_data <- function(file, standardise_variables = TRUE) {
       variable_sds[col] <- sd(X[,col])
       X[,col] <- (X[,col]-variable_means[col])/variable_sds[col]
     }
-    design_mat <- as.matrix(cbind(rep(1, nrow(X)), X))
-    colnames(design_mat)[1] <- 'intercept'
-    return(list('data' = cbind('EP' = original_data$EP, X),
-                'y' = original_data$EP,
+    design_mat <- cbind('intercept' = rep(1, nrow(X)),
+                        'holiday' = traffic_volume$holiday,
+                        X,
+                        subset(traffic_volume, select = c(weather, rush_hour)))
+    return(list('data' = cbind(subset(design_mat, select = -c(intercept)),
+                               'tv' = traffic_volume$tv),
+                'y' = traffic_volume$tv,
                 'X' = design_mat,
                 'variable_means' = variable_means,
                 'variable_sds' = variable_sds))
   } else {
-    X <- subset(original_data, select = -c(EP))
+    X <- subset(traffic_volume, select = -c(tv))
     design_mat <- as.matrix(cbind(rep(1, nrow(X)), X))
     colnames(design_mat)[1] <- 'intercept'
-    return(list('data' = original_data,
-                'y' = original_data$EP,
+    return(list('data' = traffic_volume,
+                'y' = traffic_volume$tv,
                 'X' = design_mat))
   }
 }
 
-power_plant <- load_pp_data('scripts/robust_regression/power_plant/power_plant.xlsx')
+traffic_volume <- load_tv_data('scripts/robust_regression/traffic_volume/traffic_volume.csv')
 
 ##### Sampling from full posterior #####
 
-full_posterior <-  hmc_sample_BRR(noise_error = 'student_t',
-                                  y = power_plant$y,
-                                  X = power_plant$X,
-                                  C = 1,
-                                  nu = nu,
-                                  sigma = sigma,
-                                  prior_means = prior_means,
-                                  prior_variances = prior_variances,
-                                  iterations = nsamples_MCF + warmup,
-                                  warmup = warmup,
-                                  chains = 1,
-                                  seed = seed,
-                                  output = T)
+full_posterior <- hmc_sample_BRR(noise_error = 'student_t',
+                                 y = traffic_volume$y,
+                                 X = traffic_volume$X,
+                                 C = 1,
+                                 nu = nu,
+                                 sigma = sigma,
+                                 prior_means = prior_means,
+                                 prior_variances = prior_variances,
+                                 iterations = nsamples_MCF + 10000,
+                                 warmup = 10000,
+                                 chains = 1,
+                                 seed = seed,
+                                 output = T)
 
 ##### Sampling from sub-posterior C=8 #####
 
-data_split_8 <- split_data(power_plant$data,
-                           y_col_index = 1,
-                           X_col_index = 2:5,
+data_split_8 <- split_data(traffic_volume$data,
+                           y_col_index = 8,
+                           X_col_index = 1:7,
                            C = 8,
                            as_dataframe = F)
-sub_posteriors_8 <- hmc_base_sampler_BRR(noise_error = 'student_t',
-                                         nsamples = nsamples_MCF,
+sub_posteriors_8 <- hmc_base_sampler_BRR(nsamples = nsamples_MCF,
                                          data_split = data_split_8,
                                          C = 8,
                                          nu = nu,
                                          sigma = sigma,
                                          prior_means = prior_means,
                                          prior_variances = prior_variances,
-                                         warmup = warmup,
+                                         warmup = 10000,
                                          seed = seed,
                                          output = T)
 
@@ -321,4 +323,4 @@ integrated_abs_distance(full_posterior, neiswanger_false_8$samples)
 integrated_abs_distance(full_posterior, weierstrass_importance_8$samples)
 integrated_abs_distance(full_posterior, weierstrass_rejection_8$samples)
 
-save.image('PP8.RData')
+save.image('TV8.RData')
