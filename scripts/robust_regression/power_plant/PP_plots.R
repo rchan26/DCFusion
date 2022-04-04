@@ -73,11 +73,11 @@ axis(1, at=c(4, 8, 16, 32), labels = c(4, 8, 16, 32), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
 lines(x = c(4, 8, 16, 32), y = balanced$adaptive,
-      lty = 2, lwd = 3, type = 'b', pch = 2)
+      lty = 2, lwd = 3, type = 'b', pch = 4)
 lines(x = c(4, 8), y = GBF$reg,
       lty = 3, lwd = 3, type = 'b', pch = 3)
 lines(x = c(4, 8), y = GBF$adaptive,
-      lty = 4, lwd = 3, type = 'b', pch = 4)
+      lty = 4, lwd = 3, type = 'b', pch = 2)
 lines(x = c(4, 8, 16, 32), y = NB_fusion,
       lty = 5, lwd = 3, type = 'b', pch = 5)
 lines(x = c(4, 8, 16, 32), y = consensus,
@@ -90,7 +90,7 @@ legend(x = 4, y = 1,
        legend = c('D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'GBF (reg)', 'GBF (adaptive)', 'DC-MCF', 'CMC', 'KDEMC', 'WRS'),
        lwd = c(3, 3, 3, 3, 3, 3, 3, 3),
        lty = c(1, 2, 3, 4, 5, 6, 7, 8),
-       pch = c(1, 2, 3, 4, 5, 6, 7, 8),
+       pch = c(1, 4, 3, 2, 5, 6, 7, 8),
        col = c(rep('black', 5), rep('red', 3)),
        cex = 1.25,
        text.font = 2,
@@ -139,11 +139,11 @@ axis(1, at=c(4, 8, 16, 32), labels = c(4, 8, 16, 32), font = 2, cex = 1.5)
 axis(2, at=seq(-4, 16, 2), labels = seq(-4, 16, 2), font = 2, cex = 1.5)
 axis(2, at=seq(-4, 16, 1), labels=rep("", 21), lwd.ticks = 0.5)
 lines(x = c(4, 8, 16, 32), y = log(balanced_time$adaptive),
-      lty = 2, lwd = 3, type = 'b', pch = 2)
+      lty = 2, lwd = 3, type = 'b', pch = 4)
 lines(x = c(4, 8), y = log(GBF_time$reg),
       lty = 3, lwd = 3, type = 'b', pch = 3)
 lines(x = c(4, 8), y = log(GBF_time$adaptive),
-      lty = 4, lwd = 3, type = 'b', pch = 4)
+      lty = 4, lwd = 3, type = 'b', pch = 2)
 lines(x = c(4, 8, 16, 32), y = log(NB_fusion_time),
       lty = 5, lwd = 3, type = 'b', pch = 5)
 lines(x = c(4, 8, 16, 32), y = log(consensus_time),
@@ -152,16 +152,16 @@ lines(x = c(4, 8, 16, 32), y = log(neiswanger_time),
       lty = 7, lwd = 3, type = 'b', pch = 7, col = 'red')
 lines(x = c(4, 8, 16, 32), y = log(weierstrass_time),
       lty = 8, lwd = 3, type = 'b', pch = 8, col = 'red')
-legend(x = 4, y = 16,
+legend(x = 4, y = 16.5,
        legend = c('D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'GBF (reg)', 'GBF (adaptive)', 'DC-MCF'),
        lwd = c(3, 3, 3, 3, 3),
        lty = c(1, 2, 3, 4, 5),
-       pch = c(1, 2, 3, 4, 5),
+       pch = c(1, 4, 3, 2, 5),
        col = 'black',
        cex = 1.25,
        text.font = 2,
        bty = 'n')
-legend(x = 16, y = 16,
+legend(x = 16, y = 16.5,
        legend = c('CMC', 'KDEMC', 'WRS'),
        col = 'red',
        lwd = c(3, 3, 3, 3),

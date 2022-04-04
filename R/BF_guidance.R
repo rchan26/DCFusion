@@ -296,7 +296,7 @@ mesh_guidance_adaptive <- function(C,
                                                          sub_posterior_means = sub_posterior_means,
                                                          inv_precondition_matrices = inv_precondition_matrices)
   }
-  k4_choice <- NULL
+  k4_choice <- NA
   if (!is.numeric(threshold)) {
     if (!is.numeric(k3)) {
       stop("mesh_guidance_adaptive: if threshold is not passed, k3 must be passed in")
