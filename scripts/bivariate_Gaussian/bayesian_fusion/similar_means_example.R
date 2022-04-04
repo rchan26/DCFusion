@@ -43,12 +43,13 @@ collect_results <- function(results) {
               'ESS' = results$ESS,
               'E_nu_j' = results$E_nu_j,
               'chosen' = results$chosen,
+              'k4_choice' = results$k4_choice,
               'mesh_terms' = results$mesh_terms,
               'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
                 particle_set = results$particles,
                 multivariate = TRUE,
-                resampling_method = 'resid',
-                seed = seed*i)$y_samples,
+                resampling_method = resampling_method,
+                seed = seed*i*rep)$y_samples,
                 marg_means = c(0,0),
                 marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
                 bw = opt_bw)))
