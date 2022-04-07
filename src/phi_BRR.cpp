@@ -224,11 +224,11 @@ Rcpp::List spectral_radius_global_bound_BRR_Z(const int &dim,
                                               const double &C,
                                               const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
-  const double ratio = nu*sigma*sigma/8;
+  const double nu_sigma_sq = nu*sigma*sigma;
   for (int i=0; i < transformed_X.n_rows; ++i) {
     for (int k=0; k < dim; ++k) {
       for (int l=0; l <= k; ++l) {
-        hessian.at(k,l) += transformed_X.at(i,k)*transformed_X.at(i,l)*ratio;
+        hessian.at(k,l) += std::abs(transformed_X.at(i,k))*std::abs(transformed_X.at(i,l))/nu_sigma_sq;
       }
     }
   }

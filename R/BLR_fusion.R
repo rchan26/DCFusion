@@ -400,8 +400,6 @@ Q_IS_BLR <- function(particle_set,
     split_N <- length(split_indices[[core]])
     y_samples <- t(apply(split_x_means[[core]], 1, function(vec) mvrnormArma(N = 1, mu = vec, Sigma = proposal_cov)))
     log_Q_weights <- rep(0, split_N)
-    bound_intensity <- matrix(nrow = split_N, ncol = m)
-    kap <- matrix(nrow = split_N, ncol = m)
     cat('Level:', level, '|| Node:', node, '|| Core:', core, '|| START \n',
         file = 'Q_IS_BLR_progress.txt', append = T)
     if (is.null(print_progress_iters)) {
@@ -447,8 +445,6 @@ Q_IS_BLR <- function(particle_set,
                                 local_bounds = FALSE,
                                 logarithm = TRUE)})})
       log_Q_weights[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
-      bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
-      kap[i,] <- sapply(1:m, function(c) phi[[c]]$kap)
       if (i%%print_progress_iters==0) {
         cat('Level:', level, '|| Node:', node, '|| Core:', core, '||', i, '/',
             split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
@@ -456,10 +452,7 @@ Q_IS_BLR <- function(particle_set,
     }
     cat('Completed: Level:', level, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
         split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
-    return(list('y_samples' = y_samples,
-                'log_Q_weights' = log_Q_weights,
-                'bound_intensity' = bound_intensity,
-                'kap' = kap))
+    return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
   if (close_cluster) {
     parallel::stopCluster(cl)
@@ -481,11 +474,7 @@ Q_IS_BLR <- function(particle_set,
   particle_set$CESS[2] <- particle_ESS(log_weights = log_Q_weights)$ESS
   # set the resampled indicator to FALSE
   particle_set$resampled[2] <- FALSE
-  return(list('particle_set' = particle_set,
-              'phi_bound_intensity' = do.call(rbind, lapply(1:length(split_x_samples), function(i) {
-                Q_weighted_samples[[i]]$bound_intensity})),
-              'phi_kappa' = do.call(rbind, lapply(1:length(split_x_samples), function(i) {
-                Q_weighted_samples[[i]]$kap}))))
+  return(particle_set)
 }
 
 #' Generalised Monte Carlo Fusion [parallel]
@@ -661,29 +650,28 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
   }
   # ---------- second importance sampling step
   # unbiased estimator for Q
-  Q <- Q_IS_BLR(particle_set = particles,
-                m = m,
-                time = time,
-                dim = dim,
-                data_split = data_split,
-                prior_means = prior_means,
-                prior_variances = prior_variances,
-                C = C,
-                proposal_cov = calculate_proposal_cov(time = time, weights = inv_precondition_matrices),
-                precondition_matrices = precondition_matrices,
-                inv_precondition_matrices = inv_precondition_matrices,
-                cv_location = cv_location,
-                diffusion_estimator = diffusion_estimator,
-                beta_NB = beta_NB,
-                gamma_NB_n_points = gamma_NB_n_points,
-                local_bounds = local_bounds,
-                seed = seed,
-                n_cores = n_cores,
-                cl = cl,
-                level = level,
-                node = node,
-                print_progress_iters = print_progress_iters)
-  particles <- Q$particle_set
+  particles <- Q_IS_BLR(particle_set = particles,
+                        m = m,
+                        time = time,
+                        dim = dim,
+                        data_split = data_split,
+                        prior_means = prior_means,
+                        prior_variances = prior_variances,
+                        C = C,
+                        proposal_cov = calculate_proposal_cov(time = time, weights = inv_precondition_matrices),
+                        precondition_matrices = precondition_matrices,
+                        inv_precondition_matrices = inv_precondition_matrices,
+                        cv_location = cv_location,
+                        diffusion_estimator = diffusion_estimator,
+                        beta_NB = beta_NB,
+                        gamma_NB_n_points = gamma_NB_n_points,
+                        local_bounds = local_bounds,
+                        seed = seed,
+                        n_cores = n_cores,
+                        cl = cl,
+                        level = level,
+                        node = node,
+                        print_progress_iters = print_progress_iters)
   # record ESS and CESS after Q step
   ESS['Q'] <- particles$ESS
   CESS['Q'] <- particles$CESS[2]
@@ -713,8 +701,6 @@ parallel_fusion_SMC_BLR <- function(particles_to_fuse,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,
-              'phi_bound_intensity' = Q$phi_bound_intensity,
-              'phi_kappa' = Q$phi_kappa,
               'precondition_matrices' = new_precondition_matrices,
               'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
 }
@@ -885,8 +871,6 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
   ESS <- list()
   CESS <- list()
   resampled <- list()
-  phi_bound_intensity <- list()
-  phi_kappa <- list()
   precondition_matrices <- list()
   if (is.logical(precondition)) {
     if (precondition) {
@@ -956,8 +940,6 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
     ESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$ESS)
     CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$CESS)
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$resampled)
-    phi_bound_intensity[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$phi_bound_intensity)
-    phi_kappa[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$phi_kappa)
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$precondition_matrices[[1]])
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$combined_data)
   }
@@ -970,8 +952,6 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
     ESS[[1]] <- ESS[[1]][[1]]
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
-    phi_bound_intensity[[1]] <- phi_bound_intensity[[1]][[1]]
-    phi_kappa[[1]] <- phi_kappa[[1]][[1]]
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
     data_inputs[[1]] <- data_inputs[[1]][[1]]
   }
@@ -981,8 +961,6 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
               'ESS' = ESS,
               'CESS' = CESS,
               'resampled' = resampled,
-              'phi_bound_intensity' = phi_bound_intensity,
-              'phi_kappa' = phi_kappa,
               'precondition_matrices' = precondition_matrices,
               'data_inputs' = data_inputs,
               'diffusion_times' = time_schedule))
