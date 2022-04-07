@@ -109,17 +109,6 @@ GBF_32 <- list('adaptive' = bal_binary_GBF_BLR(N_schedule = nsamples,
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed))
 
-# # regular mesh
-# GBF_32$reg$particles <- resample_particle_y_samples(particle_set = GBF_32$reg$particles[[1]],
-#                                                     multivariate = TRUE,
-#                                                     resampling_method = 'resid',
-#                                                     seed = seed)
-# print(integrated_abs_distance(full_posterior, GBF_32$reg$particles$y_samples))
-# compare_samples_bivariate(posteriors = list(full_posterior,
-#                                             GBF_32$reg$proposed_samples[[1]],
-#                                             GBF_32$reg$particles$y_samples),
-#                           colours = c('black', 'green', 'red'),
-#                           common_limit = c(-4, 4))
 # adaptive mesh
 GBF_32$adaptive$particles <- resample_particle_y_samples(particle_set = GBF_32$adaptive$particles[[1]],
                                                          multivariate = TRUE,
@@ -133,27 +122,27 @@ compare_samples_bivariate(posteriors = list(full_posterior,
                           common_limit = c(-4, 4))
 
 ##### bal binary combining two sub-posteriors at a time #####
-# 'reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 5),
-#                            m_schedule = rep(2, 5),
-#                            time_mesh = NULL,
-#                            base_samples = sub_posteriors_32,
-#                            L = 6,
-#                            dim = 5,
-#                            data_split = data_split_32,
-#                            prior_means = rep(0, 5),
-#                            prior_variances = rep(1, 5),
-#                            C = C,
-#                            precondition = TRUE,
-#                            resampling_method = 'resid',
-#                            ESS_threshold = ESS_threshold,
-#                            adaptive_mesh = FALSE,
-#                            mesh_parameters = list('condition' = 'SH',
-#                                                   'CESS_0_threshold' = CESS_0_threshold,
-#                                                   'CESS_j_threshold' = CESS_j_threshold,
-#                                                   'vanilla' = FALSE),
-#                            diffusion_estimator = diffusion_estimator,
-#                            seed = seed),
-balanced_C32 <- list('adaptive' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 5),
+balanced_C32 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 5),
+                                                m_schedule = rep(2, 5),
+                                                time_mesh = NULL,
+                                                base_samples = sub_posteriors_32,
+                                                L = 6,
+                                                dim = 5,
+                                                data_split = data_split_32,
+                                                prior_means = rep(0, 5),
+                                                prior_variances = rep(1, 5),
+                                                C = C,
+                                                precondition = TRUE,
+                                                resampling_method = 'resid',
+                                                ESS_threshold = ESS_threshold,
+                                                adaptive_mesh = FALSE,
+                                                mesh_parameters = list('condition' = 'SH',
+                                                                       'CESS_0_threshold' = CESS_0_threshold,
+                                                                       'CESS_j_threshold' = CESS_j_threshold,
+                                                                       'vanilla' = FALSE),
+                                                diffusion_estimator = diffusion_estimator,
+                                                seed = seed),
+                     'adaptive' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 5),
                                                      m_schedule = rep(2, 5),
                                                      time_mesh = NULL,
                                                      base_samples = sub_posteriors_32,
@@ -174,17 +163,17 @@ balanced_C32 <- list('adaptive' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 
                                                      diffusion_estimator = diffusion_estimator,
                                                      seed = seed))
 
-# # regular mesh
-# balanced_C32$reg$particles <- resample_particle_y_samples(particle_set = balanced_C32$reg$particles[[1]],
-#                                                           multivariate = TRUE,
-#                                                           resampling_method = 'resid',
-#                                                           seed = seed)
-# print(integrated_abs_distance(full_posterior, balanced_C32$reg$particles$y_samples))
-# compare_samples_bivariate(posteriors = list(full_posterior,
-#                                             balanced_C32$reg$proposed_samples[[1]],
-#                                             balanced_C32$reg$particles$y_samples),
-#                           colours = c('black', 'green', 'red'),
-#                           common_limit = c(-4, 4))
+# regular mesh
+balanced_C32$reg$particles <- resample_particle_y_samples(particle_set = balanced_C32$reg$particles[[1]],
+                                                          multivariate = TRUE,
+                                                          resampling_method = 'resid',
+                                                          seed = seed)
+print(integrated_abs_distance(full_posterior, balanced_C32$reg$particles$y_samples))
+compare_samples_bivariate(posteriors = list(full_posterior,
+                                            balanced_C32$reg$proposed_samples[[1]],
+                                            balanced_C32$reg$particles$y_samples),
+                          colours = c('black', 'green', 'red'),
+                          common_limit = c(-4, 4))
 # adaptive mesh
 balanced_C32$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C32$adaptive$particles[[1]],
                                                                multivariate = TRUE,
