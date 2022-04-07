@@ -30,6 +30,10 @@
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
 #'                      (default is FALSE)
 #' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
+#' @param record logical value indicating if variables such as E[nu_j], chosen,
+#'               mesh_terms and k4_choice should be recorded at each iteration
+#'               and returned (see return variables for this function) - default
+#'               is FALSE
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -56,10 +60,14 @@
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
+#' }
+#' If record is set to TRUE, additional components will be returned:
+#' \describe{
 #'   \item{E_nu_j}{approximation of the average variation of the trajectories
 #'                 at each time step}
 #'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
 #'   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
+#'   \item{k4_choice}{which of the roots of k4 were chosen}
 #' }
 #' 
 #' @export
@@ -82,6 +90,7 @@ rho_j_BRR <- function(particle_set,
                       sub_posterior_means = NULL,
                       adaptive_mesh = FALSE,
                       adaptive_mesh_parameters = NULL,
+                      record = FALSE,
                       diffusion_estimator,
                       beta_NB = 10,
                       gamma_NB_n_points = 2,
@@ -172,18 +181,18 @@ rho_j_BRR <- function(particle_set,
   ESS <- c(particle_set$ESS[1], rep(NA, length(time_mesh)-1))
   CESS <- c(particle_set$CESS[1], rep(NA, length(time_mesh)-1))
   resampled <- rep(FALSE, length(time_mesh))
-  phi_bound_intensity <- rep(list(matrix(nrow = N, ncol = m)), length(time_mesh))
-  phi_kappa <- rep(list(matrix(nrow = N, ncol = m)), length(time_mesh))
-  if (adaptive_mesh) {
-    E_nu_j <- rep(NA, length(time_mesh))
-    chosen <- rep("", length(time_mesh))
-    mesh_terms <- rep(list(c(NA,NA)), length(time_mesh))
-    k4_choice <- rep(NA, length(time_mesh))
-  } else {
-    E_nu_j <- NA
-    chosen <- NULL
-    mesh_terms <- NULL
-    k4_choice <- NULL
+  if (record) {
+    if (adaptive_mesh) {
+      E_nu_j <- rep(NA, length(time_mesh))
+      chosen <- rep("", length(time_mesh))
+      mesh_terms <- rep(list(c(NA,NA)), length(time_mesh))
+      k4_choice <- rep(NA, length(time_mesh))
+    } else {
+      E_nu_j <- NA
+      chosen <- NULL
+      mesh_terms <- NULL
+      k4_choice <- NULL
+    }
   }
   if (is.null(print_progress_iters)) {
     print_progress_iters <- split_N
@@ -223,10 +232,12 @@ rho_j_BRR <- function(particle_set,
                                               k3 = adaptive_mesh_parameters$k3,
                                               k4 = adaptive_mesh_parameters$k4,
                                               vanilla = adaptive_mesh_parameters$vanilla)
-      E_nu_j[j] <- tilde_Delta_j$E_nu_j
-      chosen[j] <- tilde_Delta_j$chosen
-      mesh_terms[[j]] <- c(tilde_Delta_j$T1, tilde_Delta_j$T2)
-      k4_choice[j] <- tilde_Delta_j$k4_choice
+      if (record) {
+        E_nu_j[j] <- tilde_Delta_j$E_nu_j
+        chosen[j] <- tilde_Delta_j$chosen
+        mesh_terms[[j]] <- c(tilde_Delta_j$T1, tilde_Delta_j$T2)
+        k4_choice[j] <- tilde_Delta_j$k4_choice  
+      }
       time_mesh[j] <- min(end_time, time_mesh[j-1]+tilde_Delta_j$max_delta_j)
     }
     split_x_samples <- lapply(split_indices, function(indices) particle_set$x_samples[indices])
@@ -243,8 +254,6 @@ rho_j_BRR <- function(particle_set,
       split_N <- length(split_indices[[core]])
       x_mean_j <- matrix(data = NA, nrow = split_N, ncol = dim)
       log_rho_j <- rep(0, split_N)
-      bound_intensity <- matrix(nrow = split_N, ncol = m)
-      kap <- matrix(nrow = split_N, ncol = m)
       x_j <- lapply(1:split_N, function(i) {
         M <- construct_M(s = time_mesh[j-1],
                          t = time_mesh[j],
@@ -291,8 +300,6 @@ rho_j_BRR <- function(particle_set,
                        gamma_NB_n_points = gamma_NB_n_points,
                        logarithm = TRUE)})
         log_rho_j[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
-        bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
-        kap[i,] <- sapply(1:m, function(c) phi[[c]]$kap)
         if (i%%print_progress_iters==0) {
           cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
               '|| Node:', node, '|| Core:', core, '||', i, '/', split_N, '\n',
@@ -302,11 +309,7 @@ rho_j_BRR <- function(particle_set,
       cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
           '|| Node:', node, '|| Core:', core, '||', split_N, '/',
           split_N, '\n', file = 'rho_j_BRR_progress.txt', append = T)
-      return(list('x_j' = x_j,
-                  'x_mean_j' = x_mean_j,
-                  'log_rho_j' = log_rho_j,
-                  'bound_intensity' = bound_intensity,
-                  'kap' = kap))
+      return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j))
     })
     # ---------- update particle set
     particle_set$x_samples <- unlist(lapply(1:length(split_indices), function(i) {
@@ -322,10 +325,6 @@ rho_j_BRR <- function(particle_set,
     ESS[j] <- particle_set$ESS
     particle_set$CESS[j] <- particle_ESS(log_weights = log_rho_j)$ESS
     CESS[j] <- particle_set$CESS[j]
-    phi_bound_intensity[[j]] <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
-      rho_j_weighted_samples[[i]]$bound_intensity}))
-    phi_kappa[[j]] <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
-      rho_j_weighted_samples[[i]]$kap}))
     elapsed_time[j-1] <- (proc.time()-pcm)['elapsed']
   }
   if (close_cluster) {
@@ -337,12 +336,12 @@ rho_j_BRR <- function(particle_set,
     resampled <- resampled[1:j]
     particle_set$time_mesh <- time_mesh[1:j]
     elapsed_time <- elapsed_time[1:(j-1)]
+  }
+  if (record) {
     E_nu_j <- E_nu_j[1:j]
     chosen <- chosen[1:j]
     mesh_terms <- mesh_terms[1:j]
     k4_choice <- k4_choice[1:j]
-    phi_bound_intensity <- phi_bound_intensity[1:j]
-    phi_kappa <- phi_kappa[1:j]
   }
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
   particle_set$y_samples <- proposed_samples
@@ -357,18 +356,25 @@ rho_j_BRR <- function(particle_set,
   } else {
     resampled[particle_set$number_of_steps] <- FALSE
   }
-  return(list('particle_set' = particle_set,
-              'proposed_samples' = proposed_samples,
-              'time' = elapsed_time,
-              'ESS' = ESS,
-              'CESS' = CESS,
-              'resampled' = resampled,
-              'E_nu_j' = E_nu_j,
-              'chosen' = chosen,
-              'mesh_terms' = mesh_terms,
-              'k4_choice' = k4_choice,
-              'phi_bound_intensity' = phi_bound_intensity,
-              'phi_kappa' = phi_kappa))
+  if (record) {
+    return(list('particle_set' = particle_set,
+                'proposed_samples' = proposed_samples,
+                'time' = elapsed_time,
+                'ESS' = ESS,
+                'CESS' = CESS,
+                'resampled' = resampled,
+                'E_nu_j' = E_nu_j,
+                'chosen' = chosen,
+                'mesh_terms' = mesh_terms,
+                'k4_choice' = k4_choice))
+  } else {
+    return(list('particle_set' = particle_set,
+                'proposed_samples' = proposed_samples,
+                'time' = elapsed_time,
+                'ESS' = ESS,
+                'CESS' = CESS,
+                'resampled' = resampled))
+  }
 }
 
 #' Generalised Bayesian Fusion [parallel]
@@ -411,6 +417,10 @@ rho_j_BRR <- function(particle_set,
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
 #'                      (default is FALSE)
 #' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
+#' @param record logical value indicating if variables such as E[nu_j], chosen,
+#'               mesh_terms and k4_choice should be recorded at each iteration
+#'               and returned (see return variables for this function) - default
+#'               is FALSE
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -439,10 +449,6 @@ rho_j_BRR <- function(particle_set,
 #'   \item{CESS}{conditional effective sample size of the particles after each step}
 #'   \item{resampled}{boolean value to indicate if particles were resampled
 #'                    after each time step}
-#'   \item{E_nu_j}{approximation of the average variation of the trajectories
-#'                 at each time step}
-#'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
-#'   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
 #'   \item{precondition_matrices}{list of length 2 where precondition_matrices[[2]]
 #'                                are the pre-conditioning matrices that were used
 #'                                and precondition_matrices[[1]] are the combined
@@ -453,7 +459,15 @@ rho_j_BRR <- function(particle_set,
 #'                              sub-posterior means}
 #'   \item{combined_data}{combined data for the fusion density}
 #' }
-#'
+#' If record is set to TRUE, additional components will be returned:
+#' \describe{
+#'   \item{E_nu_j}{approximation of the average variation of the trajectories
+#'                 at each time step}
+#'   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
+#'   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
+#'   \item{k4_choice}{which of the roots of k4 were chosen}
+#' }
+#' 
 #' @export
 parallel_GBF_BRR <- function(particles_to_fuse,
                              N,
@@ -475,6 +489,7 @@ parallel_GBF_BRR <- function(particles_to_fuse,
                              sub_posterior_means = NULL,
                              adaptive_mesh = FALSE,
                              adaptive_mesh_parameters = NULL,
+                             record = FALSE,
                              diffusion_estimator = 'Poisson',
                              beta_NB = 10,
                              gamma_NB_n_points = 2,
@@ -582,6 +597,7 @@ parallel_GBF_BRR <- function(particles_to_fuse,
                      sub_posterior_means = sub_posterior_means,
                      adaptive_mesh = adaptive_mesh,
                      adaptive_mesh_parameters = adaptive_mesh_parameters,
+                     record = record,
                      diffusion_estimator = diffusion_estimator,
                      beta_NB = beta_NB,
                      gamma_NB_n_points = gamma_NB_n_points,
@@ -608,23 +624,35 @@ parallel_GBF_BRR <- function(particles_to_fuse,
   } else {
     new_sub_posterior_means <- list(NULL, sub_posterior_means)
   }
-  return(list('particles' = rho_j$particle_set,
-              'proposed_samples' = rho_j$proposed_samples,
-              'time' = (proc.time()-pcm)['elapsed'],
-              'elapsed_time' = c(elapsed_time_rho_0, rho_j$time),
-              'time_mesh' = rho_j$particle_set$time_mesh,
-              'ESS' = rho_j$ESS,
-              'CESS' = rho_j$CESS,
-              'resampled' = rho_j$resampled,
-              'phi_bound_intensity' = rho_j$phi_bound_intensity,
-              'phi_kappa' = rho_j$phi_kappa,
-              'E_nu_j' = rho_j$E_nu_j,
-              'chosen' = rho_j$chosen,
-              'mesh_terms' = rho_j$mesh_terms,
-              'k4_choice' = rho_j$k4_choice,
-              'precondition_matrices' = new_precondition_matrices,
-              'sub_posterior_means' = new_sub_posterior_means,
-              'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
+  if (record) {
+    return(list('particles' = rho_j$particle_set,
+                'proposed_samples' = rho_j$proposed_samples,
+                'time' = (proc.time()-pcm)['elapsed'],
+                'elapsed_time' = c(elapsed_time_rho_0, rho_j$time),
+                'time_mesh' = rho_j$particle_set$time_mesh,
+                'ESS' = rho_j$ESS,
+                'CESS' = rho_j$CESS,
+                'resampled' = rho_j$resampled,
+                'E_nu_j' = rho_j$E_nu_j,
+                'chosen' = rho_j$chosen,
+                'mesh_terms' = rho_j$mesh_terms,
+                'k4_choice' = rho_j$k4_choice,
+                'precondition_matrices' = new_precondition_matrices,
+                'sub_posterior_means' = new_sub_posterior_means,
+                'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
+  } else {
+    return(list('particles' = rho_j$particle_set,
+                'proposed_samples' = rho_j$proposed_samples,
+                'time' = (proc.time()-pcm)['elapsed'],
+                'elapsed_time' = c(elapsed_time_rho_0, rho_j$time),
+                'time_mesh' = rho_j$particle_set$time_mesh,
+                'ESS' = rho_j$ESS,
+                'CESS' = rho_j$CESS,
+                'resampled' = rho_j$resampled,
+                'precondition_matrices' = new_precondition_matrices,
+                'sub_posterior_means' = new_sub_posterior_means,
+                'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
+  }
 }
 
 #' (Balanced Binary) D&C Monte Carlo Fusion using SMC
@@ -669,6 +697,13 @@ parallel_GBF_BRR <- function(particles_to_fuse,
 #'                    should be. Must be either 'mode' where the MLE estimator 
 #'                    will be used or 'hypercube_centre' (default) to use the centre
 #'                    of the simulated hypercube
+#' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
+#'                      (default is FALSE)
+#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
+#' @param record logical value indicating if variables such as E[nu_j], chosen,
+#'               mesh_terms and k4_choice should be recorded at each iteration
+#'               and returned (see return variables for this function) - default
+#'               is FALSE
 #' @param diffusion_estimator choice of unbiased estimator for the Exact Algorithm
 #'                            between "Poisson" (default) for Poisson estimator
 #'                            and "NB" for Negative Binomial estimator
@@ -703,21 +738,27 @@ parallel_GBF_BRR <- function(particles_to_fuse,
 #'   \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a
 #'                    boolean value to record if the particles were resampled
 #'                    after each step; rho and Q for level l, node i}
-#'   \item{E_nu_j}{list of length (L-1), where E_nu_j[[l]][[i]] is the
-#'                 approximation of the average variation of the trajectories
-#'                 at each time step for level l, node i}
-#'   \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
-#'                 which term was chosen if using an adaptive mesh at each
-#'                 time step for level l, node i}
-#'   \item{mesh_terms}{list of length(L-1), where mesh_terms[[l]][[i]] indicates
-#'                     the evaluated terms in deciding the mesh at each time step
-#'                     for level l, node i}
 #'   \item{precondition_matrices}{pre-conditioning matrices that were used}
 #'   \item{sub_posterior_means}{sub-posterior means that were used}
 #'   \item{recommended_mesh}{list of length (L-1), where recommended_mesh[[l]][[i]]
 #'                           is the recommended mesh for level l, node i}
 #'   \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
 #'                      data input for the sub-posterior in level l, node i}
+#' }
+#' If record is set to TRUE, additional components will be returned:
+#' \describe{
+#'   \item{E_nu_j}{list of length (L-1), where E_nu_j[[l]][[i]] is the
+#'                 approximation of the average variation of the trajectories
+#'                 at each time step for level l, node i}
+#'   \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
+#'                 which term was chosen if using an adaptive mesh at each
+#'                 time step for level l, node i}
+#'   \item{mesh_terms}{list of length (L-1), where mesh_terms[[l]][[i]] indicates
+#'                     the evaluated terms in deciding the mesh at each time step
+#'                     for level l, node i}
+#'   \item{k4_choice}{list of length (L-1), where k4_choice[[l]][[i]]] indicates 
+#'                    which of the roots of k4 were chosen at each time step for
+#'                    level l, node i}
 #' }
 #'
 #' @export
@@ -739,6 +780,7 @@ bal_binary_GBF_BRR <- function(N_schedule,
                                cv_location = 'hypercube_centre',
                                adaptive_mesh = FALSE,
                                mesh_parameters = NULL,
+                               record = FALSE,
                                diffusion_estimator = 'Poisson',
                                beta_NB = 10,
                                gamma_NB_n_points = 2,
@@ -819,12 +861,12 @@ bal_binary_GBF_BRR <- function(N_schedule,
   ESS <- list()
   CESS <- list()
   resampled <- list()
-  phi_bound_intensity <- list()
-  phi_kappa <- list()
-  E_nu_j <- list()
-  chosen <- list()
-  mesh_terms <- list()
-  k4_choice <- list()
+  if (record) {
+    E_nu_j <- list()
+    chosen <- list()
+    mesh_terms <- list()
+    k4_choice <- list()  
+  }
   recommended_mesh <- list()
   precondition_matrices <- list()
   if (is.logical(precondition)) {
@@ -917,6 +959,7 @@ bal_binary_GBF_BRR <- function(N_schedule,
                                               sub_posterior_means = sub_post_means,
                                               adaptive_mesh = adaptive_mesh,
                                               adaptive_mesh_parameters = mesh_parameters,
+                                              record = record,
                                               diffusion_estimator = diffusion_estimator,
                                               beta_NB = beta_NB,
                                               gamma_NB_n_points = gamma_NB_n_points,
@@ -935,12 +978,12 @@ bal_binary_GBF_BRR <- function(N_schedule,
     ESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$ESS)
     CESS[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$CESS)
     resampled[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$resampled)
-    phi_bound_intensity[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$phi_bound_intensity)
-    phi_kappa[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$phi_kappa)
-    E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
-    chosen[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$chosen)
-    mesh_terms[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$mesh_terms)
-    k4_choice[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$k4_choice)
+    if (record) {
+      E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
+      chosen[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$chosen)
+      mesh_terms[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$mesh_terms)
+      k4_choice[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$k4_choice)  
+    }
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
     sub_posterior_means[[k]] <- do.call(rbind, lapply(1:n_nodes, function(i) fused[[i]]$fusion$sub_posterior_means[[1]]))
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$combined_data)
@@ -957,33 +1000,46 @@ bal_binary_GBF_BRR <- function(N_schedule,
     ESS[[1]] <- ESS[[1]][[1]]
     CESS[[1]] <- CESS[[1]][[1]]
     resampled[[1]] <- resampled[[1]][[1]]
-    phi_bound_intensity[[1]] <- phi_bound_intensity[[1]][[1]]
-    phi_kappa[[1]] <- phi_kappa[[1]][[1]]
-    E_nu_j[[1]] <- E_nu_j[[1]][[1]]
-    chosen[[1]] <- chosen[[1]][[1]]
-    mesh_terms[[1]] <- mesh_terms[[1]][[1]]
-    k4_choice[[1]] <- k4_choice[[1]][[1]]
+    if (record) {
+      E_nu_j[[1]] <- E_nu_j[[1]][[1]]
+      chosen[[1]] <- chosen[[1]][[1]]
+      mesh_terms[[1]] <- mesh_terms[[1]][[1]]
+      k4_choice[[1]] <- k4_choice[[1]][[1]]  
+    }
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
     sub_posterior_means[[1]] <- sub_posterior_means[[1]][[1]]
     recommended_mesh[[1]] <- recommended_mesh[[1]][[1]]
     data_inputs[[1]] <- data_inputs[[1]][[1]]
   }
-  return(list('particles' = particles,
-              'proposed_samples' = proposed_samples,
-              'time' = time,
-              'elapsed_time' = elapsed_time,
-              'time_mesh' = used_time_mesh,
-              'ESS' = ESS,
-              'CESS' = CESS,
-              'resampled' = resampled,
-              'phi_bound_intensity' = phi_bound_intensity,
-              'phi_kappa' = phi_kappa,
-              'E_nu_j' = E_nu_j,
-              'chosen' = chosen,
-              'mesh_terms' = mesh_terms,
-              'k4_choice' = k4_choice,
-              'precondition_matrices' = precondition_matrices,
-              'sub_posterior_means' = sub_posterior_means,
-              'recommended_mesh' = recommended_mesh,
-              'data_inputs' = data_inputs))
+  if (record) {
+    return(list('particles' = particles,
+                'proposed_samples' = proposed_samples,
+                'time' = time,
+                'elapsed_time' = elapsed_time,
+                'time_mesh' = used_time_mesh,
+                'ESS' = ESS,
+                'CESS' = CESS,
+                'resampled' = resampled,
+                'E_nu_j' = E_nu_j,
+                'chosen' = chosen,
+                'mesh_terms' = mesh_terms,
+                'k4_choice' = k4_choice,
+                'precondition_matrices' = precondition_matrices,
+                'sub_posterior_means' = sub_posterior_means,
+                'recommended_mesh' = recommended_mesh,
+                'data_inputs' = data_inputs))    
+  } else {
+    return(list('particles' = particles,
+                'proposed_samples' = proposed_samples,
+                'time' = time,
+                'elapsed_time' = elapsed_time,
+                'time_mesh' = used_time_mesh,
+                'ESS' = ESS,
+                'CESS' = CESS,
+                'resampled' = resampled,
+                'precondition_matrices' = precondition_matrices,
+                'sub_posterior_means' = sub_posterior_means,
+                'recommended_mesh' = recommended_mesh,
+                'data_inputs' = data_inputs))
+  }
 }

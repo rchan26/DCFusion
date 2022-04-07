@@ -21,8 +21,8 @@ bal_binary_GBF_BLR(
   cv_location = "hypercube_centre",
   adaptive_mesh = FALSE,
   mesh_parameters = NULL,
-  diffusion_estimator = "Poisson",
   record = FALSE,
+  diffusion_estimator = "Poisson",
   beta_NB = 10,
   gamma_NB_n_points = 2,
   local_bounds = TRUE,
@@ -88,14 +88,14 @@ of the simulated hypercube}
 \item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used
 (default is FALSE)}
 
-\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
-between "Poisson" (default) for Poisson estimator
-and "NB" for Negative Binomial estimator}
-
 \item{record}{logical value indicating if variables such as E[nu_j], chosen,
 mesh_terms and k4_choice should be recorded at each iteration
 and returned (see return variables for this function) - default
 is FALSE}
+
+\item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
+between "Poisson" (default) for Poisson estimator
+and "NB" for Negative Binomial estimator}
 
 \item{beta_NB}{beta parameter for Negative Binomial estimator (default 10)}
 

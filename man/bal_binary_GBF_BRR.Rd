@@ -23,6 +23,7 @@ bal_binary_GBF_BRR(
   cv_location = "hypercube_centre",
   adaptive_mesh = FALSE,
   mesh_parameters = NULL,
+  record = FALSE,
   diffusion_estimator = "Poisson",
   beta_NB = 10,
   gamma_NB_n_points = 2,
@@ -86,6 +87,14 @@ should be. Must be either 'mode' where the MLE estimator
 will be used or 'hypercube_centre' (default) to use the centre
 of the simulated hypercube}
 
+\item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used
+(default is FALSE)}
+
+\item{record}{logical value indicating if variables such as E[nu_j], chosen,
+mesh_terms and k4_choice should be recorded at each iteration
+and returned (see return variables for this function) - default
+is FALSE}
+
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poisson estimator
 and "NB" for Negative Binomial estimator}
@@ -103,6 +112,8 @@ binomial estimator (default is 2)}
 \item{print_progress_iters}{number of iterations between each progress update
 (default is 1000). If NULL, progress will only
 be updated when importance sampling is finished}
+
+\item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh}
 }
 \value{
 A list with components:
@@ -126,21 +137,27 @@ A list with components:
   \item{resampled}{list of length (L-1), where resampled[[l]][[i]] is a
                    boolean value to record if the particles were resampled
                    after each step; rho and Q for level l, node i}
-  \item{E_nu_j}{list of length (L-1), where E_nu_j[[l]][[i]] is the
-                approximation of the average variation of the trajectories
-                at each time step for level l, node i}
-  \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
-                which term was chosen if using an adaptive mesh at each
-                time step for level l, node i}
-  \item{mesh_terms}{list of length(L-1), where mesh_terms[[l]][[i]] indicates
-                    the evaluated terms in deciding the mesh at each time step
-                    for level l, node i}
   \item{precondition_matrices}{pre-conditioning matrices that were used}
   \item{sub_posterior_means}{sub-posterior means that were used}
   \item{recommended_mesh}{list of length (L-1), where recommended_mesh[[l]][[i]]
                           is the recommended mesh for level l, node i}
   \item{data_inputs}{list of length (L-1), where data_inputs[[l]][[i]] is the
                      data input for the sub-posterior in level l, node i}
+}
+If record is set to TRUE, additional components will be returned:
+\describe{
+  \item{E_nu_j}{list of length (L-1), where E_nu_j[[l]][[i]] is the
+                approximation of the average variation of the trajectories
+                at each time step for level l, node i}
+  \item{chosen}{list of length (L-1), where chosen[[l]][[i]] indicates
+                which term was chosen if using an adaptive mesh at each
+                time step for level l, node i}
+  \item{mesh_terms}{list of length (L-1), where mesh_terms[[l]][[i]] indicates
+                    the evaluated terms in deciding the mesh at each time step
+                    for level l, node i}
+  \item{k4_choice}{list of length (L-1), where k4_choice[[l]][[i]]] indicates 
+                   which of the roots of k4 were chosen at each time step for
+                   level l, node i}
 }
 }
 \description{

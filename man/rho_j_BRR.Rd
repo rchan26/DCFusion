@@ -24,6 +24,7 @@ rho_j_BRR(
   sub_posterior_means = NULL,
   adaptive_mesh = FALSE,
   adaptive_mesh_parameters = NULL,
+  record = FALSE,
   diffusion_estimator,
   beta_NB = 10,
   gamma_NB_n_points = 2,
@@ -81,6 +82,11 @@ is the sub-posterior mean of sub-posterior c}
 
 \item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh}
 
+\item{record}{logical value indicating if variables such as E[nu_j], chosen,
+mesh_terms and k4_choice should be recorded at each iteration
+and returned (see return variables for this function) - default
+is FALSE}
+
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poisson estimator
 and "NB" for Negative Binomial estimator}
@@ -116,10 +122,14 @@ A list with components:
   \item{CESS}{conditional effective sample size of the particles after each step}
   \item{resampled}{boolean value to indicate if particles were resampled
                    after each time step}
+}
+If record is set to TRUE, additional components will be returned:
+\describe{
   \item{E_nu_j}{approximation of the average variation of the trajectories
                 at each time step}
   \item{chosen}{which term was chosen if using an adaptive mesh at each time step}
   \item{mesh_terms}{the evaluated terms in deciding the mesh at each time step}
+  \item{k4_choice}{which of the roots of k4 were chosen}
 }
 }
 \description{

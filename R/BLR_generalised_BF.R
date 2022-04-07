@@ -373,7 +373,6 @@ rho_j_BLR <- function(particle_set,
       mesh_terms <- mesh_terms[1:j]
       k4_choice <- k4_choice[1:j]
     }
-    
   }
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
   particle_set$y_samples <- proposed_samples
@@ -822,8 +821,8 @@ bal_binary_GBF_BLR <- function(N_schedule,
                                cv_location = 'hypercube_centre',
                                adaptive_mesh = FALSE,
                                mesh_parameters = NULL,
-                               diffusion_estimator = 'Poisson',
                                record = FALSE,
+                               diffusion_estimator = 'Poisson',
                                beta_NB = 10,
                                gamma_NB_n_points = 2,
                                local_bounds = TRUE,
@@ -1034,7 +1033,6 @@ bal_binary_GBF_BLR <- function(N_schedule,
       mesh_terms[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$mesh_terms)
       k4_choice[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$k4_choice)  
     }
-    
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
     sub_posterior_means[[k]] <- do.call(rbind, lapply(1:n_nodes, function(i) fused[[i]]$fusion$sub_posterior_means[[1]]))
     data_inputs[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$combined_data)
