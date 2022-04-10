@@ -338,7 +338,7 @@ rho_j_BLR <- function(particle_set,
         }
       }
       cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
-          '|| Node:', node, '|| Core:', core, '||', split_N, '/',
+          '|| Node:', node, '|| Core:', core, '|| DONE ||', split_N, '/',
           split_N, '\n', file = 'rho_j_BLR_progress.txt', append = T)
       return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j))
     })

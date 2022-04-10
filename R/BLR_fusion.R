@@ -450,7 +450,7 @@ Q_IS_BLR <- function(particle_set,
             split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
       }
     }
-    cat('Completed: Level:', level, '|| Node:', node, '|| Core:', core, '||', split_N, '/',
+    cat('Completed: Level:', level, '|| Node:', node, '|| Core:', core, '|| DONE ||', split_N, '/',
         split_N, '\n', file = 'Q_IS_BLR_progress.txt', append = T)
     return(list('y_samples' = y_samples, 'log_Q_weights' = log_Q_weights))
   })
