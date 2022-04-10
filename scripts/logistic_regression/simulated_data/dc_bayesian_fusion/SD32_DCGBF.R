@@ -2,7 +2,7 @@ library(DCFusion)
 library(HMCBLR)
 
 ##### Initialise example #####
-seed <- 2021
+seed <- 2022
 set.seed(seed)
 nsamples <- 10000
 ndata <- 1000

@@ -106,9 +106,7 @@ for (d in 1:length(dim)) {
                                      'samples' = samples,
                                      'CESS' = DC_MCF$CESS,
                                      'ESS' = DC_MCF$ESS,
-                                     'resampled' = DC_MCF$resampled,
-                                     'phi_bound_intensity' = DC_MCF$phi_bound_intensity,
-                                     'phi_kappa' = DC_MCF$phi_kappa)
+                                     'resampled' = DC_MCF$resampled)
       print(paste('IAD:', results[[d]][[i]][[j]]$IAD))
       print(paste('time:', results[[d]][[i]][[j]]$time))
       print(paste('log(time):', log(results[[d]][[i]][[j]]$time)))
@@ -117,5 +115,55 @@ for (d in 1:length(dim)) {
     }
   }
 }
+
+dim <- c(5,6,7,8,9,10,12,14)
+plot(x = dim,
+     y = sapply(1:length(dim), function(d) results[[d]][[2]][[length(results[[d]][[2]])]]$IAD),
+     ylim = c(0, 0.2),
+     xlab = '',
+     ylab = '',
+     xaxt = 'n',
+     yaxt = 'n', lwd = 3, pch = 1, type = 'b')
+mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=dim, labels=dim, font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.05), labels=rep("", 21), lwd.ticks = 0.5)
+lines(x = c(5, 10, 12, 14), y = c(0.021, sapply(2:length(c(5, 10, 12, 14)), function(d) {
+  integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$adaptive$particles$y_samples)})),
+  lty = 2, lwd = 3, pch = 4, type = 'b')
+lines(x = c(5, 10, 12, 14), y = c(0.02, sapply(2:length(c(5, 10, 12, 14)), function(d) {
+  integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$reg$particles$y_samples)})),
+  lty = 3, lwd = 3, pch = 20, type = 'b')
+legend(x = 5, y = 0.2,
+       legend = c('D&C-MCF', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)'),
+       lwd = c(3, 3, 3),
+       lty = c(1, 2, 3),
+       col = 'black',
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+plot(x = dim, 
+     y = log(sapply(1:length(dim), function(d) results[[d]][[2]][[length(results[[d]][[2]])]]$time)),
+     ylim = c(-2, 14), xlab = '', ylab = '', yaxt = 'n', xaxt = 'n', lwd = 3, pch = 1, type = 'b')
+mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(1, at=dim, labels = dim, font = 2, cex = 1.5)
+axis(2, at=seq(-2, 14, 2), labels = seq(-2, 14, 2), font = 2, cex = 1.5)
+axis(2, at=seq(-2, 14, 1), labels=rep("", 17), lwd.ticks = 0.5)
+lines(x = c(5, 10, 12, 14), y = c(5.9, log(sapply(2:length(c(5, 10, 12, 14)), function(d) sum(unlist(balanced_C16[[d]]$adaptive$time))))),
+      lty = 2, lwd = 3, pch = 4, type = 'b')
+lines(x = c(5, 10, 12, 14), y = c(6.1, log(sapply(2:length(c(5, 10, 12, 14)), function(d) sum(unlist(balanced_C16[[d]]$reg$time))))),
+      lty = 3, lwd = 3, pch = 20, type = 'b')
+legend(x = 5, y = 14,
+       legend = c('D&C-MCF', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)'),
+       lwd = c(3, 3, 3),
+       lty = c(1, 2, 3),
+       col = 'black',
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
 
 save.image('SD16_dim_study_varying.RData')
