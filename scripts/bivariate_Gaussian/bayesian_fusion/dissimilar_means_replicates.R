@@ -33,10 +33,13 @@ d2_results <- list('vanilla' = list(), 'generalised' = list())
 SH_adaptive_results <- list('vanilla' = list(), 'generalised' = list())
 
 collect_results <- function(results) {
+  print(paste('n:', length(results$CESS)-1))
+  print(paste('time:', results$time))
+  print(paste('log(time):', log(results$time)))
   return(list('CESS_0' = results$CESS[1],
               'CESS_j' = results$CESS[2:length(results$CESS)],
               'CESS_j_avg' = mean(results$CESS[2:length(results$CESS)]),
-              'n' = length(results$CESS),
+              'n' = length(results$CESS)-1,
               'time_mesh' = results$particles$time_mesh,
               'time' = results$time,
               'elapsed_time' = results$elapsed_time,
@@ -44,8 +47,8 @@ collect_results <- function(results) {
               'ESS' = results$ESS,
               'E_nu_j' = results$E_nu_j,
               'chosen' = results$chosen,
-              'k4_choice' = results$k4_choice,
               'mesh_terms' = results$mesh_terms,
+              'k4_choice' = results$k4_choice,
               'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
                 particle_set = results$particles,
                 multivariate = TRUE,
@@ -473,7 +476,7 @@ axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2,
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
      font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 13), lwd.ticks = 0.5,
+axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
 legend(x = 250, y = 1.6,
@@ -527,7 +530,7 @@ axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2,
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
      font = 2, cex = 1.5)
-axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 13), lwd.ticks = 0.5,
+axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance (maximum)', 2, 2.75, font = 2, cex = 1.5)
 legend(x = 250, y = 1.6,
