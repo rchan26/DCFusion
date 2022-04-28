@@ -119,7 +119,7 @@ for (d in 1:length(dim)) {
 dim <- c(5,6,7,8,9,10,12,14)
 plot(x = dim,
      y = sapply(1:length(dim), function(d) results[[d]][[2]][[length(results[[d]][[2]])]]$IAD),
-     ylim = c(0, 0.2),
+     ylim = c(0, 0.5),
      xlab = '',
      ylab = '',
      xaxt = 'n',
@@ -135,7 +135,7 @@ lines(x = c(5, 10, 12, 14), y = c(0.021, sapply(2:length(c(5, 10, 12, 14)), func
 lines(x = c(5, 10, 12, 14), y = c(0.02, sapply(2:length(c(5, 10, 12, 14)), function(d) {
   integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$reg$particles$y_samples)})),
   lty = 3, lwd = 3, pch = 20, type = 'b')
-legend(x = 5, y = 0.2,
+legend(x = 5, y = 0.5,
        legend = c('D&C-MCF', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)'),
        lwd = c(3, 3, 3),
        lty = c(1, 2, 3),
@@ -146,7 +146,7 @@ legend(x = 5, y = 0.2,
 
 plot(x = dim, 
      y = log(sapply(1:length(dim), function(d) results[[d]][[2]][[length(results[[d]][[2]])]]$time)),
-     ylim = c(-2, 14), xlab = '', ylab = '', yaxt = 'n', xaxt = 'n', lwd = 3, pch = 1, type = 'b')
+     ylim = c(4, 14), xlab = '', ylab = '', yaxt = 'n', xaxt = 'n', lwd = 3, pch = 1, type = 'b')
 mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
 mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)

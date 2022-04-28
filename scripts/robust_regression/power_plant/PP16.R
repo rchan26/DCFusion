@@ -6,7 +6,8 @@ library(readxl)
 seed <- 2022
 set.seed(seed)
 nsamples_MCF <- 100000
-nsamples_GBF <- 10000
+nsamples_GBF <- 50000
+nsamples_DCGBF <- 10000
 warmup <- 10000
 time_choice <- 1
 nu <- 5
@@ -15,7 +16,7 @@ prior_means <- rep(0, 5)
 prior_variances <- rep(10, 5)
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.5
-CESS_j_threshold <- 0.2
+CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 n_cores <- parallel::detectCores()
 
@@ -110,33 +111,33 @@ weierstrass_importance_16 <- weierstrass(Samples = sub_posteriors_16,
 weierstrass_rejection_16 <- weierstrass(Samples = sub_posteriors_16,
                                        method = 'reject')
 
-##### Poisson (Hypercube Centre) #####
-print('Poisson Fusion (hypercube centre)')
-Poisson_hc_16 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 4),
-                                          m_schedule = rep(2, 4),
-                                          time_schedule = rep(time_choice, 4),
-                                          base_samples = sub_posteriors_16,
-                                          L = 5,
-                                          dim = 5,
-                                          data_split = data_split_16,
-                                          nu = nu,
-                                          sigma = sigma,
-                                          prior_means = prior_means,
-                                          prior_variances = prior_variances,
-                                          C = 16,
-                                          precondition = TRUE,
-                                          resampling_method = 'resid',
-                                          ESS_threshold = ESS_threshold,
-                                          cv_location = 'hypercube_centre',
-                                          diffusion_estimator = 'Poisson',
-                                          seed = seed,
-                                          n_cores = n_cores)
-Poisson_hc_16$particles <- resample_particle_y_samples(particle_set = Poisson_hc_16$particles[[1]],
-                                                      multivariate = TRUE,
-                                                      resampling_method = 'resid',
-                                                      seed = seed)
-Poisson_hc_16$proposed_samples <- Poisson_hc_16$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, Poisson_hc_16$particles$y_samples))
+# ##### Poisson (Hypercube Centre) #####
+# print('Poisson Fusion (hypercube centre)')
+# Poisson_hc_16 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 4),
+#                                           m_schedule = rep(2, 4),
+#                                           time_schedule = rep(time_choice, 4),
+#                                           base_samples = sub_posteriors_16,
+#                                           L = 5,
+#                                           dim = 5,
+#                                           data_split = data_split_16,
+#                                           nu = nu,
+#                                           sigma = sigma,
+#                                           prior_means = prior_means,
+#                                           prior_variances = prior_variances,
+#                                           C = 16,
+#                                           precondition = TRUE,
+#                                           resampling_method = 'resid',
+#                                           ESS_threshold = ESS_threshold,
+#                                           cv_location = 'hypercube_centre',
+#                                           diffusion_estimator = 'Poisson',
+#                                           seed = seed,
+#                                           n_cores = n_cores)
+# Poisson_hc_16$particles <- resample_particle_y_samples(particle_set = Poisson_hc_16$particles[[1]],
+#                                                       multivariate = TRUE,
+#                                                       resampling_method = 'resid',
+#                                                       seed = seed)
+# Poisson_hc_16$proposed_samples <- Poisson_hc_16$proposed_samples[[1]]
+# print(integrated_abs_distance(full_posterior, Poisson_hc_16$particles$y_samples))
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
@@ -238,7 +239,7 @@ print(integrated_abs_distance(full_posterior, NB_hc_16$particles$y_samples))
 #                           common_limit = c(-4, 4))
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C16 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 4),
+balanced_C16 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF, 4),
                                                m_schedule = rep(2, 4),
                                                time_mesh = NULL,
                                                base_samples = sub_posteriors_16,
@@ -260,7 +261,7 @@ balanced_C16 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 4
                                                                       'vanilla' = FALSE),
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed),
-                    'adaptive' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 4),
+                    'adaptive' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF, 4),
                                                     m_schedule = rep(2, 4),
                                                     time_mesh = NULL,
                                                     base_samples = sub_posteriors_16,
@@ -288,23 +289,15 @@ balanced_C16$reg$particles <- resample_particle_y_samples(particle_set = balance
                                                          multivariate = TRUE,
                                                          resampling_method = 'resid',
                                                          seed = seed)
+balanced_C16$reg$proposed_samples <- balanced_C16$reg$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C16$reg$particles$y_samples))
-compare_samples_bivariate(posteriors = list(full_posterior,
-                                            balanced_C16$reg$proposed_samples[[1]],
-                                            balanced_C16$reg$particles$y_samples),
-                          colours = c('black', 'green', 'red'),
-                          common_limit = c(-4, 4))
 # adaptive mesh
 balanced_C16$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C16$adaptive$particles[[1]],
                                                               multivariate = TRUE,
                                                               resampling_method = 'resid',
                                                               seed = seed)
+balanced_C16$adaptive$proposed_samples <- balanced_C16$adaptive$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C16$adaptive$particles$y_samples))
-compare_samples_bivariate(posteriors = list(full_posterior,
-                                            balanced_C16$adaptive$proposed_samples[[1]],
-                                            balanced_C16$adaptive$particles$y_samples),
-                          colours = c('black', 'green', 'red'),
-                          common_limit = c(-4, 4))
 
 ##### IAD #####
 
@@ -312,7 +305,6 @@ compare_samples_bivariate(posteriors = list(full_posterior,
 # integrated_abs_distance(full_posterior, GBF_16$adaptive$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C16$reg$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C16$adaptive$particles$y_samples)
-integrated_abs_distance(full_posterior, Poisson_hc_16$particles$y_samples)
 integrated_abs_distance(full_posterior, NB_hc_16$particles$y_samples)
 integrated_abs_distance(full_posterior, consensus_mat_16$samples)
 integrated_abs_distance(full_posterior, consensus_sca_16$samples)

@@ -6,10 +6,6 @@ nsamples <- 30000
 time_choice <- 0.5
 n_cores <- parallel::detectCores()
 
-# note that the reproducibility of this script depends on the number of cores available
-# various functions will be done in parallel
-# can be changed by changing n_cores above
-
 ##### Loading in Data #####
 
 original_data <- read.csv('credit_cards.csv')

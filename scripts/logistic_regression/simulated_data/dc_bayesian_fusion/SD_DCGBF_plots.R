@@ -64,28 +64,28 @@ weierstrass <- c(integrated_abs_distance(full_posterior,
                  integrated_abs_distance(full_posterior,
                                          weierstrass_rejection_64$samples))
 
-plot(x = c(4, 8, 16, 32, 64), y = balanced$adaptive,
-     ylim = c(0, 1),
+plot(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$adaptive,
+     ylim = c(0, 0.6),
      xlab = '',
      ylab = '',
      xaxt = 'n', lty = 3, lwd = 3, pch = 3, type = 'b')
-mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
-axis(1, at=c(4, 8, 16, 32), labels = c(4, 8, 16, 32), font = 2, cex = 1.5)
+axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
-lines(x = c(4, 8, 16, 32, 64), y = balanced$reg,
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$reg,
       lty = 2, lwd = 3, type = 'b', pch = 2)
-lines(x = c(4, 8, 16, 32), y = GBF$adaptive,
+lines(x = log(c(4, 8, 16, 32), 2), y = GBF$adaptive,
       lty = 1, lwd = 3, type = 'b', pch = 1)
-lines(x = c(4, 8, 16, 32, 64), y = consensus,
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = consensus,
       lty = 4, lwd = 3, type = 'b', pch = 4, col = 'red')
-lines(x = c(4, 8, 16, 32, 64), y = neiswanger,
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = neiswanger,
       lty = 5, lwd = 3, type = 'b', pch = 5, col = 'red')
-lines(x = c(4, 8, 16, 32, 64), y = weierstrass,
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = weierstrass,
       lty = 6, lwd = 3, type = 'b', pch = 6, col = 'red')
-legend(x = 4, y = 1,
+legend(x = 2, y = 0.6,
        legend = c('GBF (reg)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'CMC', 'KDEMC', 'WRS'),
        lwd = c(3, 3, 3, 3, 3, 3),
        lty = c(1, 2, 3, 4, 5, 6),
@@ -127,29 +127,29 @@ weierstrass_time <- c(weierstrass_rejection_4$time,
                       weierstrass_rejection_32$time,
                       weierstrass_rejection_64$time)
 
-plot(x = c(4, 8, 16, 32, 64), y = log(balanced_time$adaptive),
+plot(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$adaptive),
      ylim = c(-4, 16),
      xlab = '',
      ylab = '',
      yaxt = 'n',
      xaxt = 'n', lty = 3, lwd = 3, pch = 3, type = 'b')
-mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
-mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds, e)', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
-axis(1, at=c(4, 8, 16, 32), labels = c(4, 8, 16, 32), font = 2, cex = 1.5)
+axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), font = 2, cex = 1.5)
 axis(2, at=seq(-4, 16, 2), labels = seq(-4, 16, 2), font = 2, cex = 1.5)
 axis(2, at=seq(-4, 16, 1), labels=rep("", 21), lwd.ticks = 0.5)
-lines(x = c(4, 8, 16, 32, 64), y = log(balanced_time$reg),
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$reg),
       lty = 3, lwd = 3, type = 'b', pch = 3)
-lines(x = c(4, 8, 16, 32), y = log(GBF_time$adaptive),
+lines(x = log(c(4, 8, 16, 32), 2), y = log(GBF_time$adaptive),
       lty = 1, lwd = 3, type = 'b', pch = 1)
-lines(x = c(4, 8, 16, 32, 64), y = log(consensus_time),
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(consensus_time),
       lty = 4, lwd = 3, type = 'b', pch = 4, col = 'red')
-lines(x = c(4, 8, 16, 32, 64), y = log(neiswanger_time),
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(neiswanger_time),
       lty = 5, lwd = 3, type = 'b', pch = 5, col = 'red')
-lines(x = c(4, 8, 16, 32, 64), y = log(weierstrass_time),
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(weierstrass_time),
       lty = 6, lwd = 3, type = 'b', pch = 6, col = 'red')
-legend(x = 4, y = 16,
+legend(x = 2, y = 16,
        legend = c('GBF (reg)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'CMC', 'KDEMC', 'WRS'),
        lwd = c(3, 3, 3, 3, 3, 3),
        lty = c(1, 2, 3, 4, 5, 6),
@@ -184,60 +184,56 @@ NB_fusion_time <- c(sum(unlist(NB_hc_4$time)),
                     sum(unlist(NB_hc_8$time)),
                     sum(unlist(NB_hc_16$time)))
 
-plot(x = c(4, 8, 16, 32), y = GBF$reg,
-     ylim = c(0, 1),
+plot(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$adaptive,
+     ylim = c(0, 0.6),
      xlab = '',
      ylab = '',
-     xaxt = 'n', lwd = 3, pch = 1, type = 'b')
-mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+     xaxt = 'n', lty = 3, lwd = 3, pch = 3, type = 'b')
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
-axis(1, at=c(4, 8, 16, 32), labels = c(4, 8, 16, 32), font = 2, cex = 1.5)
+axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
-lines(x = c(4, 8, 16, 32), y = GBF$adaptive,
-      lty = 5, lwd = 3, type = 'b', pch = 4)
-lines(x = c(4, 8, 16, 32), y = balanced$reg,
-      lty = 6, lwd = 3, type = 'b', pch = 5)
-lines(x = c(4, 8, 16, 32), y = balanced$adaptive,
-      lty = 2, lwd = 3, type = 'b', pch = 9)
-lines(x = c(4, 8, 16), y = NB_fusion,
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$reg,
+      lty = 2, lwd = 3, type = 'b', pch = 2)
+lines(x = log(c(4, 8, 16, 32), 2), y = GBF$adaptive,
+      lty = 1, lwd = 3, type = 'b', pch = 1)
+lines(x = log(c(4, 8, 16), 2), y = NB_fusion,
       lty = 4, lwd = 3, type = 'b', pch = 6, col = 'red')
-legend(x = 4, y = 1,
-       legend = c('GBF (reg)', 'GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
-       lwd = c(3, 3, 3, 3, 3),
-       lty = c(1, 5, 6, 2, 4),
-       pch = c(1, 4, 5, 9, 6),
-       col = c(rep('black', 4), rep('red', 1)),
+legend(x = 2, y = 0.6,
+       legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
+       lwd = c(3, 3, 3, 3),
+       lty = c(1, 2, 3, 4),
+       pch = c(1, 2, 3, 4),
+       col = c(rep('black', 3), rep('red', 1)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
 
-plot(x = c(4, 8, 16, 32), y = log(GBF_time$reg),
+plot(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$adaptive, 2),
      ylim = c(-4, 16),
      xlab = '',
      ylab = '',
-     xaxt = 'n', lwd = 3, pch = 1, type = 'b', xaxt = 'n', yaxt = 'n')
-mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
-mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
+     xaxt = 'n', lty = 3, lwd = 3, pch = 3, type = 'b')
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
-axis(1, at=c(4, 8, 16, 32), labels = c(4, 8, 16, 32), font = 2, cex = 1.5)
-axis(2, at=seq(-4, 16, 2), labels = seq(-4, 16, 2), font = 2, cex = 1.5)
-axis(2, at=seq(-4, 16, 1), labels=rep("", 21), lwd.ticks = 0.5)
-lines(x = c(4, 8, 16, 32), y = log(GBF_time$adaptive),
-      lty = 5, lwd = 3, type = 'b', pch = 4)
-lines(x = c(4, 8, 16, 32), y = log(balanced_time$reg),
-      lty = 6, lwd = 3, type = 'b', pch = 5)
-lines(x = c(4, 8, 16, 32), y = log(balanced_time$adaptive),
-      lty = 2, lwd = 3, type = 'b', pch = 9)
-lines(x = c(4, 8, 16), y = log(NB_fusion_time),
+axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), font = 2, cex = 1.5)
+# axis(2, at=seq(-4, 16, 2), labels = seq(-4, 16, 2), font = 2, cex = 1.5)
+# axis(2, at=seq(-4, 16, 1), labels=rep("", 21), lwd.ticks = 0.5)
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$reg, 2),
+      lty = 3, lwd = 2, type = 'b', pch = 2)
+lines(x = log(c(4, 8, 16, 32), 2), y = log(GBF_time$adaptive, 2),
+      lty = 1, lwd = 3, type = 'b', pch = 1)
+lines(x = log(c(4, 8, 16), 2), y = log(NB_fusion_time, 2),
       lty = 4, lwd = 3, type = 'b', pch = 6, col = 'red')
-legend(x = 4, y = 16,
-       legend = c('GBF (reg)', 'GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
-       lwd = c(3, 3, 3, 3, 3),
-       lty = c(1, 5, 6, 2, 4),
-       pch = c(1, 4, 5, 9, 6),
-       col = c(rep('black', 4), rep('red', 1)),
+legend(x = 2, y = 16,
+       legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
+       lwd = c(3, 3, 3, 3),
+       lty = c(1, 2, 3, 4),
+       pch = c(1, 2, 3, 4),
+       col = c(rep('black', 3), rep('red', 1)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')

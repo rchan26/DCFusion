@@ -1,44 +1,49 @@
 library(DCFusion)
 library(HMCBLR)
 
-##### Initialise example #####
-seed <- 2022
-set.seed(seed)
-nsamples_MCF <- 10000
-nsamples_GBF <- 10000
-nsamples_DCGBF <- 10000
-ndata <- 1000
+seed <- 2016
+nsamples <- 30000
+nsamples_GBF <- 5000
 time_choice <- 0.5
-prior_means <- rep(0, 5)
-prior_variances <- rep(1, 5)
 C <- 128
 n_cores <- parallel::detectCores()
-true_beta <- c(-3, 1.2, -0.5, 0.8, 3)
-frequencies <- c(0.2, 0.3, 0.5, 0.01)
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.5
 CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 
-# simulate data set
-simulated_data <- simulate_LR_data(N = ndata,
-                                   alpha = true_beta[1],
-                                   frequencies = frequencies,
-                                   coefficients = true_beta[2:length(true_beta)],
-                                   seed = seed)
+##### Loading in Data #####
 
-# check activity of the parameters
-check_activity(simulated_data)
+load_nycflights_data <- function() {
+  nyc_flights <- subset(nycflights13::flights, select = c("arr_delay", "year", "day", "month", "hour", "distance"))
+  nyc_flights <- nyc_flights[complete.cases(nyc_flights),]
+  nyc_flights$weekday <- weekdays(as.Date(paste(nyc_flights$year, "-", nyc_flights$month, "-", nyc_flights$day, sep = "")))
+  nyc_flights$delayed <- as.numeric(nyc_flights$arr_delay > 15)
+  nyc_flights$weekend <- as.numeric(nyc_flights$weekday %in% c("Saturday", "Sunday"))
+  nyc_flights$night <- as.numeric(nyc_flights$hour >= 20 | nyc_flights$hour <= 5)
+  distance_min <- min(nyc_flights$distance)
+  distance_range <- max(nyc_flights$distance)-distance_min
+  nyc_flights$distance_standardised <- (nyc_flights$distance-distance_min) / distance_range
+  X <- subset(nyc_flights, select = c("weekend", "night", "distance_standardised"))
+  design_mat <- as.matrix(cbind(rep(1, nrow(X)), X))
+  colnames(design_mat)[1] <- 'intercept'
+  return(list('data' = cbind('delayed' = nyc_flights$delayed, X),
+              'y' = nyc_flights$delayed,
+              'X' = design_mat,
+              'distance_min' = distance_min,
+              'distance_range' = distance_range))
+}
 
-##### Sampling from full posterior #####t
+nyc_flights <- load_nycflights_data()
 
-full_data_count <- unique_row_count(y = simulated_data[,1],
-                                    X = cbind('intercept' = rep(1, ndata), simulated_data[,2:ncol(simulated_data)]))$full_data_count
+##### Sampling from full posterior #####
+
+full_data_count <- unique_row_count(nyc_flights$y, nyc_flights$X)$full_data_count
 full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
                                  C = 1,
-                                 prior_means = prior_means,
-                                 prior_variances = prior_variances,
-                                 iterations = nsamples_MCF + 10000,
+                                 prior_means = rep(0, 4),
+                                 prior_variances = rep(1, 4),
+                                 iterations = nsamples + 10000,
                                  warmup = 10000,
                                  chains = 1,
                                  seed = seed,
@@ -46,12 +51,12 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
 
 ##### Sampling from sub-posterior C=128 #####
 
-data_split_128 <- split_data(simulated_data, y_col_index = 1, X_col_index = 2:ncol(simulated_data), C = 128, as_dataframe = F)
-sub_posteriors_128 <- hmc_base_sampler_BLR(nsamples = nsamples_MCF,
+data_split_128 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:4, C = C, as_dataframe = F)
+sub_posteriors_128 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                            data_split = data_split_128,
-                                           C = 128, 
-                                           prior_means = prior_means,
-                                           prior_variances = prior_variances,
+                                           C = C,
+                                           prior_means = rep(0, 4),
+                                           prior_variances = rep(1, 4),
                                            warmup = 10000,
                                            seed = seed,
                                            output = T)
@@ -59,12 +64,12 @@ sub_posteriors_128 <- hmc_base_sampler_BLR(nsamples = nsamples_MCF,
 ##### Applying other methodologies #####
 
 print('Applying other methodologies')
-consensus_mat_128 <- consensus_scott(S = 128, samples_to_combine = sub_posteriors_128, indep = F)
-consensus_sca_128 <- consensus_scott(S = 128, samples_to_combine = sub_posteriors_128, indep = T)
-neiswanger_true_128 <- neiswanger(S = 128,
+consensus_mat_128 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_128, indep = F)
+consensus_sca_128 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_128, indep = T)
+neiswanger_true_128 <- neiswanger(S = C,
                                   samples_to_combine = sub_posteriors_128,
                                   anneal = TRUE)
-neiswanger_false_128 <- neiswanger(S = 128,
+neiswanger_false_128 <- neiswanger(S = C,
                                    samples_to_combine = sub_posteriors_128,
                                    anneal = FALSE)
 weierstrass_importance_128 <- weierstrass(Samples = sub_posteriors_128,
@@ -81,23 +86,24 @@ integrated_abs_distance(full_posterior, weierstrass_rejection_128$samples)
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
-NB_hc_128 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples_MCF, 7),
+NB_hc_128 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 7),
                                        m_schedule = rep(2, 7),
                                        time_schedule = rep(time_choice, 7),
                                        base_samples = sub_posteriors_128,
                                        L = 8,
-                                       dim = 5,
+                                       dim = 4,
                                        data_split = data_split_128,
-                                       prior_means = prior_means,
-                                       prior_variances = prior_variances,
-                                       C = 128,
+                                       prior_means = rep(0, 4),
+                                       prior_variances = rep(1, 4),
+                                       C = C,
                                        precondition = TRUE,
                                        resampling_method = 'resid',
-                                       ESS_threshold = ESS_threshold,
+                                       ESS_threshold = 0.5,
                                        cv_location = 'hypercube_centre',
                                        diffusion_estimator = 'NB',
                                        seed = seed,
-                                       n_cores = n_cores)
+                                       n_cores = n_cores,
+                                       print_progress_iters = 500)
 NB_hc_128$particles <- resample_particle_y_samples(particle_set = NB_hc_128$particles[[1]],
                                                    multivariate = TRUE,
                                                    resampling_method = 'resid',
@@ -105,19 +111,17 @@ NB_hc_128$particles <- resample_particle_y_samples(particle_set = NB_hc_128$part
 NB_hc_128$proposed_samples <- NB_hc_128$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, NB_hc_128$particles$y_samples))
 
-##### Generalised Bayesian Fusion #####
-
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C128 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 7),
+balanced_C128 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 7),
                                                  m_schedule = rep(2, 7),
                                                  time_mesh = NULL,
                                                  base_samples = sub_posteriors_128,
                                                  L = 8,
-                                                 dim = 5,
+                                                 dim = 4,
                                                  data_split = data_split_128,
-                                                 prior_means = prior_means,
-                                                 prior_variances = prior_variances,
-                                                 C = 128,
+                                                 prior_means = rep(0, 4),
+                                                 prior_variances = rep(1, 4),
+                                                 C = C,
                                                  precondition = TRUE,
                                                  resampling_method = 'resid',
                                                  ESS_threshold = ESS_threshold,
@@ -128,16 +132,16 @@ balanced_C128 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF
                                                                         'vanilla' = FALSE),
                                                  diffusion_estimator = diffusion_estimator,
                                                  seed = seed))
-balanced_C128$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 7),
+balanced_C128$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 7),
                                              m_schedule = rep(2, 7),
                                              time_mesh = NULL,
                                              base_samples = sub_posteriors_128,
                                              L = 8,
-                                             dim = 5,
+                                             dim = 4,
                                              data_split = data_split_128,
-                                             prior_means = prior_means,
-                                             prior_variances = prior_variances,
-                                             C = 128,
+                                             prior_means = rep(0, 4),
+                                             prior_variances = rep(1, 4),
+                                             C = C,
                                              precondition = TRUE,
                                              resampling_method = 'resid',
                                              ESS_threshold = ESS_threshold,
@@ -164,10 +168,4 @@ balanced_C128$adaptive$particles <- resample_particle_y_samples(particle_set = b
 balanced_C128$adaptive$proposed_samples <- balanced_C128$adaptive$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C128$adaptive$particles$y_samples))
 
-##### IAD #####
-
-integrated_abs_distance(full_posterior, balanced_C128$reg$particles$y_samples)
-integrated_abs_distance(full_posterior, balanced_C128$adaptive$particles$y_samples)
-integrated_abs_distance(full_posterior, NB_hc_128$particles$y_samples)
-
-save.image('SD128_DCGBF.RData')
+save.image('NYC128_DCGBF.RData')

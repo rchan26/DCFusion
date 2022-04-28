@@ -5,7 +5,7 @@ library(HMCBLR)
 seed <- 2021
 set.seed(seed)
 nsamples <- 10000
-ndata <- 5000
+ndata <- 10000
 n_cores <- parallel::detectCores()
 C <- 16
 diffusion_estimator <- 'NB'
@@ -13,12 +13,7 @@ ESS_threshold <- 0.5
 resampling_method <- 'resid'
 CESS_0_threshold <- 0.2
 CESS_j_threshold <- 0.02
-k1 <- NULL
-k2 <- NULL
-k3 <- -log(CESS_j_threshold)/2
-k4 <- -log(CESS_j_threshold)/2
-# dim <- c(5, 10, 12, 14, 16, 18, 20, 30, 40, 50)
-dim <- c(5,6,7,8,9,10)
+dim <- c(5,6,7,8,9,10,12,14)
 true_beta <- list()
 frequencies <- list()
 simulated_data <- list()
@@ -33,7 +28,7 @@ weierstrass_importance_16 <- list()
 weierstrass_rejection_16 <- list()
 balanced_C16 <- list()
 
-for (d in 6:length(dim)) {
+for (d in 1:length(dim)) {
   print(paste('$$$$$$$$$$ d:', d))
   print(paste('dim:', dim[d]))
   set.seed(seed)
@@ -125,37 +120,31 @@ for (d in 6:length(dim)) {
                                                        mesh_parameters = list('condition' = 'SH',
                                                                               'CESS_0_threshold' = CESS_0_threshold,
                                                                               'CESS_j_threshold' = CESS_j_threshold,
-                                                                              'k1' = k1,
-                                                                              'k2' = k2,
-                                                                              'k3' = k3,
-                                                                              'k4' = k4,
                                                                               'vanilla' = FALSE),
+                                                       record = TRUE,
                                                        diffusion_estimator = diffusion_estimator,
-                                                       seed = seed),
-                            'adaptive' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 4),
-                                                            m_schedule = rep(2, 4),
-                                                            time_mesh = NULL,
-                                                            base_samples = sub_posteriors_16[[d]],
-                                                            L = 5,
-                                                            dim = dim[d],
-                                                            data_split = data_split_16[[d]],
-                                                            prior_means = prior_means,
-                                                            prior_variances = prior_variances,
-                                                            C = C,
-                                                            precondition = TRUE,
-                                                            resampling_method = resampling_method,
-                                                            ESS_threshold = ESS_threshold,
-                                                            adaptive_mesh = TRUE,
-                                                            mesh_parameters = list('condition' = 'SH',
-                                                                                   'CESS_0_threshold' = CESS_0_threshold,
-                                                                                   'CESS_j_threshold' = CESS_j_threshold,
-                                                                                   'k1' = k1,
-                                                                                   'k2' = k2,
-                                                                                   'k3' = k3,
-                                                                                   'k4' = k4,
-                                                                                   'vanilla' = FALSE),
-                                                            diffusion_estimator = diffusion_estimator,
-                                                            seed = seed))
+                                                       seed = seed))
+  balanced_C16[[d]]$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 4),
+                                                   m_schedule = rep(2, 4),
+                                                   time_mesh = NULL,
+                                                   base_samples = sub_posteriors_16[[d]],
+                                                   L = 5,
+                                                   dim = dim[d],
+                                                   data_split = data_split_16[[d]],
+                                                   prior_means = prior_means,
+                                                   prior_variances = prior_variances,
+                                                   C = C,
+                                                   precondition = TRUE,
+                                                   resampling_method = resampling_method,
+                                                   ESS_threshold = ESS_threshold,
+                                                   adaptive_mesh = TRUE,
+                                                   mesh_parameters = list('condition' = 'SH',
+                                                                          'CESS_0_threshold' = CESS_0_threshold,
+                                                                          'CESS_j_threshold' = CESS_j_threshold,
+                                                                          'vanilla' = FALSE),
+                                                   record = TRUE,
+                                                   diffusion_estimator = diffusion_estimator,
+                                                   seed = seed)
   
   # regular mesh
   balanced_C16[[d]]$reg$particles <- resample_particle_y_samples(particle_set = balanced_C16[[d]]$reg$particles[[1]],
@@ -171,10 +160,10 @@ for (d in 6:length(dim)) {
   print(integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$adaptive$particles$y_samples))
   
   print('save_progress')
-  save.image('GBF_SD16_dim_study_TURING.RData')
+  save.image('GBF_SD16_dim_study_PERSONAL.RData')
 }
 
-dim <- c(5,6,7,8,9)
+dim <- c(5,6,7,8,9,10)
 plot(x = dim,
      y = sapply(1:length(dim), function(d) {
        integrated_abs_distance(full_posterior[[d]], balanced_C16[[d]]$reg$particles$y_samples)}),
@@ -235,4 +224,4 @@ legend(x = 5, y = 14,
 
 ##### Save data #####
 
-save.image('GBF_SD16_dim_study_TURING.RData')
+save.image('GBF_SD16_dim_study_PERSONAL.RData')

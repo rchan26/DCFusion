@@ -75,17 +75,17 @@ full_posterior <-  hmc_sample_BRR(noise_error = 'student_t',
                                   seed = seed,
                                   output = T)
 
-##### Sampling from sub-posterior C=32 #####
+##### Sampling from sub-posterior C=128 #####
 
-data_split_32 <- split_data(power_plant$data,
+data_split_128 <- split_data(power_plant$data,
                             y_col_index = 1,
                             X_col_index = 2:5,
-                            C = 32,
+                            C = 128,
                             as_dataframe = F)
-sub_posteriors_32 <- hmc_base_sampler_BRR(noise_error = 'student_t',
+sub_posteriors_128 <- hmc_base_sampler_BRR(noise_error = 'student_t',
                                           nsamples = nsamples_MCF,
-                                          data_split = data_split_32,
-                                          C = 32,
+                                          data_split = data_split_128,
+                                          C = 128,
                                           nu = nu,
                                           sigma = sigma,
                                           prior_means = prior_means,
@@ -97,61 +97,33 @@ sub_posteriors_32 <- hmc_base_sampler_BRR(noise_error = 'student_t',
 ##### Applying other methodologies #####
 
 print('Applying other methodologies')
-consensus_mat_32 <- consensus_scott(S = 32, samples_to_combine = sub_posteriors_32, indep = F)
-consensus_sca_32 <- consensus_scott(S = 32, samples_to_combine = sub_posteriors_32, indep = T)
-neiswanger_true_32 <- neiswanger(S = 32,
-                                 samples_to_combine = sub_posteriors_32,
+consensus_mat_128 <- consensus_scott(S = 128, samples_to_combine = sub_posteriors_128, indep = F)
+consensus_sca_128 <- consensus_scott(S = 128, samples_to_combine = sub_posteriors_128, indep = T)
+neiswanger_true_128 <- neiswanger(S = 128,
+                                 samples_to_combine = sub_posteriors_128,
                                  anneal = TRUE)
-neiswanger_false_32 <- neiswanger(S = 32,
-                                  samples_to_combine = sub_posteriors_32,
+neiswanger_false_128 <- neiswanger(S = 128,
+                                  samples_to_combine = sub_posteriors_128,
                                   anneal = FALSE)
-weierstrass_importance_32 <- weierstrass(Samples = sub_posteriors_32,
+weierstrass_importance_128 <- weierstrass(Samples = sub_posteriors_128,
                                          method = 'importance')
-weierstrass_rejection_32 <- weierstrass(Samples = sub_posteriors_32,
+weierstrass_rejection_128 <- weierstrass(Samples = sub_posteriors_128,
                                         method = 'reject')
-
-# ##### Poisson (Hypercube Centre) #####
-# print('Poisson Fusion (hypercube centre)')
-# Poisson_hc_32 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 5),
-#                                            m_schedule = rep(2, 5),
-#                                            time_schedule = rep(time_choice, 5),
-#                                            base_samples = sub_posteriors_32,
-#                                            L = 6,
-#                                            dim = 5,
-#                                            data_split = data_split_32,
-#                                            nu = nu,
-#                                            sigma = sigma,
-#                                            prior_means = prior_means,
-#                                            prior_variances = prior_variances,
-#                                            C = 32,
-#                                            precondition = TRUE,
-#                                            resampling_method = 'resid',
-#                                            ESS_threshold = ESS_threshold,
-#                                            cv_location = 'hypercube_centre',
-#                                            diffusion_estimator = 'Poisson',
-#                                            seed = seed,
-#                                            n_cores = n_cores)
-# Poisson_hc_32$particles <- resample_particle_y_samples(particle_set = Poisson_hc_32$particles[[1]],
-#                                                        multivariate = TRUE,
-#                                                        resampling_method = 'resid',
-#                                                        seed = seed)
-# Poisson_hc_32$proposed_samples <- Poisson_hc_32$proposed_samples[[1]]
-# print(integrated_abs_distance(full_posterior, Poisson_hc_32$particles$y_samples))
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
-NB_hc_32 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 5),
-                                      m_schedule = rep(2, 5),
-                                      time_schedule = rep(time_choice, 5),
-                                      base_samples = sub_posteriors_32,
-                                      L = 6,
+NB_hc_128 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 7),
+                                      m_schedule = rep(2, 7),
+                                      time_schedule = rep(time_choice, 7),
+                                      base_samples = sub_posteriors_128,
+                                      L = 8,
                                       dim = 5,
-                                      data_split = data_split_32,
+                                      data_split = data_split_128,
                                       nu = nu,
                                       sigma = sigma,
                                       prior_means = prior_means,
                                       prior_variances = prior_variances,
-                                      C = 32,
+                                      C = 128,
                                       precondition = TRUE,
                                       resampling_method = 'resid',
                                       ESS_threshold = ESS_threshold,
@@ -159,28 +131,28 @@ NB_hc_32 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 5),
                                       diffusion_estimator = 'NB',
                                       seed = seed,
                                       n_cores = n_cores)
-NB_hc_32$particles <- resample_particle_y_samples(particle_set = NB_hc_32$particles[[1]],
+NB_hc_128$particles <- resample_particle_y_samples(particle_set = NB_hc_128$particles[[1]],
                                                   multivariate = TRUE,
                                                   resampling_method = 'resid',
                                                   seed = seed)
-NB_hc_32$proposed_samples <- NB_hc_32$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, NB_hc_32$particles$y_samples))
+NB_hc_128$proposed_samples <- NB_hc_128$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, NB_hc_128$particles$y_samples))
 
 ##### Generalised Bayesian Fusion #####
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C32 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF, 5),
-                                                m_schedule = rep(2, 5),
+balanced_C128 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF, 7),
+                                                m_schedule = rep(2, 7),
                                                 time_mesh = NULL,
-                                                base_samples = sub_posteriors_32,
-                                                L = 6,
+                                                base_samples = sub_posteriors_128,
+                                                L = 8,
                                                 dim = 5,
-                                                data_split = data_split_32,
+                                                data_split = data_split_128,
                                                 nu = nu,
                                                 sigma = sigma,
                                                 prior_means = prior_means,
                                                 prior_variances = prior_variances,
-                                                C = 32,
+                                                C = 128,
                                                 precondition = TRUE,
                                                 resampling_method = 'resid',
                                                 ESS_threshold = ESS_threshold,
@@ -191,18 +163,18 @@ balanced_C32 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF,
                                                                        'vanilla' = FALSE),
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed))
-balanced_C32$adaptive <- bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF, 5),
-                                            m_schedule = rep(2, 5),
+balanced_C128$adaptive <- bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF, 7),
+                                            m_schedule = rep(2, 7),
                                             time_mesh = NULL,
-                                            base_samples = sub_posteriors_32,
-                                            L = 6,
+                                            base_samples = sub_posteriors_128,
+                                            L = 8,
                                             dim = 5,
-                                            data_split = data_split_32,
+                                            data_split = data_split_128,
                                             nu = nu,
                                             sigma = sigma,
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,
-                                            C = 32,
+                                            C = 128,
                                             precondition = TRUE,
                                             resampling_method = 'resid',
                                             ESS_threshold = ESS_threshold,
@@ -215,30 +187,30 @@ balanced_C32$adaptive <- bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF, 5),
                                             seed = seed)
 
 # regular mesh
-balanced_C32$reg$particles <- resample_particle_y_samples(particle_set = balanced_C32$reg$particles[[1]],
+balanced_C128$reg$particles <- resample_particle_y_samples(particle_set = balanced_C128$reg$particles[[1]],
                                                           multivariate = TRUE,
                                                           resampling_method = 'resid',
                                                           seed = seed)
-balanced_C32$reg$proposed_samples <- balanced_C32$reg$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, balanced_C32$reg$particles$y_samples))
+balanced_C128$reg$proposed_samples <- balanced_C128$reg$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, balanced_C128$reg$particles$y_samples))
 # adaptive mesh
-balanced_C32$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C32$adaptive$particles[[1]],
+balanced_C128$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C128$adaptive$particles[[1]],
                                                                multivariate = TRUE,
                                                                resampling_method = 'resid',
                                                                seed = seed)
-balanced_C32$adaptive$proposed_samples <- balanced_C32$adaptive$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, balanced_C32$adaptive$particles$y_samples))
+balanced_C128$adaptive$proposed_samples <- balanced_C128$adaptive$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, balanced_C128$adaptive$particles$y_samples))
 
 ##### IAD #####
 
-integrated_abs_distance(full_posterior, balanced_C32$reg$particles$y_samples)
-integrated_abs_distance(full_posterior, balanced_C32$adaptive$particles$y_samples)
-integrated_abs_distance(full_posterior, NB_hc_32$particles$y_samples)
-integrated_abs_distance(full_posterior, consensus_mat_32$samples)
-integrated_abs_distance(full_posterior, consensus_sca_32$samples)
-integrated_abs_distance(full_posterior, neiswanger_true_32$samples)
-integrated_abs_distance(full_posterior, neiswanger_false_32$samples)
-integrated_abs_distance(full_posterior, weierstrass_importance_32$samples)
-integrated_abs_distance(full_posterior, weierstrass_rejection_32$samples)
+integrated_abs_distance(full_posterior, balanced_C128$reg$particles$y_samples)
+integrated_abs_distance(full_posterior, balanced_C128$adaptive$particles$y_samples)
+integrated_abs_distance(full_posterior, NB_hc_128$particles$y_samples)
+integrated_abs_distance(full_posterior, consensus_mat_128$samples)
+integrated_abs_distance(full_posterior, consensus_sca_128$samples)
+integrated_abs_distance(full_posterior, neiswanger_true_128$samples)
+integrated_abs_distance(full_posterior, neiswanger_false_128$samples)
+integrated_abs_distance(full_posterior, weierstrass_importance_128$samples)
+integrated_abs_distance(full_posterior, weierstrass_rejection_128$samples)
 
-save.image('PP32.RData')
+save.image('PP128.RData')

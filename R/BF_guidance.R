@@ -391,44 +391,26 @@ mesh_guidance_regular <- function(C,
     if (!is.numeric(max_E_nu_j)) {
       stop("mesh_guidance_regular: if threshold is not NULL, max_E_nu_j must be a numeric")
     }
-    if (is.null(trial_k3_by)) {
-      trial_k3_by <- 1e-6
+    roots <- quad_solve(a = 1,
+                        b = 2*log(threshold)-((max_E_nu_j^2)*(data_size^2)/(2*(b^2)*C*d)),
+                        c = log(threshold)^2)
+    k4 <- max(roots[which(roots > 0 & roots < -log(threshold))])
+    k4_choice <- which(k4==roots)
+    k3 <- -log(threshold)-k4
+    warning('mesh_guidance_regular: k3 is set to ', k3)
+    warning('mesh_guidance_regular: k4 is set to ', k4)
+    if (k3 < 0 | k4 < 0) {
+      stop("mesh_guidance_regular: k3 or k4 was less than 0. Try setting k3=k4=-log(threshold)")
     }
-    i <- 1
-    trial_k3 <- unique(sort(c(.Machine$double.xmin, 1e-100, 1e-50, 1e-20, 
-                              1e-15, 1e-14, 1e-13, 1e-12, 1e-11,
-                              1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5,
-                              1e-4, 1e-3, 1e-2, 1e-1, seq(trial_k3_by, 10, trial_k3_by))))
-    k3 <- trial_k3[i]
-    k4 <- -log(threshold)-k3
-    T1 <- mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size)
-    T2 <- mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)
-    if (T1 > T2) {
-      stop("mesh_guidance_regular: even with k3 as small as possible, we can't find k3 and k4, try lower value for the threshold")
-    }
-    while (T1 < T2) {
-      # loop until we have T1 > T2 (should happen since we're increasing k3)
-      if (i==length(trial_k3)) {
-        trial_k3[i+1] <- trial_k3[i]*1.01
-      }
-      i <- i+1
-      k3 <- trial_k3[i]
-      k4 <- -log(threshold)-k3
-      T1 <- mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size)
-      T2 <- mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)
-    }
-    warning("mesh_guidance_regular: k3 set to ", k3, " and k4 set to ", k4, 
-            " || exp(-k3-k4) = ", exp(-k3-k4))
   }
   return(list('max_delta_j' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d),
               'CESS_j_treshold' = exp(-k3-k4),
               'delta_j_T1' = mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size),
               'delta_j_T2' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d),
-              'delta_j_T2<delta_j_T1' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d)<
-                mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size),
               'k3' = k3,
               'k4' = k4,
-              'max_E_nu_j' = max_E_nu_j))
+              'max_E_nu_j' = max_E_nu_j,
+              'k4_choice' = k4_choice))
 }
 
 #' @export

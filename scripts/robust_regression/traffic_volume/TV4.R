@@ -10,8 +10,8 @@ warmup <- 10000
 time_choice <- 1
 nu <- 5
 sigma <- 1
-prior_means <- rep(0, 8)
-prior_variances <- rep(10, 8)
+prior_means <- rep(0, 6)
+prior_variances <- rep(10, 6)
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.5
 CESS_j_threshold <- 0.2
@@ -21,18 +21,18 @@ n_cores <- parallel::detectCores()
 ##### Loading in Data #####
 
 load_tv_data <- function(file, standardise_variables = TRUE) {
-  original_data <- read.csv(file)
-  original_data$hour <- format(strptime(original_data$date_time, format = "%Y-%m-%d %H:%M:%S"), format = "%H")
-  traffic_volume <- data.frame(holiday = as.numeric(original_data$holiday!="None"),
+  original_data <- read.csv('scripts/robust_regression/traffic_volume/traffic_volume.csv')
+  traffic_volume <- data.frame(tv = original_data$traffic_volume,
                                temp = original_data$temp,
-                               rain = original_data$rain_1h,
-                               snow = original_data$snow_1h,
-                               clouds = original_data$clouds_all,
+                               holiday = as.numeric(original_data$holiday!="None"),
                                weather = as.numeric(original_data$weather_main %in% c("Clear", "Clouds")),
-                               rush_hour = as.numeric(original_data$hour %in% c("07", "08", "09", "16", "17", "18", "19")),
-                               tv = original_data$traffic_volume)
+                               hour = format(strptime(original_data$date_time, format = "%Y-%m-%d %H:%M:%S"), format = "%H"))
+  traffic_volume$weekday <- weekdays(as.Date(original_data$date_time))
+  traffic_volume$weekend <- as.numeric(traffic_volume$weekday %in% c("Saturday", "Sunday"))
+  traffic_volume$rush_hour <- as.numeric(!(traffic_volume$weekday %in% c("Saturday", "Sunday")) 
+                                        & (traffic_volume$hour %in% c("07", "08", "09", "16", "17", "18", "19")))
   if (standardise_variables) {
-    X <- subset(traffic_volume, select = -c(holiday, weather, rush_hour, tv))
+    X <- subset(traffic_volume, select = c(temp))
     variable_means <- rep(NA, ncol(X))
     variable_sds <- rep(NA, ncol(X))
     for (col in 1:ncol(X)) {
@@ -41,9 +41,8 @@ load_tv_data <- function(file, standardise_variables = TRUE) {
       X[,col] <- (X[,col]-variable_means[col])/variable_sds[col]
     }
     design_mat <- cbind('intercept' = rep(1, nrow(X)),
-                        'holiday' = traffic_volume$holiday,
                         X,
-                        subset(traffic_volume, select = c(weather, rush_hour)))
+                        subset(traffic_volume, select = c(weather, holiday, weekend, rush_hour)))
     return(list('data' = cbind(subset(design_mat, select = -c(intercept)),
                                'tv' = traffic_volume$tv),
                 'y' = traffic_volume$tv,
@@ -51,10 +50,11 @@ load_tv_data <- function(file, standardise_variables = TRUE) {
                 'variable_means' = variable_means,
                 'variable_sds' = variable_sds))
   } else {
-    X <- subset(traffic_volume, select = -c(tv))
+    X <- subset(traffic_volume, select = c(temp, weather, holiday, weekend, rush_hour))
     design_mat <- as.matrix(cbind(rep(1, nrow(X)), X))
     colnames(design_mat)[1] <- 'intercept'
-    return(list('data' = traffic_volume,
+    return(list('data' = cbind(subset(design_mat, select = -c(intercept)),
+                               'tv' = traffic_volume$tv),
                 'y' = traffic_volume$tv,
                 'X' = design_mat))
   }
@@ -81,8 +81,8 @@ full_posterior <- hmc_sample_BRR(noise_error = 'student_t',
 ##### Sampling from sub-posterior C=4 #####
 
 data_split_4 <- split_data(traffic_volume$data,
-                           y_col_index = 8,
-                           X_col_index = 1:7,
+                           y_col_index = 6,
+                           X_col_index = 1:5,
                            C = 4,
                            as_dataframe = F)
 sub_posteriors_4 <- hmc_base_sampler_BRR(nsamples = nsamples_MCF,
@@ -112,33 +112,33 @@ weierstrass_importance_4 <- weierstrass(Samples = sub_posteriors_4,
 weierstrass_rejection_4 <- weierstrass(Samples = sub_posteriors_4,
                                        method = 'reject')
 
-##### Poisson (Hypercube Centre) #####
-print('Poisson Fusion (hypercube centre)')
-Poisson_hc_4 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 2),
-                                          m_schedule = rep(2, 2),
-                                          time_schedule = rep(time_choice, 2),
-                                          base_samples = sub_posteriors_4,
-                                          L = 3,
-                                          dim = 8,
-                                          data_split = data_split_4,
-                                          nu = nu,
-                                          sigma = sigma,
-                                          prior_means = prior_means,
-                                          prior_variances = prior_variances,
-                                          C = 4,
-                                          precondition = TRUE,
-                                          resampling_method = 'resid',
-                                          ESS_threshold = ESS_threshold,
-                                          cv_location = 'hypercube_centre',
-                                          diffusion_estimator = 'Poisson',
-                                          seed = seed,
-                                          n_cores = n_cores)
-Poisson_hc_4$particles <- resample_particle_y_samples(particle_set = Poisson_hc_4$particles[[1]],
-                                                      multivariate = TRUE,
-                                                      resampling_method = 'resid',
-                                                      seed = seed)
-Poisson_hc_4$proposed_samples <- Poisson_hc_4$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, Poisson_hc_4$particles$y_samples))
+# ##### Poisson (Hypercube Centre) #####
+# print('Poisson Fusion (hypercube centre)')
+# Poisson_hc_4 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 2),
+#                                           m_schedule = rep(2, 2),
+#                                           time_schedule = rep(time_choice, 2),
+#                                           base_samples = sub_posteriors_4,
+#                                           L = 3,
+#                                           dim = 8,
+#                                           data_split = data_split_4,
+#                                           nu = nu,
+#                                           sigma = sigma,
+#                                           prior_means = prior_means,
+#                                           prior_variances = prior_variances,
+#                                           C = 4,
+#                                           precondition = TRUE,
+#                                           resampling_method = 'resid',
+#                                           ESS_threshold = ESS_threshold,
+#                                           cv_location = 'hypercube_centre',
+#                                           diffusion_estimator = 'Poisson',
+#                                           seed = seed,
+#                                           n_cores = n_cores)
+# Poisson_hc_4$particles <- resample_particle_y_samples(particle_set = Poisson_hc_4$particles[[1]],
+#                                                       multivariate = TRUE,
+#                                                       resampling_method = 'resid',
+#                                                       seed = seed)
+# Poisson_hc_4$proposed_samples <- Poisson_hc_4$proposed_samples[[1]]
+# print(integrated_abs_distance(full_posterior, Poisson_hc_4$particles$y_samples))
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
@@ -314,7 +314,7 @@ integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples)
 integrated_abs_distance(full_posterior, GBF_4$adaptive$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C4$reg$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C4$adaptive$particles$y_samples)
-integrated_abs_distance(full_posterior, Poisson_hc_4$particles$y_samples)
+# integrated_abs_distance(full_posterior, Poisson_hc_4$particles$y_samples)
 integrated_abs_distance(full_posterior, NB_hc_4$particles$y_samples)
 integrated_abs_distance(full_posterior, consensus_mat_4$samples)
 integrated_abs_distance(full_posterior, consensus_sca_4$samples)

@@ -206,6 +206,8 @@ rho_j_BLR <- function(particle_set,
       mesh_terms <- NULL
       k4_choice <- NULL
     }
+    phi_bound_intensity <- rep(list(matrix(nrow = N, ncol = m)), length(time_mesh))
+    phi_kappa <- rep(list(matrix(nrow = N, ncol = m)), length(time_mesh))
   }
   if (is.null(print_progress_iters)) {
     print_progress_iters <- split_N
@@ -267,6 +269,10 @@ rho_j_BLR <- function(particle_set,
       split_N <- length(split_indices[[core]])
       x_mean_j <- matrix(data = NA, nrow = split_N, ncol = dim)
       log_rho_j <- rep(0, split_N)
+      if (record) {
+        bound_intensity <- matrix(nrow = split_N, ncol = m)
+        kap <- matrix(nrow = split_N, ncol = m)  
+      }
       x_j <- lapply(1:split_N, function(i) {
         M <- construct_M(s = time_mesh[j-1],
                          t = time_mesh[j],
@@ -331,6 +337,10 @@ rho_j_BLR <- function(particle_set,
                                   local_bounds = FALSE,
                                   logarithm = TRUE)})})
         log_rho_j[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
+        if (record) {
+          bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
+          kap[i,] <- sapply(1:m, function(c) phi[[c]]$kap)
+        }
         if (i%%print_progress_iters==0) {
           cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
               '|| Node:', node, '|| Core:', core, '||', i, '/', split_N, '\n',
@@ -340,7 +350,12 @@ rho_j_BLR <- function(particle_set,
       cat('Level:', level, '|| Step:', j, '/', length(time_mesh),
           '|| Node:', node, '|| Core:', core, '|| DONE ||', split_N, '/',
           split_N, '\n', file = 'rho_j_BLR_progress.txt', append = T)
-      return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j))
+      if (record) {
+        return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j,
+                    'bound_intensity' = bound_intensity, 'kap' = kap))
+      } else {
+        return(list('x_j' = x_j, 'x_mean_j' = x_mean_j, 'log_rho_j' = log_rho_j))  
+      }
     })
     # ---------- update particle set
     particle_set$x_samples <- unlist(lapply(1:length(split_indices), function(i) {
@@ -357,6 +372,12 @@ rho_j_BLR <- function(particle_set,
     particle_set$CESS[j] <- particle_ESS(log_weights = log_rho_j)$ESS
     CESS[j] <- particle_set$CESS[j]
     elapsed_time[j-1] <- (proc.time()-pcm)['elapsed']
+    if (record) {
+      phi_bound_intensity[[j]] <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
+        rho_j_weighted_samples[[i]]$bound_intensity}))
+      phi_kappa[[j]] <- do.call(rbind, lapply(1:length(split_x_samples), function(i) {
+        rho_j_weighted_samples[[i]]$kap}))
+    }
   }
   if (close_cluster) {
     parallel::stopCluster(cl)
@@ -372,6 +393,8 @@ rho_j_BLR <- function(particle_set,
       chosen <- chosen[1:j]
       mesh_terms <- mesh_terms[1:j]
       k4_choice <- k4_choice[1:j]
+      phi_bound_intensity <- phi_bound_intensity[1:j]
+      phi_kappa <- phi_kappa[1:j]
     }
   }
   proposed_samples <- t(sapply(1:N, function(i) particle_set$x_samples[[i]][1,]))
@@ -397,7 +420,9 @@ rho_j_BLR <- function(particle_set,
                 'E_nu_j' = E_nu_j,
                 'chosen' = chosen,
                 'mesh_terms' = mesh_terms,
-                'k4_choice' = k4_choice))
+                'k4_choice' = k4_choice,
+                'phi_bound_intensity' = phi_bound_intensity,
+                'phi_kappa' = phi_kappa))
   } else {
     return(list('particle_set' = particle_set,
                 'proposed_samples' = proposed_samples,
@@ -677,6 +702,8 @@ parallel_GBF_BLR <- function(particles_to_fuse,
                 'chosen' = rho_j$chosen,
                 'mesh_terms' = rho_j$mesh_terms,
                 'k4_choice' = rho_j$k4_choice,
+                'phi_bound_intensity' = rho_j$phi_bound_intensity,
+                'phi_kappa' = rho_j$phi_kappa,
                 'precondition_matrices' = new_precondition_matrices,
                 'sub_posterior_means' = new_sub_posterior_means,
                 'combined_data' = combine_data(list_of_data = data_split, dim = dim)))
@@ -915,7 +942,9 @@ bal_binary_GBF_BLR <- function(N_schedule,
     E_nu_j <- list()
     chosen <- list()
     mesh_terms <- list()
-    k4_choice <- list()  
+    k4_choice <- list()
+    phi_bound_intensity <- list()
+    phi_kappa <- list()
   }
   recommended_mesh <- list()
   precondition_matrices <- list()
@@ -1031,7 +1060,9 @@ bal_binary_GBF_BLR <- function(N_schedule,
       E_nu_j[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$E_nu_j)
       chosen[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$chosen)
       mesh_terms[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$mesh_terms)
-      k4_choice[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$k4_choice)  
+      k4_choice[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$k4_choice)
+      phi_bound_intensity[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$phi_bound_intensity)
+      phi_kappa[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$phi_kappa)
     }
     precondition_matrices[[k]] <- lapply(1:n_nodes, function(i) fused[[i]]$fusion$precondition_matrices[[1]])
     sub_posterior_means[[k]] <- do.call(rbind, lapply(1:n_nodes, function(i) fused[[i]]$fusion$sub_posterior_means[[1]]))
@@ -1053,7 +1084,9 @@ bal_binary_GBF_BLR <- function(N_schedule,
       E_nu_j[[1]] <- E_nu_j[[1]][[1]]
       chosen[[1]] <- chosen[[1]][[1]]
       mesh_terms[[1]] <- mesh_terms[[1]][[1]]
-      k4_choice[[1]] <- k4_choice[[1]][[1]]  
+      k4_choice[[1]] <- k4_choice[[1]][[1]]
+      phi_bound_intensity[[1]] <- phi_bound_intensity[[1]][[1]]
+      phi_kappa[[1]] <- phi_kappa[[1]][[1]]
     }
     precondition_matrices[[1]] <- precondition_matrices[[1]][[1]]
     sub_posterior_means[[1]] <- sub_posterior_means[[1]][[1]]
@@ -1073,6 +1106,8 @@ bal_binary_GBF_BLR <- function(N_schedule,
                 'chosen' = chosen,
                 'mesh_terms' = mesh_terms,
                 'k4_choice' = k4_choice,
+                'phi_bound_intensity' = phi_bound_intensity,
+                'phi_kappa' = phi_kappa,
                 'precondition_matrices' = precondition_matrices,
                 'sub_posterior_means' = sub_posterior_means,
                 'recommended_mesh' = recommended_mesh,

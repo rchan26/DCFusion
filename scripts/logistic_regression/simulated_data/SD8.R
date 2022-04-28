@@ -9,15 +9,7 @@ ndata <- 1000
 time_choice <- 0.5
 n_cores <- parallel::detectCores()
 true_beta <- c(-3, 1.2, -0.5, 0.8, 3)
-frequencies <- c(0.2, 0.3, 0.5, 0.01)
-diffusion_estimator <- 'NB'
-ESS_threshold <- 0.5
-CESS_0_threshold <- 0.2
-CESS_j_threshold <- 0.2
-k1 <- NULL
-k2 <- NULL
-k3 <- -log(CESS_j_threshold)/2
-k4 <- -log(CESS_j_threshold)/2
+frequencies <- c(0.2, 0.3, 0.5, 0.01) # must have length = length(true_beta)-1
 
 # simulate data set
 simulated_data <- simulate_LR_data(N = ndata,
@@ -57,7 +49,7 @@ sub_posteriors_8 <- hmc_base_sampler_BLR(nsamples = nsamples,
 
 ##### Applying other methodologies #####
 
-# print('Applying other methodologies')
+print('Applying other methodologies')
 consensus_mat_8 <- consensus_scott(S = 8, samples_to_combine = sub_posteriors_8, indep = F)
 consensus_sca_8 <- consensus_scott(S = 8, samples_to_combine = sub_posteriors_8, indep = T)
 neiswanger_true_8 <- neiswanger(S = 8,

@@ -6,7 +6,8 @@ library(readxl)
 seed <- 2022
 set.seed(seed)
 nsamples_MCF <- 100000
-nsamples_GBF <- 10000
+nsamples_GBF <- 50000
+nsamples_DCGBF <- 10000
 warmup <- 10000
 time_choice <- 1
 nu <- 5
@@ -15,7 +16,7 @@ prior_means <- rep(0, 5)
 prior_variances <- rep(10, 5)
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.5
-CESS_j_threshold <- 0.2
+CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 n_cores <- parallel::detectCores()
 
@@ -110,33 +111,33 @@ weierstrass_importance_8 <- weierstrass(Samples = sub_posteriors_8,
 weierstrass_rejection_8 <- weierstrass(Samples = sub_posteriors_8,
                                        method = 'reject')
 
-##### Poisson (Hypercube Centre) #####
-print('Poisson Fusion (hypercube centre)')
-Poisson_hc_8 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 3),
-                                          m_schedule = rep(2, 3),
-                                          time_schedule = rep(time_choice, 3),
-                                          base_samples = sub_posteriors_8,
-                                          L = 4,
-                                          dim = 5,
-                                          data_split = data_split_8,
-                                          nu = nu,
-                                          sigma = sigma,
-                                          prior_means = prior_means,
-                                          prior_variances = prior_variances,
-                                          C = 8,
-                                          precondition = TRUE,
-                                          resampling_method = 'resid',
-                                          ESS_threshold = ESS_threshold,
-                                          cv_location = 'hypercube_centre',
-                                          diffusion_estimator = 'Poisson',
-                                          seed = seed,
-                                          n_cores = n_cores)
-Poisson_hc_8$particles <- resample_particle_y_samples(particle_set = Poisson_hc_8$particles[[1]],
-                                                      multivariate = TRUE,
-                                                      resampling_method = 'resid',
-                                                      seed = seed)
-Poisson_hc_8$proposed_samples <- Poisson_hc_8$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, Poisson_hc_8$particles$y_samples))
+# ##### Poisson (Hypercube Centre) #####
+# print('Poisson Fusion (hypercube centre)')
+# Poisson_hc_8 <- bal_binary_fusion_SMC_BRR(N_schedule = rep(nsamples_MCF, 3),
+#                                           m_schedule = rep(2, 3),
+#                                           time_schedule = rep(time_choice, 3),
+#                                           base_samples = sub_posteriors_8,
+#                                           L = 4,
+#                                           dim = 5,
+#                                           data_split = data_split_8,
+#                                           nu = nu,
+#                                           sigma = sigma,
+#                                           prior_means = prior_means,
+#                                           prior_variances = prior_variances,
+#                                           C = 8,
+#                                           precondition = TRUE,
+#                                           resampling_method = 'resid',
+#                                           ESS_threshold = ESS_threshold,
+#                                           cv_location = 'hypercube_centre',
+#                                           diffusion_estimator = 'Poisson',
+#                                           seed = seed,
+#                                           n_cores = n_cores)
+# Poisson_hc_8$particles <- resample_particle_y_samples(particle_set = Poisson_hc_8$particles[[1]],
+#                                                       multivariate = TRUE,
+#                                                       resampling_method = 'resid',
+#                                                       seed = seed)
+# Poisson_hc_8$proposed_samples <- Poisson_hc_8$proposed_samples[[1]]
+# print(integrated_abs_distance(full_posterior, Poisson_hc_8$particles$y_samples))
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
@@ -190,29 +191,29 @@ GBF_8 <- list('reg' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
                                                                 'CESS_j_threshold' = CESS_j_threshold,
                                                                 'vanilla' = FALSE),
                                          diffusion_estimator = diffusion_estimator,
-                                         seed = seed),
-              'adaptive' = bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
-                                              m_schedule = 8,
-                                              time_mesh = NULL,
-                                              base_samples = sub_posteriors_8,
-                                              L = 2,
-                                              dim = 5,
-                                              data_split = data_split_8,
-                                              nu = nu,
-                                              sigma = sigma,
-                                              prior_means = prior_means,
-                                              prior_variances = prior_variances,
-                                              C = 8,
-                                              precondition = TRUE,
-                                              resampling_method = 'resid',
-                                              ESS_threshold = ESS_threshold,
-                                              adaptive_mesh = TRUE,
-                                              mesh_parameters = list('condition' = 'SH',
-                                                                     'CESS_0_threshold' = CESS_0_threshold,
-                                                                     'CESS_j_threshold' = CESS_j_threshold,
-                                                                     'vanilla' = FALSE),
-                                              diffusion_estimator = diffusion_estimator,
-                                              seed = seed))
+                                         seed = seed))
+GBF_8$adaptive <- bal_binary_GBF_BRR(N_schedule = nsamples_GBF,
+                                     m_schedule = 8,
+                                     time_mesh = NULL,
+                                     base_samples = sub_posteriors_8,
+                                     L = 2,
+                                     dim = 5,
+                                     data_split = data_split_8,
+                                     nu = nu,
+                                     sigma = sigma,
+                                     prior_means = prior_means,
+                                     prior_variances = prior_variances,
+                                     C = 8,
+                                     precondition = TRUE,
+                                     resampling_method = 'resid',
+                                     ESS_threshold = ESS_threshold,
+                                     adaptive_mesh = TRUE,
+                                     mesh_parameters = list('condition' = 'SH',
+                                                            'CESS_0_threshold' = CESS_0_threshold,
+                                                            'CESS_j_threshold' = CESS_j_threshold,
+                                                            'vanilla' = FALSE),
+                                     diffusion_estimator = diffusion_estimator,
+                                     seed = seed)
 
 # regular mesh
 GBF_8$reg$particles <- resample_particle_y_samples(particle_set = GBF_8$reg$particles[[1]],
@@ -238,7 +239,7 @@ compare_samples_bivariate(posteriors = list(full_posterior,
                           common_limit = c(-4, 4))
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C8 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 3),
+balanced_C8 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF, 3),
                                                m_schedule = rep(2, 3),
                                                time_mesh = NULL,
                                                base_samples = sub_posteriors_8,
@@ -260,7 +261,7 @@ balanced_C8 <- list('reg' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 3)
                                                                       'vanilla' = FALSE),
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed),
-                    'adaptive' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_GBF, 3),
+                    'adaptive' = bal_binary_GBF_BRR(N_schedule = rep(nsamples_DCGBF, 3),
                                                     m_schedule = rep(2, 3),
                                                     time_mesh = NULL,
                                                     base_samples = sub_posteriors_8,
@@ -288,23 +289,15 @@ balanced_C8$reg$particles <- resample_particle_y_samples(particle_set = balanced
                                                          multivariate = TRUE,
                                                          resampling_method = 'resid',
                                                          seed = seed)
+balanced_C8$reg$proposed_samples <- balanced_C8$reg$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C8$reg$particles$y_samples))
-compare_samples_bivariate(posteriors = list(full_posterior,
-                                            balanced_C8$reg$proposed_samples[[1]],
-                                            balanced_C8$reg$particles$y_samples),
-                          colours = c('black', 'green', 'red'),
-                          common_limit = c(-4, 4))
 # adaptive mesh
 balanced_C8$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C8$adaptive$particles[[1]],
                                                               multivariate = TRUE,
                                                               resampling_method = 'resid',
                                                               seed = seed)
+balanced_C8$adaptive$proposed_samples <- balanced_C8$adaptive$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C8$adaptive$particles$y_samples))
-compare_samples_bivariate(posteriors = list(full_posterior,
-                                            balanced_C8$adaptive$proposed_samples[[1]],
-                                            balanced_C8$adaptive$particles$y_samples),
-                          colours = c('black', 'green', 'red'),
-                          common_limit = c(-4, 4))
 
 ##### IAD #####
 
@@ -312,7 +305,7 @@ integrated_abs_distance(full_posterior, GBF_8$reg$particles$y_samples)
 integrated_abs_distance(full_posterior, GBF_8$adaptive$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C8$reg$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C8$adaptive$particles$y_samples)
-integrated_abs_distance(full_posterior, Poisson_hc_8$particles$y_samples)
+# integrated_abs_distance(full_posterior, Poisson_hc_8$particles$y_samples)
 integrated_abs_distance(full_posterior, NB_hc_8$particles$y_samples)
 integrated_abs_distance(full_posterior, consensus_mat_8$samples)
 integrated_abs_distance(full_posterior, consensus_sca_8$samples)
