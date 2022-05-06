@@ -85,12 +85,20 @@ lines(x = log(c(4, 8, 16, 32, 64), 2), y = neiswanger,
       lty = 5, lwd = 3, type = 'b', pch = 5, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = weierstrass,
       lty = 6, lwd = 3, type = 'b', pch = 6, col = 'red')
+lines(x = log(c(4, 8, 16), 2), y = NB_fusion,
+      lty = 7, lwd = 3, type = 'b', pch = 7, col = 'red')
 legend(x = 2, y = 0.6,
-       legend = c('GBF (reg)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'CMC', 'KDEMC', 'WRS'),
-       lwd = c(3, 3, 3, 3, 3, 3),
-       lty = c(1, 2, 3, 4, 5, 6),
-       pch = c(1, 2, 3, 4, 5, 6),
-       col = c(rep('black', 3), rep('red', 3)),
+       legend = c('GBF (adaptive mesh)',
+                  'D&C-GBF (regular mesh)',
+                  'D&C-GBF (adaptive mesh)',
+                  'D&C-MCF',
+                  'CMC',
+                  'KDEMC',
+                  'WRS'),
+       lwd = rep(3, 7),
+       lty = c(1,2,3,7,4,5,6),
+       pch = c(1,2,3,7,4,5,6),
+       col = c(rep('black', 3), rep('red', 4)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -127,34 +135,42 @@ weierstrass_time <- c(weierstrass_rejection_4$time,
                       weierstrass_rejection_32$time,
                       weierstrass_rejection_64$time)
 
-plot(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$adaptive),
-     ylim = c(-4, 16),
+plot(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$adaptive, 2),
+     ylim = c(-4, 20),
      xlab = '',
      ylab = '',
      yaxt = 'n',
      xaxt = 'n', lty = 3, lwd = 3, pch = 3, type = 'b')
 mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
-mtext('log(Time elapsed in seconds, e)', 2, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
 axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), font = 2, cex = 1.5)
-axis(2, at=seq(-4, 16, 2), labels = seq(-4, 16, 2), font = 2, cex = 1.5)
-axis(2, at=seq(-4, 16, 1), labels=rep("", 21), lwd.ticks = 0.5)
-lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$reg),
-      lty = 3, lwd = 3, type = 'b', pch = 3)
-lines(x = log(c(4, 8, 16, 32), 2), y = log(GBF_time$adaptive),
+axis(2, at=seq(-4, 20, 2), labels = seq(-4, 20, 2), font = 2, cex = 1.5)
+axis(2, at=seq(-4, 20, 1), labels=rep("", 25), lwd.ticks = 0.5)
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$reg, 2),
+      lty = 2, lwd = 3, type = 'b', pch = 2)
+lines(x = log(c(4, 8, 16, 32), 2), y = log(GBF_time$adaptive, 2),
       lty = 1, lwd = 3, type = 'b', pch = 1)
-lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(consensus_time),
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(consensus_time, 2),
       lty = 4, lwd = 3, type = 'b', pch = 4, col = 'red')
-lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(neiswanger_time),
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(neiswanger_time, 2),
       lty = 5, lwd = 3, type = 'b', pch = 5, col = 'red')
-lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(weierstrass_time),
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(weierstrass_time, 2),
       lty = 6, lwd = 3, type = 'b', pch = 6, col = 'red')
-legend(x = 2, y = 16,
-       legend = c('GBF (reg)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'CMC', 'KDEMC', 'WRS'),
-       lwd = c(3, 3, 3, 3, 3, 3),
-       lty = c(1, 2, 3, 4, 5, 6),
-       pch = c(1, 2, 3, 4, 5, 6),
-       col = c(rep('black', 3), rep('red', 3)),
+lines(x = log(c(4, 8, 16), 2), y = log(NB_fusion_time, 2),
+      lty = 7, lwd = 3, type = 'b', pch = 7, col = 'red')
+legend(x = 2, y = 20,
+       legend = c('GBF (adaptive mesh)',
+                  'D&C-GBF (regular mesh)',
+                  'D&C-GBF (adaptive mesh)',
+                  'D&C-MCF',
+                  'CMC',
+                  'KDEMC',
+                  'WRS'),
+       lwd = rep(3, 7),
+       lty = c(1,2,3,7,4,5,6),
+       pch = c(1,2,3,7,4,5,6),
+       col = c(rep('black', 3), rep('red', 4)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -200,7 +216,7 @@ lines(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$reg,
 lines(x = log(c(4, 8, 16, 32), 2), y = GBF$adaptive,
       lty = 1, lwd = 3, type = 'b', pch = 1)
 lines(x = log(c(4, 8, 16), 2), y = NB_fusion,
-      lty = 4, lwd = 3, type = 'b', pch = 6, col = 'red')
+      lty = 4, lwd = 3, type = 'b', pch = 4, col = 'red')
 legend(x = 2, y = 0.6,
        legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
        lwd = c(3, 3, 3, 3),
@@ -212,23 +228,24 @@ legend(x = 2, y = 0.6,
        bty = 'n')
 
 plot(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$adaptive, 2),
-     ylim = c(-4, 16),
+     ylim = c(-4, 20),
      xlab = '',
      ylab = '',
+     yaxt = 'n',
      xaxt = 'n', lty = 3, lwd = 3, pch = 3, type = 'b')
 mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
 mtext('log(Time elapsed in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
 axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), font = 2, cex = 1.5)
-# axis(2, at=seq(-4, 16, 2), labels = seq(-4, 16, 2), font = 2, cex = 1.5)
-# axis(2, at=seq(-4, 16, 1), labels=rep("", 21), lwd.ticks = 0.5)
+axis(2, at=seq(-4, 20, 2), labels = seq(-4, 20, 2), font = 2, cex = 1.5)
+axis(2, at=seq(-4, 20, 1), labels=rep("", 25), lwd.ticks = 0.5)
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$reg, 2),
-      lty = 3, lwd = 2, type = 'b', pch = 2)
+      lty = 2, lwd = 3, type = 'b', pch = 2)
 lines(x = log(c(4, 8, 16, 32), 2), y = log(GBF_time$adaptive, 2),
       lty = 1, lwd = 3, type = 'b', pch = 1)
 lines(x = log(c(4, 8, 16), 2), y = log(NB_fusion_time, 2),
-      lty = 4, lwd = 3, type = 'b', pch = 6, col = 'red')
-legend(x = 2, y = 16,
+      lty = 7, lwd = 3, type = 'b', pch = 4, col = 'red')
+legend(x = 2, y = 20,
        legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
        lwd = c(3, 3, 3, 3),
        lty = c(1, 2, 3, 4),

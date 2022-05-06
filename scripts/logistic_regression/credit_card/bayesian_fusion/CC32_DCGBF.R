@@ -3,7 +3,7 @@ library(HMCBLR)
 
 seed <- 2016
 nsamples <- 30000
-nsamples_GBF <- 5000
+nsamples_GBF <- 4000
 time_choice <- 0.5
 C <- 32
 n_cores <- parallel::detectCores()
