@@ -92,12 +92,12 @@ BF_generalised_n1 <- parallel_GBF_uniGaussian(particles_to_fuse = input_particle
                                               sds = rep(sd, C),
                                               betas = rep(beta, C),
                                               precondition_values = sapply(input_samples, var),
-                                              sub_posterior_means = sapply(input_samples, mean),
                                               ESS_threshold = 0.5,
-                                              adaptive_mesh = TRUE,
-                                              adaptive_mesh_parameters = list('k3' = 1, 'k4' = 1),
                                               diffusion_estimator = diffusion_estimator,
                                               seed = seed)
+print('ESS:'); print(BF_generalised_n1$ESS)
+print('CESS:'); print(BF_generalised_n1$CESS)
+
 # plots
 curve(dnorm(x, mean = 1.2, sd = sqrt(0.1)), -3, 5)
 lines(density(resample_particle_y_samples(particle_set = BF_standard_n1$particles, 
@@ -170,13 +170,13 @@ lines(density(resample_particle_y_samples(particle_set = BF_generalised_n20$part
 print('### performing standard Bayesian Fusion (with n=20)')
 vanilla_guide <- BF_guidance(condition = 'SH',
                              CESS_0_threshold = 0.2,
+                             CESS_j_threshold = 0.2,
                              C = C,
                              d = 1,
                              data_size = 1,
                              b = sd^2,
+                             sub_posterior_samples = input_samples,
                              sub_posterior_means = sapply(input_samples, mean),
-                             k3 = 1,
-                             k4 = 1,
                              vanilla = TRUE)
 input_particles_BF_vanilla_guide <- initialise_particle_sets(samples_to_fuse = input_samples,
                                                              multivariate = FALSE,
@@ -199,14 +199,14 @@ print('time_mesh:'); print(BF_standard_using_guidance$particles$time_mesh)
 print('### performing Bayesian Fusion (with n=20) with a preconditioning matrix')
 gen_guide <- BF_guidance(condition = 'SH',
                          CESS_0_threshold = 0.2,
+                         CESS_j_threshold = 0.2,
                          C = C,
                          d = 1,
                          data_size = 1,
+                         sub_posterior_samples = input_samples,
                          sub_posterior_means = sapply(input_samples, mean),
                          precondition_matrices = sapply(input_samples, var),
                          inv_precondition_matrices = 1/sapply(input_samples, var),
-                         k3 = 1,
-                         k4 = 1,
                          vanilla = FALSE)
 input_particles_BF_gen_guide <- initialise_particle_sets(samples_to_fuse = input_samples,
                                                          multivariate = FALSE,
@@ -237,7 +237,9 @@ BF_generalised_using_guidance_adaptive <- parallel_GBF_uniGaussian(particles_to_
                                                                    ESS_threshold = 0.5,
                                                                    sub_posterior_means = sapply(input_samples, mean),
                                                                    adaptive_mesh = TRUE,
-                                                                   adaptive_mesh_parameters = list('k3' = 1, 'k4' = 1),
+                                                                   adaptive_mesh_parameters = list('data_size' = 1,
+                                                                                                   'CESS_j_threshold' = 0.2,
+                                                                                                   'vanilla' = FALSE),
                                                                    diffusion_estimator = diffusion_estimator,
                                                                    seed = seed)
 print('ESS:'); print(BF_generalised_using_guidance_adaptive$ESS)

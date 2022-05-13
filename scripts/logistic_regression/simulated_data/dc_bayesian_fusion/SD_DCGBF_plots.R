@@ -85,7 +85,7 @@ lines(x = log(c(4, 8, 16, 32, 64), 2), y = neiswanger,
       lty = 5, lwd = 3, type = 'b', pch = 5, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = weierstrass,
       lty = 6, lwd = 3, type = 'b', pch = 6, col = 'red')
-lines(x = log(c(4, 8, 16), 2), y = NB_fusion,
+lines(x = log(c(4, 8, 16, 32), 2), y = NB_fusion,
       lty = 7, lwd = 3, type = 'b', pch = 7, col = 'red')
 legend(x = 2, y = 0.6,
        legend = c('GBF (adaptive mesh)',
@@ -157,7 +157,7 @@ lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(neiswanger_time, 2),
       lty = 5, lwd = 3, type = 'b', pch = 5, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(weierstrass_time, 2),
       lty = 6, lwd = 3, type = 'b', pch = 6, col = 'red')
-lines(x = log(c(4, 8, 16), 2), y = log(NB_fusion_time, 2),
+lines(x = log(c(4, 8, 16, 32), 2), y = log(NB_fusion_time, 2),
       lty = 7, lwd = 3, type = 'b', pch = 7, col = 'red')
 legend(x = 2, y = 20,
        legend = c('GBF (adaptive mesh)',
@@ -180,6 +180,7 @@ legend(x = 2, y = 20,
 load('SD4.RData')
 load('SD8.RData')
 load('SD16.RData')
+load('SD32.RData')
 
 P_fusion <- c(integrated_abs_distance(full_posterior,
                                       Poisson_hc_4$particles$y_samples),
@@ -192,13 +193,16 @@ NB_fusion <- c(integrated_abs_distance(full_posterior,
                integrated_abs_distance(full_posterior,
                                        NB_hc_8$particles$y_samples),
                integrated_abs_distance(full_posterior,
-                                       NB_hc_16$particles$y_samples))
+                                       NB_hc_16$particles$y_samples),
+               integrated_abs_distance(full_posterior,
+                                       NB_hc_32$particles$y_samples))
 P_fusion_time <- c(sum(unlist(Poisson_hc_4$time)),
                    sum(unlist(Poisson_hc_8$time)),
                    sum(unlist(Poisson_hc_16$time)))
 NB_fusion_time <- c(sum(unlist(NB_hc_4$time)),
                     sum(unlist(NB_hc_8$time)),
-                    sum(unlist(NB_hc_16$time)))
+                    sum(unlist(NB_hc_16$time)),
+                    sum(unlist(NB_hc_32$time)))
 
 plot(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$adaptive,
      ylim = c(0, 0.6),
@@ -215,7 +219,7 @@ lines(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$reg,
       lty = 2, lwd = 3, type = 'b', pch = 2)
 lines(x = log(c(4, 8, 16, 32), 2), y = GBF$adaptive,
       lty = 1, lwd = 3, type = 'b', pch = 1)
-lines(x = log(c(4, 8, 16), 2), y = NB_fusion,
+lines(x = log(c(4, 8, 16, 32), 2), y = NB_fusion,
       lty = 4, lwd = 3, type = 'b', pch = 4, col = 'red')
 legend(x = 2, y = 0.6,
        legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
@@ -243,7 +247,7 @@ lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$reg, 2),
       lty = 2, lwd = 3, type = 'b', pch = 2)
 lines(x = log(c(4, 8, 16, 32), 2), y = log(GBF_time$adaptive, 2),
       lty = 1, lwd = 3, type = 'b', pch = 1)
-lines(x = log(c(4, 8, 16), 2), y = log(NB_fusion_time, 2),
+lines(x = log(c(4, 8, 16, 32), 2), y = log(NB_fusion_time, 2),
       lty = 7, lwd = 3, type = 'b', pch = 4, col = 'red')
 legend(x = 2, y = 20,
        legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
