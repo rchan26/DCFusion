@@ -10,8 +10,8 @@ warmup <- 10000
 time_choice <- 1
 nu <- 5
 sigma <- 1
-prior_means <- rep(0, 6)
-prior_variances <- rep(10, 6)
+prior_means <- rep(0, 11)
+prior_variances <- rep(10, 11)
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.5
 CESS_j_threshold <- 0.2
@@ -20,45 +20,40 @@ n_cores <- parallel::detectCores()
 
 ##### Loading in Data #####
 
-load_tv_data <- function(file, seed = NULL) {
+load_bs_data <- function(file, seed = NULL) {
   original_data <- read.csv(file)
-  traffic_volume <- data.frame(tv = original_data$traffic_volume,
-                               temp = original_data$temp,
-                               holiday = as.numeric(original_data$holiday!="None"),
-                               weather = as.numeric(original_data$weather_main %in% c("Clear", "Clouds")),
-                               hour = format(strptime(original_data$date_time, format = "%Y-%m-%d %H:%M:%S"), format = "%H"))
-  traffic_volume$weekday <- weekdays(as.Date(original_data$date_time))
-  traffic_volume$weekend <- as.numeric(traffic_volume$weekday %in% c("Saturday", "Sunday"))
-  traffic_volume$rush_hour <- as.numeric(!(traffic_volume$weekday %in% c("Saturday", "Sunday")) 
-                                         &(traffic_volume$hour %in% c("07", "08", "09", "16", "17", "18", "19")))
-  traffic_volume <- traffic_volume[complete.cases(traffic_volume),]
+  bike_sharing <- data.frame(rented = original_data$cnt,
+                             spring = as.numeric(original_data$season == 2),
+                             summer = as.numeric(original_data$season == 3),
+                             fall = as.numeric(original_data$season == 4),
+                             weekend = as.numeric(original_data$weekday %in% c(6, 0)),
+                             holiday = original_data$holiday,
+                             rush_hour = as.numeric(!(original_data$weekday %in% c(6, 0)) 
+                                                    & (original_data$hr %in% c(7, 8, 9, 16, 17, 18, 19))),
+                             weather = as.numeric(original_data$weathersit == 1),
+                             atemp = original_data$atemp,
+                             humid = original_data$hum,
+                             wind = original_data$windspeed)
+  bike_sharing <- bike_sharing[complete.cases(bike_sharing),]
   if (!is.null(seed)) {
     set.seed(seed)
-    traffic_volume <- traffic_volume[sample(1:nrow(traffic_volume)),]
+    bike_sharing <- bike_sharing[sample(1:nrow(bike_sharing)),]
   }
-  minimums <- list('temp' = min(traffic_volume$temp))
-  ranges <- list('temp' = max(traffic_volume$temp)-minimums$temp)
-  traffic_volume$temp_standardised <- (traffic_volume$temp-minimums$temp) / ranges$temp
-  X <- subset(traffic_volume, select = c("temp_standardised",
-                                         "weather",
-                                         "holiday",
-                                         "weekend",
-                                         "rush_hour"))
+  X <- subset(bike_sharing, select = -c(rented))
   design_mat <- as.matrix(cbind(rep(1, nrow(X)), X))
   colnames(design_mat)[1] <- 'intercept'
   return(list('data' = cbind(subset(design_mat, select = -c(intercept)),
-                             'tv' = traffic_volume$tv),
-              'y' = traffic_volume$tv,
+                             'rented' = bike_sharing$rented),
+              'y' = bike_sharing$rented,
               'X' = design_mat))
 }
 
-traffic_volume <- load_tv_data('scripts/robust_regression/traffic_volume/traffic_volume.csv', seed = seed)
+bike_sharing <- load_bs_data('scripts/robust_regression/bike_sharing/hour.csv', seed = seed)
 
 ##### Sampling from full posterior #####
-
 full_posterior <- hmc_sample_BRR(noise_error = 'student_t',
-                                 y = traffic_volume$y,
-                                 X = traffic_volume$X,
+                                 y = bike_sharing$y,
+                                 X = bike_sharing$X,
                                  C = 1,
                                  nu = nu,
                                  sigma = sigma,
@@ -69,13 +64,12 @@ full_posterior <- hmc_sample_BRR(noise_error = 'student_t',
                                  chains = 1,
                                  seed = seed,
                                  output = T)
-apply(full_posterior, 2, mean)
 
 ##### Sampling from sub-posterior C=4 #####
 
-data_split_4 <- split_data(traffic_volume$data,
-                           y_col_index = 6,
-                           X_col_index = 1:5,
+data_split_4 <- split_data(bike_sharing$data,
+                           y_col_index = 11,
+                           X_col_index = 1:10,
                            C = 4,
                            as_dataframe = F)
 sub_posteriors_4 <- hmc_base_sampler_BRR(nsamples = nsamples_MCF,
@@ -88,9 +82,6 @@ sub_posteriors_4 <- hmc_base_sampler_BRR(nsamples = nsamples_MCF,
                                          warmup = 10000,
                                          seed = seed,
                                          output = T)
-for (i in 1:4) {
-  print(apply(sub_posteriors_4[[i]], 2, mean))
-}
 
 ##### Applying other methodologies #####
 
@@ -319,4 +310,4 @@ integrated_abs_distance(full_posterior, neiswanger_false_4$samples)
 integrated_abs_distance(full_posterior, weierstrass_importance_4$samples)
 integrated_abs_distance(full_posterior, weierstrass_rejection_4$samples)
 
-save.image('TV4.RData')
+save.image('BS4.RData')

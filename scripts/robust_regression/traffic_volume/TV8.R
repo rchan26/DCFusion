@@ -31,6 +31,11 @@ load_tv_data <- function(file, standardise_variables = TRUE) {
                                weather = as.numeric(original_data$weather_main %in% c("Clear", "Clouds")),
                                rush_hour = as.numeric(original_data$hour %in% c("07", "08", "09", "16", "17", "18", "19")),
                                tv = original_data$traffic_volume)
+  traffic_volume <- traffic_volume[complete.cases(traffic_volume),]
+  if (!is.null(seed)) {
+    set.seed(seed)
+    traffic_volume <- traffic_volume[sample(1:nrow(traffic_volume)),]
+  }
   if (standardise_variables) {
     X <- subset(traffic_volume, select = -c(holiday, weather, rush_hour, tv))
     variable_means <- rep(NA, ncol(X))
