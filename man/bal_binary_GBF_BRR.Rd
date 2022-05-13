@@ -2,7 +2,7 @@
 % Please edit documentation in R/BRR_generalised_BF.R
 \name{bal_binary_GBF_BRR}
 \alias{bal_binary_GBF_BRR}
-\title{(Balanced Binary) D&C Monte Carlo Fusion using SMC}
+\title{(Balanced Binary) D&C Generalised Bayesian Fusion using SMC}
 \usage{
 bal_binary_GBF_BRR(
   N_schedule,
@@ -161,5 +161,5 @@ If record is set to TRUE, additional components will be returned:
 }
 }
 \description{
-(Balanced Binary) D&C Monte Carlo Fusion using SMC for Bayesian Logistic Regression
+(Balanced Binary) D&C Generalised Bayesian Fusion using SMC for Bayesian Logistic Regression
 }

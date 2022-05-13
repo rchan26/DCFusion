@@ -722,9 +722,9 @@ parallel_GBF_BLR <- function(particles_to_fuse,
   }
 }
 
-#' (Balanced Binary) D&C Monte Carlo Fusion using SMC
+#' (Balanced Binary) D&C Generalised Bayesian Fusion using SMC
 #' 
-#' (Balanced Binary) D&C Monte Carlo Fusion using SMC for Bayesian Logistic Regression
+#' (Balanced Binary) D&C Generalised Bayesian Fusion using SMC for Bayesian Logistic Regression
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the
 #'                   number of samples per node at level l
@@ -767,7 +767,7 @@ parallel_GBF_BLR <- function(particles_to_fuse,
 #'                    of the simulated hypercube
 #' @param adaptive_mesh logical value to indicate if an adaptive mesh is used
 #'                      (default is FALSE)
-#' @param adaptive_mesh_parameters list of parameters used for adaptive mesh
+#' @param mesh_parameters list of parameters used for mesh
 #' @param record logical value indicating if variables such as E[nu_j], chosen,
 #'               mesh_terms and k4_choice should be recorded at each iteration
 #'               and returned (see return variables for this function) - default
@@ -969,7 +969,7 @@ bal_binary_GBF_BLR <- function(N_schedule,
   sub_posterior_means <- list()
   sub_posterior_means[[L]] <- t(sapply(base_samples, function(sub) apply(sub, 2, mean)))
   cl <- parallel::makeCluster(n_cores, outfile = "SMC_BLR_outfile.txt")
-  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  # parallel::clusterExport(cl, envir = environment(), varlist = ls())
   parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   cat('Starting bal_binary fusion \n', file = 'bal_binary_GBF_BLR.txt')
@@ -1012,7 +1012,6 @@ bal_binary_GBF_BLR <- function(N_schedule,
                                       k2 = mesh_parameters$k2,
                                       k3 = mesh_parameters$k3,
                                       k4 = mesh_parameters$k4,
-                                      trial_k3_by = mesh_parameters$trial_k3_by,
                                       vanilla = mesh_parameters$vanilla)
       } else {
         recommendation <- list('mesh' = time_mesh)

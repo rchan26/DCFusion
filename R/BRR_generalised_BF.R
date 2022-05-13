@@ -655,9 +655,9 @@ parallel_GBF_BRR <- function(particles_to_fuse,
   }
 }
 
-#' (Balanced Binary) D&C Monte Carlo Fusion using SMC
+#' (Balanced Binary) D&C Generalised Bayesian Fusion using SMC
 #' 
-#' (Balanced Binary) D&C Monte Carlo Fusion using SMC for Bayesian Logistic Regression
+#' (Balanced Binary) D&C Generalised Bayesian Fusion using SMC for Bayesian Logistic Regression
 #'
 #' @param N_schedule vector of length (L-1), where N_schedule[l] is the
 #'                   number of samples per node at level l
@@ -933,7 +933,6 @@ bal_binary_GBF_BRR <- function(N_schedule,
                                       k2 = mesh_parameters$k2,
                                       k3 = mesh_parameters$k3,
                                       k4 = mesh_parameters$k4,
-                                      trial_k3_by = mesh_parameters$trial_k3_by,
                                       vanilla = mesh_parameters$vanilla)
       } else {
         recommendation <- list('mesh' = time_mesh)

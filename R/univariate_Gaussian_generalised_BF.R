@@ -95,7 +95,7 @@ rho_j_uniGaussian <- function(particle_set,
   }
   N <- particle_set$N
   # ---------- creating parallel cluster
-  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential")
+  cl <- parallel::makeCluster(n_cores)
   parallel::clusterExport(cl, envir = environment(), varlist = ls())
   parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
@@ -163,7 +163,8 @@ rho_j_uniGaussian <- function(particle_set,
                      C = m,
                      d = 1,
                      precondition_matrices = precondition_matrices,
-                     Lambda = Lambda)
+                     Lambda = Lambda,
+                     iteration = j)
     rho_j_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
       split_N <- length(split_indices[[core]])
       x_mean_j <- rep(0, split_N)
@@ -175,7 +176,8 @@ rho_j_uniGaussian <- function(particle_set,
                          C = m,
                          d = 1,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
-                         sub_posterior_mean = split_x_means[[core]][i])
+                         sub_posterior_mean = split_x_means[[core]][i],
+                         iteration = j)
         if (time_mesh[j]!=end_time) {
           return(as.vector(mvrnormArma(N = 1, mu = M, Sigma = V)))
         } else {

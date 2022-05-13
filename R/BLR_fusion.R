@@ -106,8 +106,6 @@ ea_BLR_DL_PT <- function(dim,
                                                          s = s,
                                                          t = t,
                                                          mult = 0.05)
-  lbound_Z <- sapply(1:dim, function(d) bes_layers[[d]]$L)
-  ubound_Z <- sapply(1:dim, function(d) bes_layers[[d]]$U)
   # calculate the lower and upper bounds of phi
   if (is.list(cv_location)) {
     if (names(cv_location)==c("beta_hat", "grad_log_hat")) {
@@ -377,7 +375,7 @@ Q_IS_BLR <- function(particle_set,
   N <- particle_set$N
   # ---------- creating parallel cluster
   if (is.null(cl)) {
-    cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
+    cl <- parallel::makeCluster(n_cores, outfile = "SMC_BLR_outfile.txt")
     parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
     parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
     close_cluster <- TRUE
@@ -890,8 +888,8 @@ bal_binary_fusion_SMC_BLR <- function(N_schedule,
           length C, where precondition[[c]] is the preconditioning matrix for
           the c-th sub-posterior")
   }
-  cl <- parallel::makeCluster(n_cores, setup_strategy = "sequential", outfile = "SMC_BLR_outfile.txt")
-  parallel::clusterExport(cl, envir = environment(), varlist = ls())
+  cl <- parallel::makeCluster(n_cores, outfile = "SMC_BLR_outfile.txt")
+  # parallel::clusterExport(cl, envir = environment(), varlist = ls())
   parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   cat('Starting bal_binary fusion \n', file = 'bal_binary_fusion_SMC_BLR.txt')

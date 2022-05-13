@@ -274,7 +274,7 @@ resample_particle_y_samples <- function(N = particle_set$N,
                                 method = resampling_method,
                                 n = N)
     if (multivariate) {
-      particle_set$y_samples <- particle_set$y_samples[indices,]
+      particle_set$y_samples <- particle_set$y_samples[indices,,drop=FALSE]
     } else {
       particle_set$y_samples <- particle_set$y_samples[indices]
     }
@@ -341,7 +341,7 @@ resample_particle_x_samples <- function(N = particle_set$N,
                                 method = resampling_method,
                                 n = N)
     if (multivariate) {
-      particle_set$x_means <- particle_set$x_means[indices,]
+      particle_set$x_means <- particle_set$x_means[indices,,drop=FALSE]
     } else {
       particle_set$x_means <- particle_set$x_means[indices]
     }

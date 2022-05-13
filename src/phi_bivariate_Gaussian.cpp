@@ -83,10 +83,28 @@ Rcpp::List ea_phi_biGaussian_DL_bounds(const arma::vec &mean_vec,
   } else if (upper.size() != 2) {
     stop("ea_phi_biGaussian_DL_bounds: upper is not a vector of length 2");
   }
-  arma::mat evaluate = {{lower[0], lower[1]},
-  {lower[0], upper[1]},
-  {upper[0], lower[1]},
-  {upper[0], upper[1]}};
+  arma::mat evaluate_1 = {{lower[0], lower[1]},
+                          {lower[0], upper[1]},
+                          {upper[0], lower[1]},
+                          {upper[0], upper[1]}};
+  arma::mat evaluate_2;
+  arma::mat evaluate_3;
+  arma::mat evaluate_4;
+  arma::mat evaluate = evaluate_1;
+  const arma::vec mean_in_z_space = transform_to_Z * mean_vec;
+  if (mean_in_z_space.at(0) >= lower.at(0) && mean_in_z_space.at(0) <= upper.at(0)) {
+    arma::mat evaluate_2 = {{mean_in_z_space.at(0), lower.at(1)}, 
+                            {mean_in_z_space.at(0), upper.at(1)}};
+    evaluate = arma::join_cols(evaluate_1, evaluate_2);
+    if (mean_in_z_space.at(1) >= lower.at(1) && mean_in_z_space.at(1) <= upper.at(1)) {
+      arma::mat evaluate_3 = {{mean_in_z_space.at(0), mean_in_z_space.at(1)}};
+      evaluate = arma::join_cols(evaluate_1, evaluate_3);
+    }
+  } else if (mean_in_z_space.at(1) >= lower.at(1) && mean_in_z_space.at(1) <= upper.at(1)) {
+    arma::mat evaluate_4 = {{lower.at(0), mean_in_z_space.at(1)},
+                            {upper.at(0), mean_in_z_space.at(1)}};
+    evaluate = arma::join_cols(evaluate_1, evaluate_4);
+  }
   Rcpp::NumericVector values = ea_phi_biGaussian_DL_matrix(evaluate,
                                                            mean_vec,
                                                            sd_vec,
@@ -94,13 +112,8 @@ Rcpp::List ea_phi_biGaussian_DL_bounds(const arma::vec &mean_vec,
                                                            beta,
                                                            precondition_mat,
                                                            transform_to_X);
-  const arma::vec mean_in_z_space = transform_to_Z * mean_vec;
-  if (mean_in_z_space.at(0) >= lower.at(0) && mean_in_z_space.at(0) <= upper.at(0)) {
-    if (mean_in_z_space.at(1) >= lower.at(1) && mean_in_z_space.at(1) <= upper.at(1)) {
-      values.push_back(ea_phi_biGaussian_DL_vec(mean_vec, mean_vec, sd_vec, corr, beta, precondition_mat, arma::eye(2, 2)));
-    }
-  }
-  return Rcpp::List::create(Rcpp::Named("LB", find_min(values)), Rcpp::Named("UB", find_max(values)));
+  return Rcpp::List::create(Rcpp::Named("LB", find_min(values)),
+                            Rcpp::Named("UB", find_max(values)));
 }
 
 //' Obtain the global lower bound for phi function

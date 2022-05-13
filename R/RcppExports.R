@@ -767,6 +767,52 @@ ea_phi_mixG_DL_LB <- function(n_comp, weights, means, sds, beta, precondition, b
     .Call(`_DCFusion_ea_phi_mixG_DL_LB`, n_comp, weights, means, sds, beta, precondition, bounds_multiplier)
 }
 
+ea_phi_multiGaussian_DL_vec <- function(x, mu, inv_Sigma, beta, precondition_mat) {
+    .Call(`_DCFusion_ea_phi_multiGaussian_DL_vec`, x, mu, inv_Sigma, beta, precondition_mat)
+}
+
+ea_phi_multiGaussian_DL_matrix <- function(x, mu, inv_Sigma, beta, precondition_mat) {
+    .Call(`_DCFusion_ea_phi_multiGaussian_DL_matrix`, x, mu, inv_Sigma, beta, precondition_mat)
+}
+
+#' Obtain bounds for phi function
+#'
+#' Finds the lower and upper bounds of the phi function between an interval
+#'
+#' @param mu vector of length dim for mean
+#' @param inv_Sigma dim x dim inverse covariance matrix
+#' @param beta real value
+#' @param precondition_mat dim x dim precondition matrix
+#' @param hypercube_vertices list with item named "V" to determine the points
+#'                           to evaluate phi which give the bounds of phi
+#'
+#' @return A list of components
+#' \describe{
+#'   \item{LB}{lower bound of phi}
+#'   \item{UB}{upper bound of phi}
+#' }
+ea_phi_multiGaussian_DL_bounds <- function(mu, inv_Sigma, beta, precondition_mat, hypercube_vertices) {
+    .Call(`_DCFusion_ea_phi_multiGaussian_DL_bounds`, mu, inv_Sigma, beta, precondition_mat, hypercube_vertices)
+}
+
+#' Obtain the global lower bound for phi function
+#'
+#' Finds the global bound of the phi function between a given interval
+#'
+#' @param mu vector of length dim for mean
+#' @param inv_Sigma dim x dim inverse covariance matrix
+#' @param beta real value
+#' @param precondition_mat dim x dim precondition matrix
+#'
+#' @return The global lower bound of phi
+ea_phi_multiGaussian_DL_LB <- function(mu, inv_Sigma, beta, precondition_mat) {
+    .Call(`_DCFusion_ea_phi_multiGaussian_DL_LB`, mu, inv_Sigma, beta, precondition_mat)
+}
+
+gamma_NB_multiGaussian <- function(times, h, x0, y, s, t, dim, mu, inv_Sigma, beta, precondition_mat) {
+    .Call(`_DCFusion_gamma_NB_multiGaussian`, times, h, x0, y, s, t, dim, mu, inv_Sigma, beta, precondition_mat)
+}
+
 #' phi-function for tempered Gaussian distribution
 #'
 #' phi-function for the Exact Algorithm for tempered Gaussian distribution

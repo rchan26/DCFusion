@@ -903,6 +903,86 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ea_phi_multiGaussian_DL_vec
+double ea_phi_multiGaussian_DL_vec(const arma::vec& x, const arma::vec& mu, const arma::mat& inv_Sigma, const double& beta, const arma::mat& precondition_mat);
+RcppExport SEXP _DCFusion_ea_phi_multiGaussian_DL_vec(SEXP xSEXP, SEXP muSEXP, SEXP inv_SigmaSEXP, SEXP betaSEXP, SEXP precondition_matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type inv_Sigma(inv_SigmaSEXP);
+    Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
+    rcpp_result_gen = Rcpp::wrap(ea_phi_multiGaussian_DL_vec(x, mu, inv_Sigma, beta, precondition_mat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ea_phi_multiGaussian_DL_matrix
+Rcpp::NumericVector ea_phi_multiGaussian_DL_matrix(const arma::mat& x, const arma::vec& mu, const arma::mat& inv_Sigma, const double& beta, const arma::mat& precondition_mat);
+RcppExport SEXP _DCFusion_ea_phi_multiGaussian_DL_matrix(SEXP xSEXP, SEXP muSEXP, SEXP inv_SigmaSEXP, SEXP betaSEXP, SEXP precondition_matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type inv_Sigma(inv_SigmaSEXP);
+    Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
+    rcpp_result_gen = Rcpp::wrap(ea_phi_multiGaussian_DL_matrix(x, mu, inv_Sigma, beta, precondition_mat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ea_phi_multiGaussian_DL_bounds
+Rcpp::List ea_phi_multiGaussian_DL_bounds(const arma::vec& mu, const arma::mat& inv_Sigma, const double& beta, const arma::mat& precondition_mat, const Rcpp::List& hypercube_vertices);
+RcppExport SEXP _DCFusion_ea_phi_multiGaussian_DL_bounds(SEXP muSEXP, SEXP inv_SigmaSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP hypercube_verticesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type inv_Sigma(inv_SigmaSEXP);
+    Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type hypercube_vertices(hypercube_verticesSEXP);
+    rcpp_result_gen = Rcpp::wrap(ea_phi_multiGaussian_DL_bounds(mu, inv_Sigma, beta, precondition_mat, hypercube_vertices));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ea_phi_multiGaussian_DL_LB
+double ea_phi_multiGaussian_DL_LB(const arma::vec& mu, const arma::mat& inv_Sigma, const double& beta, const arma::mat& precondition_mat);
+RcppExport SEXP _DCFusion_ea_phi_multiGaussian_DL_LB(SEXP muSEXP, SEXP inv_SigmaSEXP, SEXP betaSEXP, SEXP precondition_matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type inv_Sigma(inv_SigmaSEXP);
+    Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
+    rcpp_result_gen = Rcpp::wrap(ea_phi_multiGaussian_DL_LB(mu, inv_Sigma, beta, precondition_mat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gamma_NB_multiGaussian
+double gamma_NB_multiGaussian(const arma::vec& times, const double& h, const arma::vec& x0, const arma::vec& y, const double& s, const double& t, const int& dim, const arma::vec& mu, const arma::mat& inv_Sigma, const double& beta, const arma::mat& precondition_mat);
+RcppExport SEXP _DCFusion_gamma_NB_multiGaussian(SEXP timesSEXP, SEXP hSEXP, SEXP x0SEXP, SEXP ySEXP, SEXP sSEXP, SEXP tSEXP, SEXP dimSEXP, SEXP muSEXP, SEXP inv_SigmaSEXP, SEXP betaSEXP, SEXP precondition_matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< const double& >::type h(hSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const double& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const double& >::type t(tSEXP);
+    Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type inv_Sigma(inv_SigmaSEXP);
+    Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
+    rcpp_result_gen = Rcpp::wrap(gamma_NB_multiGaussian(times, h, x0, y, s, t, dim, mu, inv_Sigma, beta, precondition_mat));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ea_phi_uniGaussian_DL
 Rcpp::NumericVector ea_phi_uniGaussian_DL(const Rcpp::NumericVector& x, const double& mean, const double& sd, const double& beta, const double& precondition);
 RcppExport SEXP _DCFusion_ea_phi_uniGaussian_DL(SEXP xSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP betaSEXP, SEXP preconditionSEXP) {
@@ -1026,6 +1106,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_dnorm_mix_tempered_unnormalised", (DL_FUNC) &_DCFusion_dnorm_mix_tempered_unnormalised, 5},
     {"_DCFusion_ea_phi_mixG_DL", (DL_FUNC) &_DCFusion_ea_phi_mixG_DL, 7},
     {"_DCFusion_ea_phi_mixG_DL_LB", (DL_FUNC) &_DCFusion_ea_phi_mixG_DL_LB, 7},
+    {"_DCFusion_ea_phi_multiGaussian_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_multiGaussian_DL_vec, 5},
+    {"_DCFusion_ea_phi_multiGaussian_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_multiGaussian_DL_matrix, 5},
+    {"_DCFusion_ea_phi_multiGaussian_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_multiGaussian_DL_bounds, 5},
+    {"_DCFusion_ea_phi_multiGaussian_DL_LB", (DL_FUNC) &_DCFusion_ea_phi_multiGaussian_DL_LB, 4},
+    {"_DCFusion_gamma_NB_multiGaussian", (DL_FUNC) &_DCFusion_gamma_NB_multiGaussian, 11},
     {"_DCFusion_ea_phi_uniGaussian_DL", (DL_FUNC) &_DCFusion_ea_phi_uniGaussian_DL, 5},
     {"_DCFusion_ea_phi_uniGaussian_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_uniGaussian_DL_bounds, 6},
     {"_DCFusion_ea_phi_uniGaussian_DL_LB", (DL_FUNC) &_DCFusion_ea_phi_uniGaussian_DL_LB, 4},

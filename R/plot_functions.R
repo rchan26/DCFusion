@@ -391,9 +391,6 @@ integrated_abs_distance_biGaussian <- function(fusion_post, marg_means, marg_sds
   } else if (length(bw)!=2) {
     stop('integrated_abs_distance_biGaussian: bw must be a vector of length 2')
   }
-  if (is.null(bw)) {
-    bw <- "nrd0"
-  }
   d1_IAD <- integrated_abs_distance_uniGaussian(fusion_post = fusion_post[,1],
                                                 mean = marg_means[1],
                                                 sd = marg_sds[1],
@@ -407,6 +404,31 @@ integrated_abs_distance_biGaussian <- function(fusion_post, marg_means, marg_sds
                                                 bw = bw[2],
                                                 print_res = FALSE)
   IAD <- mean(c(d1_IAD, d2_IAD))
+  print(paste('IAD:', IAD))
+  return(IAD)
+}
+
+#' @export
+integrated_abs_distance_multiGaussian <- function(fusion_post, marg_means, marg_sds, bw) {
+  dimensions <- ncol(fusion_post)
+  if (is.null(bw)) {
+    bw <- rep("nrd0", dimensions)
+  } else if (length(bw)!=dimensions) {
+    stop('integrated_abs_distance_biGaussian: bw must be a vector of length dimensions')
+  }
+  if (length(marg_means)!=dimensions) {
+    stop('integrated_abs_distance_biGaussian: marg_means must be a vector of length dimensions')
+  } else if (length(marg_sds)!=dimensions) {
+    stop('integrated_abs_distance_biGaussian: marg_sds must be a vector of length dimensions')
+  }
+  IAD <- mean(sapply(1:dimensions, function(d) {
+    integrated_abs_distance_uniGaussian(fusion_post = fusion_post[,d],
+                                        mean = marg_means[d],
+                                        sd = marg_sds[d],
+                                        beta = 1,
+                                        bw = bw[d],
+                                        print_res = FALSE)
+  }))
   print(paste('IAD:', IAD))
   return(IAD)
 }

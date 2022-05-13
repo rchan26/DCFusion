@@ -63,12 +63,19 @@ construct_M <- function(s,
   } 
   if (iteration<=2) {
     if (d==1) {
-      if (!is.vector(sub_posterior_samples)) {
-        stop("construct_M: if d==1, sub_posterior_samples must be a vector of length C")
-      } else if (length(sub_posterior_samples)!=C) {
-        stop("construct_M: if d==1, sub_posterior_samples must be a vector of length C")
-      } else if (length(sub_posterior_mean)!=1) {
-        stop("construct_M: if d==1, sub_posterior_mean must be a numeric of length 1")
+      if (is.vector(sub_posterior_samples)) {
+        if (length(sub_posterior_samples)!=C) {
+          stop("construct_M: if d==1 and sub_posterior_samples is a vector, then sub_posterior_samples must have length C")
+        }
+      } else if (is.matrix(sub_posterior_samples)) {
+        if (any(dim(sub_posterior_samples)!=c(C,d))) {
+          stop("construct_M: if d==1 and sub_posterior_samples is a matrix, then sub_posterior_samples must be a (C x 1) matrix")
+        }
+      } else {
+        stop("construct_M: if d==1, sub_posterior_samples must be a vector of length C or a (C x 1) matrix")
+      }
+      if (length(sub_posterior_mean)!=1) {
+        stop("construct_M: if d==1, sub_posterior_mean must be of length 1")
       }
     } else if (d > 1)  {
       if (!is.matrix(sub_posterior_samples)){
@@ -87,7 +94,7 @@ construct_M <- function(s,
                                    end_time = end_time,
                                    C = C,
                                    d = d,
-                                   sub_posterior_samples = sub_posterior_samples,
+                                   sub_posterior_samples = as.matrix(sub_posterior_samples),
                                    sub_posterior_mean = sub_posterior_mean)))
 }
 

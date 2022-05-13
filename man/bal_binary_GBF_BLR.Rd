@@ -2,7 +2,7 @@
 % Please edit documentation in R/BLR_generalised_BF.R
 \name{bal_binary_GBF_BLR}
 \alias{bal_binary_GBF_BLR}
-\title{(Balanced Binary) D&C Monte Carlo Fusion using SMC}
+\title{(Balanced Binary) D&C Generalised Bayesian Fusion using SMC}
 \usage{
 bal_binary_GBF_BLR(
   N_schedule,
@@ -88,6 +88,8 @@ of the simulated hypercube}
 \item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used
 (default is FALSE)}
 
+\item{mesh_parameters}{list of parameters used for mesh}
+
 \item{record}{logical value indicating if variables such as E[nu_j], chosen,
 mesh_terms and k4_choice should be recorded at each iteration
 and returned (see return variables for this function) - default
@@ -113,8 +115,6 @@ are used (default is TRUE)}
 \item{print_progress_iters}{number of iterations between each progress update
 (default is 1000). If NULL, progress will only
 be updated when importance sampling is finished}
-
-\item{adaptive_mesh_parameters}{list of parameters used for adaptive mesh}
 }
 \value{
 A list with components:
@@ -162,5 +162,5 @@ If record is set to TRUE, additional components will be returned:
 }
 }
 \description{
-(Balanced Binary) D&C Monte Carlo Fusion using SMC for Bayesian Logistic Regression
+(Balanced Binary) D&C Generalised Bayesian Fusion using SMC for Bayesian Logistic Regression
 }

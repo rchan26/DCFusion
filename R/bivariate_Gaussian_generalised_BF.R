@@ -189,7 +189,8 @@ rho_j_biGaussian <- function(particle_set,
                      C = m,
                      d = 2,
                      precondition_matrices = precondition_matrices,
-                     Lambda = Lambda)
+                     Lambda = Lambda,
+                     iteration = j)
     rho_j_weighted_samples <- parallel::parLapply(cl, X = 1:length(split_indices), fun = function(core) {
       split_N <- length(split_indices[[core]])
       x_mean_j <- matrix(data = NA, nrow = split_N, ncol = 2)
@@ -201,7 +202,8 @@ rho_j_biGaussian <- function(particle_set,
                          C = m,
                          d = 2,
                          sub_posterior_samples = split_x_samples[[core]][[i]],
-                         sub_posterior_mean = split_x_means[[core]][i,])
+                         sub_posterior_mean = split_x_means[[core]][i,],
+                         iteration = j)
         if (time_mesh[j]!=end_time) {
           return(matrix(mvrnormArma(N = 1, mu = M, Sigma = V), nrow = m, ncol = 2, byrow = TRUE))
         } else {
@@ -363,7 +365,7 @@ parallel_GBF_biGaussian <- function(particles_to_fuse,
                                     time_mesh,
                                     mean_vecs,
                                     sd_vecs,
-                                    corrs, 
+                                    corrs,
                                     betas,
                                     precondition_matrices, 
                                     resampling_method = 'multi',

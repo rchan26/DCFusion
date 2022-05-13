@@ -4,7 +4,12 @@
 \alias{obtain_hypercube_vertices}
 \title{Hypercube vertices}
 \usage{
-obtain_hypercube_vertices(bessel_layers, dim)
+obtain_hypercube_vertices(
+  bessel_layers,
+  vector = rep(0, dim),
+  transform_mat = diag(1, dim),
+  dim
+)
 }
 \arguments{
 \item{bessel_layers}{a list of length dim where list[[d]] is the Bessel layer
@@ -13,6 +18,12 @@ where L denotes the hard lower bound, l denotes the soft
 lower bound, u denotes the soft upper bound and U 
 denotes the hard upper bound}
 
+\item{vector}{vector of length dim which we check in each dimension if it
+occurs within the bounds - default is rep(0, dim)}
+
+\item{transform_mat}{dim x dim transformation matrix which is applied to
+the vertices - default is diag(1, dim)}
+
 \item{dim}{dimension}
 }
 \value{
@@ -20,7 +31,7 @@ A list of length 2 with
 \describe{
  \item{vertices}{matrix where each row is a vertex of the hypercube}
  \item{V}{matrix where each row is a vertex of the hypercube including points
-          crossing the origin in each dimension}
+          crossing the vector in each dimension}
 }
 }
 \description{

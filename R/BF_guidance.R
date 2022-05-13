@@ -27,9 +27,7 @@ T_guidance <- function(condition,
     stop("T_guidance: threshold must be between 0 and 1")
   }
   if (d==1) {
-    if (!is.vector(sub_posterior_means)) {
-      stop("T_guidance: if d==1, sub_posterior_means must be a vector of length C")
-    } else if (length(sub_posterior_means)!=C) {
+    if (length(sub_posterior_means)!=C) {
       stop("T_guidance: if d==1, sub_posterior_means must be a vector of length C")
     }
   } else if (d > 1) {
@@ -226,11 +224,10 @@ mesh_guidance_adaptive <- function(C,
     stop("mesh_guidance_adaptive: particle_set must be a \"particle\" object")
   }
   if (d==1) {
-    if (!is.vector(sub_posterior_means)) {
-      stop("mesh_guidance_adaptive: if d==1, sub_posterior_means must be a vector of length C")
-    } else if (length(sub_posterior_means)!=C) {
+    if (length(sub_posterior_means)!=C) {
       stop("mesh_guidance_adaptive: if d==1, sub_posterior_means must be a vector of length C")
     }
+    sub_posterior_means <- as.matrix(sub_posterior_means)
   } else if (d > 1) {
     if (!is.matrix(sub_posterior_means)){
       stop("mesh_guidance_adaptive: if d>1, sub_posterior_means must be a (C x d) matrix")
@@ -346,7 +343,6 @@ mesh_guidance_regular <- function(C,
                                   k3 = NULL,
                                   k4 = NULL,
                                   max_E_nu_j = NULL,
-                                  trial_k3_by = NULL,
                                   vanilla = NULL) {
   if (is.null(vanilla)) {
     warning('mesh_guidance_regular: vanilla is set to FALSE by default')
@@ -373,6 +369,7 @@ mesh_guidance_regular <- function(C,
       stop("mesh_guidance_regular: b must be greater than 0")
     }
   }
+  k4_choice <- NA
   if (!is.numeric(threshold)) {
     if (!is.numeric(k3)) {
       stop("mesh_guidance_adaptive: if threshold is not passed, k3 must be passed in")
@@ -433,7 +430,6 @@ BF_guidance <- function(condition,
                         k2 = NULL,
                         k3 = NULL,
                         k4 = NULL,
-                        trial_k3_by = NULL,
                         vanilla = NULL) {
   T_guide <- T_guidance(condition = condition,
                         threshold = CESS_0_threshold,
@@ -483,7 +479,6 @@ BF_guidance <- function(condition,
                                       k3 = k3,
                                       k4 = k4,
                                       max_E_nu_j = max_E_nu_j$max_variation,
-                                      trial_k3_by = trial_k3_by,
                                       vanilla = vanilla)
   rec_mesh <- seq(from = 0, to = T_guide$min_T, by = mesh_guide$max_delta_j)
   if (rec_mesh[length(rec_mesh)]!=T_guide$min_T) {
