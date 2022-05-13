@@ -10,6 +10,7 @@ beta <- 1
 a_mesh_vanilla <- seq(0, 0.005, length.out = 6)
 a_mesh_gen <- seq(0, 1, length.out = 6)
 diffusion_estimator <- 'NB'
+resampling_method <- 'resid'
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.5
 CESS_j_threshold <- 0.5
@@ -31,11 +32,14 @@ d1_results <- list('vanilla' = list(), 'generalised' = list())
 d2_results <- list('vanilla' = list(), 'generalised' = list())
 SSH_adaptive_results <- list('vanilla' = list(), 'generalised' = list())
 
-collect_results <- function(results) {
+collect_results <- function(results, seed) {
+  print(paste('n:', length(results$CESS)-1))
+  print(paste('time:', results$time))
+  print(paste('log(time):', log(results$time)))
   return(list('CESS_0' = results$CESS[1],
               'CESS_j' = results$CESS[2:length(results$CESS)],
               'CESS_j_avg' = mean(results$CESS[2:length(results$CESS)]),
-              'n' = length(results$CESS),
+              'n' = length(results$CESS)-1,
               'time_mesh' = results$particles$time_mesh,
               'time' = results$time,
               'elapsed_time' = results$elapsed_time,
@@ -43,13 +47,13 @@ collect_results <- function(results) {
               'ESS' = results$ESS,
               'E_nu_j' = results$E_nu_j,
               'chosen' = results$chosen,
-              'k4_choice' = results$k4_choice,
               'mesh_terms' = results$mesh_terms,
+              'k4_choice' = results$k4_choice,
               'IAD' = integrated_abs_distance_biGaussian(fusion_post = resample_particle_y_samples(
                 particle_set = results$particles,
                 multivariate = TRUE,
                 resampling_method = resampling_method,
-                seed = seed*i*rep)$y_samples,
+                seed = seed)$y_samples,
                 marg_means = c(0,0),
                 marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
                 bw = opt_bw)))
@@ -99,8 +103,8 @@ for (i in 1:length(data_sizes)) {
                                               diffusion_estimator = diffusion_estimator,
                                               seed = seed*i)
   # save results
-  a_results$vanilla[[i]] <- collect_results(a_BF_standard)
-  a_results$generalised[[i]] <- collect_results(a_BF_generalised)
+  a_results$vanilla[[i]] <- collect_results(a_BF_standard, seed*i)
+  a_results$generalised[[i]] <- collect_results(a_BF_generalised, seed*i)
   
   ##### Recommended scaling of T, fixed n #####
   print('### performing standard Bayesian Fusion (with recommended T, fixed n)')
@@ -164,8 +168,8 @@ for (i in 1:length(data_sizes)) {
                                               diffusion_estimator = diffusion_estimator,
                                               seed = seed*i)
   # save results
-  b_results$vanilla[[i]] <- collect_results(b_BF_standard)
-  b_results$generalised[[i]] <- collect_results(b_BF_generalised)
+  b_results$vanilla[[i]] <- collect_results(b_BF_standard, seed*i)
+  b_results$generalised[[i]] <- collect_results(b_BF_generalised, seed*i)
   
   ##### Recommended scaling of T, regular mesh #####
   print('### performing standard Bayesian Fusion (with recommended T, regular mesh)')
@@ -201,8 +205,8 @@ for (i in 1:length(data_sizes)) {
                                               diffusion_estimator = diffusion_estimator,
                                               seed = seed*i)
   # save results
-  c_results$vanilla[[i]] <- collect_results(c_BF_standard)
-  c_results$generalised[[i]] <- collect_results(c_BF_generalised)
+  c_results$vanilla[[i]] <- collect_results(c_BF_standard, seed*i)
+  c_results$generalised[[i]] <- collect_results(c_BF_generalised, seed*i)
 
   ##### Checking regular mesh #####
   print('### performing standard Bayesian Fusion (checking regular mesh)')
@@ -251,8 +255,8 @@ for (i in 1:length(data_sizes)) {
                                                  diffusion_estimator = diffusion_estimator,
                                                  seed = seed*i)
   # save results
-  c_check_results$vanilla[[i]] <- collect_results(c_check_standard)
-  c_check_results$generalised[[i]] <- collect_results(c_check_generalised)
+  c_check_results$vanilla[[i]] <- collect_results(c_check_standard, seed*i)
+  c_check_results$generalised[[i]] <- collect_results(c_check_generalised, seed*i)
   
   ##### Recommended scaling of T, adaptive mesh (equal k3,k4) #####
   print('### performing standard Bayesian Fusion (with recommended T, adaptive mesh with equal k3,k4)')
@@ -301,8 +305,8 @@ for (i in 1:length(data_sizes)) {
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed*i)
   # save results
-  d1_results$vanilla[[i]] <- collect_results(d1_BF_standard)
-  d1_results$generalised[[i]] <- collect_results(d1_BF_generalised)
+  d1_results$vanilla[[i]] <- collect_results(d1_BF_standard, seed*i)
+  d1_results$generalised[[i]] <- collect_results(d1_BF_generalised, seed*i)
   
   ##### Recommended scaling of T, adaptive mesh (un-equal k3,k4) #####
   print('### performing standard Bayesian Fusion (with recommended T, adaptive mesh)')
@@ -349,8 +353,8 @@ for (i in 1:length(data_sizes)) {
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed*i)
   # save results
-  d2_results$vanilla[[i]] <- collect_results(d2_BF_standard)
-  d2_results$generalised[[i]] <- collect_results(d2_BF_generalised)
+  d2_results$vanilla[[i]] <- collect_results(d2_BF_standard, seed*i)
+  d2_results$generalised[[i]] <- collect_results(d2_BF_generalised, seed*i)
   
   ##### SSH: Recommended scaling of T, adaptive mesh #####
   print('### SSH: performing standard Bayesian Fusion (with recommended T, adaptive mesh)')
@@ -423,8 +427,8 @@ for (i in 1:length(data_sizes)) {
                                                       diffusion_estimator = diffusion_estimator,
                                                       seed = seed*i)
   # save results
-  SSH_adaptive_results$vanilla[[i]] <- collect_results(SSH_adaptive_standard)
-  SSH_adaptive_results$generalised[[i]] <- collect_results(SSH_adaptive_generalised)
+  SSH_adaptive_results$vanilla[[i]] <- collect_results(SSH_adaptive_standard, seed*i)
+  SSH_adaptive_results$generalised[[i]] <- collect_results(SSH_adaptive_generalised, seed*i)
 }
 
 ##### vanilla plots #####

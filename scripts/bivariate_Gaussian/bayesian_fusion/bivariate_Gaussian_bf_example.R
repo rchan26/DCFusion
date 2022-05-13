@@ -13,7 +13,7 @@ C <- 4
 beta <- 1/C
 diffusion_estimator <- 'NB'
 
-# sampling from the sub-posteriors (target at inverse temperature 1/8)
+# sampling from the sub-posteriors (target at inverse temperature 1/4)
 input_samples <- lapply(1:C, function(i) mvrnormArma_tempered(1000000,
                                                               mu = mean,
                                                               Sigma = cov_mat,
@@ -87,9 +87,9 @@ BF_standard_n1 <- parallel_GBF_biGaussian(particles_to_fuse = input_particles_BF
                                           N = nsamples,
                                           m = C,
                                           time_mesh = time_mesh_BF_n1,
-                                          mean_vec = mean,
-                                          sd_vec = sd,
-                                          corr = corr,
+                                          mean_vecs = rep(list(mean), C),
+                                          sd_vecs = rep(list(sd), C),
+                                          corrs = rep(corr, C),
                                           betas = rep(beta, C),
                                           precondition_matrices = rep(list(diag(1,2)), C),
                                           ESS_threshold = 0.5,
@@ -103,9 +103,9 @@ BF_generalised_n1 <- parallel_GBF_biGaussian(particles_to_fuse = input_particles
                                              N = nsamples,
                                              m = C,
                                              time_mesh = time_mesh_BF_n1,
-                                             mean_vec = mean,
-                                             sd_vec = sd,
-                                             corr = corr,
+                                             mean_vecs = rep(list(mean), C),
+                                             sd_vecs = rep(list(sd), C),
+                                             corrs = rep(corr, C),
                                              betas = rep(beta, C),
                                              precondition_matrices = lapply(input_samples, cov),
                                              ESS_threshold = 0.5,
@@ -140,9 +140,9 @@ BF_standard_n20 <- parallel_GBF_biGaussian(particles_to_fuse = input_particles_B
                                            N = nsamples,
                                            m = C,
                                            time_mesh = time_mesh_BF_n20,
-                                           mean_vec = mean,
-                                           sd_vec = sd,
-                                           corr = corr,
+                                           mean_vecs = rep(list(mean), C),
+                                           sd_vecs = rep(list(sd), C),
+                                           corrs = rep(corr, C),
                                            betas = rep(beta, C),
                                            precondition_matrices = rep(list(diag(1,2)), C),
                                            ESS_threshold = 0.5,
@@ -156,9 +156,9 @@ BF_generalised_n20 <- parallel_GBF_biGaussian(particles_to_fuse = input_particle
                                               N = nsamples,
                                               m = C,
                                               time_mesh = time_mesh_BF_n20,
-                                              mean_vec = mean,
-                                              sd_vec = sd,
-                                              corr = corr,
+                                              mean_vecs = rep(list(mean), C),
+                                              sd_vecs = rep(list(sd), C),
+                                              corrs = rep(corr, C),
                                               betas = rep(beta, C),
                                               precondition_matrices = lapply(input_samples, cov),
                                               ESS_threshold = 0.5,
@@ -188,3 +188,5 @@ compare_samples_bivariate(list(true_samples,
                                BF_generalised_n20$particles$y_samples),
                           c('black', 'red', 'blue'),
                           c(-4, 4))
+
+save.image('bivariate_Gaussian_bf_example.RData')

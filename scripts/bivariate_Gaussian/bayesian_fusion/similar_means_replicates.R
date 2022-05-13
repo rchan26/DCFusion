@@ -32,7 +32,7 @@ d1_results <- list('vanilla' = list(), 'generalised' = list())
 d2_results <- list('vanilla' = list(), 'generalised' = list())
 SSH_adaptive_results <- list('vanilla' = list(), 'generalised' = list())
 
-collect_results <- function(results) {
+collect_results <- function(results, seed) {
   print(paste('n:', length(results$CESS)-1))
   print(paste('time:', results$time))
   print(paste('log(time):', log(results$time)))
@@ -53,7 +53,7 @@ collect_results <- function(results) {
                 particle_set = results$particles,
                 multivariate = TRUE,
                 resampling_method = resampling_method,
-                seed = seed*i*rep)$y_samples,
+                seed = seed)$y_samples,
                 marg_means = c(0,0),
                 marg_sds = sqrt(rep(1, 2)/data_sizes[i]),
                 bw = opt_bw)))
@@ -123,8 +123,8 @@ for (i in 1:length(data_sizes)) {
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed*rep*i)
     # save results
-    a_results$vanilla[[i]][[rep]] <- collect_results(a_BF_standard)
-    a_results$generalised[[i]][[rep]] <- collect_results(a_BF_generalised)
+    a_results$vanilla[[i]][[rep]] <- collect_results(a_BF_standard, seed*rep*i)
+    a_results$generalised[[i]][[rep]] <- collect_results(a_BF_generalised, seed*rep*i)
     
     ##### Recommended scaling of T, fixed n #####
     print('### performing standard Bayesian Fusion (with recommended T, fixed n)')
@@ -190,8 +190,8 @@ for (i in 1:length(data_sizes)) {
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed*rep*i)
     # save results
-    b_results$vanilla[[i]][[rep]] <- collect_results(b_BF_standard)
-    b_results$generalised[[i]][[rep]] <- collect_results(b_BF_generalised)
+    b_results$vanilla[[i]][[rep]] <- collect_results(b_BF_standard, seed*rep*i)
+    b_results$generalised[[i]][[rep]] <- collect_results(b_BF_generalised, seed*rep*i)
     
     ##### Recommended scaling of T, regular mesh #####
     print('### performing standard Bayesian Fusion (with recommended T, regular mesh)')
@@ -229,8 +229,8 @@ for (i in 1:length(data_sizes)) {
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed*rep*i)
     # save results
-    c_results$vanilla[[i]][[rep]] <- collect_results(c_BF_standard)
-    c_results$generalised[[i]][[rep]] <- collect_results(c_BF_generalised)
+    c_results$vanilla[[i]][[rep]] <- collect_results(c_BF_standard, seed*rep*i)
+    c_results$generalised[[i]][[rep]] <- collect_results(c_BF_generalised, seed*rep*i)
     
     ##### Recommended scaling of T, adaptive mesh (equal k3,k4) #####
     print('### performing standard Bayesian Fusion (with recommended T, adaptive mesh with equal k3,k4)')
@@ -281,8 +281,8 @@ for (i in 1:length(data_sizes)) {
                                                  diffusion_estimator = diffusion_estimator,
                                                  seed = seed*i*rep)
     # save results
-    d1_results$vanilla[[i]][[rep]] <- collect_results(d1_BF_standard)
-    d1_results$generalised[[i]][[rep]] <- collect_results(d1_BF_generalised)
+    d1_results$vanilla[[i]][[rep]] <- collect_results(d1_BF_standard, seed*rep*i)
+    d1_results$generalised[[i]][[rep]] <- collect_results(d1_BF_generalised, seed*rep*i)
     
     ##### Recommended scaling of T, adaptive mesh (un-equal k3,k4) #####
     print('### performing standard Bayesian Fusion (with recommended T, adaptive mesh)')
@@ -331,8 +331,8 @@ for (i in 1:length(data_sizes)) {
                                                  diffusion_estimator = diffusion_estimator,
                                                  seed = seed*i*rep)
     # save results
-    d2_results$vanilla[[i]][[rep]] <- collect_results(d2_BF_standard)
-    d2_results$generalised[[i]][[rep]] <- collect_results(d2_BF_generalised)
+    d2_results$vanilla[[i]][[rep]] <- collect_results(d2_BF_standard, seed*rep*i)
+    d2_results$generalised[[i]][[rep]] <- collect_results(d2_BF_generalised, seed*rep*i)
     
     ##### SSH: Recommended scaling of T, adaptive mesh #####
     print('### SSH: performing standard Bayesian Fusion (with recommended T, adaptive mesh)')
@@ -407,8 +407,8 @@ for (i in 1:length(data_sizes)) {
                                                         diffusion_estimator = diffusion_estimator,
                                                         seed = seed*rep*i)
     # save results
-    SSH_adaptive_results$vanilla[[i]][[rep]] <- collect_results(SSH_adaptive_standard)
-    SSH_adaptive_results$generalised[[i]][[rep]] <- collect_results(SSH_adaptive_generalised)
+    SSH_adaptive_results$vanilla[[i]][[rep]] <- collect_results(SSH_adaptive_standard, seed*rep*i)
+    SSH_adaptive_results$generalised[[i]][[rep]] <- collect_results(SSH_adaptive_generalised, seed*rep*i)
     
     # save progress
     print('saving progress')
