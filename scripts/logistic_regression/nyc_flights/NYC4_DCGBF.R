@@ -14,9 +14,13 @@ diffusion_estimator <- 'NB'
 
 ##### Loading in Data #####
 
-load_nycflights_data <- function() {
+load_nycflights_data <- function(seed = NULL) {
   nyc_flights <- subset(nycflights13::flights, select = c("arr_delay", "year", "day", "month", "hour", "distance"))
   nyc_flights <- nyc_flights[complete.cases(nyc_flights),]
+  if (!is.null(seed)) {
+    set.seed(seed)
+    nyc_flights <- nyc_flights[sample(1:nrow(nyc_flights)),]
+  }
   nyc_flights$weekday <- weekdays(as.Date(paste(nyc_flights$year, "-", nyc_flights$month, "-", nyc_flights$day, sep = "")))
   nyc_flights$delayed <- as.numeric(nyc_flights$arr_delay > 15)
   nyc_flights$weekend <- as.numeric(nyc_flights$weekday %in% c("Saturday", "Sunday"))
@@ -34,7 +38,7 @@ load_nycflights_data <- function() {
               'distance_range' = distance_range))
 }
 
-nyc_flights <- load_nycflights_data()
+nyc_flights <- load_nycflights_data(seed)
 
 ##### Sampling from full posterior #####
 
@@ -61,7 +65,12 @@ sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                          seed = seed,
                                          output = T)
 
-# compare_samples_bivariate(sub_posteriors_4, c('red', 'red', 'blue', 'blue'), c(-4, 4))
+# compare_samples_bivariate(c(list(full_posterior), sub_posteriors_4), c('black', 'red', 'red', 'blue', 'blue'), c(-4, 4))
+# glm(delayed ~., data = nyc_flights$data, family = 'binomial')
+# apply(full_posterior, 2, mean)
+# for (i in 1:4) {
+#   print(apply(sub_posteriors_4[[i]], 2, mean))
+# }
 
 ##### Applying other methodologies #####
 

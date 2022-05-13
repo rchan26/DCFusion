@@ -2,47 +2,102 @@ library(DCFusion)
 library(HMCBLR)
 
 seed <- 2016
-nsamples <- 30000
+nsamples <- 10000
 nsamples_GBF <- 5000
-time_choice <- 0.5
+time_choice <- 1
 C <- 32
+prior_means <- rep(0, 11)
+prior_variances <- rep(1, 11)
 n_cores <- parallel::detectCores()
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.5
-CESS_j_threshold <- 0.05
+CESS_0_threshold <- 0.25
+CESS_j_threshold <- 0.01
 diffusion_estimator <- 'NB'
 
 ##### Loading in Data #####
 
-load_nycflights_data <- function() {
-  nyc_flights <- subset(nycflights13::flights, select = c("arr_delay", "year", "day", "month", "hour", "distance"))
+load_nycflights_data <- function(seed = NULL) {
+  nyc_flights <- subset(nycflights13::flights %>% left_join(nycflights13::weather),
+                        select = c("arr_delay", "origin", "dep_delay",
+                                   "year", "day", "month", "hour", "distance",
+                                   "temp", "humid", "wind_speed", "wind_gust",
+                                   "precip", "pressure", "visib"))
   nyc_flights <- nyc_flights[complete.cases(nyc_flights),]
+  if (!is.null(seed)) {
+    set.seed(seed)
+    nyc_flights <- nyc_flights[sample(1:nrow(nyc_flights)),]
+  }
+  nyc_flights$delayed <- as.numeric(nyc_flights$arr_delay > 0)
+  # binary variables
+  nyc_flights$dep_delayed <- as.numeric(nyc_flights$dep_delay > 0)
   nyc_flights$weekday <- weekdays(as.Date(paste(nyc_flights$year, "-", nyc_flights$month, "-", nyc_flights$day, sep = "")))
-  nyc_flights$delayed <- as.numeric(nyc_flights$arr_delay > 15)
   nyc_flights$weekend <- as.numeric(nyc_flights$weekday %in% c("Saturday", "Sunday"))
   nyc_flights$night <- as.numeric(nyc_flights$hour >= 20 | nyc_flights$hour <= 5)
-  distance_min <- min(nyc_flights$distance)
-  distance_range <- max(nyc_flights$distance)-distance_min
-  nyc_flights$distance_standardised <- (nyc_flights$distance-distance_min) / distance_range
-  X <- subset(nyc_flights, select = c("weekend", "night", "distance_standardised"))
+  nyc_flights$EWR <- as.numeric(nyc_flights$origin=="EWR")
+  nyc_flights$JFK <- as.numeric(nyc_flights$origin=="JFK")
+  nyc_flights$windy <- as.numeric(nyc_flights$wind_speed > 25 | nyc_flights$wind_gust > 35)
+  nyc_flights$rain <- as.numeric(nyc_flights$precip > 0.01)
+  nyc_flights$visibility <- as.numeric(nyc_flights$visib < 8)
+  # standardise continuous variables
+  minimums <- list('distance' = min(nyc_flights$distance),
+                   'temp' = min(nyc_flights$temp),
+                   'humid' = min(nyc_flights$humid),
+                   'wind_speed' = min(nyc_flights$wind_speed),
+                   'wind_gust' = min(nyc_flights$wind_gust),
+                   'precip' = min(nyc_flights$precip),
+                   'pressure' = min(nyc_flights$pressure),
+                   'visib' = min(nyc_flights$visib))
+  ranges <- list('distance' = max(nyc_flights$distance)-minimums$distance,
+                 'temp' = max(nyc_flights$temp)-minimums$temp,
+                 'humid' = max(nyc_flights$humid)-minimums$humid,
+                 'wind_speed' = max(nyc_flights$wind_speed)-minimums$wind_speed,
+                 'wind_gust' = max(nyc_flights$wind_gust)-minimums$wind_gust,
+                 'precip' = max(nyc_flights$precip)-minimums$precip,
+                 'pressure' = max(nyc_flights$pressure)-minimums$pressure,
+                 'visib' = max(nyc_flights$visib)-minimums$visib)
+  nyc_flights$distance_standardised <- (nyc_flights$distance-minimums$distance) / ranges$distance
+  nyc_flights$temp_standardised <- (nyc_flights$temp-minimums$temp) / ranges$temp
+  nyc_flights$humid_standardised <- (nyc_flights$humid-minimums$humid) / ranges$humid
+  nyc_flights$wind_speed_standardised <- (nyc_flights$wind_speed-minimums$wind_speed) / ranges$wind_speed
+  nyc_flights$wind_gust_standardised <- (nyc_flights$wind_gust-minimums$wind_gust) / ranges$wind_gust
+  nyc_flights$precip_standardised <- (nyc_flights$precip-minimums$precip) / ranges$precip
+  nyc_flights$pressure_standardised <- (nyc_flights$pressure-minimums$pressure) / ranges$pressure
+  nyc_flights$visib_standardised <- (nyc_flights$visib-minimums$visib) / ranges$visib
+  X <- subset(nyc_flights, select = c("dep_delayed",
+                                      "weekend",
+                                      "night",
+                                      "EWR",
+                                      "JFK",
+                                      "windy",
+                                      "rain",
+                                      "visibility",
+                                      "distance_standardised",
+                                      "temp_standardised"
+                                      # "humid_standardised",
+                                      # "wind_speed_standardised",
+                                      # "wind_gust_standardised",
+                                      # "precip_standardised",
+                                      # "pressure_standardised",
+                                      # "visib_standardised"
+  ))
   design_mat <- as.matrix(cbind(rep(1, nrow(X)), X))
   colnames(design_mat)[1] <- 'intercept'
   return(list('data' = cbind('delayed' = nyc_flights$delayed, X),
               'y' = nyc_flights$delayed,
               'X' = design_mat,
-              'distance_min' = distance_min,
-              'distance_range' = distance_range))
+              'minimums' = minimums,
+              'ranges' = ranges))
 }
 
-nyc_flights <- load_nycflights_data()
+nyc_flights <- load_nycflights_data(seed)
 
 ##### Sampling from full posterior #####
 
 full_data_count <- unique_row_count(nyc_flights$y, nyc_flights$X)$full_data_count
 full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
                                  C = 1,
-                                 prior_means = rep(0, 4),
-                                 prior_variances = rep(1, 4),
+                                 prior_means = prior_means,
+                                 prior_variances = prior_variances,
                                  iterations = nsamples + 10000,
                                  warmup = 10000,
                                  chains = 1,
@@ -51,12 +106,12 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
 
 ##### Sampling from sub-posterior C=32 #####
 
-data_split_32 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:4, C = C, as_dataframe = F)
+data_split_32 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:11, C = C, as_dataframe = F)
 sub_posteriors_32 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                           data_split = data_split_32,
                                           C = C,
-                                          prior_means = rep(0, 4),
-                                          prior_variances = rep(1, 4),
+                                          prior_means = prior_means,
+                                          prior_variances = prior_variances,
                                           warmup = 10000,
                                           seed = seed,
                                           output = T)
@@ -93,8 +148,8 @@ NB_hc_32 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 5),
                                       L = 6,
                                       dim = 4,
                                       data_split = data_split_32,
-                                      prior_means = rep(0, 4),
-                                      prior_variances = rep(1, 4),
+                                      prior_means = prior_means,
+                                      prior_variances = prior_variances,
                                       C = C,
                                       precondition = TRUE,
                                       resampling_method = 'resid',
@@ -119,8 +174,8 @@ balanced_C32 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 5
                                                 L = 6,
                                                 dim = 4,
                                                 data_split = data_split_32,
-                                                prior_means = rep(0, 4),
-                                                prior_variances = rep(1, 4),
+                                                prior_means = prior_means,
+                                                prior_variances = prior_variances,
                                                 C = C,
                                                 precondition = TRUE,
                                                 resampling_method = 'resid',
@@ -139,8 +194,8 @@ balanced_C32$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 5),
                                             L = 6,
                                             dim = 4,
                                             data_split = data_split_32,
-                                            prior_means = rep(0, 4),
-                                            prior_variances = rep(1, 4),
+                                            prior_means = prior_means,
+                                            prior_variances = prior_variances,
                                             C = C,
                                             precondition = TRUE,
                                             resampling_method = 'resid',

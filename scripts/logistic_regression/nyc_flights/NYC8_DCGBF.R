@@ -14,9 +14,13 @@ diffusion_estimator <- 'NB'
 
 ##### Loading in Data #####
 
-load_nycflights_data <- function() {
+load_nycflights_data <- function(seed = NULL) {
   nyc_flights <- subset(nycflights13::flights, select = c("arr_delay", "year", "day", "month", "hour", "distance"))
   nyc_flights <- nyc_flights[complete.cases(nyc_flights),]
+  if (!is.null(seed)) {
+    set.seed(seed)
+    nyc_flights <- nyc_flights[sample(1:nrow(nyc_flights)),]
+  }
   nyc_flights$weekday <- weekdays(as.Date(paste(nyc_flights$year, "-", nyc_flights$month, "-", nyc_flights$day, sep = "")))
   nyc_flights$delayed <- as.numeric(nyc_flights$arr_delay > 15)
   nyc_flights$weekend <- as.numeric(nyc_flights$weekday %in% c("Saturday", "Sunday"))
@@ -34,7 +38,7 @@ load_nycflights_data <- function() {
               'distance_range' = distance_range))
 }
 
-nyc_flights <- load_nycflights_data()
+nyc_flights <- load_nycflights_data(seed)
 
 ##### Sampling from full posterior #####
 
