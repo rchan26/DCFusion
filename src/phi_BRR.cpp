@@ -174,55 +174,14 @@ Rcpp::List obtain_hypercube_centre_BRR(const Rcpp::List &bessel_layers,
                                                        C))));
 }
 
-// // [[Rcpp::export]]
-// Rcpp::List spectral_radius_bound_BRR_Z(const int &dim,
-//                                        const arma::mat &V,
-//                                        const arma::vec &y_resp,
-//                                        const arma::mat &transformed_X,
-//                                        const double &nu,
-//                                        const double &sigma,
-//                                        const arma::vec &prior_variances,
-//                                        const double &C,
-//                                        const arma::mat &sqrt_Lambda) {
-//   arma::mat hessian(dim, dim, arma::fill::zeros);
-//   arma::vec terms(V.n_rows, arma::fill::zeros);
-//   const double nu_sigma_sq = nu*sigma*sigma;
-//   for (int i=0; i < transformed_X.n_rows; ++i) {
-//     for (int v=0; v < V.n_rows; ++v) {
-//       const double product = arma::dot(transformed_X.row(i), V.row(v));
-//       const double denominator = (y_resp.at(i)-product)*(y_resp.at(i)-product) + nu_sigma_sq;
-//       terms.at(v) = (1/denominator)-((2*nu_sigma_sq)/(denominator*denominator));
-//     }
-//     const double max_term = terms.max();
-//     for (int k=0; k < dim; ++k) {
-//       for (int l=0; l <= k; ++l) {
-//         hessian.at(k,l) -= transformed_X.at(i,k)*transformed_X.at(i,l)*max_term;
-//       }
-//     }
-//   }
-//   for (int k=0; k < dim; ++k) {
-//     for (int l=0; l <= k; ++l) {
-//       for (int j=0; j < dim; ++j) {
-//         hessian.at(k,l) -= sqrt_Lambda.at(j,k)*sqrt_Lambda(j,l)/(C*prior_variances.at(j));
-//       }
-//       if (l!=k) {
-//         hessian.at(l,k) = hessian.at(k,l);
-//       }
-//     }
-//   }
-//   const arma::vec abs_eigen = abs_eigenvals(hessian);
-//   return(Rcpp::List::create(Named("spectral_radius", abs_eigen.max()),
-//                             Named("abs_eigenvals", abs_eigen)));
-// }
-
 // [[Rcpp::export]]
-Rcpp::List spectral_radius_global_bound_BRR_Z(const int &dim,
-                                              const arma::mat &transformed_X,
-                                              const double &nu,
-                                              const double &sigma,
-                                              const arma::vec &prior_variances,
-                                              const double &C,
-                                              const arma::mat &sqrt_Lambda) {
+Rcpp::List spectral_radius_bound_BRR_Z(const int &dim,
+                                       const arma::mat &transformed_X,
+                                       const double &nu,
+                                       const double &sigma,
+                                       const arma::vec &prior_variances,
+                                       const double &C,
+                                       const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
   const double nu_sigma_sq = nu*sigma*sigma;
   for (int i=0; i < transformed_X.n_rows; ++i) {
@@ -251,7 +210,6 @@ Rcpp::List spectral_radius_global_bound_BRR_Z(const int &dim,
 Rcpp::List ea_phi_BRR_DL_bounds(const arma::vec &beta_hat,
                                 const arma::vec &grad_log_hat,
                                 const int &dim,
-                                const arma::vec &y_resp,
                                 const arma::mat &transformed_X,
                                 const double &nu,
                                 const double &sigma,
@@ -266,14 +224,15 @@ Rcpp::List ea_phi_BRR_DL_bounds(const arma::vec &beta_hat,
   const double dist = maximal_distance_hypercube_to_cv(beta_hat,
                                                        vertices,
                                                        transform_to_X,
-                                                       transform_to_Z);
-  Rcpp::List spectral_radius_bds = spectral_radius_global_bound_BRR_Z(dim,
-                                                                      transformed_X,
-                                                                      nu,
-                                                                      sigma,
-                                                                      prior_variances,
-                                                                      C,
-                                                                      transform_to_X);;
+                                                       transform_to_Z,
+                                                       true);
+  Rcpp::List spectral_radius_bds = spectral_radius_bound_BRR_Z(dim,
+                                                               transformed_X,
+                                                               nu,
+                                                               sigma,
+                                                               prior_variances,
+                                                               C,
+                                                               transform_to_X);;
   double P_n_Lambda = spectral_radius_bds["spectral_radius"];
   return(Rcpp::List::create(Named("LB", -0.5*dim*P_n_Lambda),
                             Named("UB", 0.5*((vec_norm+dist*P_n_Lambda)*(vec_norm+dist*P_n_Lambda)+dim*P_n_Lambda)),
@@ -370,7 +329,7 @@ double gamma_NB_BRR(const arma::vec &times,
 //       divergence += (nu+1)*(transformed_X.at(i,k)*transformed_X.at(i,k)*ratio);
 //     }
 //     for (int j=0; j < transformed_X.n_cols; ++j) {
-//       divergence -= (sqrt_precondition_mat.at(j,k)*sqrt_precondition_mat.at(j,k))/(C*prior_variances.at(k));
+//       divergence -= (sqrt_precondition_mat.at(j,k)*sqrt_precondition_mat.at(j,k))/(C*prior_variances.at(j));
 //     }
 //   }
 //   return(divergence);

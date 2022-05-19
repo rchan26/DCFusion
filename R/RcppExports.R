@@ -428,7 +428,7 @@ scaled_distance <- function(x, y, matrix) {
 #' # symmetric matrix
 #' # should equal 2.5
 #' spectral_radius(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
-#' # non-symmetrix matrix
+#' # non-symmetric matrix
 #' # should equal 10
 #' spectral_radius(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
 spectral_radius <- function(A) {
@@ -447,7 +447,7 @@ spectral_radius <- function(A) {
 #' # symmetric matrix
 #' # should equal 2.5, 1.5
 #' abs_eigenvals(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
-#' # non-symmetrix matrix
+#' # non-symmetric matrix
 #' # should equal 10, 10, 5
 #' abs_eigenvals(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
 abs_eigenvals <- function(A) {
@@ -464,8 +464,8 @@ abs_eigenvals <- function(A) {
 #' @param transform_to_X transformation matrix to Z-space (transformed space)
 #' 
 #' @return The maximal distance from beta_hat to point in hypercube
-maximal_distance_hypercube_to_cv <- function(beta_hat, hypercube_vertices, transform_to_X, transform_to_Z) {
-    .Call(`_DCFusion_maximal_distance_hypercube_to_cv`, beta_hat, hypercube_vertices, transform_to_X, transform_to_Z)
+maximal_distance_hypercube_to_cv <- function(beta_hat, hypercube_vertices, transform_to_X, transform_to_Z, hypercube_centre = FALSE) {
+    .Call(`_DCFusion_maximal_distance_hypercube_to_cv`, beta_hat, hypercube_vertices, transform_to_X, transform_to_Z, hypercube_centre)
 }
 
 log_BLR_gradient <- function(beta, y_labels, X, X_beta, count, prior_means, prior_variances, C) {
@@ -500,12 +500,88 @@ spectral_radius_global_bound_BLR_Z <- function(dim, transformed_X, count, prior_
     .Call(`_DCFusion_spectral_radius_global_bound_BLR_Z`, dim, transformed_X, count, prior_variances, C, sqrt_Lambda)
 }
 
-ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds) {
-    .Call(`_DCFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
+ea_phi_BLR_DL_bounds <- function(beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds, hypercube_centre) {
+    .Call(`_DCFusion_ea_phi_BLR_DL_bounds`, beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds, hypercube_centre)
 }
 
 gamma_NB_BLR <- function(times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat) {
     .Call(`_DCFusion_gamma_NB_BLR`, times, h, x0, y, s, t, y_labels, X, count, prior_means, prior_variances, C, precondition_mat)
+}
+
+log_BNBR_gradient <- function(beta, y_count, X, X_beta, count, phi_rate, prior_means, prior_variances, C) {
+    .Call(`_DCFusion_log_BNBR_gradient`, beta, y_count, X, X_beta, count, phi_rate, prior_means, prior_variances, C)
+}
+
+log_BNBR_hessian <- function(y_count, X, X_beta, count, phi_rate, prior_variances, C) {
+    .Call(`_DCFusion_log_BNBR_hessian`, y_count, X, X_beta, count, phi_rate, prior_variances, C)
+}
+
+ea_phi_BNBR_DL_vec <- function(beta, y_count, X, count, phi_rate, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_ea_phi_BNBR_DL_vec`, beta, y_count, X, count, phi_rate, prior_means, prior_variances, C, precondition_mat)
+}
+
+ea_phi_BNBR_DL_matrix <- function(beta, y_count, X, count, phi_rate, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_ea_phi_BNBR_DL_matrix`, beta, y_count, X, count, phi_rate, prior_means, prior_variances, C, precondition_mat)
+}
+
+spectral_radius_BNBR <- function(y_count, beta, X, count, phi_rate, prior_variances, C, Lambda) {
+    .Call(`_DCFusion_spectral_radius_BNBR`, y_count, beta, X, count, phi_rate, prior_variances, C, Lambda)
+}
+
+obtain_hypercube_centre_BNBR <- function(bessel_layers, transform_to_X, y_count, X, count, prior_means, prior_variances, C, phi_rate) {
+    .Call(`_DCFusion_obtain_hypercube_centre_BNBR`, bessel_layers, transform_to_X, y_count, X, count, prior_means, prior_variances, C, phi_rate)
+}
+
+spectral_radius_bound_BNBR_Z <- function(dim, V, y_count, transformed_X, count, phi_rate, prior_variances, C, sqrt_Lambda) {
+    .Call(`_DCFusion_spectral_radius_bound_BNBR_Z`, dim, V, y_count, transformed_X, count, phi_rate, prior_variances, C, sqrt_Lambda)
+}
+
+spectral_radius_global_bound_BNBR_Z <- function(dim, y_count, transformed_X, count, phi_rate, prior_variances, C, sqrt_Lambda) {
+    .Call(`_DCFusion_spectral_radius_global_bound_BNBR_Z`, dim, y_count, transformed_X, count, phi_rate, prior_variances, C, sqrt_Lambda)
+}
+
+ea_phi_BNBR_DL_bounds <- function(beta_hat, grad_log_hat, dim, y_count, transformed_X, count, phi_rate, prior_variances, C, transform_mats, hypercube_vertices, local_bounds) {
+    .Call(`_DCFusion_ea_phi_BNBR_DL_bounds`, beta_hat, grad_log_hat, dim, y_count, transformed_X, count, phi_rate, prior_variances, C, transform_mats, hypercube_vertices, local_bounds)
+}
+
+gamma_NB_BNBR <- function(times, h, x0, y, s, t, y_count, X, count, phi_rate, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_gamma_NB_BNBR`, times, h, x0, y, s, t, y_count, X, count, phi_rate, prior_means, prior_variances, C, precondition_mat)
+}
+
+log_BPR_gradient <- function(beta, y_count, X, X_beta, count, prior_means, prior_variances, C) {
+    .Call(`_DCFusion_log_BPR_gradient`, beta, y_count, X, X_beta, count, prior_means, prior_variances, C)
+}
+
+log_BPR_hessian <- function(X, X_beta, count, prior_variances, C) {
+    .Call(`_DCFusion_log_BPR_hessian`, X, X_beta, count, prior_variances, C)
+}
+
+ea_phi_BPR_DL_vec <- function(beta, y_count, X, count, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_ea_phi_BPR_DL_vec`, beta, y_count, X, count, prior_means, prior_variances, C, precondition_mat)
+}
+
+ea_phi_BPR_DL_matrix <- function(beta, y_count, X, count, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_ea_phi_BPR_DL_matrix`, beta, y_count, X, count, prior_means, prior_variances, C, precondition_mat)
+}
+
+spectral_radius_BPR <- function(beta, X, count, prior_variances, C, Lambda) {
+    .Call(`_DCFusion_spectral_radius_BPR`, beta, X, count, prior_variances, C, Lambda)
+}
+
+obtain_hypercube_centre_BPR <- function(bessel_layers, transform_to_X, y_count, X, count, prior_means, prior_variances, C) {
+    .Call(`_DCFusion_obtain_hypercube_centre_BPR`, bessel_layers, transform_to_X, y_count, X, count, prior_means, prior_variances, C)
+}
+
+spectral_radius_bound_BPR_Z <- function(dim, V, transformed_X, count, prior_variances, C, sqrt_Lambda) {
+    .Call(`_DCFusion_spectral_radius_bound_BPR_Z`, dim, V, transformed_X, count, prior_variances, C, sqrt_Lambda)
+}
+
+ea_phi_BPR_DL_bounds <- function(beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices) {
+    .Call(`_DCFusion_ea_phi_BPR_DL_bounds`, beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices)
+}
+
+gamma_NB_BPR <- function(times, h, x0, y, s, t, y_count, X, count, prior_means, prior_variances, C, precondition_mat) {
+    .Call(`_DCFusion_gamma_NB_BPR`, times, h, x0, y, s, t, y_count, X, count, prior_means, prior_variances, C, precondition_mat)
 }
 
 log_BRR_gradient <- function(beta, y_resp, X, X_beta, nu, sigma, prior_means, prior_variances, C) {
@@ -532,12 +608,12 @@ obtain_hypercube_centre_BRR <- function(bessel_layers, transform_to_X, y_resp, X
     .Call(`_DCFusion_obtain_hypercube_centre_BRR`, bessel_layers, transform_to_X, y_resp, X, nu, sigma, prior_means, prior_variances, C)
 }
 
-spectral_radius_global_bound_BRR_Z <- function(dim, transformed_X, nu, sigma, prior_variances, C, sqrt_Lambda) {
-    .Call(`_DCFusion_spectral_radius_global_bound_BRR_Z`, dim, transformed_X, nu, sigma, prior_variances, C, sqrt_Lambda)
+spectral_radius_bound_BRR_Z <- function(dim, transformed_X, nu, sigma, prior_variances, C, sqrt_Lambda) {
+    .Call(`_DCFusion_spectral_radius_bound_BRR_Z`, dim, transformed_X, nu, sigma, prior_variances, C, sqrt_Lambda)
 }
 
-ea_phi_BRR_DL_bounds <- function(beta_hat, grad_log_hat, dim, y_resp, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices) {
-    .Call(`_DCFusion_ea_phi_BRR_DL_bounds`, beta_hat, grad_log_hat, dim, y_resp, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices)
+ea_phi_BRR_DL_bounds <- function(beta_hat, grad_log_hat, dim, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices) {
+    .Call(`_DCFusion_ea_phi_BRR_DL_bounds`, beta_hat, grad_log_hat, dim, transformed_X, nu, sigma, prior_variances, C, transform_mats, hypercube_vertices)
 }
 
 gamma_NB_BRR <- function(times, h, x0, y, s, t, y_resp, X, nu, sigma, prior_means, prior_variances, C, precondition_mat) {
@@ -785,14 +861,18 @@ ea_phi_multiGaussian_DL_matrix <- function(x, mu, inv_Sigma, beta, precondition_
 #' @param precondition_mat dim x dim precondition matrix
 #' @param hypercube_vertices list with item named "V" to determine the points
 #'                           to evaluate phi which give the bounds of phi
+#' @param mean_in_bes_layer logical value indicating if mean is in the Bessel layer.
+#'                          If it is, then we can save computation by only computing
+#'                          phi at the vertices (hypercube_vertices$vertices).
+#'                          Otherwise, we compute at all points in hypercube_vertices$V
 #'
 #' @return A list of components
 #' \describe{
 #'   \item{LB}{lower bound of phi}
 #'   \item{UB}{upper bound of phi}
 #' }
-ea_phi_multiGaussian_DL_bounds <- function(mu, inv_Sigma, beta, precondition_mat, hypercube_vertices) {
-    .Call(`_DCFusion_ea_phi_multiGaussian_DL_bounds`, mu, inv_Sigma, beta, precondition_mat, hypercube_vertices)
+ea_phi_multiGaussian_DL_bounds <- function(mu, inv_Sigma, beta, precondition_mat, hypercube_vertices, mean_in_bes_layer = FALSE) {
+    .Call(`_DCFusion_ea_phi_multiGaussian_DL_bounds`, mu, inv_Sigma, beta, precondition_mat, hypercube_vertices, mean_in_bes_layer)
 }
 
 #' Obtain the global lower bound for phi function

@@ -18,7 +18,6 @@ Q_IS_BRR(
   proposal_cov,
   precondition_matrices,
   inv_precondition_matrices,
-  cv_location = "hypercube_centre",
   diffusion_estimator,
   beta_NB = 10,
   gamma_NB_n_points = 2,
@@ -62,11 +61,6 @@ is the precondition matrix for sub-posterior c}
 \item{inv_precondition_matrices}{list of length m, where inv_precondition_matrices[[c]]
 is the inverse precondition matrix for sub-posterior c}
 
-\item{cv_location}{string to determine what the location of the control variate
-should be. Must be either 'mode' where the MLE estimator 
-will be used or 'hypercube_centre' (default) to use the centre
-of the simulated hypercube}
-
 \item{diffusion_estimator}{choice of unbiased estimator for the Exact Algorithm
 between "Poisson" (default) for Poisson estimator
 and "NB" for Negative Binomial estimator}
@@ -96,5 +90,5 @@ be updated when importance sampling is finished}
 An updated particle set
 }
 \description{
-Q Importance Sampling weighting for Bayesian logistic regression
+Q Importance Sampling weighting for Bayesian robust regression
 }

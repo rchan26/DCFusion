@@ -784,7 +784,7 @@ double scaled_distance(const arma::vec &x,
 //' # symmetric matrix
 //' # should equal 2.5
 //' spectral_radius(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
-//' # non-symmetrix matrix
+//' # non-symmetric matrix
 //' # should equal 10
 //' spectral_radius(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
 // [[Rcpp::export]]
@@ -810,7 +810,7 @@ double spectral_radius(const arma::mat &A) {
 //' # symmetric matrix
 //' # should equal 2.5, 1.5
 //' abs_eigenvals(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
-//' # non-symmetrix matrix
+//' # non-symmetric matrix
 //' # should equal 10, 10, 5
 //' abs_eigenvals(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
 // [[Rcpp::export]]
@@ -836,9 +836,13 @@ arma::vec abs_eigenvals(const arma::mat &A) {
 double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
                                         const arma::mat &hypercube_vertices,
                                         const arma::mat &transform_to_X,
-                                        const arma::mat &transform_to_Z) {
+                                        const arma::mat &transform_to_Z,
+                                        const bool &hypercube_centre = false) {
   const arma::mat hypercube_X = arma::trans(transform_to_X * arma::trans(hypercube_vertices));
   arma::vec distances(hypercube_vertices.n_rows, arma::fill::zeros);
+  if (hypercube_centre) {
+    return(scaled_distance(arma::trans(hypercube_X.row(0)), beta_hat, transform_to_Z));
+  }
   for (int i=0; i < hypercube_X.n_rows; ++i) {
     distances.at(i) = scaled_distance(arma::trans(hypercube_X.row(i)), beta_hat, transform_to_Z);
   }

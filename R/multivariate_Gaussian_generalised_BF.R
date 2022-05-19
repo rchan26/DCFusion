@@ -104,6 +104,7 @@ rho_j_multiGaussian <- function(particle_set,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
+  inv_Sigma_Z <- lapply(1:m, function(c) transform_matrices[[c]]$to_X %*% inv_Sigmas[[c]] %*% transform_matrices[[c]]$to_X)
   N <- particle_set$N
   # ---------- creating parallel cluster
   cl <- parallel::makeCluster(n_cores)
@@ -214,6 +215,7 @@ rho_j_multiGaussian <- function(particle_set,
                                  dim = dim,
                                  mu = mean_vecs[[c]],
                                  inv_Sigma = inv_Sigmas[[c]],
+                                 inv_Sigma_Z = inv_Sigma_Z[[c]],
                                  beta = 1,
                                  precondition_mat = precondition_matrices[[c]],
                                  transform_mats = transform_matrices[[c]],

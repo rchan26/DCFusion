@@ -19,7 +19,7 @@ Calculates the absolute eigenvalues of a matrix
 # symmetric matrix
 # should equal 2.5, 1.5
 abs_eigenvals(matrix(c(2, 0.5, 0.5, 2), nrow = 2, ncol = 2))
-# non-symmetrix matrix
+# non-symmetric matrix
 # should equal 10, 10, 5
 abs_eigenvals(matrix(c(9, -1, 2, -2, 8, 4, 1, 1, 8), nrow = 3, ncol = 3, byrow = T))
 }

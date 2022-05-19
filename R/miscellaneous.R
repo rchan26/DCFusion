@@ -26,16 +26,16 @@ obtain_hypercube_vertices <- function(bessel_layers,
                                       transform_mat = diag(1, dim),
                                       dim) {
   if (!is.list(bessel_layers)) {
-    stop("hypercube_vertices: bessel_layers must be a list of length dim")
+    stop("obtain_hypercube_vertices: bessel_layers must be a list of length dim")
   } else if (length(vector)!=dim) {
-    stop("hypercube_vertices: vector must be a vector of length dim")
+    stop("obtain_hypercube_vertices: vector must be a vector of length dim")
   }
   if (dim == 1) {
     if (length(bessel_layers)==1) {
       bessel_layers <- bessel_layers[[1]]
     }
     if (!identical(names(bessel_layers), c("L", "l", "u", "U"))) {
-      stop("hypercube_vertices: if dim==1, bessel_layers must be a list of length 4 with names (L, l, u, U)
+      stop("obtain_hypercube_vertices: if dim==1, bessel_layers must be a list of length 4 with names (L, l, u, U)
            or a list of length 1, where bessel_layers[[1]] is a list of length 4 with names (L, l, u, U)")
     }
     if ((bessel_layers$L < vector) & (bessel_layers$U > vector)) {
@@ -47,9 +47,9 @@ obtain_hypercube_vertices <- function(bessel_layers,
                 'V' = V %*% transform_mat))
   } else if (dim > 1) {
     if (length(bessel_layers)!=dim) {
-      stop("hypercube_vertices: if dim > 1, bessel_layers must be a list of length dim")
+      stop("obtain_hypercube_vertices: if dim > 1, bessel_layers must be a list of length dim")
     } else if (!all(sapply(1:dim, function(d) identical(names(bessel_layers[[d]]), c("L", "l", "u", "U"))))) {
-      stop("hypercube_vertices: if dim > 1, bessel_layers[[d]] must be a list of length 4 with names (L, l, u, U)")
+      stop("obtain_hypercube_vertices: if dim > 1, bessel_layers[[d]] must be a list of length 4 with names (L, l, u, U)")
     }
     bounds <- lapply(1:dim, function(d) c(bessel_layers[[d]]$L, bessel_layers[[d]]$U))
     B <- lapply(1:dim, function(d) {
@@ -66,6 +66,6 @@ obtain_hypercube_vertices <- function(bessel_layers,
     return(list('vertices' = vertices %*% transform_mat,
                 'V' = V %*% transform_mat))
   } else {
-    stop("hypercube_vertices: dim must be greater than or equal to 1")
+    stop("obtain_hypercube_vertices: dim must be greater than or equal to 1")
   }
 }

@@ -13,6 +13,7 @@ ea_multiGaussian_DL_PT(
   dim,
   mu,
   inv_Sigma,
+  inv_Sigma_Z = transform_mats$to_X \%*\% inv_Sigma \%*\% transform_mats$to_X,
   beta,
   precondition_mat,
   transform_mats,
@@ -39,7 +40,11 @@ ea_multiGaussian_DL_PT(
 
 \item{beta}{real value}
 
-\item{precondition_mat}{precondition matrix}
+\item{precondition_mat}{precondition matrix (if non-identity matrix, it should
+be the estimated covariance matrix, i.e. a matrix close 
+to solve(inv_Sigma) - could run into problems if this
+is not the case since a trick is used to compute the
+bounds to avoid evaluating phi at 3^d points)}
 
 \item{transform_mats}{list of transformation matrices where 
 transform_mats$to_Z is the transformation matrix to Z space

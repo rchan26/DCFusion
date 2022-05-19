@@ -21,7 +21,6 @@ parallel_GBF_BRR(
   Lambda = NULL,
   resampling_method = "multi",
   ESS_threshold = 0.5,
-  cv_location = "hypercube_centre",
   sub_posterior_means = NULL,
   adaptive_mesh = FALSE,
   adaptive_mesh_parameters = NULL,
@@ -78,11 +77,6 @@ residual resampling ('resid')}
 number of samples that ESS needs to be lower than for
 resampling (i.e. resampling is carried out only when
 ESS < N*ESS_threshold)}
-
-\item{cv_location}{string to determine what the location of the control variate
-should be. Must be either 'mode' where the MLE estimator 
-will be used or 'hypercube_centre' (default) to use the centre
-of the simulated hypercube}
 
 \item{sub_posterior_means}{matrix with m rows and d columns, where sub_posterior_means[c,]
 is the sub-posterior mean of sub-posterior c}

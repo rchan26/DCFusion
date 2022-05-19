@@ -38,6 +38,57 @@ ea_phi_multiGaussian_DL <- function(dim,
   stop("ea_phi_multiGaussian_DL: x must be a vector or length dim or a matrix with dim columns")
 }
 
+obtain_hypercube_vertices_multiGaussian <- function(bessel_layers,
+                                                    mean = rep(0, dim),
+                                                    transform_mat = diag(1, dim),
+                                                    dim) {
+  if (!is.list(bessel_layers)) {
+    stop("obtain_hypercube_vertices_multiGaussian: bessel_layers must be a list of length dim")
+  } else if (length(mean)!=dim) {
+    stop("obtain_hypercube_vertices_multiGaussian: mean must be a mean of length dim")
+  }
+  if (dim == 1) {
+    if (length(bessel_layers)==1) {
+      bessel_layers <- bessel_layers[[1]]
+    }
+    if ((bessel_layers$L < mean) & (bessel_layers$U > mean)) {
+      if (abs(bessel_layers$L-mean) > abs(bessel_layers$U-mean)) {
+        V <- matrix(c(bessel_layers$L, mean))  
+      } else {
+        V <- matrix(c(mean, bessel_layers$U))
+      }
+    } else {
+      V <- matrix(c(bessel_layers$L, bessel_layers$U))
+    }
+    return(list('vertices' = matrix(c(bessel_layers$L, bessel_layers$U)) %*% transform_mat,
+                'V' = V %*% transform_mat))
+  } else if (dim > 1) {
+    if (length(bessel_layers)!=dim) {
+      stop("obtain_hypercube_vertices_multiGaussian: if dim > 1, bessel_layers must be a list of length dim")
+    }
+    bounds <- lapply(1:dim, function(d) c(bessel_layers[[d]]$L, bessel_layers[[d]]$U))
+    B <- lapply(1:dim, function(d) {
+      if ((bessel_layers[[d]]$L < mean[d]) & (bessel_layers[[d]]$U > mean[d])) {
+        if (abs(bessel_layers[[d]]$L-mean[d]) > abs(bessel_layers[[d]]$U-mean[d])) {
+          return(c(bessel_layers[[d]]$L, mean[d]))  
+        } else {
+          return(c(mean[d], bessel_layers[[d]]$U))  
+        }
+      } else {
+        return(c(bessel_layers[[d]]$L, bessel_layers[[d]]$U))
+      }
+    })
+    vertices <- as.matrix(expand.grid(bounds))
+    V <- as.matrix(expand.grid(B))
+    colnames(vertices) <- c()
+    colnames(V) <- c()
+    return(list('vertices' = vertices %*% transform_mat,
+                'V' = V %*% transform_mat))
+  } else {
+    stop("obtain_hypercube_vertices_multiGaussian: dim must be greater than or equal to 1")
+  }
+}
+
 #' Diffusion probability for the Exact Algorithm for Langevin diffusion for
 #' multivariate tempered Gaussian distribution
 #' 
@@ -52,7 +103,11 @@ ea_phi_multiGaussian_DL <- function(dim,
 #' @param mu vector of length dim for mean
 #' @param inv_Sigma dim x dim inverse covariance matrix
 #' @param beta real value
-#' @param precondition_mat precondition matrix
+#' @param precondition_mat precondition matrix (if non-identity matrix, it should
+#'                         be the estimated covariance matrix, i.e. a matrix close 
+#'                         to solve(inv_Sigma) - could run into problems if this
+#'                         is not the case since a trick is used to compute the
+#'                         bounds to avoid evaluating phi at 3^d points)
 #' @param transform_mats list of transformation matrices where 
 #'                       transform_mats$to_Z is the transformation matrix to Z space
 #'                       and transform_mats$to_X is the transformation matrix to 
@@ -78,6 +133,7 @@ ea_multiGaussian_DL_PT <- function(x0,
                                    dim,
                                    mu,
                                    inv_Sigma,
+                                   inv_Sigma_Z = transform_mats$to_X %*% inv_Sigma %*% transform_mats$to_X,
                                    beta,
                                    precondition_mat,
                                    transform_mats,
@@ -96,15 +152,34 @@ ea_multiGaussian_DL_PT <- function(x0,
                                                          t = t,
                                                          mult = 0.1)
   # calculate the lower and upper bounds of phi
-  hypercube_vertices <- obtain_hypercube_vertices(bessel_layers = bes_layers,
-                                                  vector = transform_mats$to_Z %*% mu,
-                                                  transform_mat = transform_mats$to_X,
-                                                  dim = dim)
-  bounds <- ea_phi_multiGaussian_DL_bounds(mu = mu,
-                                           inv_Sigma = inv_Sigma,
-                                           beta = beta,
-                                           precondition_mat = precondition_mat,
-                                           hypercube_vertices = hypercube_vertices)
+  transformed_mean <- transform_mats$to_Z %*% mu
+  if (!identical(precondition_mat, diag(1, dim))) {
+    # can find bounds in Z space by considering 2^dim points (corners of hypercube in Z)
+    hypercube_vertices_Z <- obtain_hypercube_vertices_multiGaussian(bessel_layers = bes_layers,
+                                                                    mean = transformed_mean,
+                                                                    dim = dim)
+    bounds <- ea_phi_multiGaussian_DL_bounds(mu = transformed_mean,
+                                             inv_Sigma = inv_Sigma_Z,
+                                             beta = beta,
+                                             precondition_mat = diag(1, dim),
+                                             hypercube_vertices = hypercube_vertices_Z)  
+  } else {
+    # alternatively, can find bounds by transforming the vertices and considering
+    # potentially up to 3^d points
+    hypercube_vertices <- obtain_hypercube_vertices(bessel_layers = bes_layers,
+                                                    vector = transformed_mean,
+                                                    transform_mat = transform_mats$to_X,
+                                                    dim = dim)
+    mean_in_bes_layer <- all(sapply(1:dim, function(d) {
+      (bes_layers[[d]]$L < transformed_mean[d]) & (bes_layers[[d]]$U > transformed_mean[d])
+    }))
+    bounds <- ea_phi_multiGaussian_DL_bounds(mu = mu,
+                                             inv_Sigma = inv_Sigma,
+                                             beta = beta,
+                                             precondition_mat = precondition_mat,
+                                             hypercube_vertices = hypercube_vertices,
+                                             mean_in_bes_layer = mean_in_bes_layer)
+  }
   LX <- bounds$LB
   UX <- bounds$UB
   PHI <- ea_phi_multiGaussian_DL_LB(mu = mu,
@@ -235,6 +310,7 @@ fusion_multiGaussian <- function(N,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
+  inv_Sigma_Z <- lapply(1:m, function(c) transform_matrices[[c]]$to_X %*% inv_Sigma %*% transform_matrices[[c]]$to_X)
   fusion_samples <- matrix(data = NA, nrow = N, ncol = dim)
   i <- 0; iters_rho <- 0; iters_Q <- 0
   proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
@@ -260,6 +336,7 @@ fusion_multiGaussian <- function(N,
                                dim = dim,
                                mu = mu,
                                inv_Sigma = inv_Sigma,
+                               inv_Sigma_Z = inv_Sigma_Z[[c]],
                                beta = betas[c],
                                precondition_mat = precondition_matrices[[c]],
                                transform_mats = transform_matrices[[c]],
@@ -819,6 +896,7 @@ Q_IS_multiGaussian <- function(particle_set,
     list('to_Z' = expm::sqrtm(inv_precondition_matrices[[c]]),
          'to_X' = expm::sqrtm(precondition_matrices[[c]]))
   })
+  inv_Sigma_Z <- lapply(1:m, function(c) transform_matrices[[c]]$to_X %*% inv_Sigma %*% transform_matrices[[c]]$to_X)
   proposal_cov <- calculate_proposal_cov(time = time, weights = inv_precondition_matrices)
   N <- particle_set$N
   # ---------- creating parallel cluster
@@ -850,6 +928,7 @@ Q_IS_multiGaussian <- function(particle_set,
                                dim = dim,
                                mu = mu,
                                inv_Sigma = inv_Sigma,
+                               inv_Sigma_Z = inv_Sigma_Z[[c]],
                                beta = betas[c],
                                precondition_mat = precondition_matrices[[c]],
                                transform_mats = transform_matrices[[c]],

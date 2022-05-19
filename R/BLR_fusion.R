@@ -120,7 +120,8 @@ ea_BLR_DL_PT <- function(dim,
                                      C = C,
                                      transform_mats = transform_mats,
                                      hypercube_vertices = hypercube_vertices,
-                                     local_bounds = local_bounds)
+                                     local_bounds = local_bounds,
+                                     hypercube_centre = FALSE)
     } else {
       stop("ea_BLR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
     }
@@ -144,7 +145,8 @@ ea_BLR_DL_PT <- function(dim,
                                    C = C,
                                    transform_mats = transform_mats,
                                    hypercube_vertices = hypercube_vertices,
-                                   local_bounds = local_bounds)
+                                   local_bounds = local_bounds,
+                                   hypercube_centre = TRUE)
   } else {
     stop("ea_BLR_BL_PT: cv_location must be a list or be set to \"hypercube_centre\"")
   }

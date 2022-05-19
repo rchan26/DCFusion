@@ -102,6 +102,7 @@ arma::vec abs_eigenvals(const arma::mat &A);
 double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
                                         const arma::mat &hypercube_vertices,
                                         const arma::mat &transform_to_X,
-                                        const arma::mat &transform_to_Z);
+                                        const arma::mat &transform_to_Z,
+                                        const bool &hypercube_centre);
 
 #endif

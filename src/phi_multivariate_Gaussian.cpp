@@ -45,6 +45,10 @@ Rcpp::NumericVector ea_phi_multiGaussian_DL_matrix(const arma::mat &x,
 //' @param precondition_mat dim x dim precondition matrix
 //' @param hypercube_vertices list with item named "V" to determine the points
 //'                           to evaluate phi which give the bounds of phi
+//' @param mean_in_bes_layer logical value indicating if mean is in the Bessel layer.
+//'                          If it is, then we can save computation by only computing
+//'                          phi at the vertices (hypercube_vertices$vertices).
+//'                          Otherwise, we compute at all points in hypercube_vertices$V
 //'
 //' @return A list of components
 //' \describe{
@@ -56,13 +60,24 @@ Rcpp::List ea_phi_multiGaussian_DL_bounds(const arma::vec &mu,
                                           const arma::mat &inv_Sigma,
                                           const double &beta,
                                           const arma::mat &precondition_mat,
-                                          const Rcpp::List &hypercube_vertices) {
-  const arma::mat &V = hypercube_vertices["V"];
-  Rcpp::NumericVector values = ea_phi_multiGaussian_DL_matrix(V,
-                                                              mu,
-                                                              inv_Sigma,
-                                                              beta,
-                                                              precondition_mat);
+                                          const Rcpp::List &hypercube_vertices,
+                                          const bool &mean_in_bes_layer = false) {
+  Rcpp::NumericVector values;
+  if (mean_in_bes_layer) {
+    const arma::mat &V = hypercube_vertices["vertices"];
+    values = ea_phi_multiGaussian_DL_matrix(V,
+                                            mu,
+                                            inv_Sigma,
+                                            beta,
+                                            precondition_mat);  
+  } else {
+    const arma::mat &V = hypercube_vertices["V"];
+    values = ea_phi_multiGaussian_DL_matrix(V,
+                                            mu,
+                                            inv_Sigma,
+                                            beta,
+                                            precondition_mat);
+  }
   return Rcpp::List::create(Rcpp::Named("LB", find_min(values)),
                             Rcpp::Named("UB", find_max(values)));
 }

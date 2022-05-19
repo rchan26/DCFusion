@@ -20,7 +20,6 @@ bal_binary_GBF_BRR(
   precondition = TRUE,
   resampling_method = "multi",
   ESS_threshold = 0.5,
-  cv_location = "hypercube_centre",
   adaptive_mesh = FALSE,
   mesh_parameters = NULL,
   record = FALSE,
@@ -81,11 +80,6 @@ residual ('resid')}
 of the number of samples that ESS needs to be
 lower than for resampling (i.e. resampling is carried
 out only when ESS < N*ESS_threshold)}
-
-\item{cv_location}{string to determine what the location of the control variate
-should be. Must be either 'mode' where the MLE estimator 
-will be used or 'hypercube_centre' (default) to use the centre
-of the simulated hypercube}
 
 \item{adaptive_mesh}{logical value to indicate if an adaptive mesh is used
 (default is FALSE)}

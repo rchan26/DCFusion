@@ -8,7 +8,8 @@ maximal_distance_hypercube_to_cv(
   beta_hat,
   hypercube_vertices,
   transform_to_X,
-  transform_to_Z
+  transform_to_Z,
+  hypercube_centre = FALSE
 )
 }
 \arguments{
