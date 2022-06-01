@@ -7,13 +7,13 @@ set.seed(seed)
 nsamples_MCF <- 10000
 nsamples_GBF <- 10000
 warmup <- 10000
-time_choice <- 1
+time_choice <- 0.5
 phi_rate <- 1
 prior_means <- rep(0, 9)
 prior_variances <- rep(10, 9)
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.1
-CESS_j_threshold <- 0.1
+CESS_0_threshold <- 0.2
+CESS_j_threshold <- 0.2
 diffusion_estimator <- 'NB'
 n_cores <- parallel::detectCores()
 
@@ -159,7 +159,8 @@ NB_hc_4 <- bal_binary_fusion_SMC_BNBR(N_schedule = rep(nsamples_MCF, 2),
                                       ESS_threshold = ESS_threshold,
                                       diffusion_estimator = 'NB',
                                       seed = seed,
-                                      n_cores = n_cores)
+                                      n_cores = n_cores,
+                                      print_progress_iters = 100)
 NB_hc_4$particles <- resample_particle_y_samples(particle_set = NB_hc_4$particles[[1]],
                                                  multivariate = TRUE,
                                                  resampling_method = 'resid',

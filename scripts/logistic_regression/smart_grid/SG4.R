@@ -104,7 +104,6 @@ integrated_abs_distance(full_posterior, weierstrass_rejection_4$samples)
 #                                      cv_location = 'hypercube_centre',
 #                                      diffusion_estimator = 'NB',
 #                                      seed = seed,
-#                                      local_bounds = FALSE,
 #                                      n_cores = n_cores)
 # NB_hc_4$particles <- resample_particle_y_samples(particle_set = NB_hc_4$particles[[1]],
 #                                                  multivariate = TRUE,
@@ -135,7 +134,6 @@ integrated_abs_distance(full_posterior, weierstrass_rejection_4$samples)
 #                                                                 'CESS_j_threshold' = CESS_j_threshold,
 #                                                                 'vanilla' = FALSE),
 #                                          diffusion_estimator = diffusion_estimator,
-#                                          local_bounds = FALSE,
 #                                          seed = seed))
 # GBF_4$adaptive <-  bal_binary_GBF_BLR(N_schedule = nsamples_GBF,
 #                                       m_schedule = 4,
@@ -156,7 +154,6 @@ integrated_abs_distance(full_posterior, weierstrass_rejection_4$samples)
 #                                                              'CESS_j_threshold' = CESS_j_threshold,
 #                                                              'vanilla' = FALSE),
 #                                       diffusion_estimator = diffusion_estimator,
-#                                       local_bounds = FALSE,
 #                                       seed = seed)
 # 
 # # regular mesh
@@ -192,7 +189,6 @@ balanced_C4 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 
                                                                       'CESS_j_threshold' = CESS_j_threshold,
                                                                       'vanilla' = FALSE),
                                                diffusion_estimator = diffusion_estimator,
-                                               local_bounds = FALSE,
                                                seed = seed,
                                                print_progress_iters = 100))
 balanced_C4$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 2),
@@ -214,7 +210,6 @@ balanced_C4$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 2),
                                                                   'CESS_j_threshold' = CESS_j_threshold,
                                                                   'vanilla' = FALSE),
                                            diffusion_estimator = diffusion_estimator,
-                                           local_bounds = FALSE,
                                            seed = seed,
                                            print_progress_iters = 100)
 
