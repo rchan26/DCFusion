@@ -848,3 +848,52 @@ double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
   }
   return(distances.max());
 }
+
+// [[Rcpp::export]]
+double optimise_vector_product(const int &dim,
+                               const arma::vec &x,
+                               const Rcpp::List &bessel_layers,
+                               const bool &minimise) {
+  if (x.size()!=dim) {
+    stop("maximise_vector_product: mean must be a mean of length dim");
+  }
+  if (dim == 1) {
+    double L;
+    double U;
+    if (bessel_layers.size()==1) {
+      const Rcpp::List &bes_layer = bessel_layers[0];
+      L = bes_layer["L"];
+      U = bes_layer["U"];
+    } else {
+      L = bessel_layers["L"];
+      U = bessel_layers["U"];
+    }
+    const double &xL = x[0]*L;
+    const double &xU = x[0]*U;
+    if (minimise) {
+      return std::min(xL, xU);
+    } else {
+      return std::max(xL, xU);
+    }
+  } else if (dim > 1) {
+    if (bessel_layers.size()!=dim) {
+      stop("maximise_vector_product: if dim > 1, bessel_layers must be a list of length dim");
+    }
+    double sum = 0;
+    for (int d=0; d < dim; ++d) {
+      const Rcpp::List &bes_layer = bessel_layers[d];
+      const double &L = bes_layer["L"];
+      const double &U = bes_layer["U"];
+      const double &xL = x[d]*L;
+      const double &xU = x[d]*U;
+      if (minimise) {
+        sum += std::min(xL, xU);
+      } else {
+        sum += std::max(xL, xU);
+      }
+    }
+    return sum;
+  } else {
+    stop("maximise_vector_product: dim must be greater than or equal to 1");
+  }
+} 

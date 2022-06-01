@@ -352,6 +352,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// optimise_vector_product
+double optimise_vector_product(const int& dim, const arma::vec& x, const Rcpp::List& bessel_layers, const bool& minimise);
+RcppExport SEXP _DCFusion_optimise_vector_product(SEXP dimSEXP, SEXP xSEXP, SEXP bessel_layersSEXP, SEXP minimiseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type bessel_layers(bessel_layersSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type minimise(minimiseSEXP);
+    rcpp_result_gen = Rcpp::wrap(optimise_vector_product(dim, x, bessel_layers, minimise));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_BLR_gradient
 arma::vec log_BLR_gradient(const arma::vec& beta, const arma::vec& y_labels, const arma::mat& X, const arma::vec& X_beta, const arma::vec& count, const arma::vec& prior_means, const arma::vec& prior_variances, const double& C);
 RcppExport SEXP _DCFusion_log_BLR_gradient(SEXP betaSEXP, SEXP y_labelsSEXP, SEXP XSEXP, SEXP X_betaSEXP, SEXP countSEXP, SEXP prior_meansSEXP, SEXP prior_variancesSEXP, SEXP CSEXP) {
@@ -456,19 +470,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // spectral_radius_bound_BLR_Z
-Rcpp::List spectral_radius_bound_BLR_Z(const int& dim, const arma::mat& V, const arma::mat& transformed_X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const arma::mat& sqrt_Lambda);
-RcppExport SEXP _DCFusion_spectral_radius_bound_BLR_Z(SEXP dimSEXP, SEXP VSEXP, SEXP transformed_XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_LambdaSEXP) {
+Rcpp::List spectral_radius_bound_BLR_Z(const int& dim, const Rcpp::List& bessel_layers, const arma::vec& z_hat, const arma::mat& transformed_X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const arma::mat& sqrt_Lambda);
+RcppExport SEXP _DCFusion_spectral_radius_bound_BLR_Z(SEXP dimSEXP, SEXP bessel_layersSEXP, SEXP z_hatSEXP, SEXP transformed_XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_LambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type V(VSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type bessel_layers(bessel_layersSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type z_hat(z_hatSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type transformed_X(transformed_XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type count(countSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type sqrt_Lambda(sqrt_LambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(spectral_radius_bound_BLR_Z(dim, V, transformed_X, count, prior_variances, C, sqrt_Lambda));
+    rcpp_result_gen = Rcpp::wrap(spectral_radius_bound_BLR_Z(dim, bessel_layers, z_hat, transformed_X, count, prior_variances, C, sqrt_Lambda));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -489,13 +504,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // ea_phi_BLR_DL_bounds
-Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const int& dim, const arma::mat& transformed_X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices, const bool& local_bounds, const bool& hypercube_centre);
-RcppExport SEXP _DCFusion_ea_phi_BLR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP dimSEXP, SEXP transformed_XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP, SEXP local_boundsSEXP, SEXP hypercube_centreSEXP) {
+Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const arma::vec& hypercube_centre_Z, const int& dim, const arma::mat& transformed_X, const arma::vec& count, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices, const Rcpp::List& bessel_layers, const bool& local_bounds, const bool& hypercube_centre);
+RcppExport SEXP _DCFusion_ea_phi_BLR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP hypercube_centre_ZSEXP, SEXP dimSEXP, SEXP transformed_XSEXP, SEXP countSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP, SEXP bessel_layersSEXP, SEXP local_boundsSEXP, SEXP hypercube_centreSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type beta_hat(beta_hatSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type grad_log_hat(grad_log_hatSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type hypercube_centre_Z(hypercube_centre_ZSEXP);
     Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type transformed_X(transformed_XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type count(countSEXP);
@@ -503,9 +519,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type transform_mats(transform_matsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type hypercube_vertices(hypercube_verticesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type bessel_layers(bessel_layersSEXP);
     Rcpp::traits::input_parameter< const bool& >::type local_bounds(local_boundsSEXP);
     Rcpp::traits::input_parameter< const bool& >::type hypercube_centre(hypercube_centreSEXP);
-    rcpp_result_gen = Rcpp::wrap(ea_phi_BLR_DL_bounds(beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices, local_bounds, hypercube_centre));
+    rcpp_result_gen = Rcpp::wrap(ea_phi_BLR_DL_bounds(beta_hat, grad_log_hat, hypercube_centre_Z, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices, bessel_layers, local_bounds, hypercube_centre));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -643,14 +660,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// spectral_radius_bound_BNBR_Z
-Rcpp::List spectral_radius_bound_BNBR_Z(const int& dim, const arma::mat& V, const arma::vec& y_count, const arma::mat& transformed_X, const arma::vec& count, const double& phi_rate, const arma::vec& prior_variances, const double& C, const arma::mat& sqrt_Lambda);
-RcppExport SEXP _DCFusion_spectral_radius_bound_BNBR_Z(SEXP dimSEXP, SEXP VSEXP, SEXP y_countSEXP, SEXP transformed_XSEXP, SEXP countSEXP, SEXP phi_rateSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_LambdaSEXP) {
+// obtain_G_max
+double obtain_G_max(const int& dim, const arma::vec& transformed_X_vec, const Rcpp::List& bessel_layers, const arma::vec& z_hat, const double& phi_rate);
+RcppExport SEXP _DCFusion_obtain_G_max(SEXP dimSEXP, SEXP transformed_X_vecSEXP, SEXP bessel_layersSEXP, SEXP z_hatSEXP, SEXP phi_rateSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type V(VSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type transformed_X_vec(transformed_X_vecSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type bessel_layers(bessel_layersSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type z_hat(z_hatSEXP);
+    Rcpp::traits::input_parameter< const double& >::type phi_rate(phi_rateSEXP);
+    rcpp_result_gen = Rcpp::wrap(obtain_G_max(dim, transformed_X_vec, bessel_layers, z_hat, phi_rate));
+    return rcpp_result_gen;
+END_RCPP
+}
+// spectral_radius_bound_BNBR_Z
+Rcpp::List spectral_radius_bound_BNBR_Z(const int& dim, const Rcpp::List& bessel_layers, const arma::vec& z_hat, const arma::vec& y_count, const arma::mat& transformed_X, const arma::vec& count, const double& phi_rate, const arma::vec& prior_variances, const double& C, const arma::mat& sqrt_Lambda);
+RcppExport SEXP _DCFusion_spectral_radius_bound_BNBR_Z(SEXP dimSEXP, SEXP bessel_layersSEXP, SEXP z_hatSEXP, SEXP y_countSEXP, SEXP transformed_XSEXP, SEXP countSEXP, SEXP phi_rateSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP sqrt_LambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type bessel_layers(bessel_layersSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type z_hat(z_hatSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type y_count(y_countSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type transformed_X(transformed_XSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type count(countSEXP);
@@ -658,7 +691,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type prior_variances(prior_variancesSEXP);
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type sqrt_Lambda(sqrt_LambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(spectral_radius_bound_BNBR_Z(dim, V, y_count, transformed_X, count, phi_rate, prior_variances, C, sqrt_Lambda));
+    rcpp_result_gen = Rcpp::wrap(spectral_radius_bound_BNBR_Z(dim, bessel_layers, z_hat, y_count, transformed_X, count, phi_rate, prior_variances, C, sqrt_Lambda));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -681,13 +714,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // ea_phi_BNBR_DL_bounds
-Rcpp::List ea_phi_BNBR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const int& dim, const arma::vec& y_count, const arma::mat& transformed_X, const arma::vec& count, const double& phi_rate, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices, const bool& local_bounds);
-RcppExport SEXP _DCFusion_ea_phi_BNBR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP dimSEXP, SEXP y_countSEXP, SEXP transformed_XSEXP, SEXP countSEXP, SEXP phi_rateSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP, SEXP local_boundsSEXP) {
+Rcpp::List ea_phi_BNBR_DL_bounds(const arma::vec& beta_hat, const arma::vec& grad_log_hat, const arma::vec& hypercube_centre_Z, const int& dim, const arma::vec& y_count, const arma::mat& transformed_X, const arma::vec& count, const double& phi_rate, const arma::vec& prior_variances, const double& C, const Rcpp::List& transform_mats, const Rcpp::List& hypercube_vertices, const Rcpp::List& bessel_layers, const bool& local_bounds);
+RcppExport SEXP _DCFusion_ea_phi_BNBR_DL_bounds(SEXP beta_hatSEXP, SEXP grad_log_hatSEXP, SEXP hypercube_centre_ZSEXP, SEXP dimSEXP, SEXP y_countSEXP, SEXP transformed_XSEXP, SEXP countSEXP, SEXP phi_rateSEXP, SEXP prior_variancesSEXP, SEXP CSEXP, SEXP transform_matsSEXP, SEXP hypercube_verticesSEXP, SEXP bessel_layersSEXP, SEXP local_boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type beta_hat(beta_hatSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type grad_log_hat(grad_log_hatSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type hypercube_centre_Z(hypercube_centre_ZSEXP);
     Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type y_count(y_countSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type transformed_X(transformed_XSEXP);
@@ -697,8 +731,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type transform_mats(transform_matsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type hypercube_vertices(hypercube_verticesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type bessel_layers(bessel_layersSEXP);
     Rcpp::traits::input_parameter< const bool& >::type local_bounds(local_boundsSEXP);
-    rcpp_result_gen = Rcpp::wrap(ea_phi_BNBR_DL_bounds(beta_hat, grad_log_hat, dim, y_count, transformed_X, count, phi_rate, prior_variances, C, transform_mats, hypercube_vertices, local_bounds));
+    rcpp_result_gen = Rcpp::wrap(ea_phi_BNBR_DL_bounds(beta_hat, grad_log_hat, hypercube_centre_Z, dim, y_count, transformed_X, count, phi_rate, prior_variances, C, transform_mats, hypercube_vertices, bessel_layers, local_bounds));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1291,8 +1326,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // ea_phi_multiGaussian_DL_bounds
-Rcpp::List ea_phi_multiGaussian_DL_bounds(const arma::vec& mu, const arma::mat& inv_Sigma, const double& beta, const arma::mat& precondition_mat, const Rcpp::List& hypercube_vertices, const bool& mean_in_bes_layer);
-RcppExport SEXP _DCFusion_ea_phi_multiGaussian_DL_bounds(SEXP muSEXP, SEXP inv_SigmaSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP hypercube_verticesSEXP, SEXP mean_in_bes_layerSEXP) {
+Rcpp::List ea_phi_multiGaussian_DL_bounds(const arma::vec& mu, const arma::mat& inv_Sigma, const double& beta, const arma::mat& precondition_mat, const arma::mat& V);
+RcppExport SEXP _DCFusion_ea_phi_multiGaussian_DL_bounds(SEXP muSEXP, SEXP inv_SigmaSEXP, SEXP betaSEXP, SEXP precondition_matSEXP, SEXP VSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -1300,9 +1335,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type inv_Sigma(inv_SigmaSEXP);
     Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type precondition_mat(precondition_matSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type hypercube_vertices(hypercube_verticesSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type mean_in_bes_layer(mean_in_bes_layerSEXP);
-    rcpp_result_gen = Rcpp::wrap(ea_phi_multiGaussian_DL_bounds(mu, inv_Sigma, beta, precondition_mat, hypercube_vertices, mean_in_bes_layer));
+    Rcpp::traits::input_parameter< const arma::mat& >::type V(VSEXP);
+    rcpp_result_gen = Rcpp::wrap(ea_phi_multiGaussian_DL_bounds(mu, inv_Sigma, beta, precondition_mat, V));
+    return rcpp_result_gen;
+END_RCPP
+}
+// POE_multiGaussian_DL
+arma::mat POE_multiGaussian_DL(const Rcpp::List& bessel_layers, const arma::vec& mean, const int& dim);
+RcppExport SEXP _DCFusion_POE_multiGaussian_DL(SEXP bessel_layersSEXP, SEXP meanSEXP, SEXP dimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type bessel_layers(bessel_layersSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< const int& >::type dim(dimSEXP);
+    rcpp_result_gen = Rcpp::wrap(POE_multiGaussian_DL(bessel_layers, mean, dim));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1433,15 +1480,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_spectral_radius", (DL_FUNC) &_DCFusion_spectral_radius, 1},
     {"_DCFusion_abs_eigenvals", (DL_FUNC) &_DCFusion_abs_eigenvals, 1},
     {"_DCFusion_maximal_distance_hypercube_to_cv", (DL_FUNC) &_DCFusion_maximal_distance_hypercube_to_cv, 5},
+    {"_DCFusion_optimise_vector_product", (DL_FUNC) &_DCFusion_optimise_vector_product, 4},
     {"_DCFusion_log_BLR_gradient", (DL_FUNC) &_DCFusion_log_BLR_gradient, 8},
     {"_DCFusion_log_BLR_hessian", (DL_FUNC) &_DCFusion_log_BLR_hessian, 5},
     {"_DCFusion_ea_phi_BLR_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_vec, 8},
     {"_DCFusion_ea_phi_BLR_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_matrix, 8},
     {"_DCFusion_spectral_radius_BLR", (DL_FUNC) &_DCFusion_spectral_radius_BLR, 6},
     {"_DCFusion_obtain_hypercube_centre_BLR", (DL_FUNC) &_DCFusion_obtain_hypercube_centre_BLR, 8},
-    {"_DCFusion_spectral_radius_bound_BLR_Z", (DL_FUNC) &_DCFusion_spectral_radius_bound_BLR_Z, 7},
+    {"_DCFusion_spectral_radius_bound_BLR_Z", (DL_FUNC) &_DCFusion_spectral_radius_bound_BLR_Z, 8},
     {"_DCFusion_spectral_radius_global_bound_BLR_Z", (DL_FUNC) &_DCFusion_spectral_radius_global_bound_BLR_Z, 6},
-    {"_DCFusion_ea_phi_BLR_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_bounds, 11},
+    {"_DCFusion_ea_phi_BLR_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_BLR_DL_bounds, 13},
     {"_DCFusion_gamma_NB_BLR", (DL_FUNC) &_DCFusion_gamma_NB_BLR, 13},
     {"_DCFusion_log_BNBR_gradient", (DL_FUNC) &_DCFusion_log_BNBR_gradient, 9},
     {"_DCFusion_log_BNBR_hessian", (DL_FUNC) &_DCFusion_log_BNBR_hessian, 7},
@@ -1449,9 +1497,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_ea_phi_BNBR_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_BNBR_DL_matrix, 9},
     {"_DCFusion_spectral_radius_BNBR", (DL_FUNC) &_DCFusion_spectral_radius_BNBR, 8},
     {"_DCFusion_obtain_hypercube_centre_BNBR", (DL_FUNC) &_DCFusion_obtain_hypercube_centre_BNBR, 9},
-    {"_DCFusion_spectral_radius_bound_BNBR_Z", (DL_FUNC) &_DCFusion_spectral_radius_bound_BNBR_Z, 9},
+    {"_DCFusion_obtain_G_max", (DL_FUNC) &_DCFusion_obtain_G_max, 5},
+    {"_DCFusion_spectral_radius_bound_BNBR_Z", (DL_FUNC) &_DCFusion_spectral_radius_bound_BNBR_Z, 10},
     {"_DCFusion_spectral_radius_global_bound_BNBR_Z", (DL_FUNC) &_DCFusion_spectral_radius_global_bound_BNBR_Z, 8},
-    {"_DCFusion_ea_phi_BNBR_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_BNBR_DL_bounds, 12},
+    {"_DCFusion_ea_phi_BNBR_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_BNBR_DL_bounds, 14},
     {"_DCFusion_gamma_NB_BNBR", (DL_FUNC) &_DCFusion_gamma_NB_BNBR, 14},
     {"_DCFusion_log_BPR_gradient", (DL_FUNC) &_DCFusion_log_BPR_gradient, 8},
     {"_DCFusion_log_BPR_hessian", (DL_FUNC) &_DCFusion_log_BPR_hessian, 5},
@@ -1485,7 +1534,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_DCFusion_ea_phi_mixG_DL_LB", (DL_FUNC) &_DCFusion_ea_phi_mixG_DL_LB, 7},
     {"_DCFusion_ea_phi_multiGaussian_DL_vec", (DL_FUNC) &_DCFusion_ea_phi_multiGaussian_DL_vec, 5},
     {"_DCFusion_ea_phi_multiGaussian_DL_matrix", (DL_FUNC) &_DCFusion_ea_phi_multiGaussian_DL_matrix, 5},
-    {"_DCFusion_ea_phi_multiGaussian_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_multiGaussian_DL_bounds, 6},
+    {"_DCFusion_ea_phi_multiGaussian_DL_bounds", (DL_FUNC) &_DCFusion_ea_phi_multiGaussian_DL_bounds, 5},
+    {"_DCFusion_POE_multiGaussian_DL", (DL_FUNC) &_DCFusion_POE_multiGaussian_DL, 3},
     {"_DCFusion_ea_phi_multiGaussian_DL_LB", (DL_FUNC) &_DCFusion_ea_phi_multiGaussian_DL_LB, 4},
     {"_DCFusion_gamma_NB_multiGaussian", (DL_FUNC) &_DCFusion_gamma_NB_multiGaussian, 11},
     {"_DCFusion_ea_phi_uniGaussian_DL", (DL_FUNC) &_DCFusion_ea_phi_uniGaussian_DL, 5},

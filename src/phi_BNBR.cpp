@@ -157,7 +157,8 @@ Rcpp::List obtain_hypercube_centre_BNBR(const Rcpp::List &bessel_layers,
   }
   const arma::vec beta_hat = transform_to_X * centre;
   const arma::vec X_beta = X * beta_hat;
-  return(Rcpp::List::create(Named("beta_hat", beta_hat),
+  return(Rcpp::List::create(Named("centre", centre),
+                            Named("beta_hat", beta_hat),
                             Named("grad_log_hat", log_BNBR_gradient(beta_hat,
                                                         y_count,
                                                         X,
@@ -170,8 +171,44 @@ Rcpp::List obtain_hypercube_centre_BNBR(const Rcpp::List &bessel_layers,
 }
 
 // [[Rcpp::export]]
+double obtain_G_max(const int &dim,
+                    const arma::vec &transformed_X_vec,
+                    const Rcpp::List &bessel_layers,
+                    const arma::vec &z_hat,
+                    const double &phi_rate) {
+  const double F_hat = arma::dot(transformed_X_vec, z_hat);
+  const double log_phi_rate = log(phi_rate);
+  if (F_hat > log_phi_rate) {
+    // perform minimisation of F = transform_X_rowvec * z for z in bessel_layers
+    const double F_min = optimise_vector_product(dim,
+                                                 transformed_X_vec,
+                                                 bessel_layers,
+                                                 true);
+    if (F_min < log_phi_rate) {
+      return (0.25/phi_rate);
+    } else {
+      const double exp_u = exp(F_min);
+      return exp_u/((1+exp_u)*(1+exp_u));
+    }
+  } else {
+    // perform maximisation of F = transform_X_rowvec * z for z in bessel_layers
+    const double F_max = optimise_vector_product(dim,
+                                                 transformed_X_vec,
+                                                 bessel_layers,
+                                                 false);
+    if (F_max > log_phi_rate) {
+      return (0.25/phi_rate);
+    } else {
+      const double exp_u = exp(F_max);
+      return exp_u/((1+exp_u)*(1+exp_u));
+    }
+  }
+}
+
+// [[Rcpp::export]]
 Rcpp::List spectral_radius_bound_BNBR_Z(const int &dim,
-                                        const arma::mat &V,
+                                        const Rcpp::List &bessel_layers,
+                                        const arma::vec &z_hat,
                                         const arma::vec &y_count,
                                         const arma::mat &transformed_X,
                                         const arma::vec &count,
@@ -180,19 +217,12 @@ Rcpp::List spectral_radius_bound_BNBR_Z(const int &dim,
                                         const double &C,
                                         const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
-  arma::vec products(V.n_rows, arma::fill::zeros);
-  const double log_phi_rate = log(phi_rate);
   for (int i=0; i < transformed_X.n_rows; ++i) {
-    for (int v=0; v < V.n_rows; ++v) {
-      products.at(v) = std::abs(arma::dot(transformed_X.row(i), V.row(v))-log_phi_rate);
-    }
-    // e^(x)/((phi_rate+e^(x))^2) is largest when x is closest to log(phi_rate), hence take value which is closest to this
-    const double exp_u = exp(arma::abs(products).min()+log_phi_rate);
-    const double ratio = exp_u/((phi_rate+exp_u)*(phi_rate+exp_u));
     const double constant = count.at(i)*(y_count.at(i)+phi_rate)*phi_rate;
+    const double G_max = obtain_G_max(dim, arma::trans(transformed_X.row(i)), bessel_layers, z_hat, phi_rate);
     for (int k=0; k < dim; ++k) {
       for (int l=0; l <= k; ++l) {
-        hessian.at(k,l) += constant*std::abs(transformed_X.at(i,k))*std::abs(transformed_X.at(i,l))*ratio;
+        hessian.at(k,l) += constant*std::abs(transformed_X.at(i,k))*std::abs(transformed_X.at(i,l))*G_max;
       }
     }
   }
@@ -221,7 +251,7 @@ Rcpp::List spectral_radius_global_bound_BNBR_Z(const int &dim,
                                                const double &C,
                                                const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
-  const double ratio = 1/(4*phi_rate);
+  const double ratio = 0.25/phi_rate;
   for (int i=0; i < transformed_X.n_rows; ++i) {
     const double constant = count.at(i)*(y_count.at(i)+phi_rate)*phi_rate;
     for (int k=0; k < dim; ++k) {
@@ -248,6 +278,7 @@ Rcpp::List spectral_radius_global_bound_BNBR_Z(const int &dim,
 // [[Rcpp::export]]
 Rcpp::List ea_phi_BNBR_DL_bounds(const arma::vec &beta_hat,
                                  const arma::vec &grad_log_hat,
+                                 const arma::vec &hypercube_centre_Z,
                                  const int &dim,
                                  const arma::vec &y_count,
                                  const arma::mat &transformed_X,
@@ -257,6 +288,7 @@ Rcpp::List ea_phi_BNBR_DL_bounds(const arma::vec &beta_hat,
                                  const double &C,
                                  const Rcpp::List &transform_mats,
                                  const Rcpp::List &hypercube_vertices,
+                                 const Rcpp::List &bessel_layers,
                                  const bool &local_bounds) {
   const arma::mat &transform_to_X = transform_mats["to_X"];
   const arma::mat &transform_to_Z = transform_mats["to_Z"];
@@ -267,12 +299,12 @@ Rcpp::List ea_phi_BNBR_DL_bounds(const arma::vec &beta_hat,
                                                        transform_to_X,
                                                        transform_to_Z,
                                                        true);
-  const arma::mat &V = hypercube_vertices["V"];
   Rcpp::List spectral_radius_bds;
   double P_n_Lambda;
   if (local_bounds) {
     spectral_radius_bds = spectral_radius_bound_BNBR_Z(dim,
-                                                       V,
+                                                       bessel_layers,
+                                                       hypercube_centre_Z,
                                                        y_count,
                                                        transformed_X,
                                                        count,

@@ -4,14 +4,7 @@
 \alias{ea_phi_multiGaussian_DL_bounds}
 \title{Obtain bounds for phi function}
 \usage{
-ea_phi_multiGaussian_DL_bounds(
-  mu,
-  inv_Sigma,
-  beta,
-  precondition_mat,
-  hypercube_vertices,
-  mean_in_bes_layer = FALSE
-)
+ea_phi_multiGaussian_DL_bounds(mu, inv_Sigma, beta, precondition_mat, V)
 }
 \arguments{
 \item{mu}{vector of length dim for mean}
@@ -22,13 +15,8 @@ ea_phi_multiGaussian_DL_bounds(
 
 \item{precondition_mat}{dim x dim precondition matrix}
 
-\item{hypercube_vertices}{list with item named "V" to determine the points
-to evaluate phi which give the bounds of phi}
-
-\item{mean_in_bes_layer}{logical value indicating if mean is in the Bessel layer.
-If it is, then we can save computation by only computing
-phi at the vertices (hypercube_vertices$vertices).
-Otherwise, we compute at all points in hypercube_vertices$V}
+\item{hypercube_vertices}{matrix which determines the points to evaluate
+phi which give the bounds of phi}
 }
 \value{
 A list of components

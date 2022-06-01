@@ -60,8 +60,15 @@ Rcpp::List obtain_hypercube_centre_BNBR(const Rcpp::List &bessel_layers,
                                         const arma::vec &prior_variances,
                                         const double &C);
 
+double obtain_G_max(const int &dim,
+                    const arma::vec &transformed_X_vec,
+                    const Rcpp::List &bessel_layers,
+                    const arma::vec &z_hat,
+                    const double &phi_rate);
+
 Rcpp::List spectral_radius_bound_BNBR_Z(const int &dim,
-                                        const arma::mat &V,
+                                        const Rcpp::List &bessel_layers,
+                                        const arma::vec &z_hat,
                                         const arma::vec &y_count,
                                         const arma::mat &transformed_X,
                                         const arma::vec &count,
@@ -81,6 +88,7 @@ Rcpp::List spectral_radius_global_bound_BNBR_Z(const int &dim,
 
 Rcpp::List ea_phi_BNBR_DL_bounds(const arma::vec &beta_hat,
                                  const arma::vec &grad_log_hat,
+                                 const arma::vec &hypercube_centre_Z,
                                  const int &dim,
                                  const arma::vec &y_count,
                                  const arma::mat &transformed_X,
@@ -90,6 +98,7 @@ Rcpp::List ea_phi_BNBR_DL_bounds(const arma::vec &beta_hat,
                                  const double &C,
                                  const Rcpp::List &transform_mats,
                                  const Rcpp::List &hypercube_vertices,
+                                 const Rcpp::List &bessel_layers,
                                  const bool &local_bounds);
 
 double gamma_NB_BNBR(const arma::vec &times,

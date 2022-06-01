@@ -43,12 +43,8 @@ Rcpp::NumericVector ea_phi_multiGaussian_DL_matrix(const arma::mat &x,
 //' @param inv_Sigma dim x dim inverse covariance matrix
 //' @param beta real value
 //' @param precondition_mat dim x dim precondition matrix
-//' @param hypercube_vertices list with item named "V" to determine the points
-//'                           to evaluate phi which give the bounds of phi
-//' @param mean_in_bes_layer logical value indicating if mean is in the Bessel layer.
-//'                          If it is, then we can save computation by only computing
-//'                          phi at the vertices (hypercube_vertices$vertices).
-//'                          Otherwise, we compute at all points in hypercube_vertices$V
+//' @param hypercube_vertices matrix which determines the points to evaluate
+//'                           phi which give the bounds of phi
 //'
 //' @return A list of components
 //' \describe{
@@ -60,26 +56,100 @@ Rcpp::List ea_phi_multiGaussian_DL_bounds(const arma::vec &mu,
                                           const arma::mat &inv_Sigma,
                                           const double &beta,
                                           const arma::mat &precondition_mat,
-                                          const Rcpp::List &hypercube_vertices,
-                                          const bool &mean_in_bes_layer = false) {
-  Rcpp::NumericVector values;
-  if (mean_in_bes_layer) {
-    const arma::mat &V = hypercube_vertices["vertices"];
-    values = ea_phi_multiGaussian_DL_matrix(V,
-                                            mu,
-                                            inv_Sigma,
-                                            beta,
-                                            precondition_mat);  
-  } else {
-    const arma::mat &V = hypercube_vertices["V"];
-    values = ea_phi_multiGaussian_DL_matrix(V,
-                                            mu,
-                                            inv_Sigma,
-                                            beta,
-                                            precondition_mat);
-  }
+                                          const arma::mat &V) {
+  Rcpp::NumericVector values = ea_phi_multiGaussian_DL_matrix(V,
+                                                              mu,
+                                                              inv_Sigma,
+                                                              beta,
+                                                              precondition_mat);;
   return Rcpp::List::create(Rcpp::Named("LB", find_min(values)),
                             Rcpp::Named("UB", find_max(values)));
+}
+
+// [[Rcpp::export]]
+arma::mat POE_multiGaussian_DL(const Rcpp::List &bessel_layers,
+                               const arma::vec &mean,
+                               const int &dim) {
+  if (mean.size()!=dim) {
+    stop("POE_multiGaussian_DL: mean must be a mean of length dim");
+  }
+  if (dim == 1) {
+    double L;
+    double U;
+    double lower_x;
+    double upper_x;
+    if (bessel_layers.size()==1) {
+      const Rcpp::List &bes_layer = bessel_layers[0];
+      L = bes_layer["L"];
+      U = bes_layer["U"];
+    } else {
+      L = bessel_layers["L"];
+      U = bessel_layers["U"];
+    }
+    if ((L<mean[0]) && (U>mean[0])) {
+      // mean is in Bessel layer, so lower bound is attained at mean
+      // upper bound attained at point furthest away from mean
+      lower_x = mean[0];
+      if (std::abs(L-mean[0]) > std::abs(U-mean[0])) {
+        upper_x = L;
+      } else {
+        upper_x = U;
+      }
+    } else {
+      // mean is not in Bessel layer, so lower bound is attained at point closest to mean
+      // upper bound is attained at point furthest away from the mean
+      if (std::abs(L-mean[0]) > std::abs(U-mean[0])) {
+        lower_x = U;
+        upper_x = L;
+      } else {
+        lower_x = L;
+        upper_x = U;
+      }
+    }
+    arma::mat V(2, dim, arma::fill::zeros);
+    V.row(0) = lower_x;
+    V.row(1) = upper_x;
+    return V;
+  } else if (dim > 1) {
+    if (bessel_layers.size()!=dim) {
+      stop("POE_multiGaussian_DL: if dim > 1, bessel_layers must be a list of length dim");
+    }
+    arma::vec L(dim, arma::fill::zeros);
+    arma::vec U(dim, arma::fill::zeros);
+    arma::rowvec lower_x(dim, arma::fill::zeros);
+    arma::rowvec upper_x(dim, arma::fill::zeros);
+    for (int d=0; d < dim; ++d) {
+      const Rcpp::List &bes_layer = bessel_layers[d];
+      L[d] = bes_layer["L"];
+      U[d] = bes_layer["U"];
+      if ((L[d]<mean[d]) && (U[d]>mean[d])) {
+        // mean is in Bessel layer, so lower bound is attained at mean
+        // upper bound attained at point furthest away from mean
+        lower_x[d] = mean[d];
+        if (std::abs(L[d]-mean[d]) > std::abs(U[d]-mean[d])) {
+          upper_x[d] = L[d];
+        } else {
+          upper_x[d] = U[d];
+        }
+      } else {
+        // mean is not in Bessel layer, so lower bound is attained at point closest to mean
+        // upper bound is attained at point furthest away from the mean
+        if (std::abs(L[d]-mean[d]) > std::abs(U[d]-mean[d])) {
+          lower_x[d] = U[d];
+          upper_x[d] = L[d];
+        } else {
+          lower_x[d] = L[d];
+          upper_x[d] = U[d];
+        }
+      }
+    }
+    arma::mat V(2, dim, arma::fill::zeros);
+    V.row(0) = lower_x;
+    V.row(1) = upper_x;
+    return V;
+  } else {
+    stop("POE_multiGaussian_DL: dim must be greater than or equal to 1");
+  }
 }
 
 //' Obtain the global lower bound for phi function

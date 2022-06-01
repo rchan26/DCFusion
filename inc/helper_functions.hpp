@@ -105,4 +105,9 @@ double maximal_distance_hypercube_to_cv(const arma::vec &beta_hat,
                                         const arma::mat &transform_to_Z,
                                         const bool &hypercube_centre);
 
+double optimise_vector_product(const int &dim,
+                               const arma::vec &x,
+                               const Rcpp::List &bessel_layers,
+                               const bool &minimise);
+
 #endif

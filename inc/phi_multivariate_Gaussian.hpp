@@ -19,8 +19,11 @@ Rcpp::List ea_phi_multiGaussian_DL_bounds(const arma::vec &mu,
                                           const arma::mat &inv_Sigma,
                                           const double &beta,
                                           const arma::mat &precondition_mat,
-                                          const Rcpp::List &hypercube_vertices,
-                                          const bool &mean_in_bes_layer);
+                                          const arma::mat &V);
+
+arma::mat POE_multiGaussian_DL(const Rcpp::List &bessel_layers,
+                               const arma::vec &mean,
+                               const int &dim);
 
 double ea_phi_multiGaussian_DL_LB(const arma::vec &mu,
                                   const arma::mat &inv_Sigma,

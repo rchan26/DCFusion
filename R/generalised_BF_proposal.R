@@ -6,7 +6,8 @@ construct_V <- function(s,
                         d,
                         precondition_matrices,
                         Lambda,
-                        iteration = 1) {
+                        iteration = 1,
+                        cpp = FALSE) {
   if (t <= s) {
     stop("construct_V: must have s < t <= end_time")
   } else if (end_time < t) {
@@ -38,13 +39,30 @@ construct_V <- function(s,
       stop("construct_V: d must be greater than or equal to 1")
     }
   }
-  return(construct_V_cpp(s = s,
-                         t = t,
-                         end_time = end_time,
-                         C = C, 
-                         d = d,
-                         precondition_matrices = precondition_matrices,
-                         Lambda = Lambda))
+  if (cpp) {
+    return(construct_V_cpp(s = s,
+                           t = t,
+                           end_time = end_time,
+                           C = C, 
+                           d = d,
+                           precondition_matrices = precondition_matrices,
+                           Lambda = Lambda))
+  } else {
+    C1 <- ((t-s)*(end_time-t)) / (end_time-s)
+    C2 <- ((t-s)^2) / (end_time-s)
+    V <- matrix(data = NA, nrow = C*d, ncol = C*d)
+    for (i in 1:C) {
+      for (j in 1:C) {
+        i_fill <- d*(i-1)+(1:d)
+        j_fill <- d*(j-1)+(1:d)
+        V[i_fill,j_fill] <- C2*Lambda
+        if (i==j) {
+          V[i_fill,j_fill] <- V[i_fill,j_fill] + C1*precondition_matrices[[i]]
+        }
+      }
+    }
+    return(V)
+  }
 }
 
 #' @export
@@ -55,7 +73,8 @@ construct_M <- function(s,
                         d,
                         sub_posterior_samples,
                         sub_posterior_mean,
-                        iteration = 1) {
+                        iteration = 1,
+                        cpp = FALSE) {
   if (t <= s) {
     stop("construct_M: must have s < t <= end_time")
   } else if (end_time < t) {
@@ -89,13 +108,27 @@ construct_M <- function(s,
       stop("construct_M: d must be greater than or equal to 1")
     }
   }
-  return(as.vector(construct_M_cpp(s = s,
-                                   t = t,
-                                   end_time = end_time,
-                                   C = C,
-                                   d = d,
-                                   sub_posterior_samples = as.matrix(sub_posterior_samples),
-                                   sub_posterior_mean = sub_posterior_mean)))
+  if (cpp) {
+    return(as.vector(construct_M_cpp(s = s,
+                                     t = t,
+                                     end_time = end_time,
+                                     C = C,
+                                     d = d,
+                                     sub_posterior_samples = as.matrix(sub_posterior_samples),
+                                     sub_posterior_mean = sub_posterior_mean)))
+  } else {
+    C1 <- (end_time-t)/(end_time-s)
+    C2 <- (t-s)/(end_time-s)
+    M <- rep(NA, C*d)
+    if (d==1) {
+      sub_posterior_samples <- as.matrix(sub_posterior_samples)
+    }
+    for (i in 1:C) {
+      i_fill <- d*(i-1)+(1:d)
+      M[i_fill] <- C1*sub_posterior_samples[i,] + C2*sub_posterior_mean
+    }
+    return(M)
+  }
 }
 
 #' @export

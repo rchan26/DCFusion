@@ -1,5 +1,6 @@
 #include "../inc/helper_functions.hpp"
 #include "../inc/phi_BLR.hpp"
+#include "../inc/phi_BNBR.hpp"
 
 using namespace Rcpp;
 
@@ -138,7 +139,8 @@ Rcpp::List obtain_hypercube_centre_BLR(const Rcpp::List &bessel_layers,
   }
   const arma::vec beta_hat = transform_to_X * centre;
   const arma::vec X_beta = X * beta_hat;
-  return(Rcpp::List::create(Named("beta_hat", beta_hat),
+  return(Rcpp::List::create(Named("centre", centre),
+                            Named("beta_hat", beta_hat),
                             Named("grad_log_hat", log_BLR_gradient(beta_hat,
                                                        y_labels,
                                                        X,
@@ -151,24 +153,19 @@ Rcpp::List obtain_hypercube_centre_BLR(const Rcpp::List &bessel_layers,
 
 // [[Rcpp::export]]
 Rcpp::List spectral_radius_bound_BLR_Z(const int &dim,
-                                       const arma::mat &V,
+                                       const Rcpp::List &bessel_layers,
+                                       const arma::vec &z_hat,
                                        const arma::mat &transformed_X,
                                        const arma::vec &count,
                                        const arma::vec &prior_variances,
                                        const double &C,
                                        const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
-  arma::vec products(V.n_rows, arma::fill::zeros);
   for (int i=0; i < transformed_X.n_rows; ++i) {
-    for (int v=0; v < V.n_rows; ++v) {
-      products.at(v) = arma::dot(transformed_X.row(i), V.row(v));
-    }
-    // e^x/((1+e^x)^2) is largest when x is closest to 0, hence take the smaller of the bounds
-    const double exp_u = exp(arma::abs(products).min());
-    const double ratio = exp_u/((1+exp_u)*(1+exp_u));
+    const double G_max = obtain_G_max(dim, arma::trans(transformed_X.row(i)), bessel_layers, z_hat, 1);
     for (int k=0; k < dim; ++k) {
       for (int l=0; l <= k; ++l) {
-        hessian.at(k,l) += count.at(i)*std::abs(transformed_X.at(i,k))*std::abs(transformed_X.at(i,l))*ratio;
+        hessian.at(k,l) += count.at(i)*std::abs(transformed_X.at(i,k))*std::abs(transformed_X.at(i,l))*G_max;
       }
     }
   }
@@ -220,6 +217,7 @@ Rcpp::List spectral_radius_global_bound_BLR_Z(const int &dim,
 // [[Rcpp::export]]
 Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                 const arma::vec &grad_log_hat,
+                                const arma::vec &hypercube_centre_Z,
                                 const int &dim,
                                 const arma::mat &transformed_X,
                                 const arma::vec &count,
@@ -227,6 +225,7 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                 const double &C,
                                 const Rcpp::List &transform_mats,
                                 const Rcpp::List &hypercube_vertices,
+                                const Rcpp::List &bessel_layers,
                                 const bool &local_bounds,
                                 const bool &hypercube_centre) {
   const arma::mat &transform_to_X = transform_mats["to_X"];
@@ -238,12 +237,12 @@ Rcpp::List ea_phi_BLR_DL_bounds(const arma::vec &beta_hat,
                                                        transform_to_X,
                                                        transform_to_Z,
                                                        hypercube_centre);
-  const arma::mat &V = hypercube_vertices["V"];
   Rcpp::List spectral_radius_bds;
   double P_n_Lambda;
   if (local_bounds) {
     spectral_radius_bds = spectral_radius_bound_BLR_Z(dim,
-                                                      V,
+                                                      bessel_layers,
+                                                      hypercube_centre_Z,
                                                       transformed_X,
                                                       count,
                                                       prior_variances,
