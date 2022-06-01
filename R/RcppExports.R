@@ -556,42 +556,6 @@ gamma_NB_BNBR <- function(times, h, x0, y, s, t, y_count, X, count, phi_rate, pr
     .Call(`_DCFusion_gamma_NB_BNBR`, times, h, x0, y, s, t, y_count, X, count, phi_rate, prior_means, prior_variances, C, precondition_mat)
 }
 
-log_BPR_gradient <- function(beta, y_count, X, X_beta, count, prior_means, prior_variances, C) {
-    .Call(`_DCFusion_log_BPR_gradient`, beta, y_count, X, X_beta, count, prior_means, prior_variances, C)
-}
-
-log_BPR_hessian <- function(X, X_beta, count, prior_variances, C) {
-    .Call(`_DCFusion_log_BPR_hessian`, X, X_beta, count, prior_variances, C)
-}
-
-ea_phi_BPR_DL_vec <- function(beta, y_count, X, count, prior_means, prior_variances, C, precondition_mat) {
-    .Call(`_DCFusion_ea_phi_BPR_DL_vec`, beta, y_count, X, count, prior_means, prior_variances, C, precondition_mat)
-}
-
-ea_phi_BPR_DL_matrix <- function(beta, y_count, X, count, prior_means, prior_variances, C, precondition_mat) {
-    .Call(`_DCFusion_ea_phi_BPR_DL_matrix`, beta, y_count, X, count, prior_means, prior_variances, C, precondition_mat)
-}
-
-spectral_radius_BPR <- function(beta, X, count, prior_variances, C, Lambda) {
-    .Call(`_DCFusion_spectral_radius_BPR`, beta, X, count, prior_variances, C, Lambda)
-}
-
-obtain_hypercube_centre_BPR <- function(bessel_layers, transform_to_X, y_count, X, count, prior_means, prior_variances, C) {
-    .Call(`_DCFusion_obtain_hypercube_centre_BPR`, bessel_layers, transform_to_X, y_count, X, count, prior_means, prior_variances, C)
-}
-
-spectral_radius_bound_BPR_Z <- function(dim, V, transformed_X, count, prior_variances, C, sqrt_Lambda) {
-    .Call(`_DCFusion_spectral_radius_bound_BPR_Z`, dim, V, transformed_X, count, prior_variances, C, sqrt_Lambda)
-}
-
-ea_phi_BPR_DL_bounds <- function(beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices) {
-    .Call(`_DCFusion_ea_phi_BPR_DL_bounds`, beta_hat, grad_log_hat, dim, transformed_X, count, prior_variances, C, transform_mats, hypercube_vertices)
-}
-
-gamma_NB_BPR <- function(times, h, x0, y, s, t, y_count, X, count, prior_means, prior_variances, C, precondition_mat) {
-    .Call(`_DCFusion_gamma_NB_BPR`, times, h, x0, y, s, t, y_count, X, count, prior_means, prior_variances, C, precondition_mat)
-}
-
 log_BRR_gradient <- function(beta, y_resp, X, X_beta, nu, sigma, prior_means, prior_variances, C) {
     .Call(`_DCFusion_log_BRR_gradient`, beta, y_resp, X, X_beta, nu, sigma, prior_means, prior_variances, C)
 }

@@ -8,7 +8,8 @@ obtain_hypercube_vertices(
   bessel_layers,
   vector = rep(0, dim),
   transform_mat = diag(1, dim),
-  dim
+  dim,
+  one_point = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,13 @@ occurs within the bounds - default is rep(0, dim)}
 the vertices - default is diag(1, dim)}
 
 \item{dim}{dimension}
+
+\item{one_point}{logical value (default is FALSE). If TRUE, only returns
+one point of the hypercube vertex (the one where we take
+the lower Bessel layer in each dimension). This is useful
+for when only one hypercube corner is necessary (e.g.
+higher dimensional problems in logistic regression and NB
+regression)}
 }
 \value{
 A list of length 2 with

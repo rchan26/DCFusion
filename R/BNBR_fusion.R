@@ -113,7 +113,8 @@ ea_BNBR_DL_PT <- function(dim,
                                               prior_variances = prior_variances,
                                               C = C)
   hypercube_vertices <- obtain_hypercube_vertices(bessel_layers = bes_layers,
-                                                  dim = dim)
+                                                  dim = dim,
+                                                  one_point = TRUE)
   bounds <- ea_phi_BNBR_DL_bounds(beta_hat = as.vector(cv_location$beta_hat),
                                   grad_log_hat = as.vector(cv_location$grad_log_hat),
                                   hypercube_centre_Z = as.vector(cv_location$centre),

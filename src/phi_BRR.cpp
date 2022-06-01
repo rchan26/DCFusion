@@ -183,16 +183,17 @@ Rcpp::List spectral_radius_bound_BRR_Z(const int &dim,
                                        const double &C,
                                        const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
-  const double nu_sigma_sq = nu*sigma*sigma;
   for (int i=0; i < transformed_X.n_rows; ++i) {
     for (int k=0; k < dim; ++k) {
       for (int l=0; l <= k; ++l) {
-        hessian.at(k,l) += std::abs(transformed_X.at(i,k))*std::abs(transformed_X.at(i,l))/nu_sigma_sq;
+        hessian.at(k,l) += std::abs(transformed_X.at(i,k))*std::abs(transformed_X.at(i,l));
       }
     }
   }
+  const double ratio = (nu+1)/(8*nu*sigma*sigma);
   for (int k=0; k < dim; ++k) {
     for (int l=0; l <= k; ++l) {
+      hessian.at(k,l) *= ratio;
       for (int j=0; j < dim; ++j) {
         hessian.at(k,l) -= sqrt_Lambda.at(j,k)*sqrt_Lambda(j,l)/(C*prior_variances.at(j));
       }
