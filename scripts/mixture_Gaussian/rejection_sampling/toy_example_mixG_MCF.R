@@ -44,7 +44,7 @@ mixG_fusion <- lapply(time_choices_mixG, function(time) {
                               bounds_multiplier = 1.1,
                               seed = seed))})
 
-plot(x = time_choices_mixG, 
+plot(x = time_choices_mixG,
      y = sapply(1:length(time_choices_mixG), function(i) mixG_fusion[[i]]$rho),
      xlab = '',
      ylab = '',
@@ -83,10 +83,10 @@ plot(x = time_choices_mixG,
      pch = 4,
      lty = 1,
      lwd = 3,
-     ylim = c(0, 14))
+     ylim = c(0, 10))
 mtext('T', 1, 2.75, font = 2, cex = 1.5)
 mtext('log(Time elapsed in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
-axis(1, at=c(0.25, seq(0, 2.5, 0.5)), labels=c(0.25, seq(0, 2.5, 0.5)), font = 2, cex = 1.5)
+axis(1, at=c(0.25, seq(0, 3, 0.5)), labels=c(0.25, seq(0, 3, 0.5)), font = 2, cex = 1.5)
 axis(2, at=seq(0, 15, 1), labels=seq(0, 15, 1), font = 2, cex = 1.5)
 
 curve(dnorm_mix(x, n_components, w_ex, m_ex, s_ex), -11, 12, ylab = 'pdf', n = 10000)
@@ -120,7 +120,7 @@ axis(2, at=seq(0, 1, 0.1), labels=c("0.0", c(seq(0.1, 0.9, 0.1), "1.0")), font =
 lines(density(consensus$samples, bw), col = '#FFC20A', lty = 4, lwd = 3)
 lines(density(neisw$samples, bw), col = '#0C7BDC', lty = 3, lwd = 3)
 lines(density(weier$samples, bw), col = '#22FF22', lty = 2, lwd = 3)
-lines(density(mixG_fusion[[4]]$samples, bw), col = 'red', lty = 5, lwd = 3)
+lines(density(mixG_fusion[[5]]$samples, bw), col = 'red', lty = 5, lwd = 3)
 legend(x = -8, y = 0.4,
        legend = c('Target',
                   'MCF',

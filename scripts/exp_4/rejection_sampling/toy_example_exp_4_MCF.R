@@ -117,7 +117,7 @@ axis(2, at=seq(0, 1, 0.1), labels=c("0.0", c(seq(0.1, 0.9, 0.1), "1.0")), font =
 lines(density(consensus$samples, bw), col = '#FFC20A', lty = 4, lwd = 3)
 lines(density(neisw$samples, bw), col = '#0C7BDC', lty = 3, lwd = 3)
 lines(density(weier$samples, bw), col = '#22FF22', lty = 2, lwd = 3)
-lines(density(exp_4_fusion[[6]]$samples, bw), col = 'red', lty = 5, lwd = 3)
+lines(density(exp_4_fusion[[5]]$samples, bw), col = 'red', lty = 5, lwd = 3)
 legend(x = -3, y = 1,
        legend = c('Target',
                   'MCF',
