@@ -8,7 +8,7 @@ nsamples <- 10000
 time_choice <- 0.5
 prior_means <- rep(0, 14)
 prior_variances <- rep(1, 14)
-C <- 16
+C <- 64
 n_cores <- parallel::detectCores()
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.2
@@ -48,11 +48,11 @@ full_posterior <- hmc_sample_BLR_2(y = smart_grid$y,
                                    seed = seed,
                                    output = T)
 
-##### Sampling from sub-posterior C=16 #####
+##### Sampling from sub-posterior C=64 #####
 
-data_split_16 <- split_data(smart_grid$data, y_col_index = 14, X_col_index = 1:13, C = C, as_dataframe = F)
-sub_posteriors_16 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
-                                            data_split = data_split_16,
+data_split_64 <- split_data(smart_grid$data, y_col_index = 14, X_col_index = 1:13, C = C, as_dataframe = F)
+sub_posteriors_64 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
+                                            data_split = data_split_64,
                                             C = C, 
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,
@@ -63,34 +63,34 @@ sub_posteriors_16 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
 ##### Applying other methodologies #####
 
 # print('Applying other methodologies')
-consensus_mat_16 <- consensus_scott(S = 16, samples_to_combine = sub_posteriors_16, indep = F)
-consensus_sca_16 <- consensus_scott(S = 16, samples_to_combine = sub_posteriors_16, indep = T)
-neiswanger_true_16 <- neiswanger(S = 16,
-                                 samples_to_combine = sub_posteriors_16,
+consensus_mat_64 <- consensus_scott(S = 64, samples_to_combine = sub_posteriors_64, indep = F)
+consensus_sca_64 <- consensus_scott(S = 64, samples_to_combine = sub_posteriors_64, indep = T)
+neiswanger_true_64 <- neiswanger(S = 64,
+                                 samples_to_combine = sub_posteriors_64,
                                  anneal = TRUE)
-neiswanger_false_16 <- neiswanger(S = 16,
-                                  samples_to_combine = sub_posteriors_16,
+neiswanger_false_64 <- neiswanger(S = 64,
+                                  samples_to_combine = sub_posteriors_64,
                                   anneal = FALSE)
-weierstrass_importance_16 <- weierstrass(Samples = sub_posteriors_16,
+weierstrass_importance_64 <- weierstrass(Samples = sub_posteriors_64,
                                          method = 'importance')
-weierstrass_rejection_16 <- weierstrass(Samples = sub_posteriors_16,
+weierstrass_rejection_64 <- weierstrass(Samples = sub_posteriors_64,
                                         method = 'reject')
 
-integrated_abs_distance(full_posterior, consensus_mat_16$samples)
-integrated_abs_distance(full_posterior, consensus_sca_16$samples)
-integrated_abs_distance(full_posterior, neiswanger_true_16$samples)
-integrated_abs_distance(full_posterior, neiswanger_false_16$samples)
-integrated_abs_distance(full_posterior, weierstrass_importance_16$samples)
-integrated_abs_distance(full_posterior, weierstrass_rejection_16$samples)
+integrated_abs_distance(full_posterior, consensus_mat_64$samples)
+integrated_abs_distance(full_posterior, consensus_sca_64$samples)
+integrated_abs_distance(full_posterior, neiswanger_true_64$samples)
+integrated_abs_distance(full_posterior, neiswanger_false_64$samples)
+integrated_abs_distance(full_posterior, weierstrass_importance_64$samples)
+integrated_abs_distance(full_posterior, weierstrass_rejection_64$samples)
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C16 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 4),
-                                                m_schedule = rep(2, 4),
+balanced_C64 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 6),
+                                                m_schedule = rep(2, 6),
                                                 time_mesh = NULL,
-                                                base_samples = sub_posteriors_16,
-                                                L = 5,
+                                                base_samples = sub_posteriors_64,
+                                                L = 7,
                                                 dim = 14,
-                                                data_split = data_split_16,
+                                                data_split = data_split_64,
                                                 prior_means = prior_means,
                                                 prior_variances = prior_variances,
                                                 C = C,
@@ -105,13 +105,13 @@ balanced_C16 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 4),
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed,
                                                 print_progress_iters = 100))
-balanced_C16$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 4),
-                                            m_schedule = rep(2, 4),
+balanced_C64$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 6),
+                                            m_schedule = rep(2, 6),
                                             time_mesh = NULL,
-                                            base_samples = sub_posteriors_16,
-                                            L = 5,
+                                            base_samples = sub_posteriors_64,
+                                            L = 7,
                                             dim = 14,
-                                            data_split = data_split_16,
+                                            data_split = data_split_64,
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,
                                             C = C,
@@ -128,23 +128,23 @@ balanced_C16$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 4),
                                             print_progress_iters = 100)
 
 # regular mesh
-balanced_C16$reg$particles <- resample_particle_y_samples(particle_set = balanced_C16$reg$particles[[1]],
+balanced_C64$reg$particles <- resample_particle_y_samples(particle_set = balanced_C64$reg$particles[[1]],
                                                           multivariate = TRUE,
                                                           resampling_method = 'resid',
                                                           seed = seed)
-balanced_C16$reg$proposed_samples <- balanced_C16$reg$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, balanced_C16$reg$particles$y_samples))
+balanced_C64$reg$proposed_samples <- balanced_C64$reg$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, balanced_C64$reg$particles$y_samples))
 # adaptive mesh
-balanced_C16$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C16$adaptive$particles[[1]],
+balanced_C64$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C64$adaptive$particles[[1]],
                                                                multivariate = TRUE,
                                                                resampling_method = 'resid',
                                                                seed = seed)
-balanced_C16$adaptive$proposed_samples <- balanced_C16$adaptive$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, balanced_C16$adaptive$particles$y_samples))
+balanced_C64$adaptive$proposed_samples <- balanced_C64$adaptive$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, balanced_C64$adaptive$particles$y_samples))
 
 ##### IAD #####
 
-integrated_abs_distance(full_posterior, balanced_C16$reg$particles$y_samples)
-integrated_abs_distance(full_posterior, balanced_C16$adaptive$particles$y_samples)
+integrated_abs_distance(full_posterior, balanced_C64$reg$particles$y_samples)
+integrated_abs_distance(full_posterior, balanced_C64$adaptive$particles$y_samples)
 
-save.image('SG16.RData')
+save.image('SG64.RData')
