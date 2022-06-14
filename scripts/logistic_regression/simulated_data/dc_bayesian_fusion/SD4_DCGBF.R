@@ -4,9 +4,7 @@ library(HMCBLR)
 ##### Initialise example #####
 seed <- 2022
 set.seed(seed)
-nsamples_MCF <- 10000
-nsamples_GBF <- 10000
-nsamples_DCGBF <- 10000
+nsamples <- 10000
 ndata <- 1000
 time_choice <- 0.5
 prior_means <- rep(0, 5)
@@ -17,7 +15,7 @@ true_beta <- c(-3, 1.2, -0.5, 0.8, 3)
 frequencies <- c(0.2, 0.3, 0.5, 0.01)
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.5
-CESS_j_threshold <- 0.05
+CESS_j_threshold <- 0.2
 diffusion_estimator <- 'NB'
 
 # simulate data set
@@ -38,7 +36,7 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
                                  C = 1,
                                  prior_means = prior_means,
                                  prior_variances = prior_variances,
-                                 iterations = nsamples_MCF + 10000,
+                                 iterations = nsamples + 10000,
                                  warmup = 10000,
                                  chains = 1,
                                  seed = seed,
@@ -47,7 +45,7 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
 ##### Sampling from sub-posterior C=4 #####
 
 data_split_4 <- split_data(simulated_data, y_col_index = 1, X_col_index = 2:ncol(simulated_data), C = C, as_dataframe = F)
-sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = nsamples_MCF,
+sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                          data_split = data_split_4,
                                          C = C, 
                                          prior_means = prior_means,
@@ -81,7 +79,7 @@ integrated_abs_distance(full_posterior, weierstrass_rejection_4$samples)
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
-NB_hc_4 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples_MCF, 2),
+NB_hc_4 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 2),
                                      m_schedule = rep(2, 2),
                                      time_schedule = rep(time_choice, 2),
                                      base_samples = sub_posteriors_4,
@@ -108,7 +106,7 @@ print(integrated_abs_distance(full_posterior, NB_hc_4$particles$y_samples))
 ##### Generalised Bayesian Fusion #####
 
 ##### all at once #####
-GBF_4 <- list('reg' = bal_binary_GBF_BLR(N_schedule = nsamples_GBF,
+GBF_4 <- list('reg' = bal_binary_GBF_BLR(N_schedule = nsamples,
                                          m_schedule = 4,
                                          time_mesh = NULL,
                                          base_samples = sub_posteriors_4,
@@ -128,7 +126,7 @@ GBF_4 <- list('reg' = bal_binary_GBF_BLR(N_schedule = nsamples_GBF,
                                                                 'vanilla' = FALSE),
                                          diffusion_estimator = diffusion_estimator,
                                          seed = seed))
-GBF_4$adaptive <-  bal_binary_GBF_BLR(N_schedule = nsamples_GBF,
+GBF_4$adaptive <-  bal_binary_GBF_BLR(N_schedule = nsamples,
                                       m_schedule = 4,
                                       time_mesh = NULL,
                                       base_samples = sub_posteriors_4,
@@ -163,7 +161,7 @@ GBF_4$adaptive$particles <- resample_particle_y_samples(particle_set = GBF_4$ada
 print(integrated_abs_distance(full_posterior, GBF_4$adaptive$particles$y_samples))
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C4 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 2),
+balanced_C4 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 2),
                                                m_schedule = rep(2, 2),
                                                time_mesh = NULL,
                                                base_samples = sub_posteriors_4,
@@ -183,7 +181,7 @@ balanced_C4 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 
                                                                       'vanilla' = FALSE),
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed))
-balanced_C4$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 2),
+balanced_C4$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 2),
                                            m_schedule = rep(2, 2),
                                            time_mesh = NULL,
                                            base_samples = sub_posteriors_4,

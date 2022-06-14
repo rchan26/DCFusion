@@ -4,9 +4,7 @@ library(HMCBLR)
 ##### Initialise example #####
 seed <- 2022
 set.seed(seed)
-nsamples_MCF <- 10000
-nsamples_GBF <- 10000
-nsamples_DCGBF <- 10000
+nsamples <- 10000
 ndata <- 1000
 time_choice <- 0.5
 prior_means <- rep(0, 5)
@@ -17,7 +15,7 @@ true_beta <- c(-3, 1.2, -0.5, 0.8, 3)
 frequencies <- c(0.2, 0.3, 0.5, 0.01)
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.5
-CESS_j_threshold <- 0.05
+CESS_j_threshold <- 0.2
 diffusion_estimator <- 'NB'
 
 # simulate data set
@@ -38,7 +36,7 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
                                  C = 1,
                                  prior_means = prior_means,
                                  prior_variances = prior_variances,
-                                 iterations = nsamples_MCF + 10000,
+                                 iterations = nsamples + 10000,
                                  warmup = 10000,
                                  chains = 1,
                                  seed = seed,
@@ -47,7 +45,7 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
 ##### Sampling from sub-posterior C=8 #####
 
 data_split_8 <- split_data(simulated_data, y_col_index = 1, X_col_index = 2:ncol(simulated_data), C = 8, as_dataframe = F)
-sub_posteriors_8 <- hmc_base_sampler_BLR(nsamples = nsamples_MCF,
+sub_posteriors_8 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                          data_split = data_split_8,
                                          C = 8, 
                                          prior_means = prior_means,
@@ -81,15 +79,13 @@ integrated_abs_distance(full_posterior, weierstrass_rejection_8$samples)
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
-NB_hc_8 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples_MCF, 3),
+NB_hc_8 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 3),
                                      m_schedule = rep(2, 3),
                                      time_schedule = rep(time_choice, 3),
                                      base_samples = sub_posteriors_8,
                                      L = 4,
                                      dim = 5,
                                      data_split = data_split_8,
-                                     nu = nu,
-                                     sigma = sigma,
                                      prior_means = prior_means,
                                      prior_variances = prior_variances,
                                      C = 8,
@@ -110,15 +106,13 @@ print(integrated_abs_distance(full_posterior, NB_hc_8$particles$y_samples))
 ##### Generalised Bayesian Fusion #####
 
 ##### all at once #####
-GBF_8 <- list('reg' = bal_binary_GBF_BLR(N_schedule = nsamples_GBF,
+GBF_8 <- list('reg' = bal_binary_GBF_BLR(N_schedule = nsamples,
                                          m_schedule = 8,
                                          time_mesh = NULL,
                                          base_samples = sub_posteriors_8,
                                          L = 2,
                                          dim = 5,
                                          data_split = data_split_8,
-                                         nu = nu,
-                                         sigma = sigma,
                                          prior_means = prior_means,
                                          prior_variances = prior_variances,
                                          C = 8,
@@ -132,15 +126,13 @@ GBF_8 <- list('reg' = bal_binary_GBF_BLR(N_schedule = nsamples_GBF,
                                                                 'vanilla' = FALSE),
                                          diffusion_estimator = diffusion_estimator,
                                          seed = seed))
-GBF_8$adaptive <- bal_binary_GBF_BLR(N_schedule = nsamples_GBF,
+GBF_8$adaptive <- bal_binary_GBF_BLR(N_schedule = nsamples,
                                      m_schedule = 8,
                                      time_mesh = NULL,
                                      base_samples = sub_posteriors_8,
                                      L = 2,
                                      dim = 5,
                                      data_split = data_split_8,
-                                     nu = nu,
-                                     sigma = sigma,
                                      prior_means = prior_means,
                                      prior_variances = prior_variances,
                                      C = 8,
@@ -169,15 +161,13 @@ GBF_8$adaptive$particles <- resample_particle_y_samples(particle_set = GBF_8$ada
 print(integrated_abs_distance(full_posterior, GBF_8$adaptive$particles$y_samples))
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C8 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 3),
+balanced_C8 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 3),
                                                m_schedule = rep(2, 3),
                                                time_mesh = NULL,
                                                base_samples = sub_posteriors_8,
                                                L = 4,
                                                dim = 5,
                                                data_split = data_split_8,
-                                               nu = nu,
-                                               sigma = sigma,
                                                prior_means = prior_means,
                                                prior_variances = prior_variances,
                                                C = 8,
@@ -191,15 +181,13 @@ balanced_C8 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 
                                                                       'vanilla' = FALSE),
                                                diffusion_estimator = diffusion_estimator,
                                                seed = seed))
-balanced_C8$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_DCGBF, 3),
+balanced_C8$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 3),
                                             m_schedule = rep(2, 3),
                                             time_mesh = NULL,
                                             base_samples = sub_posteriors_8,
                                             L = 4,
                                             dim = 5,
                                             data_split = data_split_8,
-                                            nu = nu,
-                                            sigma = sigma,
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,
                                             C = 8,

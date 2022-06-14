@@ -6,12 +6,12 @@ nsamples <- 10000
 nsamples_GBF <- 5000
 time_choice <- 1
 C <- 16
-prior_means <- rep(0, 11)
-prior_variances <- rep(1, 11)
+prior_means <- rep(0, 14)
+prior_variances <- rep(1, 14)
 n_cores <- parallel::detectCores()
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.25
-CESS_j_threshold <- 0.01
+CESS_0_threshold <- 0.5
+CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 
 ##### Loading in Data #####
@@ -68,17 +68,17 @@ load_nycflights_data <- function(seed = NULL) {
                                       "night",
                                       "EWR",
                                       "JFK",
-                                      "windy",
-                                      "rain",
-                                      "visibility",
+                                      # "windy",
+                                      # "rain",
+                                      # "visibility",
                                       "distance_standardised",
-                                      "temp_standardised"
-                                      # "humid_standardised",
-                                      # "wind_speed_standardised",
-                                      # "wind_gust_standardised",
-                                      # "precip_standardised",
-                                      # "pressure_standardised",
-                                      # "visib_standardised"
+                                      "temp_standardised",
+                                      "humid_standardised",
+                                      "wind_speed_standardised",
+                                      "wind_gust_standardised",
+                                      "precip_standardised",
+                                      "pressure_standardised",
+                                      "visib_standardised"
   ))
   design_mat <- as.matrix(cbind(rep(1, nrow(X)), X))
   colnames(design_mat)[1] <- 'intercept'
@@ -93,29 +93,28 @@ nyc_flights <- load_nycflights_data(seed)
 
 ##### Sampling from full posterior #####
 
-full_data_count <- unique_row_count(nyc_flights$y, nyc_flights$X)$full_data_count
-nrow(full_data_count)
-full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
-                                 C = 1,
-                                 prior_means = prior_means,
-                                 prior_variances = prior_variances,
-                                 iterations = nsamples + 10000,
-                                 warmup = 10000,
-                                 chains = 1,
-                                 seed = seed,
-                                 output = T)
+full_posterior <- hmc_sample_BLR_2(y = nyc_flights$y,
+                                   X = nyc_flights$X,
+                                   C = 1,
+                                   prior_means = prior_means,
+                                   prior_variances = prior_variances,
+                                   iterations = nsamples + 10000,
+                                   warmup = 10000,
+                                   chains = 1,
+                                   seed = seed,
+                                   output = T)
 
 ##### Sampling from sub-posterior C=16 #####
 
 data_split_16 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:11, C = C, as_dataframe = F)
-sub_posteriors_16 <- hmc_base_sampler_BLR(nsamples = nsamples,
-                                          data_split = data_split_16,
-                                          C = C,
-                                          prior_means = prior_means,
-                                          prior_variances = prior_variances,
-                                          warmup = 10000,
-                                          seed = seed,
-                                          output = T)
+sub_posteriors_16 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
+                                            data_split = data_split_16,
+                                            C = C,
+                                            prior_means = prior_means,
+                                            prior_variances = prior_variances,
+                                            warmup = 10000,
+                                            seed = seed,
+                                            output = T)
 
 ##### Applying other methodologies #####
 
@@ -147,7 +146,7 @@ NB_hc_16_T1 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 4),
                                       time_schedule = rep(time_choice, 4),
                                       base_samples = sub_posteriors_16,
                                       L = 5,
-                                      dim = 11,
+                                      dim = 14,
                                       data_split = data_split_16,
                                       prior_means = prior_means,
                                       prior_variances = prior_variances,
@@ -173,7 +172,7 @@ balanced_C16 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 4
                                                 time_mesh = NULL,
                                                 base_samples = sub_posteriors_16,
                                                 L = 5,
-                                                dim = 11,
+                                                dim = 14,
                                                 data_split = data_split_16,
                                                 prior_means = prior_means,
                                                 prior_variances = prior_variances,
@@ -195,7 +194,7 @@ balanced_C16$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 4),
                                             time_mesh = NULL,
                                             base_samples = sub_posteriors_16,
                                             L = 5,
-                                            dim = 11,
+                                            dim = 14,
                                             data_split = data_split_16,
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,
