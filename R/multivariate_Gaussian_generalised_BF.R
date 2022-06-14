@@ -665,7 +665,7 @@ bal_binary_GBF_multiGaussian <- function(N_schedule,
           the c-th sub-posterior")
   }
   sub_posterior_means <- list()
-  if (dimension[d]==1) {
+  if (dim==1) {
     sub_posterior_means[[L]] <- as.matrix(sapply(base_samples, function(sub) apply(sub, 2, mean)))
   } else {
     sub_posterior_means[[L]] <- t(sapply(base_samples, function(sub) apply(sub, 2, mean)))
@@ -960,7 +960,7 @@ progressive_GBF_multiGaussian <- function(N_schedule,
           the c-th sub-posterior")
   }
   sub_posterior_means <- list()
-  if (dimension[d]==1) {
+  if (dim==1) {
     sub_posterior_means[[C]] <- as.matrix(sapply(input_samples, function(sub) apply(sub, 2, mean)))
   } else {
     sub_posterior_means[[C]] <- t(sapply(input_samples, function(sub) apply(sub, 2, mean)))
