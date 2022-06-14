@@ -11,7 +11,7 @@ time_choice <- 1
 phi_rate <- 1
 prior_means <- rep(0, 18)
 prior_variances <- rep(10, 18)
-C <- 32
+C <- 64
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.2
 CESS_j_threshold <- 0.05
@@ -79,23 +79,23 @@ full_posterior <- hmc_sample_GLMR(likelihood = 'NB_2',
                                   seed = seed,
                                   output = T)
 
-##### Sampling from sub-posterior C=32 #####
+##### Sampling from sub-posterior C=64 #####
 
-data_split_32 <- split_data(scottish_football$data,
+data_split_64 <- split_data(scottish_football$data,
                             y_col_index = 19,
                             X_col_index = 1:18,
                             C = C,
                             as_dataframe = F)
 # remove intercept column
-for (i in 1:32) {
-  data_split_32[[i]]$X <- data_split_32[[i]]$X[,-1]
-  data_split_32[[i]]$full_data_count <- subset(data_split_32[[i]]$full_data_count, select = -V2)
-  data_split_32[[i]]$design_count <- subset(data_split_32[[i]]$design_count, select = -V1)
+for (i in 1:64) {
+  data_split_64[[i]]$X <- data_split_64[[i]]$X[,-1]
+  data_split_64[[i]]$full_data_count <- subset(data_split_64[[i]]$full_data_count, select = -V2)
+  data_split_64[[i]]$design_count <- subset(data_split_64[[i]]$design_count, select = -V1)
 }
-sub_posteriors_32 <- hmc_base_sampler_GLMR(likelihood = 'NB_2',
+sub_posteriors_64 <- hmc_base_sampler_GLMR(likelihood = 'NB_2',
                                            nsamples = nsamples_MCF,
                                            warmup = 10000,
-                                           data_split = data_split_32,
+                                           data_split = data_split_64,
                                            C = C,
                                            phi = phi_rate,
                                            prior_means = prior_means,
@@ -106,35 +106,35 @@ sub_posteriors_32 <- hmc_base_sampler_GLMR(likelihood = 'NB_2',
 ##### Applying other methodologies #####
 
 print('Applying other methodologies')
-consensus_mat_32 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_32, indep = F)
-consensus_sca_32 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_32, indep = T)
-neiswanger_true_32 <- neiswanger(S = C,
-                                 samples_to_combine = sub_posteriors_32,
+consensus_mat_64 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_64, indep = F)
+consensus_sca_64 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_64, indep = T)
+neiswanger_true_64 <- neiswanger(S = C,
+                                 samples_to_combine = sub_posteriors_64,
                                  anneal = TRUE)
-neiswanger_false_32 <- neiswanger(S = C,
-                                  samples_to_combine = sub_posteriors_32,
+neiswanger_false_64 <- neiswanger(S = C,
+                                  samples_to_combine = sub_posteriors_64,
                                   anneal = FALSE)
-weierstrass_importance_32 <- weierstrass(Samples = sub_posteriors_32,
+weierstrass_importance_64 <- weierstrass(Samples = sub_posteriors_64,
                                          method = 'importance')
-weierstrass_rejection_32 <- weierstrass(Samples = sub_posteriors_32,
+weierstrass_rejection_64 <- weierstrass(Samples = sub_posteriors_64,
                                         method = 'reject')
 
-integrated_abs_distance(full_posterior, consensus_mat_32$samples)
-integrated_abs_distance(full_posterior, consensus_sca_32$samples)
-integrated_abs_distance(full_posterior, neiswanger_true_32$samples)
-integrated_abs_distance(full_posterior, neiswanger_false_32$samples)
-integrated_abs_distance(full_posterior, weierstrass_importance_32$samples)
-integrated_abs_distance(full_posterior, weierstrass_rejection_32$samples)
+integrated_abs_distance(full_posterior, consensus_mat_64$samples)
+integrated_abs_distance(full_posterior, consensus_sca_64$samples)
+integrated_abs_distance(full_posterior, neiswanger_true_64$samples)
+integrated_abs_distance(full_posterior, neiswanger_false_64$samples)
+integrated_abs_distance(full_posterior, weierstrass_importance_64$samples)
+integrated_abs_distance(full_posterior, weierstrass_rejection_64$samples)
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C32 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 5),
-                                                 m_schedule = rep(2, 5),
+balanced_C64 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 6),
+                                                 m_schedule = rep(2, 6),
                                                  time_mesh = NULL,
-                                                 base_samples = sub_posteriors_32,
-                                                 L = 6,
+                                                 base_samples = sub_posteriors_64,
+                                                 L = 7,
                                                  dim = 18,
                                                  phi_rate = phi_rate,
-                                                 data_split = data_split_32,
+                                                 data_split = data_split_64,
                                                  prior_means = prior_means,
                                                  prior_variances = prior_variances,
                                                  C = C,
@@ -149,14 +149,14 @@ balanced_C32 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 
                                                  diffusion_estimator = diffusion_estimator,
                                                  seed = seed,
                                                  print_progress_iters = 100))
-balanced_C32$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 5),
-                                             m_schedule = rep(2, 5),
+balanced_C64$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 6),
+                                             m_schedule = rep(2, 6),
                                              time_mesh = NULL,
-                                             base_samples = sub_posteriors_32,
-                                             L = 6,
+                                             base_samples = sub_posteriors_64,
+                                             L = 7,
                                              dim = 18,
                                              phi_rate = phi_rate,
-                                             data_split = data_split_32,
+                                             data_split = data_split_64,
                                              prior_means = prior_means,
                                              prior_variances = prior_variances,
                                              C = C,
@@ -173,16 +173,16 @@ balanced_C32$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 5),
                                              print_progress_iters = 100)
 
 # regular mesh
-balanced_C32$reg$particles <- resample_particle_y_samples(particle_set = balanced_C32$reg$particles[[1]],
-                                                          multivariate = TRUE,
+balanced_C64$reg$particles <- resample_particle_y_samples(particle_set = balanced_C64$reg$particles[[1]],
+                                                          multivariate = TRUE,  
                                                           resampling_method = 'resid',
                                                           seed = seed)
-print(integrated_abs_distance(full_posterior, balanced_C32$reg$particles$y_samples))
+print(integrated_abs_distance(full_posterior, balanced_C64$reg$particles$y_samples))
 # adaptive mesh
-balanced_C32$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C32$adaptive$particles[[1]],
+balanced_C64$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C64$adaptive$particles[[1]],
                                                                multivariate = TRUE,
                                                                resampling_method = 'resid',
                                                                seed = seed)
-print(integrated_abs_distance(full_posterior, balanced_C32$adaptive$particles$y_samples))
+print(integrated_abs_distance(full_posterior, balanced_C64$adaptive$particles$y_samples))
 
-save.image('SF32.RData')
+save.image('SF64.RData')

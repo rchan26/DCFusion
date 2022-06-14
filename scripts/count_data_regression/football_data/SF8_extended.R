@@ -4,17 +4,16 @@ library(HMCGLMR)
 ##### Initialise example #####
 seed <- 2022
 set.seed(seed)
-nsamples_MCF <- 10000
-nsamples_GBF <- 10000
+nsamples <- 10000
 warmup <- 10000
 time_choice <- 1
 phi_rate <- 1
-prior_means <- rep(0, 18)
-prior_variances <- rep(10, 18)
-C <- 16
+prior_means <- rep(0, 35)
+prior_variances <- rep(10, 35)
+C <- 8
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.2
-CESS_j_threshold <- 0.05
+CESS_j_threshold <- 0.02
 diffusion_estimator <- 'NB'
 n_cores <- parallel::detectCores()
 
@@ -30,22 +29,25 @@ load_football_data <- function(list_of_files, seed = NULL) {
     full_data <- full_data[sample(1:nrow(full_data)),]
   }
   teams <- as.character(sort(unique(full_data$HomeTeam)))
-  X <- matrix(data = 0, nrow = 2*nrow(full_data), ncol = length(teams)+1)
-  colnames(X) <- c(teams, "Home")
+  X <- matrix(data = 0, nrow = 2*nrow(full_data), ncol = 2*length(teams)+1)
+  colnames(X) <- c(paste(teams, "att", sep = "_"), paste(teams, "def", sep = "_"), "Home")
   y <- rep(NA, 2*nrow(full_data))
   for (i in 1:nrow(full_data)) {
     # home goals
-    X[2*(i-1)+1, c(full_data[i,]$HomeTeam, full_data[i,]$AwayTeam, "Home")] <- 1 
+    X[2*(i-1)+1, c(paste(full_data[i,]$HomeTeam, "att", sep = "_"), "Home")] <- 1 
+    X[2*(i-1)+1, paste(full_data[i,]$AwayTeam, "def", sep = "_")] <- -1 
     y[2*(i-1)+1] <- full_data[i,]$FTHG
     # away goals
-    X[2*(i-1)+2, c(full_data[i,]$HomeTeam, full_data[i,]$AwayTeam)] <- 1
+    X[2*(i-1)+2, paste(full_data[i,]$AwayTeam, "att", sep = "_")] <- 1
+    X[2*(i-1)+2, paste(full_data[i,]$HomeTeam, "def", sep = "_")] <- -1
     y[2*(i-1)+2] <- full_data[i,]$FTAG
   }
   # column for first team is removed and taken as baseline
   # X <- X[,-1]
   # design_mat <- as.matrix(cbind(rep(1, nrow(X)), X))
   # colnames(design_mat)[1] <- 'intercept'
-  return(list('data' = cbind(X, 'goals' = y),
+  return(list('original_data' = full_data,
+              'data' = cbind(X, 'goals' = y),
               'y' = y,
               'X' = X))
 }
@@ -73,29 +75,29 @@ full_posterior <- hmc_sample_GLMR(likelihood = 'NB_2',
                                   phi = phi_rate,
                                   prior_means = prior_means,
                                   prior_variances = prior_variances,
-                                  iterations = nsamples_MCF + 10000,
+                                  iterations = nsamples + 10000,
                                   warmup = 10000,
                                   chains = 1,
                                   seed = seed,
                                   output = T)
 
-##### Sampling from sub-posterior C=16 #####
+##### Sampling from sub-posterior C=8 #####
 
-data_split_16 <- split_data(scottish_football$data,
-                           y_col_index = 19,
-                           X_col_index = 1:18,
+data_split_8 <- split_data(scottish_football$data,
+                           y_col_index = 36,
+                           X_col_index = 1:35,
                            C = C,
                            as_dataframe = F)
 # remove intercept column
-for (i in 1:16) {
-  data_split_16[[i]]$X <- data_split_16[[i]]$X[,-1]
-  data_split_16[[i]]$full_data_count <- subset(data_split_16[[i]]$full_data_count, select = -V2)
-  data_split_16[[i]]$design_count <- subset(data_split_16[[i]]$design_count, select = -V1)
+for (i in 1:8) {
+  data_split_8[[i]]$X <- data_split_8[[i]]$X[,-1]
+  data_split_8[[i]]$full_data_count <- subset(data_split_8[[i]]$full_data_count, select = -V2)
+  data_split_8[[i]]$design_count <- subset(data_split_8[[i]]$design_count, select = -V1)
 }
-sub_posteriors_16 <- hmc_base_sampler_GLMR(likelihood = 'NB_2',
-                                          nsamples = nsamples_MCF,
+sub_posteriors_8 <- hmc_base_sampler_GLMR(likelihood = 'NB_2',
+                                          nsamples = nsamples,
                                           warmup = 10000,
-                                          data_split = data_split_16,
+                                          data_split = data_split_8,
                                           C = C,
                                           phi = phi_rate,
                                           prior_means = prior_means,
@@ -106,35 +108,35 @@ sub_posteriors_16 <- hmc_base_sampler_GLMR(likelihood = 'NB_2',
 ##### Applying other methodologies #####
 
 print('Applying other methodologies')
-consensus_mat_16 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_16, indep = F)
-consensus_sca_16 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_16, indep = T)
-neiswanger_true_16 <- neiswanger(S = C,
-                                samples_to_combine = sub_posteriors_16,
+consensus_mat_8 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_8, indep = F)
+consensus_sca_8 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_8, indep = T)
+neiswanger_true_8 <- neiswanger(S = C,
+                                samples_to_combine = sub_posteriors_8,
                                 anneal = TRUE)
-neiswanger_false_16 <- neiswanger(S = C,
-                                 samples_to_combine = sub_posteriors_16,
+neiswanger_false_8 <- neiswanger(S = C,
+                                 samples_to_combine = sub_posteriors_8,
                                  anneal = FALSE)
-weierstrass_importance_16 <- weierstrass(Samples = sub_posteriors_16,
+weierstrass_importance_8 <- weierstrass(Samples = sub_posteriors_8,
                                         method = 'importance')
-weierstrass_rejection_16 <- weierstrass(Samples = sub_posteriors_16,
+weierstrass_rejection_8 <- weierstrass(Samples = sub_posteriors_8,
                                        method = 'reject')
 
-integrated_abs_distance(full_posterior, consensus_mat_16$samples)
-integrated_abs_distance(full_posterior, consensus_sca_16$samples)
-integrated_abs_distance(full_posterior, neiswanger_true_16$samples)
-integrated_abs_distance(full_posterior, neiswanger_false_16$samples)
-integrated_abs_distance(full_posterior, weierstrass_importance_16$samples)
-integrated_abs_distance(full_posterior, weierstrass_rejection_16$samples)
+integrated_abs_distance(full_posterior, consensus_mat_8$samples)
+integrated_abs_distance(full_posterior, consensus_sca_8$samples)
+integrated_abs_distance(full_posterior, neiswanger_true_8$samples)
+integrated_abs_distance(full_posterior, neiswanger_false_8$samples)
+integrated_abs_distance(full_posterior, weierstrass_importance_8$samples)
+integrated_abs_distance(full_posterior, weierstrass_rejection_8$samples)
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C16 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 4),
-                                                m_schedule = rep(2, 4),
+balanced_C8 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples, 3),
+                                                m_schedule = rep(2, 3),
                                                 time_mesh = NULL,
-                                                base_samples = sub_posteriors_16,
-                                                L = 5,
-                                                dim = 18,
+                                                base_samples = sub_posteriors_8,
+                                                L = 4,
+                                                dim = 35,
                                                 phi_rate = phi_rate,
-                                                data_split = data_split_16,
+                                                data_split = data_split_8,
                                                 prior_means = prior_means,
                                                 prior_variances = prior_variances,
                                                 C = C,
@@ -149,14 +151,14 @@ balanced_C16 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed,
                                                 print_progress_iters = 100))
-balanced_C16$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 4),
-                                            m_schedule = rep(2, 4),
+balanced_C8$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples, 3),
+                                            m_schedule = rep(2, 3),
                                             time_mesh = NULL,
-                                            base_samples = sub_posteriors_16,
-                                            L = 5,
-                                            dim = 18,
+                                            base_samples = sub_posteriors_8,
+                                            L = 4,
+                                            dim = 35,
                                             phi_rate = phi_rate,
-                                            data_split = data_split_16,
+                                            data_split = data_split_8,
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,
                                             C = C,
@@ -173,16 +175,16 @@ balanced_C16$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 4),
                                             print_progress_iters = 100)
 
 # regular mesh
-balanced_C16$reg$particles <- resample_particle_y_samples(particle_set = balanced_C16$reg$particles[[1]],
+balanced_C8$reg$particles <- resample_particle_y_samples(particle_set = balanced_C8$reg$particles[[1]],
                                                          multivariate = TRUE,
                                                          resampling_method = 'resid',
                                                          seed = seed)
-print(integrated_abs_distance(full_posterior, balanced_C16$reg$particles$y_samples))
+print(integrated_abs_distance(full_posterior, balanced_C8$reg$particles$y_samples))
 # adaptive mesh
-balanced_C16$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C16$adaptive$particles[[1]],
+balanced_C8$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C8$adaptive$particles[[1]],
                                                               multivariate = TRUE,
                                                               resampling_method = 'resid',
                                                               seed = seed)
-print(integrated_abs_distance(full_posterior, balanced_C16$adaptive$particles$y_samples))
+print(integrated_abs_distance(full_posterior, balanced_C8$adaptive$particles$y_samples))
 
-save.image('SF16.RData')
+save.image('SF8.RData')
