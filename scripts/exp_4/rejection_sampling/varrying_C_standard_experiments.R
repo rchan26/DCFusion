@@ -119,61 +119,27 @@ for (i in 1:length(denominator)) {
   lines(density(prog_fused$samples[[1]]), col = 'darkgreen', lty = 2)
 }
 
-par(mai = c(1.02, 1, 0.82, 0.42))
+plot(x = denominator, y = sapply(1:15, function(i) log(fnj_results[[i]]$time, 2)),
+     ylim = c(0, 16), ylab = '', xlab = '', font.lab = 2, pch = 4, lwd = 3, xaxt = 'n', yaxt = 'n', type = 'b')
+axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
+mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 20, 2), labels = seq(0, 20, 2), font = 2, cex = 1.5)
+axis(2, at=seq(0, 20, 1), labels=rep("", 21), lwd.ticks = 0.5)
+mtext('log(Time elapsed in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
 
-######################################## running time
-
-plot(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]][[1]]), ylim = c(0, 10),
-     ylab = 'Running time in seconds', xlab = 'Number of Subposteriors (C)', col = 'black', pch = 4)
-lines(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]][[1]]), col = 'black')
-points(x = c(2, 4, 8, 16), y = c(sum(bal_results[[1]]$time), sum(bal_results[[3]]$time),
-                                 sum(bal_results[[7]]$time), sum(bal_results[[15]]$time)), col = 'black', pch = 4)
-lines(x = c(2, 4, 8, 16), y = c(sum(bal_results[[1]]$time), sum(bal_results[[3]]$time),
-                                sum(bal_results[[7]]$time), sum(bal_results[[15]]$time)), col = 'black')
-points(x = 2:16, y = sapply(1:15, function(i) sum(prog_results[[i]]$time)), col = 'black', pch = 4)
-lines(x = 2:16, y = sapply(1:15, function(i) sum(prog_results[[i]]$time)), col = 'black')
-
-#################### log
-
-# uses colours defined in colour_scales.R
-
-plot(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), ylim = c(-1, 10),
-     ylab = 'Time Elapsed in log(seconds)', xlab = 'Number of Subposteriors (C)',
-     col = Okabe_Ito[8], pch = 1, lwd = 3)
-lines(x = 2:16, y = sapply(1:15, function(i) log(fnj_results[[i]][[1]])), 
-      col = Okabe_Ito[8], lwd = 3)
-points(x = c(2, 4, 8, 16), y = log(c(sum(bal_results[[1]]$time), sum(bal_results[[3]]$time),
-                                     sum(bal_results[[7]]$time), sum(bal_results[[15]]$time))), 
-       col = Okabe_Ito[5], pch = 0, lwd = 3)
-lines(x = c(2, 4, 8, 16), y = log(c(sum(bal_results[[1]]$time), sum(bal_results[[3]]$time),
-                                    sum(bal_results[[7]]$time), sum(bal_results[[15]]$time))), 
-      col = Okabe_Ito[5], lty = 2, lwd = 3)
-points(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
-       col = Okabe_Ito[4], pch = 2, lwd = 3)
-lines(x = 2:16, y = sapply(1:15, function(i) log(sum(prog_results[[i]]$time))), 
-      col = Okabe_Ito[4], lty = 3, lwd = 3)
-legend(x = 2, y = 10, 
-       legend = c('fork-and-join', 'balanced', 'progressive'),
-       lty = c(1, 2, 3), 
-       lwd = c(3, 3, 3),
-       pch = c(1, 0, 2), 
-       col = Okabe_Ito[c(8, 5, 4)],
-       cex = 1.1,
+plot(x = denominator, y = sapply(1:15, function(i) fnj_results[[i]]$overall_rho), ylim = c(0, 1),
+     ylab = '', xlab = '', col = 'black', pch = 4, lty = 2, lwd = 3, type = 'b', xaxt = 'n', yaxt = 'n')
+lines(x = denominator, y = sapply(1:15, function(i) fnj_results[[i]]$overall_Q), 
+      col = 'black', pch = 1, lty = 3, lwd = 3, type = 'b')
+axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
+mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.1), labels=c("0.0", c(seq(0.1, 0.9, 0.1), "1.0")), font = 2, cex = 1.5)
+mtext('Acceptance Probability', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 2, y = 1,
+       legend = c(expression(rho^bm), expression(Q^bm)),
+       lwd = c(3, 3),
+       lty = c(2, 3),
+       pch = c(4, 1),
+       cex = 1.25,
+       text.font = 2,
        bty = 'n')
-
-######################################## rho acceptance
-
-plot(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]]$overall_rho), ylim = c(0, 1),
-     ylab = expression(paste('Acceptance Rate for ', rho)), xlab = 'Number of Subposteriors (C)', 
-     col = 'black', pch = 1, lwd = 3)
-lines(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]]$overall_rho), 
-      col = 'black', lwd = 3)
-
-######################################## Q acceptance
-
-plot(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]]$overall_Q), ylim = c(0, 1),
-     ylab = expression(paste('Acceptance Rate for ', hat(Q))), xlab = 'Number of Subposteriors (C)', 
-     col = 'black', pch = 1, lwd = 3)
-lines(x = 2:16, y = sapply(1:15, function(i) fnj_results[[i]]$overall_Q), 
-      col = 'black', lwd = 3)
-
