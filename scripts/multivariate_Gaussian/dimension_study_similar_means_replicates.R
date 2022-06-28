@@ -539,3 +539,97 @@ legend(x = 0, y = 14,
        cex = 1.25,
        text.font = 2,
        bty = 'n')
+
+##### ISBA #####
+
+plot(x = dimension,
+     y = sapply(1:length(dimension), function(i) {
+       mean(sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD))
+     }),
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,0.5), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+lines(x = dimension[1:13],
+      y = sapply(1:length(dimension[1:13]), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$IAD))
+      }),
+      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'red')
+lines(x = dimension[1:13],
+      y = sapply(1:length(dimension[1:13]), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD))
+      }),
+      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'blue')
+for (i in 1:length(dimension)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, lwd = 1.5, col = 'black')
+}
+for (i in 1:length(dimension[1:13])) {
+  IAD <- sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, lwd = 1.5, col = 'red')
+}
+for (i in 1:length(dimension[1:13])) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 7, lwd = 1.5, col = 'blue')
+}
+axis(1, at = seq(0, dimension[length(dimension)], 10),
+     labels = seq(0, dimension[length(dimension)], 10), font = 2, cex = 1.5)
+axis(1, at = seq(0, dimension[length(dimension)], 5), labels = rep("", 21), lwd.ticks = 0.5)
+mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
+     font = 2, cex = 1.5)
+axis(2, at = seq(0, 1.6, 0.05), labels=rep("", 33), lwd.ticks = 0.5,
+     font = 2, cex = 1.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 1, y = 0.5,
+       legend = c('D&C-GBF (adaptive)',
+                  'GBF (adaptive)',
+                  'D&C-MCF'),
+       col = c('black', 'red', 'blue'),
+       lty = c(1, 2, 3),
+       pch = c(1, 2, 3),
+       lwd = rep(3, 3),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+# legend(x = 1, y = 0.2,
+#        legend = c('D&C-GBF'),
+#        col = c('black'),
+#        lty = 1,
+#        pch = 1,
+#        lwd = 3,
+#        cex = 1.25,
+#        text.font = 2,
+#        bty = 'n')
+
+plot(x = log(dimension, 2),
+     y = sapply(1:length(dimension), function(i) {
+       mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_gbf$adaptive[[i]][[rep]]$time))), 2))
+     }),
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(2,14), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+lines(x = log(dimension[1:13], 2),
+      y = sapply(1:length(dimension[1:13]), function(i) {
+        mean(log(sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$time), 2))
+      }),
+      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'red')
+lines(x = log(dimension[1:13], 2),
+      y = sapply(1:length(dimension[1:13]), function(i) {
+        mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_mcf[[i]][[rep]]$time))), 2))
+      }),
+      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'blue')
+axis(1, at = 0:6,
+     labels = 0:6, font = 2, cex = 1.5)
+
+axis(1, at = seq(0, 7, 0.5), labels = rep("", 15), lwd.ticks = 0.5)
+mtext('log(Dimension, 2)', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 14, 1), labels = seq(0, 14, 1), font = 2, cex = 1.5)
+mtext('log(Elapsed time in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 0, y = 14,
+       legend = c('D&C-GBF (adaptive)',
+                  'GBF (adaptive)',
+                  'D&C-MCF'),
+       col = c('black', 'red', 'blue'),
+       lty = c(1, 2, 3),
+       pch = c(1, 2, 3),
+       lwd = rep(3, 3),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+

@@ -4,15 +4,13 @@ library(HMCGLMR)
 ##### Initialise example #####
 seed <- 2022
 set.seed(seed)
-nsamples_MCF <- 10000
-nsamples_GBF <- 10000
+nsamples <- 10000
 warmup <- 10000
-time_choice <- 1
 phi_rate <- 1
 prior_means <- rep(0, 10)
 prior_variances <- rep(10, 10)
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.1
+CESS_0_threshold <- 0.2
 CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 n_cores <- parallel::detectCores()
@@ -31,7 +29,6 @@ load_bs_data <- function(file, seed = NULL) {
                                                     & (original_data$hr %in% c(7, 8, 9, 16, 17, 18, 19))),
                              weather = as.numeric(original_data$weathersit == 1),
                              atemp = original_data$atemp,
-                             # humid = original_data$hum,
                              wind = original_data$windspeed)
   bike_sharing <- bike_sharing[complete.cases(bike_sharing),]
   if (!is.null(seed)) {
@@ -60,7 +57,7 @@ full_posterior <- hmc_sample_GLMR(likelihood = 'NB',
                                   phi = phi_rate,
                                   prior_means = prior_means,
                                   prior_variances = prior_variances,
-                                  iterations = nsamples_MCF + 10000,
+                                  iterations = nsamples + 10000,
                                   warmup = 10000,
                                   chains = 1,
                                   seed = seed,
@@ -76,7 +73,7 @@ data_split_4 <- split_data(bike_sharing$data,
                            C = 4,
                            as_dataframe = F)
 sub_posteriors_4 <- hmc_base_sampler_GLMR(likelihood = 'NB',
-                                          nsamples = nsamples_MCF,
+                                          nsamples = nsamples,
                                           warmup = 10000,
                                           data_split = data_split_4,
                                           C = 4,
@@ -109,96 +106,8 @@ weierstrass_importance_4 <- weierstrass(Samples = sub_posteriors_4,
 weierstrass_rejection_4 <- weierstrass(Samples = sub_posteriors_4,
                                        method = 'reject')
 
-##### NB (Hypercube Centre) #####
-# print('NB Fusion (hypercube centre)')
-# NB_hc_4 <- bal_binary_fusion_SMC_BNBR(N_schedule = rep(nsamples_MCF, 2),
-#                                       m_schedule = rep(2, 2),
-#                                       time_schedule = rep(time_choice, 2),
-#                                       base_samples = sub_posteriors_4,
-#                                       L = 3,
-#                                       dim = 10,
-#                                       phi_rate = phi_rate,
-#                                       data_split = data_split_4,
-#                                       prior_means = prior_means,
-#                                       prior_variances = prior_variances,
-#                                       C = 4,
-#                                       precondition = TRUE,
-#                                       resampling_method = 'resid',
-#                                       ESS_threshold = ESS_threshold,
-#                                       diffusion_estimator = diffusion_estimator,
-#                                       seed = seed,
-#                                       n_cores = n_cores,
-#                                       print_progress_iters = 5)
-# NB_hc_4$particles <- resample_particle_y_samples(particle_set = NB_hc_4$particles[[1]],
-#                                                  multivariate = TRUE,
-#                                                  resampling_method = 'resid',
-#                                                  seed = seed)
-# NB_hc_4$proposed_samples <- NB_hc_4$proposed_samples[[1]]
-# print(integrated_abs_distance(full_posterior, NB_hc_4$particles$y_samples))
-
-# ##### Generalised Bayesian Fusion #####
-# 
-# ##### all at once #####
-# GBF_4 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = nsamples_GBF,
-#                                           m_schedule = 4,
-#                                           time_mesh = NULL,
-#                                           base_samples = sub_posteriors_4,
-#                                           L = 2,
-#                                           dim = 10,
-#                                           phi_rate = phi_rate,
-#                                           data_split = data_split_4,
-#                                           prior_means = prior_means,
-#                                           prior_variances = prior_variances,
-#                                           C = 4,
-#                                           precondition = TRUE,
-#                                           resampling_method = 'resid',
-#                                           ESS_threshold = ESS_threshold,
-#                                           adaptive_mesh = FALSE,
-#                                           mesh_parameters = list('condition' = 'SH',
-#                                                                  'CESS_0_threshold' = CESS_0_threshold,
-#                                                                  'CESS_j_threshold' = CESS_j_threshold,
-#                                                                  'vanilla' = FALSE),
-#                                           diffusion_estimator = diffusion_estimator,
-#                                           seed = seed,
-#                                           print_progress_iters = 5),
-#               'adaptive' = bal_binary_GBF_BNBR(N_schedule = nsamples_GBF,
-#                                                m_schedule = 4,
-#                                                time_mesh = NULL,
-#                                                base_samples = sub_posteriors_4,
-#                                                L = 2,
-#                                                dim = 10,
-#                                                phi_rate = phi_rate,
-#                                                data_split = data_split_4,
-#                                                prior_means = prior_means,
-#                                                prior_variances = prior_variances,
-#                                                C = 4,
-#                                                precondition = TRUE,
-#                                                resampling_method = 'resid',
-#                                                ESS_threshold = ESS_threshold,
-#                                                adaptive_mesh = TRUE,
-#                                                mesh_parameters = list('condition' = 'SH',
-#                                                                       'CESS_0_threshold' = CESS_0_threshold,
-#                                                                       'CESS_j_threshold' = CESS_j_threshold,
-#                                                                       'vanilla' = FALSE),
-#                                                diffusion_estimator = diffusion_estimator,
-#                                                seed = seed,
-#                                                print_progress_iters = 5))
-# 
-# # regular mesh
-# GBF_4$reg$particles <- resample_particle_y_samples(particle_set = GBF_4$reg$particles[[1]],
-#                                                    multivariate = TRUE,
-#                                                    resampling_method = 'resid',
-#                                                    seed = seed)
-# print(integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples)) 
-# # adaptive mesh
-# GBF_4$adaptive$particles <- resample_particle_y_samples(particle_set = GBF_4$adaptive$particles[[1]],
-#                                                         multivariate = TRUE,
-#                                                         resampling_method = 'resid',
-#                                                         seed = seed)
-# print(integrated_abs_distance(full_posterior, GBF_4$adaptive$particles$y_samples))
-
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C4 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 2),
+balanced_C4 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples, 2),
                                                 m_schedule = rep(2, 2),
                                                 time_mesh = NULL,
                                                 base_samples = sub_posteriors_4,
@@ -217,11 +126,10 @@ balanced_C4 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 2
                                                                        'CESS_0_threshold' = CESS_0_threshold,
                                                                        'CESS_j_threshold' = CESS_j_threshold,
                                                                        'vanilla' = FALSE),
-                                                record = TRUE,
                                                 diffusion_estimator = diffusion_estimator,
                                                 seed = seed,
-                                                print_progress_iters = 50))
-balanced_C4$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 2),
+                                                print_progress_iters = 100))
+balanced_C4$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples, 2),
                                             m_schedule = rep(2, 2),
                                             time_mesh = NULL,
                                             base_samples = sub_posteriors_4,
@@ -240,88 +148,29 @@ balanced_C4$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 2),
                                                                    'CESS_0_threshold' = CESS_0_threshold,
                                                                    'CESS_j_threshold' = CESS_j_threshold,
                                                                    'vanilla' = FALSE),
-                                            record = TRUE,
                                             diffusion_estimator = diffusion_estimator,
                                             seed = seed,
-                                            print_progress_iters = 50)
+                                            print_progress_iters = 100)
 
 # regular mesh
 balanced_C4$reg$particles <- resample_particle_y_samples(particle_set = balanced_C4$reg$particles[[1]],
                                                          multivariate = TRUE,
                                                          resampling_method = 'resid',
                                                          seed = seed)
+balanced_C4$reg$proposed_samples <- balanced_C4$reg$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C4$reg$particles$y_samples))
 # adaptive mesh
 balanced_C4$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C4$adaptive$particles[[1]],
                                                               multivariate = TRUE,
                                                               resampling_method = 'resid',
                                                               seed = seed)
+balanced_C4$reg$proposed_samples <- balanced_C4$adaptive$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C4$adaptive$particles$y_samples))
-
-# ##### Using local bounds #####
-# balanced_C4$reg_local <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 2),
-#                                              m_schedule = rep(2, 2),
-#                                              time_mesh = NULL,
-#                                              base_samples = sub_posteriors_4,
-#                                              L = 3,
-#                                              dim = 10,
-#                                              phi_rate = phi_rate,
-#                                              data_split = data_split_4,
-#                                              prior_means = prior_means,
-#                                              prior_variances = prior_variances,
-#                                              C = 4,
-#                                              precondition = TRUE,
-#                                              resampling_method = 'resid',
-#                                              ESS_threshold = ESS_threshold,
-#                                              adaptive_mesh = FALSE,
-#                                              mesh_parameters = list('condition' = 'SH',
-#                                                                     'CESS_0_threshold' = CESS_0_threshold,
-#                                                                     'CESS_j_threshold' = CESS_j_threshold,
-#                                                                     'vanilla' = FALSE),
-#                                              record = TRUE,
-#                                              diffusion_estimator = diffusion_estimator,
-#                                              local_bounds = TRUE,
-#                                              seed = seed,
-#                                              print_progress_iters = 50)
-# balanced_C4$adaptive_local <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 2),
-#                                                   m_schedule = rep(2, 2),
-#                                                   time_mesh = NULL,
-#                                                   base_samples = sub_posteriors_4,
-#                                                   L = 3,
-#                                                   dim = 10,
-#                                                   phi_rate = phi_rate,
-#                                                   data_split = data_split_4,
-#                                                   prior_means = prior_means,
-#                                                   prior_variances = prior_variances,
-#                                                   C = 4,
-#                                                   precondition = TRUE,
-#                                                   resampling_method = 'resid',
-#                                                   ESS_threshold = ESS_threshold,
-#                                                   adaptive_mesh = TRUE,
-#                                                   mesh_parameters = list('condition' = 'SH',
-#                                                                          'CESS_0_threshold' = CESS_0_threshold,
-#                                                                          'CESS_j_threshold' = CESS_j_threshold,
-#                                                                          'vanilla' = FALSE),
-#                                                   record = TRUE,
-#                                                   diffusion_estimator = diffusion_estimator,
-#                                                   local_bounds = TRUE,
-#                                                   seed = seed,
-#                                                   print_progress_iters = 50)
-# # regular mesh
-# balanced_C4$reg_local$particles <- resample_particle_y_samples(particle_set = balanced_C4$reg_local$particles[[1]],
-#                                                          multivariate = TRUE,
-#                                                          resampling_method = 'resid',
-#                                                          seed = seed)
-# print(integrated_abs_distance(full_posterior, balanced_C4$reg_local$particles$y_samples))
 
 ##### IAD #####
 
-# integrated_abs_distance(full_posterior, GBF_4$reg$particles$y_samples)
-# integrated_abs_distance(full_posterior, GBF_4$adaptive$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C4$reg$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C4$adaptive$particles$y_samples)
-# integrated_abs_distance(full_posterior, Poisson_hc_4$particles$y_samples)
-# integrated_abs_distance(full_posterior, NB_hc_4$particles$y_samples)
 integrated_abs_distance(full_posterior, consensus_mat_4$samples)
 integrated_abs_distance(full_posterior, consensus_sca_4$samples)
 integrated_abs_distance(full_posterior, neiswanger_true_4$samples)

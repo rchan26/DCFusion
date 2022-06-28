@@ -56,7 +56,7 @@ sub_posteriors_4 <- hmc_base_sampler_BLR(nsamples = nsamples,
 
 ##### Applying other methodologies #####
 
-# print('Applying other methodologies')
+print('Applying other methodologies')
 consensus_mat_4 <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = F)
 consensus_sca_4 <- consensus_scott(S = 4, samples_to_combine = sub_posteriors_4, indep = T)
 neiswanger_true_4 <- neiswanger(S = 4,

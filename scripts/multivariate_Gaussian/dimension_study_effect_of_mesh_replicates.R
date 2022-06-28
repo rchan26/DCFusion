@@ -12,10 +12,11 @@ resampling_method <- 'resid'
 number_of_replicates <- 10
 ESS_threshold <- 0.5
 CESS_0_threshold <- 0.05
-CESS_j_threshold <- c(0.05, 0.025, 0.01, 0.005, 0.001)
+CESS_j_threshold <- c(0.05, 0.025, 0.01)
 vanilla_b <- 1
 data_size <- 1
 n_cores <- parallel::detectCores()
+dc_gbf <- list('regular' = list(), 'adaptive' = list())
 
 collect_results <- function(results, dc, dim, marg_means, marg_sds, seed) {
   if (dc) {
@@ -66,17 +67,9 @@ collect_results <- function(results, dc, dim, marg_means, marg_sds, seed) {
 
 for (i in 1:length(CESS_j_threshold)) {
   print(paste('##### i:', i, '#####'))
-  print(paste('%%%%% CESS_j_threshold:', CESS_j_threshold[n], '%%%%%'))
-  dc_mcf[[i]] <- list()
-  gen_guide[[i]] <- list()
-  gbf$regular[[i]] <- list()
-  gbf$adaptive[[i]] <- list()
-  vanilla_guide[[i]] <- list()
-  sbf$regular[[i]] <- list()
-  sbf$adaptive[[i]] <- list()
+  print(paste('%%%%% CESS_j_threshold:', CESS_j_threshold[i], '%%%%%'))
   dc_gbf$regular[[i]] <- list()
   dc_gbf$adaptive[[i]] <- list()
-  # iid_sampling[[i]] <- list()
   for (rep in 1:number_of_replicates) {
     print(paste('rep:', rep))
     set.seed(seed*rep*i)
@@ -140,9 +133,80 @@ for (i in 1:length(CESS_j_threshold)) {
                                                    dim = dimension,
                                                    marg_means = mean,
                                                    marg_sds = rep(sqrt(1/data_size), dimension),
-                                                   seed = seed*i*rep)1
+                                                   seed = seed*i*rep)
     
     print('saving progress')
-    save.image('dimension_study_similar_means_replicates.RData')
+    save.image('dimension_study_effect_of_mesh_replicates.RData')
   }
 }
+
+##### Paper: IAD #####
+plot(x = CESS_j_threshold,
+     y = sapply(1:length(CESS_j_threshold), function(i) {
+       mean(sapply(1:number_of_replicates, function(rep) dc_gbf$regular[[i]][[rep]]$IAD))
+     }),
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+lines(x = CESS_j_threshold,
+      y = sapply(1:length(CESS_j_threshold), function(i) {
+        mean(sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD))
+      }),
+      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'red')
+for (i in 1:length(CESS_j_threshold)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_gbf$regular[[i]][[rep]]$IAD)
+  points(x = rep(CESS_j_threshold[i], length(IAD)), y = IAD, cex = 0.5, pch = 1, lwd = 1.5)
+}
+for (i in 1:length(CESS_j_threshold)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD)
+  points(x = rep(CESS_j_threshold[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, lwd = 1.5, col = 'red')
+}
+axis(1, at = log(CESS_j_threshold), labels = log(CESS_j_threshold), font = 2, cex = 1.5)
+mtext('CESS_j_threshold', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(-4, 0, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
+     font = 2, cex = 1.5)
+axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
+     font = 2, cex = 1.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 10000, y = 1,
+       legend = c('D&C-GBF (regular)',
+                  'D&C-GBF (adaptive)'),
+       col = c('black', 'red', 'blue', 'green', 'black', 'purple', 'orange', 'pink'),
+       lty = c(1, 2, 3, 4, 1, 5, 6, 1),
+       pch = c(1, 2, 3, 4, 7, 5, 6, 8),
+       lwd = rep(3, 8),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+##### Paper: time #####
+plot(x = log(CESS_j_threshold, 2),
+     y = sapply(1:length(CESS_j_threshold), function(i) {
+       mean(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_gbf$regular[[i]][[rep]]$time))))
+     }),
+     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(2,14), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+lines(x = log(CESS_j_threshold, 2),
+      y = sapply(1:length(CESS_j_threshold), function(i) {
+        mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_gbf$adaptive[[i]][[rep]]$time))), 2))
+      }),
+      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'red')
+axis(1, at = 0:6, labels = 0:6, font = 2, cex = 1.5)
+axis(1, at = seq(0, 7, 0.5), labels = rep("", 15), lwd.ticks = 0.5)
+mtext('log(CESS_j_threshold, 2)', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 14, 1), labels = seq(0, 14, 1), font = 2, cex = 1.5)
+mtext('log(Elapsed time in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 0, y = 14,
+       legend = c('D&C-GBF (regular)',
+                  'D&C-GBF (adaptive)',
+                  'GBF (regular)',
+                  'GBF (adaptive)',
+                  'D&C-MCF',
+                  'BF (regular)',
+                  'BF (adaptive)'),
+       col = c('black', 'red', 'blue', 'green', 'black', 'purple', 'orange'),
+       lty = c(1, 2, 3, 4, 1, 5, 6),
+       pch = c(1, 2, 3, 4, 7, 5, 6),
+       lwd = rep(3, 7),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+

@@ -8,7 +8,7 @@ n_cores <- parallel::detectCores()
 
 ##### Loading in Data #####
 
-original_data <- read.csv('credit_cards.csv')
+original_data <- read.csv('scripts/logistic_regression/credit_card/credit_cards.csv')
 original_data <- original_data[2:nrow(original_data),]
 credit_cards <- original_data[,c(25, 3, 4)]
 colnames(credit_cards) <- c('y', 'sex', 'education')

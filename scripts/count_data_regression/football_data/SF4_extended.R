@@ -4,15 +4,16 @@ library(HMCGLMR)
 ##### Initialise example #####
 seed <- 2022
 set.seed(seed)
-nsamples <- 30000
+nsamples <- 50000
 warmup <- 10000
 time_choice <- 1
 phi_rate <- 1
-prior_means <- rep(0, 35)
-prior_variances <- rep(10, 35)
+dim <- 35
+prior_means <- rep(0, dim)
+prior_variances <- rep(10, dim)
 C <- 4
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.1
+CESS_0_threshold <- 0.2
 CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 n_cores <- parallel::detectCores()
@@ -85,8 +86,8 @@ apply(full_posterior, 2, mean)
 ##### Sampling from sub-posterior C=4 #####
 
 data_split_4 <- split_data(scottish_football$data,
-                           y_col_index = 36,
-                           X_col_index = 1:35,
+                           y_col_index = dim+1,
+                           X_col_index = 1:dim,
                            C = C,
                            as_dataframe = F)
 # remove intercept column
@@ -138,7 +139,7 @@ balanced_C4 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples, 2),
                                                 time_mesh = NULL,
                                                 base_samples = sub_posteriors_4,
                                                 L = 3,
-                                                dim = 35,
+                                                dim = dim,
                                                 phi_rate = phi_rate,
                                                 data_split = data_split_4,
                                                 prior_means = prior_means,
@@ -161,7 +162,7 @@ balanced_C4$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples, 2),
                                             time_mesh = NULL,
                                             base_samples = sub_posteriors_4,
                                             L = 3,
-                                            dim = 35,
+                                            dim = dim,
                                             phi_rate = phi_rate,
                                             data_split = data_split_4,
                                             prior_means = prior_means,
@@ -185,12 +186,14 @@ balanced_C4$reg$particles <- resample_particle_y_samples(particle_set = balanced
                                                          multivariate = TRUE,
                                                          resampling_method = 'resid',
                                                          seed = seed)
+balanced_C4$reg$proposed_samples <- balanced_C4$reg$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C4$reg$particles$y_samples))
 # adaptive mesh
 balanced_C4$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C4$adaptive$particles[[1]],
                                                               multivariate = TRUE,
                                                               resampling_method = 'resid',
                                                               seed = seed)
+balanced_C4$adaptive$proposed_samples <- balanced_C4$adaptive$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C4$adaptive$particles$y_samples))
 
-save.image('SF4_30000.RData')
+save.image('SF4_50000.RData')

@@ -3,14 +3,14 @@ library(HMCBLR)
 
 seed <- 2016
 nsamples <- 10000
-nsamples_GBF <- 5000
 time_choice <- 1
-C <- 16
-prior_means <- rep(0, 14)
-prior_variances <- rep(1, 14)
+C <- 32
+dim <- 29
+prior_means <- rep(0, dim)
+prior_variances <- rep(1, dim)
 n_cores <- parallel::detectCores()
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.25
+CESS_0_threshold <- 0.2
 CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 
@@ -18,7 +18,7 @@ diffusion_estimator <- 'NB'
 
 load_nycflights_data <- function(seed = NULL) {
   nyc_flights <- subset(nycflights13::flights %>% left_join(nycflights13::weather),
-                        select = c("arr_delay", "origin", "dep_delay",
+                        select = c("arr_delay", "origin", "carrier", "dep_delay",
                                    "year", "day", "month", "hour", "distance",
                                    "temp", "humid", "wind_speed", "wind_gust",
                                    "precip", "pressure", "visib"))
@@ -33,6 +33,10 @@ load_nycflights_data <- function(seed = NULL) {
   nyc_flights$weekday <- weekdays(as.Date(paste(nyc_flights$year, "-", nyc_flights$month, "-", nyc_flights$day, sep = "")))
   nyc_flights$weekend <- as.numeric(nyc_flights$weekday %in% c("Saturday", "Sunday"))
   nyc_flights$night <- as.numeric(nyc_flights$hour >= 20 | nyc_flights$hour <= 5)
+  carrier_names <- names(table(nyc_flights$carrier))
+  for (i in 1:(length(carrier_names)-1)) {
+    nyc_flights[carrier_names[i]] <- as.numeric(nyc_flights$carrier==carrier_names[i])
+  }
   nyc_flights$EWR <- as.numeric(nyc_flights$origin=="EWR")
   nyc_flights$JFK <- as.numeric(nyc_flights$origin=="JFK")
   nyc_flights$windy <- as.numeric(nyc_flights$wind_speed > 25 | nyc_flights$wind_gust > 35)
@@ -66,6 +70,7 @@ load_nycflights_data <- function(seed = NULL) {
   X <- subset(nyc_flights, select = c("dep_delayed",
                                       "weekend",
                                       "night",
+                                      carrier_names[1:(length(carrier_names)-1)],
                                       "EWR",
                                       "JFK",
                                       # "windy",
@@ -104,11 +109,11 @@ full_posterior <- hmc_sample_BLR_2(y = nyc_flights$y,
                                    seed = seed,
                                    output = T)
 
-##### Sampling from sub-posterior C=16 #####
+##### Sampling from sub-posterior C=32 #####
 
-data_split_16 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:14, C = C, as_dataframe = F)
-sub_posteriors_16 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
-                                            data_split = data_split_16,
+data_split_32 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:dim, C = C, as_dataframe = F)
+sub_posteriors_32 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
+                                            data_split = data_split_32,
                                             C = C,
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,
@@ -119,61 +124,61 @@ sub_posteriors_16 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
 ##### Applying other methodologies #####
 
 print('Applying other methodologies')
-consensus_mat_16 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_16, indep = F)
-consensus_sca_16 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_16, indep = T)
-neiswanger_true_16 <- neiswanger(S = C,
-                                 samples_to_combine = sub_posteriors_16,
+consensus_mat_32 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_32, indep = F)
+consensus_sca_32 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_32, indep = T)
+neiswanger_true_32 <- neiswanger(S = C,
+                                 samples_to_combine = sub_posteriors_32,
                                  anneal = TRUE)
-neiswanger_false_16 <- neiswanger(S = C,
-                                  samples_to_combine = sub_posteriors_16,
+neiswanger_false_32 <- neiswanger(S = C,
+                                  samples_to_combine = sub_posteriors_32,
                                   anneal = FALSE)
-weierstrass_importance_16 <- weierstrass(Samples = sub_posteriors_16,
+weierstrass_importance_32 <- weierstrass(Samples = sub_posteriors_32,
                                          method = 'importance')
-weierstrass_rejection_16 <- weierstrass(Samples = sub_posteriors_16,
+weierstrass_rejection_32 <- weierstrass(Samples = sub_posteriors_32,
                                         method = 'reject')
 
-integrated_abs_distance(full_posterior, consensus_mat_16$samples)
-integrated_abs_distance(full_posterior, consensus_sca_16$samples)
-integrated_abs_distance(full_posterior, neiswanger_true_16$samples)
-integrated_abs_distance(full_posterior, neiswanger_false_16$samples)
-integrated_abs_distance(full_posterior, weierstrass_importance_16$samples)
-integrated_abs_distance(full_posterior, weierstrass_rejection_16$samples)
+integrated_abs_distance(full_posterior, consensus_mat_32$samples)
+integrated_abs_distance(full_posterior, consensus_sca_32$samples)
+integrated_abs_distance(full_posterior, neiswanger_true_32$samples)
+integrated_abs_distance(full_posterior, neiswanger_false_32$samples)
+integrated_abs_distance(full_posterior, weierstrass_importance_32$samples)
+integrated_abs_distance(full_posterior, weierstrass_rejection_32$samples)
 
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
-NB_hc_16_T1 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 4),
-                                      m_schedule = rep(2, 4),
-                                      time_schedule = rep(time_choice, 4),
-                                      base_samples = sub_posteriors_16,
-                                      L = 5,
-                                      dim = 14,
-                                      data_split = data_split_16,
-                                      prior_means = prior_means,
-                                      prior_variances = prior_variances,
-                                      C = C,
-                                      precondition = TRUE,
-                                      resampling_method = 'resid',
-                                      ESS_threshold = 0.5,
-                                      cv_location = 'hypercube_centre',
-                                      diffusion_estimator = 'NB',
-                                      seed = seed,
-                                      n_cores = n_cores,
-                                      print_progress_iters = 100)
-NB_hc_16_T1$particles <- resample_particle_y_samples(particle_set = NB_hc_16_T1$particles[[1]],
-                                                  multivariate = TRUE,
-                                                  resampling_method = 'resid',
-                                                  seed = seed)
-NB_hc_16_T1$proposed_samples <- NB_hc_16_T1$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, NB_hc_16_T1$particles$y_samples))
+NB_hc_32_T1 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 5),
+                                         m_schedule = rep(2, 5),
+                                         time_schedule = rep(time_choice, 5),
+                                         base_samples = sub_posteriors_32,
+                                         L = 6,
+                                         dim = dim,
+                                         data_split = data_split_32,
+                                         prior_means = prior_means,
+                                         prior_variances = prior_variances,
+                                         C = C,
+                                         precondition = TRUE,
+                                         resampling_method = 'resid',
+                                         ESS_threshold = 0.5,
+                                         cv_location = 'hypercube_centre',
+                                         diffusion_estimator = 'NB',
+                                         seed = seed,
+                                         n_cores = n_cores,
+                                         print_progress_iters = 100)
+NB_hc_32_T1$particles <- resample_particle_y_samples(particle_set = NB_hc_32_T1$particles[[1]],
+                                                     multivariate = TRUE,
+                                                     resampling_method = 'resid',
+                                                     seed = seed)
+NB_hc_32_T1$proposed_samples <- NB_hc_32_T1$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, NB_hc_32_T1$particles$y_samples))
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C16 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 4),
-                                                m_schedule = rep(2, 4),
+balanced_C32 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 5),
+                                                m_schedule = rep(2, 5),
                                                 time_mesh = NULL,
-                                                base_samples = sub_posteriors_16,
-                                                L = 5,
-                                                dim = 14,
-                                                data_split = data_split_16,
+                                                base_samples = sub_posteriors_32,
+                                                L = 6,
+                                                dim = dim,
+                                                data_split = data_split_32,
                                                 prior_means = prior_means,
                                                 prior_variances = prior_variances,
                                                 C = C,
@@ -189,13 +194,13 @@ balanced_C16 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 4
                                                 seed = seed,
                                                 n_cores = n_cores,
                                                 print_progress_iters = 100))
-balanced_C16$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 4),
-                                            m_schedule = rep(2, 4),
+balanced_C32$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 5),
+                                            m_schedule = rep(2, 5),
                                             time_mesh = NULL,
-                                            base_samples = sub_posteriors_16,
-                                            L = 5,
-                                            dim = 14,
-                                            data_split = data_split_16,
+                                            base_samples = sub_posteriors_32,
+                                            L = 6,
+                                            dim = dim,
+                                            data_split = data_split_32,
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,
                                             C = C,
@@ -212,18 +217,18 @@ balanced_C16$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 4),
                                             print_progress_iters = 100)
 
 # regular mesh
-balanced_C16$reg$particles <- resample_particle_y_samples(particle_set = balanced_C16$reg$particles[[1]],
+balanced_C32$reg$particles <- resample_particle_y_samples(particle_set = balanced_C32$reg$particles[[1]],
                                                           multivariate = TRUE,
                                                           resampling_method = 'resid',
                                                           seed = seed)
-balanced_C16$reg$proposed_samples <- balanced_C16$reg$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, balanced_C16$reg$particles$y_samples))
+balanced_C32$reg$proposed_samples <- balanced_C32$reg$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, balanced_C32$reg$particles$y_samples))
 # adaptive mesh
-balanced_C16$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C16$adaptive$particles[[1]],
+balanced_C32$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C32$adaptive$particles[[1]],
                                                                multivariate = TRUE,
                                                                resampling_method = 'resid',
                                                                seed = seed)
-balanced_C16$adaptive$proposed_samples <- balanced_C16$adaptive$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, balanced_C16$adaptive$particles$y_samples))
+balanced_C32$adaptive$proposed_samples <- balanced_C32$adaptive$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, balanced_C32$adaptive$particles$y_samples))
 
-save.image('NYC16_DCGBF.RData')
+save.image('NYC32_DCGBF.RData')

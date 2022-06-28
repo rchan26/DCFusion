@@ -3,18 +3,18 @@ library(HMCBLR)
 
 seed <- 2016
 nsamples <- 30000
-nsamples_GBF <- 4000
+nsamples_GBF <- 10000
 time_choice <- 0.5
 C <- 32
 n_cores <- parallel::detectCores()
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.5
+CESS_0_threshold <- 0.2
 CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 
 ##### Loading in Data #####
 
-original_data <- read.csv('credit_cards.csv')
+original_data <- read.csv('scripts/logistic_regression/credit_card/credit_cards.csv')
 original_data <- original_data[2:nrow(original_data),]
 credit_cards <- original_data[,c(25, 3, 4)]
 colnames(credit_cards) <- c('y', 'sex', 'education')
@@ -50,10 +50,10 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
 
 ##### Sampling from sub-posterior C=32 #####
 
-data_split_32 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 32, as_dataframe = F)
+data_split_32 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = C, as_dataframe = F)
 sub_posteriors_32 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                           data_split = data_split_32,
-                                          C = 32, 
+                                          C = C, 
                                           prior_means = rep(0, 5),
                                           prior_variances = rep(1, 5),
                                           warmup = 10000,
@@ -63,12 +63,12 @@ sub_posteriors_32 <- hmc_base_sampler_BLR(nsamples = nsamples,
 ##### Applying other methodologies #####
 
 print('Applying other methodologies')
-consensus_mat_32 <- consensus_scott(S = 32, samples_to_combine = sub_posteriors_32, indep = F)
-consensus_sca_32 <- consensus_scott(S = 32, samples_to_combine = sub_posteriors_32, indep = T)
-neiswanger_true_32 <- neiswanger(S = 32,
+consensus_mat_32 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_32, indep = F)
+consensus_sca_32 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_32, indep = T)
+neiswanger_true_32 <- neiswanger(S = C,
                                  samples_to_combine = sub_posteriors_32,
                                  anneal = TRUE)
-neiswanger_false_32 <- neiswanger(S = 32,
+neiswanger_false_32 <- neiswanger(S = C,
                                   samples_to_combine = sub_posteriors_32,
                                   anneal = FALSE)
 weierstrass_importance_32 <- weierstrass(Samples = sub_posteriors_32,
@@ -94,7 +94,7 @@ NB_hc_32 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 5),
                                       data_split = data_split_32,
                                       prior_means = rep(0, 5),
                                       prior_variances = rep(1, 5),
-                                      C = 32,
+                                      C = C,
                                       precondition = TRUE,
                                       resampling_method = 'resid',
                                       ESS_threshold = 0.5,
@@ -130,27 +130,27 @@ balanced_C32 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 5
                                                                        'CESS_j_threshold' = CESS_j_threshold,
                                                                        'vanilla' = FALSE),
                                                 diffusion_estimator = diffusion_estimator,
-                                                seed = seed),
-                     'adaptive' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 5),
-                                                     m_schedule = rep(2, 5),
-                                                     time_mesh = NULL,
-                                                     base_samples = sub_posteriors_32,
-                                                     L = 6,
-                                                     dim = 5,
-                                                     data_split = data_split_32,
-                                                     prior_means = rep(0, 5),
-                                                     prior_variances = rep(1, 5),
-                                                     C = C,
-                                                     precondition = TRUE,
-                                                     resampling_method = 'resid',
-                                                     ESS_threshold = ESS_threshold,
-                                                     adaptive_mesh = TRUE,
-                                                     mesh_parameters = list('condition' = 'SH',
-                                                                            'CESS_0_threshold' = CESS_0_threshold,
-                                                                            'CESS_j_threshold' = CESS_j_threshold,
-                                                                            'vanilla' = FALSE),
-                                                     diffusion_estimator = diffusion_estimator,
-                                                     seed = seed))
+                                                seed = seed))
+balanced_C32$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 5),
+                                            m_schedule = rep(2, 5),
+                                            time_mesh = NULL,
+                                            base_samples = sub_posteriors_32,
+                                            L = 6,
+                                            dim = 5,
+                                            data_split = data_split_32,
+                                            prior_means = rep(0, 5),
+                                            prior_variances = rep(1, 5),
+                                            C = C,
+                                            precondition = TRUE,
+                                            resampling_method = 'resid',
+                                            ESS_threshold = ESS_threshold,
+                                            adaptive_mesh = TRUE,
+                                            mesh_parameters = list('condition' = 'SH',
+                                                                   'CESS_0_threshold' = CESS_0_threshold,
+                                                                   'CESS_j_threshold' = CESS_j_threshold,
+                                                                   'vanilla' = FALSE),
+                                            diffusion_estimator = diffusion_estimator,
+                                            seed = seed)
 
 # regular mesh
 balanced_C32$reg$particles <- resample_particle_y_samples(particle_set = balanced_C32$reg$particles[[1]],

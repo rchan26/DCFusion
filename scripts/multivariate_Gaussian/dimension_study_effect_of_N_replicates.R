@@ -2,7 +2,7 @@ library(DCFusion)
 
 seed <- 1994
 set.seed(seed)
-nsamples <- c(10000, 25000, 50000, 100000, 125000, 150000)
+nsamples <- c(10000, 25000, 50000)
 dimension <- 50
 C <- 8
 corr <- 0.9
@@ -70,7 +70,7 @@ for (i in 1:length(nsamples)) {
   print(paste('%%%%% nsamples:', nsamples[i], '%%%%%'))
   dc_gbf$regular[[i]] <- list()
   dc_gbf$adaptive[[i]] <- list()
-  for (rep in 6:number_of_replicates) {
+  for (rep in 10:number_of_replicates) {
     print(paste('rep:', rep))
     set.seed(seed*rep*i)
     mean <- rep(0, dimension)

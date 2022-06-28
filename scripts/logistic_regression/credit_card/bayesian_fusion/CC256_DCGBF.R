@@ -3,18 +3,18 @@ library(HMCBLR)
 
 seed <- 2016
 nsamples <- 30000
-nsamples_GBF <- 5000
+nsamples_GBF <- 10000
 time_choice <- 0.5
 C <- 256
 n_cores <- parallel::detectCores()
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.5
+CESS_0_threshold <- 0.2
 CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 
 ##### Loading in Data #####
 
-original_data <- read.csv('credit_cards.csv')
+original_data <- read.csv('scripts/logistic_regression/credit_card/credit_cards.csv')
 original_data <- original_data[2:nrow(original_data),]
 credit_cards <- original_data[,c(25, 3, 4)]
 colnames(credit_cards) <- c('y', 'sex', 'education')
@@ -50,10 +50,10 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
 
 ##### Sampling from sub-posterior C=64 #####
 
-data_split_256 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = 256, as_dataframe = F)
+data_split_256 <- split_data(credit_cards_full, y_col_index = 1, X_col_index = 2:5, C = C, as_dataframe = F)
 sub_posteriors_256 <- hmc_base_sampler_BLR(nsamples = nsamples,
                                            data_split = data_split_256,
-                                           C = 256, 
+                                           C = C, 
                                            prior_means = rep(0, 5),
                                            prior_variances = rep(1, 5),
                                            warmup = 10000,
@@ -63,12 +63,12 @@ sub_posteriors_256 <- hmc_base_sampler_BLR(nsamples = nsamples,
 ##### Applying other methodologies #####
 
 print('Applying other methodologies')
-consensus_mat_256 <- consensus_scott(S = 256, samples_to_combine = sub_posteriors_256, indep = F)
-consensus_sca_256 <- consensus_scott(S = 256, samples_to_combine = sub_posteriors_256, indep = T)
-neiswanger_true_256 <- neiswanger(S = 256,
+consensus_mat_256 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_256, indep = F)
+consensus_sca_256 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_256, indep = T)
+neiswanger_true_256 <- neiswanger(S = C,
                                   samples_to_combine = sub_posteriors_256,
                                   anneal = TRUE)
-neiswanger_false_256 <- neiswanger(S = 256,
+neiswanger_false_256 <- neiswanger(S = C,
                                    samples_to_combine = sub_posteriors_256,
                                    anneal = FALSE)
 weierstrass_importance_256 <- weierstrass(Samples = sub_posteriors_256,
@@ -94,7 +94,7 @@ NB_hc_256 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 8),
                                        data_split = data_split_256,
                                        prior_means = rep(0, 5),
                                        prior_variances = rep(1, 5),
-                                       C = 256,
+                                       C = C,
                                        precondition = TRUE,
                                        resampling_method = 'resid',
                                        ESS_threshold = 0.5,

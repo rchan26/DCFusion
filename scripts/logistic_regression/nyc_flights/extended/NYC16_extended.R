@@ -3,14 +3,14 @@ library(HMCBLR)
 
 seed <- 2016
 nsamples <- 10000
-nsamples_GBF <- 5000
 time_choice <- 1
 C <- 16
-prior_means <- rep(0, 14)
-prior_variances <- rep(1, 14)
+dim <- 29
+prior_means <- rep(0, dim)
+prior_variances <- rep(1, dim)
 n_cores <- parallel::detectCores()
 ESS_threshold <- 0.5
-CESS_0_threshold <- 0.25
+CESS_0_threshold <- 0.2
 CESS_j_threshold <- 0.05
 diffusion_estimator <- 'NB'
 
@@ -18,7 +18,7 @@ diffusion_estimator <- 'NB'
 
 load_nycflights_data <- function(seed = NULL) {
   nyc_flights <- subset(nycflights13::flights %>% left_join(nycflights13::weather),
-                        select = c("arr_delay", "origin", "dep_delay",
+                        select = c("arr_delay", "origin", "carrier", "dep_delay",
                                    "year", "day", "month", "hour", "distance",
                                    "temp", "humid", "wind_speed", "wind_gust",
                                    "precip", "pressure", "visib"))
@@ -33,6 +33,10 @@ load_nycflights_data <- function(seed = NULL) {
   nyc_flights$weekday <- weekdays(as.Date(paste(nyc_flights$year, "-", nyc_flights$month, "-", nyc_flights$day, sep = "")))
   nyc_flights$weekend <- as.numeric(nyc_flights$weekday %in% c("Saturday", "Sunday"))
   nyc_flights$night <- as.numeric(nyc_flights$hour >= 20 | nyc_flights$hour <= 5)
+  carrier_names <- names(table(nyc_flights$carrier))
+  for (i in 1:(length(carrier_names)-1)) {
+    nyc_flights[carrier_names[i]] <- as.numeric(nyc_flights$carrier==carrier_names[i])
+  }
   nyc_flights$EWR <- as.numeric(nyc_flights$origin=="EWR")
   nyc_flights$JFK <- as.numeric(nyc_flights$origin=="JFK")
   nyc_flights$windy <- as.numeric(nyc_flights$wind_speed > 25 | nyc_flights$wind_gust > 35)
@@ -66,6 +70,7 @@ load_nycflights_data <- function(seed = NULL) {
   X <- subset(nyc_flights, select = c("dep_delayed",
                                       "weekend",
                                       "night",
+                                      carrier_names[1:(length(carrier_names)-1)],
                                       "EWR",
                                       "JFK",
                                       # "windy",
@@ -106,7 +111,7 @@ full_posterior <- hmc_sample_BLR_2(y = nyc_flights$y,
 
 ##### Sampling from sub-posterior C=16 #####
 
-data_split_16 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:14, C = C, as_dataframe = F)
+data_split_16 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:dim, C = C, as_dataframe = F)
 sub_posteriors_16 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
                                             data_split = data_split_16,
                                             C = C,
@@ -142,37 +147,37 @@ integrated_abs_distance(full_posterior, weierstrass_rejection_16$samples)
 ##### NB (Hypercube Centre) #####
 print('NB Fusion (hypercube centre)')
 NB_hc_16_T1 <- bal_binary_fusion_SMC_BLR(N_schedule = rep(nsamples, 4),
-                                      m_schedule = rep(2, 4),
-                                      time_schedule = rep(time_choice, 4),
-                                      base_samples = sub_posteriors_16,
-                                      L = 5,
-                                      dim = 14,
-                                      data_split = data_split_16,
-                                      prior_means = prior_means,
-                                      prior_variances = prior_variances,
-                                      C = C,
-                                      precondition = TRUE,
-                                      resampling_method = 'resid',
-                                      ESS_threshold = 0.5,
-                                      cv_location = 'hypercube_centre',
-                                      diffusion_estimator = 'NB',
-                                      seed = seed,
-                                      n_cores = n_cores,
-                                      print_progress_iters = 100)
+                                         m_schedule = rep(2, 4),
+                                         time_schedule = rep(time_choice, 4),
+                                         base_samples = sub_posteriors_16,
+                                         L = 5,
+                                         dim = dim,
+                                         data_split = data_split_16,
+                                         prior_means = prior_means,
+                                         prior_variances = prior_variances,
+                                         C = C,
+                                         precondition = TRUE,
+                                         resampling_method = 'resid',
+                                         ESS_threshold = 0.5,
+                                         cv_location = 'hypercube_centre',
+                                         diffusion_estimator = 'NB',
+                                         seed = seed,
+                                         n_cores = n_cores,
+                                         print_progress_iters = 100)
 NB_hc_16_T1$particles <- resample_particle_y_samples(particle_set = NB_hc_16_T1$particles[[1]],
-                                                  multivariate = TRUE,
-                                                  resampling_method = 'resid',
-                                                  seed = seed)
+                                                     multivariate = TRUE,
+                                                     resampling_method = 'resid',
+                                                     seed = seed)
 NB_hc_16_T1$proposed_samples <- NB_hc_16_T1$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, NB_hc_16_T1$particles$y_samples))
 
 ##### bal binary combining two sub-posteriors at a time #####
-balanced_C16 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 4),
+balanced_C16 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 4),
                                                 m_schedule = rep(2, 4),
                                                 time_mesh = NULL,
                                                 base_samples = sub_posteriors_16,
                                                 L = 5,
-                                                dim = 14,
+                                                dim = dim,
                                                 data_split = data_split_16,
                                                 prior_means = prior_means,
                                                 prior_variances = prior_variances,
@@ -189,12 +194,12 @@ balanced_C16 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 4
                                                 seed = seed,
                                                 n_cores = n_cores,
                                                 print_progress_iters = 100))
-balanced_C16$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples_GBF, 4),
+balanced_C16$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 4),
                                             m_schedule = rep(2, 4),
                                             time_mesh = NULL,
                                             base_samples = sub_posteriors_16,
                                             L = 5,
-                                            dim = 14,
+                                            dim = dim,
                                             data_split = data_split_16,
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,

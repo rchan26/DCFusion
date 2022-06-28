@@ -4,8 +4,7 @@ library(HMCGLMR)
 ##### Initialise example #####
 seed <- 2022
 set.seed(seed)
-nsamples_MCF <- 100000
-nsamples_GBF <- 10000
+nsamples <- 10000
 warmup <- 10000
 time_choice <- 1
 phi_rate <- 1
@@ -56,7 +55,7 @@ full_posterior <- hmc_sample_GLMR(likelihood = 'NB',
                                   phi = 1,
                                   prior_means = prior_means,
                                   prior_variances = prior_variances,
-                                  iterations = nsamples_MCF + 10000,
+                                  iterations = nsamples + 10000,
                                   warmup = 10000,
                                   chains = 1,
                                   seed = seed,
@@ -70,7 +69,7 @@ data_split_32 <- split_data(med_demand$data,
                             C = 32,
                             as_dataframe = F)
 sub_posteriors_32 <- hmc_base_sampler_GLMR(likelihood = 'NB',
-                                           nsamples = nsamples_MCF,
+                                           nsamples = nsamples,
                                            warmup = 10000,
                                            data_split = data_split_32,
                                            C = 32,
@@ -98,7 +97,7 @@ weierstrass_rejection_32 <- weierstrass(Samples = sub_posteriors_32,
 
 # ##### NB (Hypercube Centre) #####
 # print('NB Fusion (hypercube centre)')
-# NB_hc_32 <- bal_binary_fusion_SMC_BNBR(N_schedule = rep(nsamples_MCF, 5),
+# NB_hc_32 <- bal_binary_fusion_SMC_BNBR(N_schedule = rep(nsamples, 5),
 #                                        m_schedule = rep(2, 5),
 #                                        time_schedule = rep(time_choice, 5),
 #                                        base_samples = sub_posteriors_32,
@@ -113,7 +112,6 @@ weierstrass_rejection_32 <- weierstrass(Samples = sub_posteriors_32,
 #                                        resampling_method = 'resid',
 #                                        ESS_threshold = ESS_threshold,
 #                                        diffusion_estimator = diffusion_estimator,
-#                                        local_bounds = TRUE,
 #                                        seed = seed,
 #                                        n_cores = n_cores)
 # NB_hc_32$particles <- resample_particle_y_samples(particle_set = NB_hc_32$particles[[1]],
@@ -124,72 +122,11 @@ weierstrass_rejection_32 <- weierstrass(Samples = sub_posteriors_32,
 # print(integrated_abs_distance(full_posterior, NB_hc_32$particles$y_samples))
 
 # ##### Generalised Bayesian Fusion #####
-# 
-# ##### all at once #####
-# GBF_32 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = nsamples_GBF,
-#                                            m_schedule = 32,
-#                                            time_mesh = NULL,
-#                                            base_samples = sub_posteriors_32,
-#                                            L = 2,
-#                                            dim = 10,
-#                                            phi_rate = phi_rate,
-#                                            data_split = data_split_32,
-#                                            prior_means = prior_means,
-#                                            prior_variances = prior_variances,
-#                                            C = 32,
-#                                            precondition = TRUE,
-#                                            resampling_method = 'resid',
-#                                            ESS_threshold = ESS_threshold,
-#                                            adaptive_mesh = FALSE,
-#                                            mesh_parameters = list('condition' = 'SH',
-#                                                                   'CESS_0_threshold' = CESS_0_threshold,
-#                                                                   'CESS_j_threshold' = CESS_j_threshold,
-#                                                                   'vanilla' = FALSE),
-#                                            record = TRUE,
-#                                            diffusion_estimator = diffusion_estimator,
-#                                            local_bounds = TRUE,
-#                                            seed = seed))
-# GBF_32$adaptive <- bal_binary_GBF_BNBR(N_schedule = nsamples_GBF,
-#                                        m_schedule = 32,
-#                                        time_mesh = NULL,
-#                                        base_samples = sub_posteriors_32,
-#                                        L = 2,
-#                                        dim = 10,
-#                                        phi_rate = phi_rate,
-#                                        data_split = data_split_32,
-#                                        prior_means = prior_means,
-#                                        prior_variances = prior_variances,
-#                                        C = 32,
-#                                        precondition = TRUE,
-#                                        resampling_method = 'resid',
-#                                        ESS_threshold = ESS_threshold,
-#                                        adaptive_mesh = TRUE,
-#                                        mesh_parameters = list('condition' = 'SH',
-#                                                               'CESS_0_threshold' = CESS_0_threshold,
-#                                                               'CESS_j_threshold' = CESS_j_threshold,
-#                                                               'vanilla' = FALSE),
-#                                        record = TRUE,
-#                                        diffusion_estimator = diffusion_estimator,
-#                                        local_bounds = TRUE,
-#                                        seed = seed)
-# 
-# # regular mesh
-# GBF_32$reg$particles <- resample_particle_y_samples(particle_set = GBF_32$reg$particles[[1]],
-#                                                     multivariate = TRUE,
-#                                                     resampling_method = 'resid',
-#                                                     seed = seed)
-# print(integrated_abs_distance(full_posterior, GBF_32$reg$particles$y_samples)) 
-# # adaptive mesh
-# GBF_32$adaptive$particles <- resample_particle_y_samples(particle_set = GBF_32$adaptive$particles[[1]],
-#                                                          multivariate = TRUE,
-#                                                          resampling_method = 'resid',
-#                                                          seed = seed)
-# print(integrated_abs_distance(full_posterior, GBF_32$adaptive$particles$y_samples))
 
 ##### bal binary combining two sub-posteriors at a time #####
 
 # regular mesh
-balanced_C32 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 5),
+balanced_C32 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples, 5),
                                                  m_schedule = rep(2, 5),
                                                  time_mesh = NULL,
                                                  base_samples = sub_posteriors_32,
@@ -208,18 +145,17 @@ balanced_C32 <- list('reg' = bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 
                                                                         'CESS_0_threshold' = CESS_0_threshold,
                                                                         'CESS_j_threshold' = CESS_j_threshold,
                                                                         'vanilla' = FALSE),
-                                                 record = TRUE,
                                                  diffusion_estimator = diffusion_estimator,
-                                                 local_bounds = TRUE,
                                                  seed = seed))
 balanced_C32$reg$particles <- resample_particle_y_samples(particle_set = balanced_C32$reg$particles[[1]],
                                                           multivariate = TRUE,
                                                           resampling_method = 'resid',
                                                           seed = seed)
+balanced_C32$reg$proposed_samples <- balanced_C32$reg$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C32$reg$particles$y_samples))
 
 # adaptive mesh
-balanced_C32$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 5),
+balanced_C32$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples, 5),
                                              m_schedule = rep(2, 5),
                                              time_mesh = NULL,
                                              base_samples = sub_posteriors_32,
@@ -238,23 +174,19 @@ balanced_C32$adaptive <- bal_binary_GBF_BNBR(N_schedule = rep(nsamples_GBF, 5),
                                                                     'CESS_0_threshold' = CESS_0_threshold,
                                                                     'CESS_j_threshold' = CESS_j_threshold,
                                                                     'vanilla' = FALSE),
-                                             record = TRUE,
                                              diffusion_estimator = diffusion_estimator,
-                                             local_bounds = TRUE,
                                              seed = seed)
 balanced_C32$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C32$adaptive$particles[[1]],
                                                                multivariate = TRUE,
                                                                resampling_method = 'resid',
                                                                seed = seed)
+balanced_C32$adaptive$proposed_samples <- balanced_C32$adaptive$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C32$adaptive$particles$y_samples))
 
 ##### IAD #####
 
-# integrated_abs_distance(full_posterior, GBF_32$reg$particles$y_samples)
-# integrated_abs_distance(full_posterior, GBF_32$adaptive$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C32$reg$particles$y_samples)
 integrated_abs_distance(full_posterior, balanced_C32$adaptive$particles$y_samples)
-# integrated_abs_distance(full_posterior, Poisson_hc_32$particles$y_samples)
 # integrated_abs_distance(full_posterior, NB_hc_32$particles$y_samples)
 integrated_abs_distance(full_posterior, consensus_mat_32$samples)
 integrated_abs_distance(full_posterior, consensus_sca_32$samples)

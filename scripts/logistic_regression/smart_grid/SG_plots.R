@@ -1,10 +1,10 @@
 library(DCFusion)
-load('BS4_NB.RData')
-load('BS8_NB.RData')
-load('BS16_NB.RData')
-load('BS32_NB.RData')
-load('BS64_NB.RData')
-load('BS128_NB.RData')
+load('SG4.RData')
+load('SG8.RData')
+load('SG16.RData')
+load('SG32.RData')
+load('SG64.RData')
+load('SG128.RData')
 
 balanced <- list('reg' = c(integrated_abs_distance(full_posterior,
                                                    balanced_C4$reg$particles$y_samples),
