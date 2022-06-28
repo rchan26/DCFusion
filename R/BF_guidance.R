@@ -326,7 +326,7 @@ mesh_guidance_adaptive <- function(C,
   T1 <- mesh_T1(k3, b, C, E_nu_j, data_size)
   T2 <- mesh_T2(k4, b, C, data_size, d)
   return(list('max_delta_j' = min(T1, T2),
-              'CESS_j_treshold' = exp(-k3-k4),
+              'CESS_j_threshold' = exp(-k3-k4),
               'T1' = T1,
               'T2' = T2,
               'chosen' = ifelse(T1 < T2, "T1", "T2"),
@@ -401,7 +401,7 @@ mesh_guidance_regular <- function(C,
     }
   }
   return(list('max_delta_j' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d),
-              'CESS_j_treshold' = exp(-k3-k4),
+              'CESS_j_threshold' = exp(-k3-k4),
               'delta_j_T1' = mesh_T1(k3 = k3, b = b, C = C, E_nu_j = max_E_nu_j, data_size = data_size),
               'delta_j_T2' = mesh_T2(k4 = k4, b = b, C = C, data_size = data_size, d = d),
               'k3' = k3,

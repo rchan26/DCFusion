@@ -855,7 +855,7 @@ double optimise_vector_product(const int &dim,
                                const Rcpp::List &bessel_layers,
                                const bool &minimise) {
   if (x.size()!=dim) {
-    stop("maximise_vector_product: mean must be a mean of length dim");
+    stop("maximise_vector_product: x must be a vector of length dim");
   }
   if (dim == 1) {
     double L;

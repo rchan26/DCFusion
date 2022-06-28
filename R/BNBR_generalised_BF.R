@@ -278,24 +278,43 @@ rho_j_BNBR <- function(particle_set,
                                                    weights = inv_precondition_matrices,
                                                    inverse_sum_weights = Lambda)
         phi <- lapply(1:m, function(c) {
-          ea_BNBR_DL_PT(dim = dim,
-                        x0 = as.vector(split_x_samples[[core]][[i]][c,]),
-                        y = as.vector(x_j[[i]][c,]),
-                        s = time_mesh[j-1],
-                        t = time_mesh[j],
-                        data = data_split[[c]][counts],
-                        transformed_design_mat = transformed_design_matrices[[c]],
-                        phi_rate = phi_rate,
-                        prior_means = prior_means,
-                        prior_variances = prior_variances,
-                        C = C,
-                        precondition_mat = precondition_matrices[[c]],
-                        transform_mats = transform_matrices[[c]],
-                        diffusion_estimator = diffusion_estimator,
-                        beta_NB = beta_NB,
-                        gamma_NB_n_points = gamma_NB_n_points,
-                        local_bounds = local_bounds,
-                        logarithm = TRUE)})
+          tryCatch(expr = ea_BNBR_DL_PT(dim = dim,
+                                        x0 = as.vector(split_x_samples[[core]][[i]][c,]),
+                                        y = as.vector(x_j[[i]][c,]),
+                                        s = time_mesh[j-1],
+                                        t = time_mesh[j],
+                                        data = data_split[[c]][counts],
+                                        transformed_design_mat = transformed_design_matrices[[c]],
+                                        phi_rate = phi_rate,
+                                        prior_means = prior_means,
+                                        prior_variances = prior_variances,
+                                        C = C,
+                                        precondition_mat = precondition_matrices[[c]],
+                                        transform_mats = transform_matrices[[c]],
+                                        diffusion_estimator = diffusion_estimator,
+                                        beta_NB = beta_NB,
+                                        gamma_NB_n_points = gamma_NB_n_points,
+                                        local_bounds = local_bounds,
+                                        logarithm = TRUE),
+                   error = function(e) {
+                     ea_BNBR_DL_PT(dim = dim,
+                                   x0 = as.vector(split_x_samples[[core]][[i]][c,]),
+                                   y = as.vector(x_j[[i]][c,]),
+                                   s = time_mesh[j-1],
+                                   t = time_mesh[j],
+                                   data = data_split[[c]][counts],
+                                   transformed_design_mat = transformed_design_matrices[[c]],
+                                   phi_rate = phi_rate,
+                                   prior_means = prior_means,
+                                   prior_variances = prior_variances,
+                                   C = C,
+                                   precondition_mat = precondition_matrices[[c]],
+                                   transform_mats = transform_matrices[[c]],
+                                   diffusion_estimator = diffusion_estimator,
+                                   beta_NB = beta_NB,
+                                   gamma_NB_n_points = gamma_NB_n_points,
+                                   local_bounds = FALSE,
+                                   logarithm = TRUE)})})
         log_rho_j[i] <- sum(sapply(1:m, function(c) phi[[c]]$phi))
         if (record) {
           bound_intensity[i,] <- sapply(1:m, function(c) phi[[c]]$bound_intensity)
@@ -921,7 +940,6 @@ bal_binary_GBF_BNBR <- function(N_schedule,
   sub_posterior_means <- list()
   sub_posterior_means[[L]] <- t(sapply(base_samples, function(sub) apply(sub, 2, mean)))
   cl <- parallel::makeCluster(n_cores, outfile = "SMC_BNBR_outfile.txt")
-  # parallel::clusterExport(cl, envir = environment(), varlist = ls())
   parallel::clusterExport(cl, varlist = ls("package:DCFusion"))
   parallel::clusterExport(cl, varlist = ls("package:layeredBB"))
   cat('Starting bal_binary fusion \n', file = 'bal_binary_GBF_BNBR.txt')

@@ -162,7 +162,7 @@ Rcpp::List spectral_radius_bound_BLR_Z(const int &dim,
                                        const arma::mat &sqrt_Lambda) {
   arma::mat hessian(dim, dim, arma::fill::zeros);
   for (int i=0; i < transformed_X.n_rows; ++i) {
-    const double G_max = obtain_G_max(dim, arma::trans(transformed_X.row(i)), bessel_layers, z_hat, 1);
+    const double G_max = obtain_G_max(dim, arma::trans(transformed_X.row(i)), bessel_layers, z_hat, 1, true);
     for (int k=0; k < dim; ++k) {
       for (int l=0; l <= k; ++l) {
         hessian.at(k,l) += count.at(i)*std::abs(transformed_X.at(i,k))*std::abs(transformed_X.at(i,l))*G_max;

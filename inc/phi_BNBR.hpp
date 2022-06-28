@@ -64,7 +64,8 @@ double obtain_G_max(const int &dim,
                     const arma::vec &transformed_X_vec,
                     const Rcpp::List &bessel_layers,
                     const arma::vec &z_hat,
-                    const double &phi_rate);
+                    const double &phi_rate,
+                    const bool &method_1);
 
 Rcpp::List spectral_radius_bound_BNBR_Z(const int &dim,
                                         const Rcpp::List &bessel_layers,

@@ -139,6 +139,61 @@ double spectral_radius_BNBR(const arma::vec &y_count,
 }
 
 // [[Rcpp::export]]
+arma::mat log_BNBR_hessian_Z(const int &dim,
+                             const arma::vec &y_count,
+                             const arma::mat &transformed_X,
+                             const arma::vec &X_beta,
+                             const arma::vec &count,
+                             const double &phi_rate,
+                             const arma::vec &prior_variances,
+                             const double &C,
+                             const arma::mat &sqrt_Lambda) {
+  arma::mat hessian(transformed_X.n_cols, transformed_X.n_cols, arma::fill::zeros);
+  for (int i=0; i < transformed_X.n_rows; ++i) {
+    const double exp_X_beta = exp(X_beta.at(i));
+    const double ratio = count.at(i)*(y_count.at(i)+phi_rate)*phi_rate*exp_X_beta/((exp_X_beta+phi_rate)*(exp_X_beta+phi_rate));
+    for (int j=0; j < transformed_X.n_cols; ++j) {
+      for (int k=0; k <= j; ++k) {
+        hessian.at(j,k) -= transformed_X.at(i,k)*transformed_X.at(i,k)*ratio;
+      }
+    }
+  }
+  for (int k=0; k < dim; ++k) {
+    for (int l=0; l <= k; ++l) {
+      for (int j=0; j < dim; ++j) {
+        hessian.at(k,l) += sqrt_Lambda.at(j,k)*sqrt_Lambda(j,l)/(C*prior_variances.at(j));
+      }
+      if (l!=k) {
+        hessian.at(l,k) = hessian.at(k,l);
+      }
+    }
+  }
+  return(hessian);
+}
+// [[Rcpp::export]]
+double spectral_radius_BNBR_Z(const int &dim,
+                              const arma::vec &y_count,
+                              const arma::vec &beta,
+                              const arma::mat &X,
+                              const arma::mat &transformed_X,
+                              const arma::vec &count,
+                              const double &phi_rate,
+                              const arma::vec &prior_variances,
+                              const double &C,
+                              const arma::mat &sqrt_Lambda) {
+  const arma::vec X_beta = X * beta;
+  return(spectral_radius(log_BNBR_hessian_Z(dim,
+                                            y_count,
+                                            transformed_X,
+                                            X_beta,
+                                            count,
+                                            phi_rate,
+                                            prior_variances,
+                                            C,
+                                            sqrt_Lambda)));
+}
+
+// [[Rcpp::export]]
 Rcpp::List obtain_hypercube_centre_BNBR(const Rcpp::List &bessel_layers,
                                         const arma::mat &transform_to_X,
                                         const arma::vec &y_count,
@@ -175,32 +230,60 @@ double obtain_G_max(const int &dim,
                     const arma::vec &transformed_X_vec,
                     const Rcpp::List &bessel_layers,
                     const arma::vec &z_hat,
-                    const double &phi_rate) {
-  const double F_hat = arma::dot(transformed_X_vec, z_hat);
-  const double log_phi_rate = log(phi_rate);
-  if (F_hat > log_phi_rate) {
-    // perform minimisation of F = transform_X_rowvec * z for z in bessel_layers
+                    const double &phi_rate,
+                    const bool &method_1 = true) {
+  if (method_1) {
+    const double F_hat = arma::dot(transformed_X_vec, z_hat);
+    const double log_phi_rate = log(phi_rate);
+    if (F_hat > log_phi_rate) {
+      // perform minimisation of F = transform_X_rowvec * z for z in bessel_layers
+      const double F_min = optimise_vector_product(dim,
+                                                   transformed_X_vec,
+                                                   bessel_layers,
+                                                   true);
+      if (F_min < log_phi_rate) {
+        return (0.25/phi_rate);
+      } else {
+        const double exp_u = exp(F_min);
+        return exp_u/((phi_rate+exp_u)*(phi_rate+exp_u));
+      }
+    } else {
+      // perform maximisation of F = transform_X_rowvec * z for z in bessel_layers
+      const double F_max = optimise_vector_product(dim,
+                                                   transformed_X_vec,
+                                                   bessel_layers,
+                                                   false);
+      if (F_max > log_phi_rate) {
+        return (0.25/phi_rate);
+      } else {
+        const double exp_u = exp(F_max);
+        return exp_u/((phi_rate+exp_u)*(phi_rate+exp_u));
+      }
+    }
+  } else {
+    // avoids evaluating at z_hat
+    // computes the minimum and maximum of F
+    const double log_phi_rate = log(phi_rate);
     const double F_min = optimise_vector_product(dim,
                                                  transformed_X_vec,
                                                  bessel_layers,
                                                  true);
-    if (F_min < log_phi_rate) {
-      return (0.25/phi_rate);
-    } else {
-      const double exp_u = exp(F_min);
-      return exp_u/((1+exp_u)*(1+exp_u));
-    }
-  } else {
-    // perform maximisation of F = transform_X_rowvec * z for z in bessel_layers
     const double F_max = optimise_vector_product(dim,
                                                  transformed_X_vec,
                                                  bessel_layers,
                                                  false);
-    if (F_max > log_phi_rate) {
+    // check if log_phi_rate in [F_min, F_max]
+    if (F_min <= log_phi_rate && log_phi_rate <= F_max) {
       return (0.25/phi_rate);
     } else {
-      const double exp_u = exp(F_max);
-      return exp_u/((1+exp_u)*(1+exp_u));
+      // take the point which is closest to log_phi_rate if global maximum is not achieved
+      if (std::abs(F_min-log_phi_rate) < std::abs(F_max-log_phi_rate)) {
+        const double exp_u = exp(F_min);
+        return exp_u/((phi_rate+exp_u)*(phi_rate+exp_u));  
+      } else {
+        const double exp_u = exp(F_max);
+        return exp_u/((phi_rate+exp_u)*(phi_rate+exp_u));
+      }
     }
   }
 }
@@ -219,7 +302,7 @@ Rcpp::List spectral_radius_bound_BNBR_Z(const int &dim,
   arma::mat hessian(dim, dim, arma::fill::zeros);
   for (int i=0; i < transformed_X.n_rows; ++i) {
     const double constant = count.at(i)*(y_count.at(i)+phi_rate)*phi_rate;
-    const double G_max = obtain_G_max(dim, arma::trans(transformed_X.row(i)), bessel_layers, z_hat, phi_rate);
+    const double G_max = obtain_G_max(dim, arma::trans(transformed_X.row(i)), bessel_layers, z_hat, phi_rate, true);
     for (int k=0; k < dim; ++k) {
       for (int l=0; l <= k; ++l) {
         hessian.at(k,l) += constant*std::abs(transformed_X.at(i,k))*std::abs(transformed_X.at(i,l))*G_max;
@@ -263,7 +346,7 @@ Rcpp::List spectral_radius_global_bound_BNBR_Z(const int &dim,
   for (int k=0; k < dim; ++k) {
     for (int l=0; l <= k; ++l) {
       for (int j=0; j < dim; ++j) {
-        hessian.at(k,l) -= sqrt_Lambda.at(j,k)*sqrt_Lambda(j,l)/(C*prior_variances.at(j));
+        hessian.at(k,l) += sqrt_Lambda.at(j,k)*sqrt_Lambda(j,l)/(C*prior_variances.at(j));
       }
       if (l!=k) {
         hessian.at(l,k) = hessian.at(k,l);

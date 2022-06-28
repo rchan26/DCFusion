@@ -532,12 +532,20 @@ spectral_radius_BNBR <- function(y_count, beta, X, count, phi_rate, prior_varian
     .Call(`_DCFusion_spectral_radius_BNBR`, y_count, beta, X, count, phi_rate, prior_variances, C, Lambda)
 }
 
+log_BNBR_hessian_Z <- function(dim, y_count, transformed_X, X_beta, count, phi_rate, prior_variances, C, sqrt_Lambda) {
+    .Call(`_DCFusion_log_BNBR_hessian_Z`, dim, y_count, transformed_X, X_beta, count, phi_rate, prior_variances, C, sqrt_Lambda)
+}
+
+spectral_radius_BNBR_Z <- function(dim, y_count, beta, X, transformed_X, count, phi_rate, prior_variances, C, sqrt_Lambda) {
+    .Call(`_DCFusion_spectral_radius_BNBR_Z`, dim, y_count, beta, X, transformed_X, count, phi_rate, prior_variances, C, sqrt_Lambda)
+}
+
 obtain_hypercube_centre_BNBR <- function(bessel_layers, transform_to_X, y_count, X, count, prior_means, prior_variances, C, phi_rate) {
     .Call(`_DCFusion_obtain_hypercube_centre_BNBR`, bessel_layers, transform_to_X, y_count, X, count, prior_means, prior_variances, C, phi_rate)
 }
 
-obtain_G_max <- function(dim, transformed_X_vec, bessel_layers, z_hat, phi_rate) {
-    .Call(`_DCFusion_obtain_G_max`, dim, transformed_X_vec, bessel_layers, z_hat, phi_rate)
+obtain_G_max <- function(dim, transformed_X_vec, bessel_layers, z_hat, phi_rate, method_1 = TRUE) {
+    .Call(`_DCFusion_obtain_G_max`, dim, transformed_X_vec, bessel_layers, z_hat, phi_rate, method_1)
 }
 
 spectral_radius_bound_BNBR_Z <- function(dim, bessel_layers, z_hat, y_count, transformed_X, count, phi_rate, prior_variances, C, sqrt_Lambda) {
