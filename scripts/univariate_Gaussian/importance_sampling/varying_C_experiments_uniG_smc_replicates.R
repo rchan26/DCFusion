@@ -153,101 +153,102 @@ for (i in 1:length(denominator)) {
   }
 }
 
-######################################## running time
-
-plot(x = denominator, y = sapply(1:length(denominator), function(i) {
-  mean(sapply(1:number_of_replicates, function(j) smc_fnj_results[[i]][[j]]$time))
-}), ylim = c(0, 2000), ylab = '', xlab = '', font.lab = 2, pch = 1, lwd = 3, xaxt = 'n', yaxt = 'n', type = 'l')
-axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
-mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 2000, 200), labels = seq(0, 2000, 200), font = 2, cex = 1.5)
-mtext('Time elapsed in seconds', 2, 2.75, font = 2, cex = 1.5)
-lines(x = denominator, y = sapply(1:length(denominator), function(i) {
-  mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[i]][[j]]$time))
-}), lty = 3, lwd = 3)
-lines(x = denominator, y = sapply(1:length(denominator), function(i) {
-  mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[i]][[j]]$time))
-}), lty = 2, lwd = 3)
-legend(x = 2, y = 2000,
-       legend = c('fork-and-join', 'balanced', 'progressive'),
-       lty = c(1, 3, 2),
-       lwd = c(3, 3, 3),
-       cex = 1.25,
-       text.font = 2,
-       bty = 'n')
+# ######################################## running time
+# 
+# plot(x = denominator, y = sapply(1:length(denominator), function(i) {
+#   mean(sapply(1:number_of_replicates, function(j) smc_fnj_results[[i]][[j]]$time))
+# }), ylim = c(0, 2000), ylab = '', xlab = '', font.lab = 2, pch = 1, lwd = 3, xaxt = 'n', yaxt = 'n', type = 'l')
+# axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
+# mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+# axis(2, at = seq(0, 2000, 200), labels = seq(0, 2000, 200), font = 2, cex = 1.5)
+# mtext('Time elapsed in seconds', 2, 2.75, font = 2, cex = 1.5)
+# lines(x = denominator, y = sapply(1:length(denominator), function(i) {
+#   mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[i]][[j]]$time))
+# }), lty = 3, lwd = 3)
+# lines(x = denominator, y = sapply(1:length(denominator), function(i) {
+#   mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[i]][[j]]$time))
+# }), lty = 2, lwd = 3)
+# legend(x = 2, y = 2000,
+#        legend = c('fork-and-join', 'balanced', 'progressive'),
+#        lty = c(1, 3, 2),
+#        lwd = c(3, 3, 3),
+#        cex = 1.25,
+#        text.font = 2,
+#        bty = 'n')
 
 #################### log
 
-plot(x = denominator, y = sapply(1:length(denominator), function(i) {
-  mean(sapply(1:number_of_replicates, function(j) log(smc_fnj_results[[i]][[j]]$time)))
-}), ylim = c(1, 8), ylab = '', xlab = '', font.lab = 2, pch = 1, lwd = 3, xaxt = 'n', yaxt = 'n', type = 'l')
-axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
-mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+plot(x = log(denominator, 2), y = sapply(1:length(denominator), function(i) {
+  mean(sapply(1:number_of_replicates, function(j) log(smc_fnj_results[[i]][[j]]$time, 2)))
+}), ylim = c(1, 12), ylab = '', xlab = '', font.lab = 2, xaxt = 'n', yaxt = 'n',
+lwd = 3, type = 'b', pch = 20, lty = 1)
+axis(1, at = log(denominator, 2), labels = log(denominator, 2), font = 2, cex = 1.5)
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 20, 1), labels = seq(0, 20, 1), font = 2, cex = 1.5)
-mtext('log(Time elapsed in seconds)', 2, 2.75, font = 2, cex = 1.5)
-lines(x = denominator, y = sapply(1:length(denominator), function(i) {
-  mean(sapply(1:number_of_replicates, function(j) log(smc_bal_results[[i]][[j]]$time)))
-}), lty = 3, lwd = 3)
-lines(x = denominator, y = sapply(1:length(denominator), function(i) {
-  mean(sapply(1:number_of_replicates, function(j) log(smc_prog_results[[i]][[j]]$time)))
-}), lty = 2, lwd = 3)
-legend(x = 2, y = 8,
+mtext('log(Time elapsed in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
+lines(x = log(denominator, 2), y = sapply(1:length(denominator), function(i) {
+  mean(sapply(1:number_of_replicates, function(j) log(smc_bal_results[[i]][[j]]$time, 2)))
+}), col = 'black', lwd = 3, pch = 5, lty = 3, type = 'b')
+lines(x = log(denominator, 2), y = sapply(1:length(denominator), function(i) {
+  mean(sapply(1:number_of_replicates, function(j) log(smc_prog_results[[i]][[j]]$time, 2)))
+}), col = 'black', lwd = 2, pch = 4, lty = 3, type = 'b')
+legend(x = 1, y = 12,
        legend = c('fork-and-join', 'balanced', 'progressive'),
        lty = c(1, 3, 2),
        lwd = c(3, 3, 3),
+       pch = c(20, 5, 4),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
 
-######################################## ESS (overall)
-
-plot(x = denominator, y = sapply(1:length(denominator), function(i) {
-  mean(sapply(1:number_of_replicates, function(j) smc_fnj_results[[i]][[j]]$ESS[2]))
-}), ylim = c(0, 10000), ylab = '', xlab = '', font.lab = 2, pch = 1, lwd = 3, xaxt = 'n', yaxt = 'n', type = 'l')
-axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
-mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
-axis(2, at = seq(0, 10000, 1000), labels = seq(0, 10000, 1000), font = 2, cex = 1.5)
-mtext('ESS (at top level)', 2, 2.75, font = 2, cex = 1.5)
-lines(x = denominator, y = c(mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[1]][[j]]$ESS[2])),
-                             sapply(2:length(denominator), function(i) {
-                               mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[i]][[j]]$ESS[[1]][2]))
-                             })), lty = 3, lwd = 3)
-lines(x = denominator, y = c(mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[1]][[j]]$ESS[2])),
-                             sapply(2:length(denominator), function(i) {
-                               mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[i]][[j]]$ESS[[1]][2]))
-                             })), lty = 2, lwd = 3)
-legend(x = 2, y = 10000,
-       legend = c('fork-and-join', 'balanced', 'progressive'),
-       lty = c(1, 3, 2),
-       lwd = c(3, 3, 3),
-       cex = 1.25,
-       text.font = 2,
-       bty = 'n')
+# ######################################## ESS (overall)
+# 
+# plot(x = denominator, y = sapply(1:length(denominator), function(i) {
+#   mean(sapply(1:number_of_replicates, function(j) smc_fnj_results[[i]][[j]]$ESS[2]))
+# }), ylim = c(0, 10000), ylab = '', xlab = '', font.lab = 2, pch = 1, lwd = 3, xaxt = 'n', yaxt = 'n', type = 'l')
+# axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
+# mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+# axis(2, at = seq(0, 10000, 1000), labels = seq(0, 10000, 1000), font = 2, cex = 1.5)
+# mtext('ESS (at top level)', 2, 2.75, font = 2, cex = 1.5)
+# lines(x = denominator, y = c(mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[1]][[j]]$ESS[2])),
+#                              sapply(2:length(denominator), function(i) {
+#                                mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[i]][[j]]$ESS[[1]][2]))
+#                              })), lty = 3, lwd = 3)
+# lines(x = denominator, y = c(mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[1]][[j]]$ESS[2])),
+#                              sapply(2:length(denominator), function(i) {
+#                                mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[i]][[j]]$ESS[[1]][2]))
+#                              })), lty = 2, lwd = 3)
+# legend(x = 2, y = 10000,
+#        legend = c('fork-and-join', 'balanced', 'progressive'),
+#        lty = c(1, 3, 2),
+#        lwd = c(3, 3, 3),
+#        cex = 1.25,
+#        text.font = 2,
+#        bty = 'n')
 
 ######################################## IAD
 
-plot(x = denominator, y = sapply(1:length(denominator), function(i) {
+plot(x = log(denominator, 2), y = sapply(1:length(denominator), function(i) {
   mean(sapply(1:number_of_replicates, function(j) smc_fnj_results[[i]][[j]]$IAD_bw))
-}), ylim = c(0, 0.6), ylab = '', xlab = '', font.lab = 2, pch = 1, lwd = 3, xaxt = 'n', yaxt = 'n', type = 'l')
-axis(1, at = denominator, labels = denominator, font = 2, cex = 1.5)
-mtext('Number of sub-posteriors (C)', 1, 2.75, font = 2, cex = 1.5)
+}), ylim = c(0, 0.6), ylab = '', xlab = '', font.lab = 2, xaxt = 'n', yaxt = 'n',
+lwd = 3, type = 'b', pch = 20, lty = 1)
+axis(1, at = log(denominator, 2), labels = log(denominator, 2), font = 2, cex = 1.5)
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 0.8, 0.05),
      labels = c("0.0", 0.05, "0.10", 0.15, "0.20", 0.25, "0.30", 0.35, "0.40", 0.45, "0.50", 0.55, "0.60", 0.65, "0.7", 0.75, "0.80"),
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-lines(x = denominator, y = sapply(1:length(denominator), function(i) {
-  mean(sapply(1:number_of_replicates, function(j) smc_fnj_results[[i]][[j]]$IAD_bw))
-}), lwd = 3)
-lines(x = denominator, y = sapply(1:length(denominator), function(i) {
+lines(x = log(denominator, 2), y = sapply(1:length(log(denominator, 2)), function(i) {
   mean(sapply(1:number_of_replicates, function(j) smc_bal_results[[i]][[j]]$IAD_bw))
-}), lty = 3, lwd = 3)
-lines(x = denominator, y = sapply(1:length(denominator), function(i) {
+}), lwd = 3, pch = 5, lty = 3, type = 'b')
+lines(x = log(denominator, 2), y = sapply(1:length(log(denominator, 2)), function(i) {
   mean(sapply(1:number_of_replicates, function(j) smc_prog_results[[i]][[j]]$IAD_bw))
-}), lty = 2, lwd = 3)
-legend(x = 2, y = 0.6,
+}), col = 'black', lwd = 2, pch = 4, lty = 3, type = 'b')
+legend(x = 1, y = 0.6,
        legend = c('fork-and-join', 'balanced', 'progressive'),
        lty = c(1, 3, 2),
        lwd = c(3, 3, 3),
+       pch = c(20, 5, 4),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
