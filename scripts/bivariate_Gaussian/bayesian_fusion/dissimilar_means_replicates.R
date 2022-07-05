@@ -553,37 +553,37 @@ plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) {
        mean(sapply(1:number_of_replicates, function(rep) a_results$vanilla[[i]][[rep]]$IAD))
      }),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.5), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1.4), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) b_results$vanilla[[i]][[rep]]$IAD))
       }),
-      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
+      pch = 2, lty = 4, lwd = 3, type = 'b', col = 'green')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) c_results$vanilla[[i]][[rep]]$IAD))
       }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
+      pch = 5, lty = 3, lwd = 3, type = 'b', col = 'blue')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) d2_results$vanilla[[i]][[rep]]$IAD))
       }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
+      pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red')
 for (i in 1:length(data_sizes)) {
   IAD <- sapply(1:number_of_replicates, function(rep) a_results$vanilla[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 1, lwd = 1.5)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 20, lwd = 1.5)
 }
 for (i in 1:length(data_sizes)) {
   IAD <- sapply(1:number_of_replicates, function(rep) b_results$vanilla[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, lwd = 1.5, col = 'blue')
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, lwd = 1.5, col = 'green')
 }
 for (i in 1:length(data_sizes)) {
   IAD <- sapply(1:number_of_replicates, function(rep) c_results$vanilla[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, lwd = 1.5, col = 'red')
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, lwd = 1.5, col = 'blue')
 }
 for (i in 1:length(data_sizes)) {
   IAD <- sapply(1:number_of_replicates, function(rep) d2_results$vanilla[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, lwd = 1.5, col = 'green')
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, lwd = 1.5, col = 'red')
 }
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
@@ -593,14 +593,14 @@ axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(
 axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 1.5,
+legend(x = 250, y = 1.4,
        legend = c('Fixed T, fixed n',
                   'Recommended T, fixed n',
                   'Recommneded T, regular mesh',
                   'Recommended T, adaptive mesh'),
-       col = c('black', 'blue', 'red', 'green'),
-       lty = 1:4,
-       pch = 1:4,
+       col = c('black', 'green', 'blue', 'red'),
+       lty = c(1,4,3,2),
+       pch = c(20,2,5,4),
        lwd = rep(3, 4),
        cex = 1.25,
        text.font = 2,
@@ -611,22 +611,22 @@ plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) {
        mean(log(sapply(1:number_of_replicates, function(rep) a_results$vanilla[[i]][[rep]]$time)))
      }),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(2,11), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(2,11), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) b_results$vanilla[[i]][[rep]]$time)))
       }),
-      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
+      pch = 2, lty = 4, lwd = 3, type = 'b', col = 'green')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) c_results$vanilla[[i]][[rep]]$time)))
       }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
+      pch = 5, lty = 3, lwd = 3, type = 'b', col = 'blue')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) d2_results$vanilla[[i]][[rep]]$time)))
       }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
+      pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red')
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -637,9 +637,9 @@ legend(x = 250, y = 11,
                   'Recommended T, fixed n',
                   'Recommneded T, regular mesh',
                   'Recommended T, adaptive mesh'),
-       col = c('black', 'blue', 'red', 'green'),
-       lty = 1:4,
-       pch = 1:4,
+       col = c('black', 'green', 'blue', 'red'),
+       lty = c(1,4,3,2),
+       pch = c(20,2,5,4),
        lwd = rep(3, 4),
        cex = 1.25,
        text.font = 2,
@@ -782,37 +782,37 @@ plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) {
        mean(sapply(1:number_of_replicates, function(rep) a_results$generalised[[i]][[rep]]$IAD))
      }),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1.5), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(0,1.4), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) b_results$generalised[[i]][[rep]]$IAD))
       }),
-      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
+      pch = 2, lty = 4, lwd = 3, type = 'b', col = 'green')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) c_results$generalised[[i]][[rep]]$IAD))
       }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
+      pch = 5, lty = 3, lwd = 3, type = 'b', col = 'blue')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) d2_results$generalised[[i]][[rep]]$IAD))
       }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
+      pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red')
 for (i in 1:length(data_sizes)) {
   IAD <- sapply(1:number_of_replicates, function(rep) a_results$generalised[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 1, lwd = 1.5)
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 20, lwd = 1.5)
 }
 for (i in 1:length(data_sizes)) {
   IAD <- sapply(1:number_of_replicates, function(rep) b_results$generalised[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, lwd = 1.5, col = 'blue')
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, lwd = 1.5, col = 'green')
 }
 for (i in 1:length(data_sizes)) {
   IAD <- sapply(1:number_of_replicates, function(rep) c_results$generalised[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, lwd = 1.5, col = 'red')
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, lwd = 1.5, col = 'blue')
 }
 for (i in 1:length(data_sizes)) {
   IAD <- sapply(1:number_of_replicates, function(rep) d2_results$generalised[[i]][[rep]]$IAD)
-  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, lwd = 1.5, col = 'green')
+  points(x = rep(data_sizes[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, lwd = 1.5, col = 'red')
 }
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
@@ -822,14 +822,14 @@ axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(
 axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 250, y = 1.5,
+legend(x = 250, y = 1.4,
        legend = c('Fixed T, fixed n',
                   'Recommended T, fixed n',
                   'Recommneded T, regular mesh',
                   'Recommended T, adaptive mesh'),
-       col = c('black', 'blue', 'red', 'green'),
-       lty = 1:4,
-       pch = 1:4,
+       col = c('black', 'green', 'blue', 'red'),
+       lty = c(1,4,3,2),
+       pch = c(20,2,5,4),
        lwd = rep(3, 4),
        cex = 1.25,
        text.font = 2,
@@ -840,22 +840,22 @@ plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) {
        mean(log(sapply(1:number_of_replicates, function(rep) a_results$generalised[[i]][[rep]]$time)))
      }),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(2,11), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 20, lty = 1, lwd = 3, ylim = c(2,11), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) b_results$generalised[[i]][[rep]]$time)))
       }),
-      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'blue')
+      pch = 2, lty = 4, lwd = 3, type = 'b', col = 'green')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) c_results$generalised[[i]][[rep]]$time)))
       }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'red')
+      pch = 5, lty = 3, lwd = 3, type = 'b', col = 'blue')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) d2_results$generalised[[i]][[rep]]$time)))
       }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
+      pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red')
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -866,9 +866,9 @@ legend(x = 250, y = 11,
                   'Recommended T, fixed n',
                   'Recommneded T, regular mesh',
                   'Recommended T, adaptive mesh'),
-       col = c('black', 'blue', 'red', 'green'),
-       lty = 1:4,
-       pch = 1:4,
+       col = c('black', 'green', 'blue', 'red'),
+       lty = c(1,4,3,2),
+       pch = c(20,2,5,4),
        lwd = rep(3, 4),
        cex = 1.25,
        text.font = 2,

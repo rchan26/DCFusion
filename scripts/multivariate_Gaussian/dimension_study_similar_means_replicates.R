@@ -315,78 +315,92 @@ for (d in 1:length(dimension)) {
   }
 }
 
-##### Paper: IAD #####
+##### Paper: IAD (1) #####
 plot(x = dimension,
      y = sapply(1:length(dimension), function(i) {
        mean(sapply(1:number_of_replicates, function(rep) dc_gbf$regular[[i]][[rep]]$IAD))
      }),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 5, lty = 3, lwd = 3, col = 'blue', ylim = c(0,1),
+     xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = dimension,
       y = sapply(1:length(dimension), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD))
       }),
-      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'red')
-lines(x = dimension,
-      y = sapply(1:length(dimension), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) iid_sampling[[i]][[rep]]$IAD))
-      }),
-      pch = 8, lty = 1, lwd = 3, type = 'b', col = 'pink')
+      pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red')
+for (i in 1:length(dimension)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_gbf$regular[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, lwd = 1.5, col = 'blue')
+}
+for (i in 1:length(dimension)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, lwd = 1.5, col = 'red')
+}
+axis(1, at = seq(0, dimension[length(dimension)], 10),
+     labels = seq(0, dimension[length(dimension)], 10), font = 2, cex = 1.5)
+axis(1, at = seq(0, dimension[length(dimension)], 5), labels = rep("", 21), lwd.ticks = 0.5)
+mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
+     font = 2, cex = 1.5)
+axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
+     font = 2, cex = 1.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 1, y = 1,
+       legend = c('D&C-GBF (regular)',
+                  'D&C-GBF (adaptive)'),
+       col = c('blue', 'red'),
+       lty = c(3, 2),
+       pch = c(5, 4),
+       lwd = rep(3, 2),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+##### Paper: IAD (2) #####
+plot(x = dimension[1:13],
+     y = sapply(1:length(dimension[1:13]), function(i) {
+       mean(sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD))
+     }),
+     pch = 20, lty = 1, lwd = 3, type = 'b', col = 'black',
+     ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = dimension[1:13],
       y = sapply(1:length(dimension[1:13]), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) gbf$regular[[i]][[rep]]$IAD))
       }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'blue')
+      pch = 5, lty = 3, lwd = 3, type = 'b', col = 'blue')
 lines(x = dimension[1:13],
       y = sapply(1:length(dimension[1:13]), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$IAD))
       }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
-lines(x = dimension[1:13],
-      y = sapply(1:length(dimension[1:13]), function(i) {
-        mean(sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD))
-      }),
-      pch = 7, lty = 1, lwd = 3, type = 'b', col = 'black')
+      pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red')
 lines(x = dimension[1:6],
       y = sapply(1:length(dimension[1:6]), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) sbf$regular[[i]][[rep]]$IAD))
       }),
-      pch = 5, lty = 5, lwd = 3, type = 'b', col = 'purple')
+      pch = 3, lty = 4, lwd = 3, type = 'b', col = 'purple')
 lines(x = dimension[1:6],
       y = sapply(1:length(dimension[1:6]), function(i) {
         mean(sapply(1:number_of_replicates, function(rep) sbf$adaptive[[i]][[rep]]$IAD))
       }),
-      pch = 6, lty = 6, lwd = 3, type = 'b', col = 'orange')
-for (i in 1:length(dimension)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) dc_gbf$regular[[i]][[rep]]$IAD)
-  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 1, lwd = 1.5)
-}
-for (i in 1:length(dimension)) {
-  IAD <- sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD)
-  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, lwd = 1.5, col = 'red')
-}
-for (i in 1:length(dimension[1:6])) {
-  IAD <- sapply(1:number_of_replicates, function(rep) iid_sampling[[i]][[rep]]$IAD)
-  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 8, lwd = 1.5, col = 'pink')
+      pch = 2, lty = 5, lwd = 3, type = 'b', col = 'orange')
+for (i in 1:length(dimension[1:13])) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 20, lwd = 1.5, col = 'black')
 }
 for (i in 1:length(dimension[1:13])) {
   IAD <- sapply(1:number_of_replicates, function(rep) gbf$regular[[i]][[rep]]$IAD)
-  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, lwd = 1.5, col = 'blue')
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, lwd = 1.5, col = 'blue')
 }
 for (i in 1:length(dimension[1:13])) {
   IAD <- sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$IAD)
-  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, lwd = 1.5, col = 'green')
-}
-for (i in 1:length(dimension[1:13])) {
-  IAD <- sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD)
-  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 7, lwd = 1.5, col = 'black')
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, lwd = 1.5, col = 'red')
 }
 for (i in 1:length(dimension[1:6])) {
   IAD <- sapply(1:number_of_replicates, function(rep) sbf$regular[[i]][[rep]]$IAD)
-  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, lwd = 1.5, col = 'purple')
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, lwd = 1.5, col = 'purple')
 }
 for (i in 1:length(dimension[1:6])) {
   IAD <- sapply(1:number_of_replicates, function(rep) sbf$adaptive[[i]][[rep]]$IAD)
-  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 6, lwd = 1.5, col = 'orange')
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, lwd = 1.5, col = 'orange')
 }
 axis(1, at = seq(0, dimension[length(dimension)], 10),
      labels = seq(0, dimension[length(dimension)], 10), font = 2, cex = 1.5)
@@ -397,64 +411,67 @@ axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(
 axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 30, y = 1,
-       legend = c('D&C-GBF (regular)',
-                  'D&C-GBF (adaptive)',
+legend(x = 20, y = 1,
+       legend = c('D&C-MCF',
                   'GBF (regular)',
                   'GBF (adaptive)',
-                  'D&C-MCF',
                   'BF (regular)',
-                  'BF (adaptive)',
-                  'iid sampling'),
-       col = c('black', 'red', 'blue', 'green', 'black', 'purple', 'orange', 'pink'),
-       lty = c(1, 2, 3, 4, 1, 5, 6, 1),
-       pch = c(1, 2, 3, 4, 7, 5, 6, 8),
-       lwd = rep(3, 8),
+                  'BF (adaptive)'),
+       col = c('black', 'blue', 'red', 'purple', 'orange'),
+       lty = c(1, 3, 2, 4, 5),
+       pch = c(20, 5, 4, 3, 2),
+       lwd = rep(3, 5),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
 
-##### Paper: IAD #####
+##### Paper: IAD (just adaptive schemes) #####
 plot(x = dimension,
      y = sapply(1:length(dimension), function(i) {
-       var(sapply(1:number_of_replicates, function(rep) dc_gbf$regular[[i]][[rep]]$IAD))
+       mean(sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD))
      }),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,0.05), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red',
+     ylim = c(0,1), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = dimension,
-      y = sapply(1:length(dimension), function(i) {
-        var(sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD))
-      }),
-      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'red')
-lines(x = dimension,
-      y = sapply(1:length(dimension), function(i) {
-        var(sapply(1:number_of_replicates, function(rep) iid_sampling[[i]][[rep]]$IAD))
-      }),
-      pch = 8, lty = 1, lwd = 3, type = 'b', col = 'pink')
+     y = sapply(1:length(dimension), function(i) {
+       mean(sapply(1:number_of_replicates, function(rep) dc_gbf$regular[[i]][[rep]]$IAD))
+     }),
+     type = 'b', pch = 5, lty = 3, lwd = 3, col = 'blue')
+lines(x = dimension[1:13],
+     y = sapply(1:length(dimension[1:13]), function(i) {
+       mean(sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD))
+     }),
+     pch = 20, lty = 1, lwd = 3, type = 'b', col = 'black')
 lines(x = dimension[1:13],
       y = sapply(1:length(dimension[1:13]), function(i) {
-        var(sapply(1:number_of_replicates, function(rep) gbf$regular[[i]][[rep]]$IAD))
+        mean(sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$IAD))
       }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'blue')
-lines(x = dimension[1:13],
-      y = sapply(1:length(dimension[1:13]), function(i) {
-        var(sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$IAD))
-      }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
-lines(x = dimension[1:13],
-      y = sapply(1:length(dimension[1:13]), function(i) {
-        var(sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD))
-      }),
-      pch = 7, lty = 1, lwd = 3, type = 'b', col = 'black')
+      pch = 3, lty = 4, lwd = 3, type = 'b', col = 'green')
 lines(x = dimension[1:6],
       y = sapply(1:length(dimension[1:6]), function(i) {
-        var(sapply(1:number_of_replicates, function(rep) sbf$regular[[i]][[rep]]$IAD))
+        mean(sapply(1:number_of_replicates, function(rep) sbf$adaptive[[i]][[rep]]$IAD))
       }),
-      pch = 5, lty = 5, lwd = 3, type = 'b', col = 'purple')
-lines(x = dimension[1:6],
-      y = sapply(1:length(dimension[1:6]), function(i) {
-        var(sapply(1:number_of_replicates, function(rep) sbf$adaptive[[i]][[rep]]$IAD))
-      }),
-      pch = 6, lty = 6, lwd = 3, type = 'b', col = 'orange')
+      pch = 2, lty = 5, lwd = 3, type = 'b', col = 'orange')
+for (i in 1:length(dimension)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 4, lwd = 1.5, col = 'red')
+}
+for (i in 1:length(dimension)) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_gbf$regular[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 5, lwd = 1.5, col = 'blue')
+}
+for (i in 1:length(dimension[1:13])) {
+  IAD <- sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 20, lwd = 1.5, col = 'black')
+}
+for (i in 1:length(dimension[1:13])) {
+  IAD <- sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 3, lwd = 1.5, col = 'green')
+}
+for (i in 1:length(dimension[1:6])) {
+  IAD <- sapply(1:number_of_replicates, function(rep) sbf$adaptive[[i]][[rep]]$IAD)
+  points(x = rep(dimension[i], length(IAD)), y = IAD, cex = 0.5, pch = 2, lwd = 1.5, col = 'orange')
+}
 axis(1, at = seq(0, dimension[length(dimension)], 10),
      labels = seq(0, dimension[length(dimension)], 10), font = 2, cex = 1.5)
 axis(1, at = seq(0, dimension[length(dimension)], 5), labels = rep("", 21), lwd.ticks = 0.5)
@@ -464,62 +481,191 @@ axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(
 axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
      font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
-legend(x = 30, y = 1,
+legend(x = 60, y = 1,
        legend = c('D&C-GBF (regular)',
                   'D&C-GBF (adaptive)',
-                  'GBF (regular)',
-                  'GBF (adaptive)',
                   'D&C-MCF',
-                  'BF (regular)',
-                  'BF (adaptive)',
-                  'iid sampling'),
-       col = c('black', 'red', 'blue', 'green', 'black', 'purple', 'orange', 'pink'),
-       lty = c(1, 2, 3, 4, 1, 5, 6, 1),
-       pch = c(1, 2, 3, 4, 7, 5, 6, 8),
-       lwd = rep(3, 8),
+                  'GBF',
+                  'BF'),
+       col = c('blue', 'red','black', 'green', 'orange'),
+       lty = c(3, 2, 1, 4, 5),
+       pch = c(5, 4, 20, 3, 2),
+       lwd = rep(3, 5),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
 
-##### Paper: time #####
+# plot(x = dimension,
+#      y = sapply(1:length(dimension), function(i) {
+#        var(sapply(1:number_of_replicates, function(rep) dc_gbf$regular[[i]][[rep]]$IAD))
+#      }),
+#      type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(0,0.05), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+# lines(x = dimension,
+#       y = sapply(1:length(dimension), function(i) {
+#         var(sapply(1:number_of_replicates, function(rep) dc_gbf$adaptive[[i]][[rep]]$IAD))
+#       }),
+#       pch = 2, lty = 2, lwd = 3, type = 'b', col = 'red')
+# lines(x = dimension,
+#       y = sapply(1:length(dimension), function(i) {
+#         var(sapply(1:number_of_replicates, function(rep) iid_sampling[[i]][[rep]]$IAD))
+#       }),
+#       pch = 8, lty = 1, lwd = 3, type = 'b', col = 'pink')
+# lines(x = dimension[1:13],
+#       y = sapply(1:length(dimension[1:13]), function(i) {
+#         var(sapply(1:number_of_replicates, function(rep) gbf$regular[[i]][[rep]]$IAD))
+#       }),
+#       pch = 3, lty = 3, lwd = 3, type = 'b', col = 'blue')
+# lines(x = dimension[1:13],
+#       y = sapply(1:length(dimension[1:13]), function(i) {
+#         var(sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$IAD))
+#       }),
+#       pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
+# lines(x = dimension[1:13],
+#       y = sapply(1:length(dimension[1:13]), function(i) {
+#         var(sapply(1:number_of_replicates, function(rep) dc_mcf[[i]][[rep]]$IAD))
+#       }),
+#       pch = 7, lty = 1, lwd = 3, type = 'b', col = 'black')
+# lines(x = dimension[1:6],
+#       y = sapply(1:length(dimension[1:6]), function(i) {
+#         var(sapply(1:number_of_replicates, function(rep) sbf$regular[[i]][[rep]]$IAD))
+#       }),
+#       pch = 5, lty = 5, lwd = 3, type = 'b', col = 'purple')
+# lines(x = dimension[1:6],
+#       y = sapply(1:length(dimension[1:6]), function(i) {
+#         var(sapply(1:number_of_replicates, function(rep) sbf$adaptive[[i]][[rep]]$IAD))
+#       }),
+#       pch = 6, lty = 6, lwd = 3, type = 'b', col = 'orange')
+# axis(1, at = seq(0, dimension[length(dimension)], 10),
+#      labels = seq(0, dimension[length(dimension)], 10), font = 2, cex = 1.5)
+# axis(1, at = seq(0, dimension[length(dimension)], 5), labels = rep("", 21), lwd.ticks = 0.5)
+# mtext('Dimension', 1, 2.75, font = 2, cex = 1.5)
+# axis(2, at = seq(0, 1.6, 0.1), labels = c("0.0", seq(0.1, 0.9, 0.1), "1.0", seq(1.1, 1.6, 0.1)),
+#      font = 2, cex = 1.5)
+# axis(2, at = seq(0, 1.6, 0.1), labels=rep("", 17), lwd.ticks = 0.5,
+#      font = 2, cex = 1.5)
+# mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+# legend(x = 30, y = 1,
+#        legend = c('D&C-GBF (regular)',
+#                   'D&C-GBF (adaptive)',
+#                   'GBF (regular)',
+#                   'GBF (adaptive)',
+#                   'D&C-MCF',
+#                   'BF (regular)',
+#                   'BF (adaptive)',
+#                   'iid sampling'),
+#        col = c('black', 'red', 'blue', 'green', 'black', 'purple', 'orange', 'pink'),
+#        lty = c(1, 2, 3, 4, 1, 5, 6, 1),
+#        pch = c(1, 2, 3, 4, 7, 5, 6, 8),
+#        lwd = rep(3, 8),
+#        cex = 1.25,
+#        text.font = 2,
+#        bty = 'n')
+
+##### Paper: time (1) #####
 plot(x = log(dimension, 2),
      y = sapply(1:length(dimension), function(i) {
        mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_gbf$regular[[i]][[rep]]$time))), 2))
      }),
-     type = 'b', pch = 1, lty = 1, lwd = 3, ylim = c(2,14), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 5, lty = 3, lwd = 3, col = 'blue',
+     ylim = c(2,14), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = log(dimension, 2),
       y = sapply(1:length(dimension), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_gbf$adaptive[[i]][[rep]]$time))), 2))
       }),
-      pch = 2, lty = 2, lwd = 3, type = 'b', col = 'red')
+      pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red')
+axis(1, at = 0:6,
+     labels = 0:6, font = 2, cex = 1.5)
+axis(1, at = seq(0, 7, 0.5), labels = rep("", 15), lwd.ticks = 0.5)
+mtext('log(Dimension, 2)', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 14, 1), labels = seq(0, 14, 1), font = 2, cex = 1.5)
+mtext('log(Elapsed time in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 0, y = 14,
+       legend = c('D&C-GBF (regular)',
+                  'D&C-GBF (adaptive)'),
+       col = c('blue', 'red'),
+       lty = c(3, 2),
+       pch = c(5, 4),
+       lwd = rep(3, 2),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+##### Paper: time (2) #####
+plot(x = log(dimension[1:13], 2),
+     y = sapply(1:length(dimension[1:13]), function(i) {
+       mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_mcf[[i]][[rep]]$time))), 2))
+     }),
+     pch = 20, lty = 1, lwd = 3, type = 'b', col = 'black',
+     ylim = c(2,14), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = log(dimension[1:13], 2),
       y = sapply(1:length(dimension[1:13]), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) gbf$regular[[i]][[rep]]$time), 2))
       }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'blue')
+      pch = 5, lty = 3, lwd = 3, type = 'b', col = 'blue')
 lines(x = log(dimension[1:13], 2),
       y = sapply(1:length(dimension[1:13]), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$time), 2))
       }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'green')
-lines(x = log(dimension[1:13], 2),
-      y = sapply(1:length(dimension[1:13]), function(i) {
-        mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_mcf[[i]][[rep]]$time))), 2))
-      }),
-      pch = 7, lty = 1, lwd = 3, type = 'b', col = 'black')
+      pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red')
 lines(x = log(dimension[1:6], 2),
       y = sapply(1:length(dimension[1:6]), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) sbf$adaptive[[i]][[rep]]$time), 2))
       }),
-      pch = 4, lty = 4, lwd = 3, type = 'b', col = 'purple')
+      pch = 3, lty = 4, lwd = 3, type = 'b', col = 'blue')
 lines(x = log(dimension[1:6], 2),
       y = sapply(1:length(dimension[1:6]), function(i) {
         mean(log(sapply(1:number_of_replicates, function(rep) sbf$regular[[i]][[rep]]$time), 2))
       }),
-      pch = 3, lty = 3, lwd = 3, type = 'b', col = 'orange')
+      pch = 2, lty = 5, lwd = 3, type = 'b', col = 'orange')
 axis(1, at = 0:6,
      labels = 0:6, font = 2, cex = 1.5)
+axis(1, at = seq(0, 7, 0.5), labels = rep("", 15), lwd.ticks = 0.5)
+mtext('log(Dimension, 2)', 1, 2.75, font = 2, cex = 1.5)
+axis(2, at = seq(0, 14, 1), labels = seq(0, 14, 1), font = 2, cex = 1.5)
+mtext('log(Elapsed time in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
+legend(x = 0, y = 14,
+       legend = c('D&C-MCF',
+                  'GBF (regular)',
+                  'GBF (adaptive)',
+                  'BF (regular)',
+                  'BF (adaptive)'),
+       col = c('black', 'blue', 'red', 'purple', 'orange'),
+       lty = c(1, 3, 2, 4, 5),
+       pch = c(20, 5, 4, 3, 2),
+       lwd = rep(3, 5),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
 
+##### Paper: time (just adaptive schemes) #####
+plot(x = log(dimension, 2),
+     y = sapply(1:length(dimension), function(i) {
+       mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_gbf$adaptive[[i]][[rep]]$time))), 2))
+     }),
+     pch = 4, lty = 2, lwd = 3, type = 'b', col = 'red',
+     ylim = c(2,14), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+lines(x = log(dimension, 2),
+      y = sapply(1:length(dimension), function(i) {
+        mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_gbf$regular[[i]][[rep]]$time))), 2))
+      }),
+      type = 'b', pch = 5, lty = 3, lwd = 3, col = 'blue')
+lines(x = log(dimension[1:13], 2),
+      y = sapply(1:length(dimension[1:13]), function(i) {
+        mean(log(sapply(1:number_of_replicates, function(rep) sum(unlist(dc_mcf[[i]][[rep]]$time))), 2))
+      }),
+      pch = 20, lty = 1, lwd = 3, type = 'b', col = 'black')
+lines(x = log(dimension[1:13], 2),
+      y = sapply(1:length(dimension[1:13]), function(i) {
+        mean(log(sapply(1:number_of_replicates, function(rep) gbf$adaptive[[i]][[rep]]$time), 2))
+      }),
+      pch = 3, lty = 4, lwd = 3, type = 'b', col = 'green')
+lines(x = log(dimension[1:6], 2),
+      y = sapply(1:length(dimension[1:6]), function(i) {
+        mean(log(sapply(1:number_of_replicates, function(rep) sbf$adaptive[[i]][[rep]]$time), 2))
+      }),
+      pch = 2, lty = 5, lwd = 3, type = 'b', col = 'orange')
+axis(1, at = 0:6,
+     labels = 0:6, font = 2, cex = 1.5)
 axis(1, at = seq(0, 7, 0.5), labels = rep("", 15), lwd.ticks = 0.5)
 mtext('log(Dimension, 2)', 1, 2.75, font = 2, cex = 1.5)
 axis(2, at = seq(0, 14, 1), labels = seq(0, 14, 1), font = 2, cex = 1.5)
@@ -527,15 +673,13 @@ mtext('log(Elapsed time in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
 legend(x = 0, y = 14,
        legend = c('D&C-GBF (regular)',
                   'D&C-GBF (adaptive)',
-                  'GBF (regular)',
-                  'GBF (adaptive)',
                   'D&C-MCF',
-                  'BF (regular)',
-                  'BF (adaptive)'),
-       col = c('black', 'red', 'blue', 'green', 'black', 'purple', 'orange'),
-       lty = c(1, 2, 3, 4, 1, 5, 6),
-       pch = c(1, 2, 3, 4, 7, 5, 6),
-       lwd = rep(3, 7),
+                  'GBF',
+                  'BF'),
+       col = c('blue', 'red','black', 'green', 'orange'),
+       lty = c(3, 2, 1, 4, 5),
+       pch = c(5, 4, 20, 3, 2),
+       lwd = rep(3, 5),
        cex = 1.25,
        text.font = 2,
        bty = 'n')

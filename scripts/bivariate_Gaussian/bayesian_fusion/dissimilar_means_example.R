@@ -678,13 +678,13 @@ mtext('Data Sizes', 2, 2.75, font = 2, cex = 1.5)
 ##### Compare number of mesh points #####
 plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$n),
-     type = 'b', pch = 3, lty = 3, lwd = 3, ylim = c(0,10000), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 5, lty = 3, lwd = 3, ylim = c(0,10000), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) d1_results$vanilla[[i]]$n),
-      pch = 4, lty = 4, lwd = 3, type = 'b')
+      pch = 6, lty = 4, lwd = 3, type = 'b')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) d2_results$vanilla[[i]]$n),
-      pch = 5, lty = 5, lwd = 3, type = 'b')
+      pch = 4, lty = 2, lwd = 3, type = 'b')
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -697,8 +697,8 @@ legend(x = 250, y = 10000,
        legend = c('SSH rec. T, reg. mesh',
                   'SSH rec. T, adapt. mesh (k3=k4)',
                   'SSH rec. T, adapt. mesh'),
-       lty = 3:5,
-       pch = 3:5,
+       lty = c(3,4,2),
+       pch = c(5,6,4),
        lwd = rep(3, 6),
        cex = 1.25,
        text.font = 2,
@@ -707,10 +707,10 @@ legend(x = 250, y = 10000,
 ##### Paper: Compare number of mesh points #####
 plot(x = data_sizes,
      y = log(sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$n), 10),
-     type = 'b', pch = 3, lty = 3, lwd = 3, ylim = c(1,4), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 5, lty = 3, lwd = 3, ylim = c(1,4), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) d2_results$vanilla[[i]]$n), 10),
-      pch = 5, lty = 5, lwd = 3, type = 'b')
+      pch = 4, lty = 2, lwd = 3, type = 'b')
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -720,8 +720,8 @@ axis(2, at = seq(1, 4, 0.5), labels=rep("", 7), lwd.ticks = 0.5,
 mtext('log(n, 10)', 2, 2.75, font = 2, cex = 1.5)
 legend(x = 250, y = 4,
        legend = c('Regular mesh', 'Adaptive mesh'),
-       lty = c(3,5),
-       pch = c(3,5),
+       lty = c(3,2),
+       pch = c(5,4),
        lwd = rep(3, 2),
        cex = 1.25,
        text.font = 2,
@@ -1083,10 +1083,10 @@ legend(x = 250, y = 4000,
 ##### Paper: Compare number of mesh points #####
 plot(x = data_sizes,
      y = log(sapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$n), 10),
-     type = 'b', pch = 3, lty = 3, lwd = 3, ylim = c(1,4), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 5, lty = 3, lwd = 3, ylim = c(1,4), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = log(sapply(1:length(data_sizes), function(i) d2_results$generalised[[i]]$n), 10),
-      pch = 5, lty = 5, lwd = 3, type = 'b')
+      pch = 4, lty = 2, lwd = 3, type = 'b')
 axis(1, at = seq(0, 2500, 500), labels = seq(0, 2500, 500), font = 2, cex = 1.5)
 axis(1, at = seq(0, 2500, 250), labels = rep("", 11), lwd.ticks = 0.5, font = 2, cex = 1.5)
 mtext('Data Sizes', 1, 2.75, font = 2, cex = 1.5)
@@ -1096,8 +1096,8 @@ axis(2, at = seq(1, 4, 0.5), labels=rep("", 7), lwd.ticks = 0.5,
 mtext('log(n, 10)', 2, 2.75, font = 2, cex = 1.5)
 legend(x = 250, y = 4,
        legend = c('Regular mesh', 'Adaptive mesh'),
-       lty = c(3,5),
-       pch = c(3,5),
+       lty = c(3,2),
+       pch = c(5,4),
        lwd = rep(3, 2),
        cex = 1.25,
        text.font = 2,

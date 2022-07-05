@@ -718,10 +718,10 @@ legend(x = 1000, y = 300,
 ##### Paper: Compare number of mesh points #####
 plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) c_results$vanilla[[i]]$n),
-     type = 'b', pch = 3, lty = 3, lwd = 3, ylim = c(0,250), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 5, lty = 3, lwd = 3, ylim = c(0,250), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) d2_results$vanilla[[i]]$n),
-      pch = 5, lty = 5, lwd = 3, type = 'b')
+      pch = 4, lty = 2, lwd = 3, type = 'b')
 axis(1, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
@@ -733,8 +733,8 @@ axis(2, at = seq(0, 300, 50), labels=rep("", 7), lwd.ticks = 0.5,
 mtext('n', 2, 2.75, font = 2, cex = 1.5)
 legend(x = 1000, y = 250,
        legend = c('Regular mesh', 'Adaptive mesh'),
-       lty = c(3,5),
-       pch = c(3,5),
+       lty = c(3,2),
+       pch = c(5,4),
        lwd = rep(3, 2),
        cex = 1.25,
        text.font = 2,
@@ -1108,10 +1108,10 @@ legend(x = 1000, y = 300,
 ##### Paper: Compare number of mesh points #####
 plot(x = data_sizes,
      y = sapply(1:length(data_sizes), function(i) c_results$generalised[[i]]$n),
-     type = 'b', pch = 3, lty = 3, lwd = 3, ylim = c(0,250), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
+     type = 'b', pch = 5, lty = 3, lwd = 3, ylim = c(0,250), xaxt = 'n', yaxt ='n', xlab = '', ylab = '')
 lines(x = data_sizes,
       y = sapply(1:length(data_sizes), function(i) d2_results$generalised[[i]]$n),
-      pch = 5, lty = 5, lwd = 3, type = 'b')
+      pch = 4, lty = 2, lwd = 3, type = 'b')
 axis(1, at = c(1000, seq(10000, 50000, 10000)),
      labels = c(1000, seq(10000, 50000, 10000)), font = 2, cex = 1.5)
 axis(1, at = seq(0, 50000, 5000), labels = rep("", 11), lwd.ticks = 0.5)
@@ -1123,8 +1123,8 @@ axis(2, at = seq(0, 300, 50), labels=rep("", 7), lwd.ticks = 0.5,
 mtext('n', 2, 2.75, font = 2, cex = 1.5)
 legend(x = 1000, y = 250,
        legend = c('Regular mesh', 'Adaptive mesh'),
-       lty = c(3,5),
-       pch = c(3,5),
+       lty = c(3,2),
+       pch = c(5,4),
        lwd = rep(3, 2),
        cex = 1.25,
        text.font = 2,

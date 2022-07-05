@@ -64,11 +64,25 @@ weierstrass <- c(integrated_abs_distance(full_posterior,
                  integrated_abs_distance(full_posterior,
                                          weierstrass_rejection_64$samples))
 
+# D&C-MCF
+load('SD4.RData')
+load('SD8.RData')
+load('SD16.RData')
+load('SD32.RData')
+NB_fusion <- c(integrated_abs_distance(full_posterior,
+                                       NB_hc_4$particles$y_samples),
+               integrated_abs_distance(full_posterior,
+                                       NB_hc_8$particles$y_samples),
+               integrated_abs_distance(full_posterior,
+                                       NB_hc_16$particles$y_samples),
+               integrated_abs_distance(full_posterior,
+                                       NB_hc_32$particles$y_samples))
+
 plot(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$adaptive,
      ylim = c(0, 0.6),
      xlab = '',
      ylab = '',
-     xaxt = 'n', lty = 3, lwd = 3, pch = 3, type = 'b')
+     xaxt = 'n', lty = 2, lwd = 3, pch = 4, type = 'b')
 mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
@@ -76,29 +90,29 @@ axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), fo
 axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$reg,
-      lty = 2, lwd = 3, type = 'b', pch = 2)
+      lty = 3, lwd = 3, type = 'b', pch = 5)
 lines(x = log(c(4, 8, 16, 32), 2), y = GBF$adaptive,
       lty = 1, lwd = 3, type = 'b', pch = 1)
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = consensus,
-      lty = 4, lwd = 3, type = 'b', pch = 4, col = 'red')
+      lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = neiswanger,
-      lty = 5, lwd = 3, type = 'b', pch = 5, col = 'red')
+      lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = weierstrass,
-      lty = 6, lwd = 3, type = 'b', pch = 6, col = 'red')
+      lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
 lines(x = log(c(4, 8, 16, 32), 2), y = NB_fusion,
-      lty = 7, lwd = 3, type = 'b', pch = 7, col = 'red')
+      lty = 1, lwd = 3, type = 'b', pch = 20, col = 'black')
 legend(x = 2, y = 0.6,
-       legend = c('GBF (adaptive mesh)',
-                  'D&C-GBF (regular mesh)',
+       legend = c('D&C-GBF (regular mesh)',
                   'D&C-GBF (adaptive mesh)',
+                  'GBF (adaptive mesh)',
                   'D&C-MCF',
                   'CMC',
                   'KDEMC',
                   'WRS'),
        lwd = rep(3, 7),
-       lty = c(1,2,3,7,4,5,6),
-       pch = c(1,2,3,7,4,5,6),
-       col = c(rep('black', 3), rep('red', 4)),
+       lty = c(3,2,1,1,4,5,6),
+       pch = c(5,4,1,20,3,2,1),
+       col = c(rep('black', 4), rep('red', 3)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -119,6 +133,10 @@ balanced_time <-  list('reg' = c(sum(unlist(balanced_C4$reg$time)),
                                       sum(unlist(balanced_C16$adaptive$time)),
                                       sum(unlist(balanced_C32$adaptive$time)),
                                       sum(unlist(balanced_C64$adaptive$time))))
+NB_fusion_time <- c(sum(unlist(NB_hc_4$time)),
+                    sum(unlist(NB_hc_8$time)),
+                    sum(unlist(NB_hc_16$time)),
+                    sum(unlist(NB_hc_32$time)))
 consensus_time <- c(consensus_mat_4$time,
                     consensus_mat_8$time,
                     consensus_mat_16$time,
@@ -140,7 +158,7 @@ plot(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$adaptive, 2),
      xlab = '',
      ylab = '',
      yaxt = 'n',
-     xaxt = 'n', lty = 3, lwd = 3, pch = 3, type = 'b')
+     xaxt = 'n', lty = 2, lwd = 3, pch = 4, type = 'b')
 mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
 mtext('log(Time elapsed in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
@@ -148,61 +166,34 @@ axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), fo
 axis(2, at=seq(-4, 20, 2), labels = seq(-4, 20, 2), font = 2, cex = 1.5)
 axis(2, at=seq(-4, 20, 1), labels=rep("", 25), lwd.ticks = 0.5)
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$reg, 2),
-      lty = 2, lwd = 3, type = 'b', pch = 2)
+      lty = 3, lwd = 3, type = 'b', pch = 5)
 lines(x = log(c(4, 8, 16, 32), 2), y = log(GBF_time$adaptive, 2),
       lty = 1, lwd = 3, type = 'b', pch = 1)
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(consensus_time, 2),
-      lty = 4, lwd = 3, type = 'b', pch = 4, col = 'red')
+      lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(neiswanger_time, 2),
-      lty = 5, lwd = 3, type = 'b', pch = 5, col = 'red')
+      lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(weierstrass_time, 2),
-      lty = 6, lwd = 3, type = 'b', pch = 6, col = 'red')
+      lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
 lines(x = log(c(4, 8, 16, 32), 2), y = log(NB_fusion_time, 2),
-      lty = 7, lwd = 3, type = 'b', pch = 7, col = 'red')
+      lty = 1, lwd = 3, type = 'b', pch = 20, col = 'black')
 legend(x = 2, y = 20,
-       legend = c('GBF (adaptive mesh)',
-                  'D&C-GBF (regular mesh)',
+       legend = c('D&C-GBF (regular mesh)',
                   'D&C-GBF (adaptive mesh)',
+                  'GBF (adaptive mesh)',
                   'D&C-MCF',
                   'CMC',
                   'KDEMC',
                   'WRS'),
        lwd = rep(3, 7),
-       lty = c(1,2,3,7,4,5,6),
-       pch = c(1,2,3,7,4,5,6),
-       col = c(rep('black', 3), rep('red', 4)),
+       lty = c(3,2,1,1,4,5,6),
+       pch = c(5,4,1,20,3,2,1),
+       col = c(rep('black', 4), rep('red', 3)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
 
 ##### compare to D&C-MCF #####
-
-load('SD4.RData')
-load('SD8.RData')
-load('SD16.RData')
-load('SD32.RData')
-
-P_fusion <- c(integrated_abs_distance(full_posterior,
-                                      Poisson_hc_4$particles$y_samples),
-              integrated_abs_distance(full_posterior,
-                                      Poisson_hc_8$particles$y_samples),
-              integrated_abs_distance(full_posterior,
-                                      Poisson_hc_16$particles$y_samples))
-NB_fusion <- c(integrated_abs_distance(full_posterior,
-                                       NB_hc_4$particles$y_samples),
-               integrated_abs_distance(full_posterior,
-                                       NB_hc_8$particles$y_samples),
-               integrated_abs_distance(full_posterior,
-                                       NB_hc_16$particles$y_samples),
-               integrated_abs_distance(full_posterior,
-                                       NB_hc_32$particles$y_samples))
-P_fusion_time <- c(sum(unlist(Poisson_hc_4$time)),
-                   sum(unlist(Poisson_hc_8$time)),
-                   sum(unlist(Poisson_hc_16$time)))
-NB_fusion_time <- c(sum(unlist(NB_hc_4$time)),
-                    sum(unlist(NB_hc_8$time)),
-                    sum(unlist(NB_hc_16$time)),
-                    sum(unlist(NB_hc_32$time)))
 
 plot(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$adaptive,
      ylim = c(0, 0.6),
