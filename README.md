@@ -1,20 +1,19 @@
-# hierarchicalFusion
+# DCFusion
 
 Code to implement experiments from [Divide-and-Conquer Monte Carlo Fusion](https://arxiv.org/abs/2110.07265) by Ryan S.Y. Chan, Adam M. Johansen, Murray Pollock and Gareth O. Roberts.
 
-**Note**: package has been renamed to `DCFusion` but the repo is still called `hierarchicalFusion` for now since that is what the current arxiv and submitted version has linked to. This will change when this gets updated.
-
 ## Installation
 
-Simply run: `devtools::install_github('rchan26/hierarchicalFusion')`
+Simply run: `devtools::install_github('rchan26/DCFusion')`
 
 ## Dependencies
 
 There are a number of other R packages that I have created which this package depends on:
 
 * [layeredBB](https://github.com/rchan26/layeredBB): the Fusion methodology relies on the ability to simulate layered Brownian bridge sample paths. This package contains functions to implement the algorithms to do this.
-* [HMCBLR](https://github.com/rchan26/HMCBLR): for the simulation examples in the paper, we need to be able to simulate from the posterior distribution of a logistic regression model with Gaussian priors. This package uses [Stan](https://mc-stan.org/) to implement a sampler for the logistic regression posterior.
-* [HMCBRR](https://github.com/rchan26/HMCBRR): currently in development of further examples of the methodology on robust regression. For this, we need to be able to simulate from the posterior distribution of a robust regression model (regression with student-t distributed priors). This package uses [Stan](https://mc-stan.org/) to implement a sampler for the logistic regression posterior.
+* [HMCBLR](https://github.com/rchan26/HMCBLR): for the logistic regression, we need to be able to simulate from the posterior distribution of a logistic regression model with Gaussian priors. This package uses [Stan](https://mc-stan.org/) to implement a sampler for the logistic regression posterior.
+* [HMCBRR](https://github.com/rchan26/HMCBRR): for the robust regression examples, we need to be able to simulate from the posterior distribution of a robust regression model (regression with student-t distributed priors). This package uses [Stan](https://mc-stan.org/) to implement a sampler for the robust regression posterior.
+* [HMCGLMR](https://github.com/rchan26/HMCGLMR): for the NB regression examples, we need to be able to simulate from the posterior distribution of a NB regression model (NB regression with Gaussian priors). This package uses [Stan](https://mc-stan.org/) to implement a sampler for the NB regression posterior. Note that this package also has functions to sample from a Poisson regression posterior.
 
 To install these dependencies, run:
 
@@ -22,6 +21,7 @@ To install these dependencies, run:
 devtools::install_github('rchan26/layeredBB', build_vignettes = TRUE)
 devtools::install_github('rchan26/HMCBLR', build_vignettes = TRUE)
 devtools::install_github('rchan26/HMCBRR', build_vignettes = TRUE)
+devtools::install_github('rchan26/HMCGLMR', build_vignettes = TRUE)
 ```
 
 ## Running the experiments
