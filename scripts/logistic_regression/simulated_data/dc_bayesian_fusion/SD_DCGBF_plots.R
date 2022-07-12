@@ -33,6 +33,20 @@ balanced <- list('reg' = c(integrated_abs_distance(full_posterior,
                                                         balanced_C32$adaptive$particles$y_samples),
                                 integrated_abs_distance(full_posterior,
                                                         balanced_C64$adaptive$particles$y_samples)))
+
+# D&C-MCF
+load('SD4.RData')
+load('SD8.RData')
+load('SD16.RData')
+load('SD32.RData')
+NB_fusion <- c(integrated_abs_distance(full_posterior,
+                                       NB_hc_4$particles$y_samples),
+               integrated_abs_distance(full_posterior,
+                                       NB_hc_8$particles$y_samples),
+               integrated_abs_distance(full_posterior,
+                                       NB_hc_16$particles$y_samples),
+               integrated_abs_distance(full_posterior,
+                                       NB_hc_32$particles$y_samples))
 consensus <- c(integrated_abs_distance(full_posterior,
                                        consensus_mat_4$samples),
                integrated_abs_distance(full_posterior,
@@ -63,20 +77,6 @@ weierstrass <- c(integrated_abs_distance(full_posterior,
                                          weierstrass_rejection_32$samples),
                  integrated_abs_distance(full_posterior,
                                          weierstrass_rejection_64$samples))
-
-# D&C-MCF
-load('SD4.RData')
-load('SD8.RData')
-load('SD16.RData')
-load('SD32.RData')
-NB_fusion <- c(integrated_abs_distance(full_posterior,
-                                       NB_hc_4$particles$y_samples),
-               integrated_abs_distance(full_posterior,
-                                       NB_hc_8$particles$y_samples),
-               integrated_abs_distance(full_posterior,
-                                       NB_hc_16$particles$y_samples),
-               integrated_abs_distance(full_posterior,
-                                       NB_hc_32$particles$y_samples))
 
 plot(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$adaptive,
      ylim = c(0, 0.6),

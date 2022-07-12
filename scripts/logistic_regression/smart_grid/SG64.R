@@ -2,13 +2,11 @@ library(DCFusion)
 library(HMCBLR)
 
 ##### Initialise example #####
-load('SG_posteriors.RData')
 seed <- 2022
 set.seed(seed)
 nsamples <- 10000
-time_choice <- 0.5
-prior_means <- rep(0, 14)
-prior_variances <- rep(1, 14)
+prior_means <- rep(0, 13)
+prior_variances <- rep(1, 13)
 C <- 64
 n_cores <- parallel::detectCores()
 ESS_threshold <- 0.5
@@ -26,7 +24,7 @@ load_smart_grid_data <- function(file, seed = NULL) {
     set.seed(seed)
     original_data <- original_data[sample(1:nrow(original_data)),]
   }
-  X <- subset(original_data, select = -c(stabf))
+  X <- subset(original_data, select = -c(stab, stabf))
   design_mat <- as.matrix(cbind(rep(1, nrow(X)), X))
   colnames(design_mat)[1] <- 'intercept'
   return(list('data' = original_data,
@@ -34,32 +32,32 @@ load_smart_grid_data <- function(file, seed = NULL) {
               'X' = design_mat))
 }
 
-smart_grid <- load_smart_grid_data('smart_grid_stability_augmented.csv')
+smart_grid <- load_smart_grid_data('scripts/logistic_regression/smart_grid/smart_grid_stability_augmented.csv')
 
 ##### Sampling from full posterior #####
 
-# full_posterior <- hmc_sample_BLR_2(y = smart_grid$y,
-#                                    X = smart_grid$X,
-#                                    C = 1,
-#                                    prior_means = prior_means,
-#                                    prior_variances = prior_variances,
-#                                    iterations = nsamples + 10000,
-#                                    warmup = 10000,
-#                                    chains = 1,
-#                                    seed = seed,
-#                                    output = T)
-# 
-# ##### Sampling from sub-posterior C=64 #####
-# 
-# data_split_64 <- split_data(smart_grid$data, y_col_index = 14, X_col_index = 1:13, C = C, as_dataframe = F)
-# sub_posteriors_64 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
-#                                             data_split = data_split_64,
-#                                             C = C, 
-#                                             prior_means = prior_means,
-#                                             prior_variances = prior_variances,
-#                                             warmup = 10000,
-#                                             seed = seed,
-#                                             output = T)
+full_posterior <- hmc_sample_BLR_2(y = smart_grid$y,
+                                   X = smart_grid$X,
+                                   C = 1,
+                                   prior_means = prior_means,
+                                   prior_variances = prior_variances,
+                                   iterations = nsamples + 10000,
+                                   warmup = 10000,
+                                   chains = 1,
+                                   seed = seed,
+                                   output = T)
+
+##### Sampling from sub-posterior C=64 #####
+
+data_split_64 <- split_data(smart_grid$data, y_col_index = 14, X_col_index = 1:12, C = C, as_dataframe = F)
+sub_posteriors_64 <- hmc_base_sampler_BLR_2(nsamples = nsamples,
+                                            data_split = data_split_64,
+                                            C = C,
+                                            prior_means = prior_means,
+                                            prior_variances = prior_variances,
+                                            warmup = 10000,
+                                            seed = seed,
+                                            output = T)
 
 ##### Applying other methodologies #####
 
@@ -92,7 +90,7 @@ balanced_C64 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 6),
                                                 time_mesh = NULL,
                                                 base_samples = sub_posteriors_64,
                                                 L = 7,
-                                                dim = 14,
+                                                dim = 13,
                                                 data_split = data_split_64,
                                                 prior_means = prior_means,
                                                 prior_variances = prior_variances,
@@ -122,7 +120,7 @@ balanced_C64$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 6),
                                             time_mesh = NULL,
                                             base_samples = sub_posteriors_64,
                                             L = 7,
-                                            dim = 14,
+                                            dim = 13,
                                             data_split = data_split_64,
                                             prior_means = prior_means,
                                             prior_variances = prior_variances,
