@@ -2,11 +2,11 @@ library(DCFusion)
 library(HMCBLR)
 
 load('nycflights13_sub_posteriors.RData')
-rm(data_split_4, data_split_8, data_split_16, data_split_32, data_split_64, data_split_256)
-rm(sub_posteriors_4, sub_posteriors_8, sub_posteriors_16, sub_posteriors_32, sub_posteriors_64)
+rm(data_split_4, data_split_8, data_split_16, data_split_32, data_split_64, data_split_128)
+rm(sub_posteriors_4, sub_posteriors_8, sub_posteriors_16, sub_posteriors_32, sub_posteriors_64, sub_posteriors_128)
 seed <- 2016
 nsamples <- 30000
-C <- 128
+C <- 256
 dim <- 21
 prior_means <- rep(0, dim)
 prior_variances <- rep(1, dim)
@@ -66,11 +66,11 @@ full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
                                  seed = seed,
                                  output = T)
 
-##### Sampling from sub-posterior C=128 #####
+##### Sampling from sub-posterior C=256 #####
 
-data_split_128 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:dim, C = C, as_dataframe = F)
-sub_posteriors_128 <- hmc_base_sampler_BLR(nsamples = nsamples,
-                                           data_split = data_split_128,
+data_split_256 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:dim, C = C, as_dataframe = F)
+sub_posteriors_256 <- hmc_base_sampler_BLR(nsamples = nsamples,
+                                           data_split = data_split_256,
                                            C = C,
                                            prior_means = prior_means,
                                            prior_variances = prior_variances,
@@ -83,36 +83,36 @@ print(paste('##### C:', C))
 ##### Applying other methodologies #####
 
 print('Applying other methodologies')
-consensus_mat_128 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_128, indep = F)
-consensus_sca_128 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_128, indep = T)
-neiswanger_true_128 <- neiswanger(S = C,
-                                  samples_to_combine = sub_posteriors_128,
+consensus_mat_256 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_256, indep = F)
+consensus_sca_256 <- consensus_scott(S = C, samples_to_combine = sub_posteriors_256, indep = T)
+neiswanger_true_256 <- neiswanger(S = C,
+                                  samples_to_combine = sub_posteriors_256,
                                   anneal = TRUE)
-neiswanger_false_128 <- neiswanger(S = C,
-                                   samples_to_combine = sub_posteriors_128,
+neiswanger_false_256 <- neiswanger(S = C,
+                                   samples_to_combine = sub_posteriors_256,
                                    anneal = FALSE)
-weierstrass_importance_128 <- weierstrass(Samples = sub_posteriors_128,
+weierstrass_importance_256 <- weierstrass(Samples = sub_posteriors_256,
                                           method = 'importance')
-weierstrass_rejection_128 <- weierstrass(Samples = sub_posteriors_128,
+weierstrass_rejection_256 <- weierstrass(Samples = sub_posteriors_256,
                                          method = 'reject')
 
-integrated_abs_distance(full_posterior, consensus_mat_128$samples)
-integrated_abs_distance(full_posterior, consensus_sca_128$samples)
-integrated_abs_distance(full_posterior, neiswanger_true_128$samples)
-integrated_abs_distance(full_posterior, neiswanger_false_128$samples)
-integrated_abs_distance(full_posterior, weierstrass_importance_128$samples)
-integrated_abs_distance(full_posterior, weierstrass_rejection_128$samples)
+integrated_abs_distance(full_posterior, consensus_mat_256$samples)
+integrated_abs_distance(full_posterior, consensus_sca_256$samples)
+integrated_abs_distance(full_posterior, neiswanger_true_256$samples)
+integrated_abs_distance(full_posterior, neiswanger_false_256$samples)
+integrated_abs_distance(full_posterior, weierstrass_importance_256$samples)
+integrated_abs_distance(full_posterior, weierstrass_rejection_256$samples)
 
 ##### bal binary combining two sub-posteriors at a time #####
 
 # regular mesh
-balanced_C128 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 7),
-                                                 m_schedule = rep(2, 7),
+balanced_C256 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 8),
+                                                 m_schedule = rep(2, 8),
                                                  time_mesh = NULL,
-                                                 base_samples = sub_posteriors_128,
-                                                 L = 8,
+                                                 base_samples = sub_posteriors_256,
+                                                 L = 9,
                                                  dim = dim,
-                                                 data_split = data_split_128,
+                                                 data_split = data_split_256,
                                                  prior_means = prior_means,
                                                  prior_variances = prior_variances,
                                                  C = C,
@@ -128,21 +128,21 @@ balanced_C128 <- list('reg' = bal_binary_GBF_BLR(N_schedule = rep(nsamples, 7),
                                                  seed = seed,
                                                  n_cores = n_cores,
                                                  print_progress_iters = 500))
-balanced_C128$reg$particles <- resample_particle_y_samples(particle_set = balanced_C128$reg$particles[[1]],
+balanced_C256$reg$particles <- resample_particle_y_samples(particle_set = balanced_C256$reg$particles[[1]],
                                                            multivariate = TRUE,
                                                            resampling_method = 'resid',
                                                            seed = seed)
-balanced_C128$reg$proposed_samples <- balanced_C128$reg$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, balanced_C128$reg$particles$y_samples))
+balanced_C256$reg$proposed_samples <- balanced_C256$reg$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, balanced_C256$reg$particles$y_samples))
 
 # adaptive mesh
-balanced_C128$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 7),
-                                             m_schedule = rep(2, 7),
+balanced_C256$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 8),
+                                             m_schedule = rep(2, 8),
                                              time_mesh = NULL,
-                                             base_samples = sub_posteriors_128,
-                                             L = 8,
+                                             base_samples = sub_posteriors_256,
+                                             L = 9,
                                              dim = dim,
-                                             data_split = data_split_128,
+                                             data_split = data_split_256,
                                              prior_means = prior_means,
                                              prior_variances = prior_variances,
                                              C = C,
@@ -157,11 +157,11 @@ balanced_C128$adaptive <- bal_binary_GBF_BLR(N_schedule = rep(nsamples, 7),
                                              diffusion_estimator = diffusion_estimator,
                                              seed = seed,n_cores = n_cores,
                                              print_progress_iters = 500)
-balanced_C128$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C128$adaptive$particles[[1]],
+balanced_C256$adaptive$particles <- resample_particle_y_samples(particle_set = balanced_C256$adaptive$particles[[1]],
                                                                 multivariate = TRUE,
                                                                 resampling_method = 'resid',
                                                                 seed = seed)
-balanced_C128$adaptive$proposed_samples <- balanced_C128$adaptive$proposed_samples[[1]]
-print(integrated_abs_distance(full_posterior, balanced_C128$adaptive$particles$y_samples))
+balanced_C256$adaptive$proposed_samples <- balanced_C256$adaptive$proposed_samples[[1]]
+print(integrated_abs_distance(full_posterior, balanced_C256$adaptive$particles$y_samples))
 
-save.image('NYC128.RData')
+save.image('NYC256.RData')

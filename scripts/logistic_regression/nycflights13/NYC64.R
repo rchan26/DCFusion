@@ -2,6 +2,8 @@ library(DCFusion)
 library(HMCBLR)
 
 load('nycflights13_sub_posteriors.RData')
+rm(data_split_4, data_split_8, data_split_16, data_split_32, data_split_128, data_split_256)
+rm(sub_posteriors_4, sub_posteriors_8, sub_posteriors_16, sub_posteriors_32, sub_posteriors_128)
 seed <- 2016
 nsamples <- 30000
 C <- 64
@@ -51,30 +53,32 @@ load_nycflights_data <- function(seed = NULL) {
 
 nyc_flights <- load_nycflights_data(seed)
 
-# ##### Sampling from full posterior #####
-# 
-# full_data_count <- unique_row_count(nyc_flights$y, nyc_flights$X)$full_data_count
-# full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
-#                                  C = 1,
-#                                  prior_means = prior_means,
-#                                  prior_variances = prior_variances,
-#                                  iterations = nsamples + 10000,
-#                                  warmup = 10000,
-#                                  chains = 1,
-#                                  seed = seed,
-#                                  output = T)
-# 
-# ##### Sampling from sub-posterior C=64 #####
-# 
-# data_split_64 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:dim, C = C, as_dataframe = F)
-# sub_posteriors_64 <- hmc_base_sampler_BLR(nsamples = nsamples,
-#                                           data_split = data_split_64,
-#                                           C = C,
-#                                           prior_means = prior_means,
-#                                           prior_variances = prior_variances,
-#                                           warmup = 10000,
-#                                           seed = seed,
-#                                           output = T)
+##### Sampling from full posterior #####
+
+full_data_count <- unique_row_count(nyc_flights$y, nyc_flights$X)$full_data_count
+full_posterior <- hmc_sample_BLR(full_data_count = full_data_count,
+                                 C = 1,
+                                 prior_means = prior_means,
+                                 prior_variances = prior_variances,
+                                 iterations = nsamples + 10000,
+                                 warmup = 10000,
+                                 chains = 1,
+                                 seed = seed,
+                                 output = T)
+
+##### Sampling from sub-posterior C=64 #####
+
+data_split_64 <- split_data(nyc_flights$data, y_col_index = 1, X_col_index = 2:dim, C = C, as_dataframe = F)
+sub_posteriors_64 <- hmc_base_sampler_BLR(nsamples = nsamples,
+                                          data_split = data_split_64,
+                                          C = C,
+                                          prior_means = prior_means,
+                                          prior_variances = prior_variances,
+                                          warmup = 10000,
+                                          seed = seed,
+                                          output = T)
+
+print(paste('##### C:', C))
 
 ##### Applying other methodologies #####
 
@@ -160,4 +164,4 @@ balanced_C64$adaptive$particles <- resample_particle_y_samples(particle_set = ba
 balanced_C64$adaptive$proposed_samples <- balanced_C64$adaptive$proposed_samples[[1]]
 print(integrated_abs_distance(full_posterior, balanced_C64$adaptive$particles$y_samples))
 
-save.image('NYC64_DCGBF_21.RData')
+save.image('NYC64.RData')
