@@ -88,7 +88,7 @@ lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = neiswanger,
       lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = weierstrass,
       lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
-legend(x = 2, y = 0.8,
+legend(x = 2, y = 0.4,
        legend = c('D&C-GBF (regular mesh)',
                   'D&C-GBF (adaptive mesh)',
                   'CMC',
