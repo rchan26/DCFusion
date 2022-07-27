@@ -46,16 +46,17 @@ axis(1, at=log(c(32, 64, 128), 2), labels = log(c(32, 64, 128), 2), font = 2, ce
 axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
 lines(x = log(c(32, 64, 128), 2), y = consensus,
-      lty = 4, lwd = 3, pch = 3, type = 'b')
+      lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
 lines(x = log(c(32, 64, 128), 2), y = neiswanger,
-      lty = 5, lwd = 3, pch = 2, type = 'b')
+      lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
 lines(x = log(c(32, 64, 128), 2), y = weierstrass,
-      lty = 6, lwd = 3, pch = 1, type = 'b')
+      lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
 legend(x = 5, y = 0.5,
-       legend = c('D&C-MCF', 'CMC', 'KDEMC', 'WRS'),
+       legend = c('D&C-GMCF', 'CMC', 'KDEMC', 'WRS'),
        lwd = c(3, 3, 3),
        pch = c(20, 3, 2, 1),
        lty = c(1, 4, 5, 6),
+       col = c('black', rep('red', 3)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -90,16 +91,17 @@ axis(1, at=log(c(32, 64, 128), 2), labels = log(c(32, 64, 128), 2), font = 2, ce
 axis(2, at=seq(0, 12, 2), labels = seq(0, 12, 2), font = 2, cex = 1.5)
 axis(2, at=seq(0, 13, 1), labels=rep("", 14), lwd.ticks = 0.5)
 lines(x = log(c(32, 64, 128), 2), y = log(consensus_time, 2),
-      lty = 4, lwd = 3, pch = 3, type = 'b')
+      lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
 lines(x = log(c(32, 64, 128), 2), y = log(neiswanger_time, 2),
-      lty = 5, lwd = 3, pch = 2, type = 'b')
+      lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
 lines(x = log(c(32, 64, 128), 2), y = log(weierstrass_time, 2),
-      lty = 6, lwd = 3, pch = 1, type = 'b')
+      lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
 legend(x = 5, y = 13,
-       legend = c('D&C-MCF', 'CMC', 'KDEMC', 'WRS'),
+       legend = c('D&C-GMCF', 'CMC', 'KDEMC', 'WRS'),
        lwd = c(3, 3, 3),
        pch = c(20, 3, 2, 1),
        lty = c(1, 4, 5, 6),
+       col = c('black', rep('red', 3)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')

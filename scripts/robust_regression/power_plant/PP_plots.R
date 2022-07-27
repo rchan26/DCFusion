@@ -113,7 +113,7 @@ lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = weierstrass,
 legend(x = 2, y = 0.5,
        legend = c('D&C-GBF (regular mesh)',
                   'D&C-GBF (adaptive mesh)',
-                  'D&C-MCF',
+                  'D&C-GMCF',
                   'CMC',
                   'KDEMC',
                   'WRS'),
@@ -121,6 +121,41 @@ legend(x = 2, y = 0.5,
        lty = c(3,2,1,4,5,6),
        pch = c(5,4,20,3,2,1),
        col = c(rep('black', 3), rep('red', 3)),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+##### PAPER #####
+
+plot(x = log(c(4, 8, 16, 32, 64, 128), 2), y = balanced$adaptive,
+     ylim = c(0, 0.5),
+     xlab = '',
+     ylab = '',
+     xaxt = 'n', lty = 2, lwd = 3, pch = 4, type = 'b')
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(1, at=log(c(4, 8, 16, 32, 64, 128), 2), labels = log(c(4, 8, 16, 32, 64, 128), 2), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
+lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = balanced$reg,
+      lty = 3, lwd = 3, type = 'b', pch = 5)
+lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = consensus,
+      lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
+lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = neiswanger,
+      lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
+lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = weierstrass,
+      lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
+legend(x = 2, y = 0.5,
+       legend = c('D&C-GBF (regular mesh)',
+                  'D&C-GBF (adaptive mesh)',
+                  'CMC',
+                  'KDEMC',
+                  'WRS'),
+       lwd = rep(3, 6),
+       lty = c(3,2,4,5,6),
+       pch = c(5,4,3,2,1),
+       col = c(rep('black', 2), rep('red', 3)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -195,7 +230,7 @@ lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(weierstrass_time, 2),
 legend(x = 2, y = 20,
        legend = c('D&C-GBF (regular mesh)',
                   'D&C-GBF (adaptive mesh)',
-                  'D&C-MCF',
+                  'D&C-GMCF',
                   'CMC',
                   'KDEMC',
                   'WRS'),
@@ -217,3 +252,39 @@ legend(x = 2, y = 20,
 #        cex = 1.25,
 #        text.font = 2,
 #        bty = 'n')
+
+##### PAPER #####
+
+plot(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(balanced_time$adaptive, 2),
+     ylim = c(-2, 16),
+     xlab = '',
+     ylab = '',
+     yaxt = 'n',
+     xaxt = 'n', lty = 2, lwd = 3, pch = 4, type = 'b')
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(1, at=log(c(4, 8, 16, 32, 64, 128), 2), labels = log(c(4, 8, 16, 32, 64, 128), 2), font = 2, cex = 1.5)
+axis(2, at=seq(-4, 20, 2), labels = seq(-4, 20, 2), font = 2, cex = 1.5)
+axis(2, at=seq(-4, 20, 1), labels=rep("", 25), lwd.ticks = 0.5)
+lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(balanced_time$reg, 2),
+      lty = 3, lwd = 3, type = 'b', pch = 5)
+lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(consensus_time, 2),
+      lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
+lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(neiswanger_time, 2),
+      lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
+lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(weierstrass_time, 2),
+      lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
+legend(x = 2, y = 16,
+       legend = c('D&C-GBF (regular mesh)',
+                  'D&C-GBF (adaptive mesh)',
+                  'CMC',
+                  'KDEMC',
+                  'WRS'),
+       lwd = rep(3, 6),
+       lty = c(3,2,4,5,6),
+       pch = c(5,4,3,2,1),
+       col = c(rep('black', 2), rep('red', 3)),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')

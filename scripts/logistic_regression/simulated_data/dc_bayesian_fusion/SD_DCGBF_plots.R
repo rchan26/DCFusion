@@ -34,7 +34,7 @@ balanced <- list('reg' = c(integrated_abs_distance(full_posterior,
                                 integrated_abs_distance(full_posterior,
                                                         balanced_C64$adaptive$particles$y_samples)))
 
-# D&C-MCF
+# D&C-GMCF
 load('SD4.RData')
 load('SD8.RData')
 load('SD16.RData')
@@ -105,7 +105,7 @@ legend(x = 2, y = 0.6,
        legend = c('D&C-GBF (regular mesh)',
                   'D&C-GBF (adaptive mesh)',
                   'GBF (adaptive mesh)',
-                  'D&C-MCF',
+                  'D&C-GMCF',
                   'CMC',
                   'KDEMC',
                   'WRS'),
@@ -113,6 +113,44 @@ legend(x = 2, y = 0.6,
        lty = c(3,2,1,1,4,5,6),
        pch = c(5,4,1,20,3,2,1),
        col = c(rep('black', 4), rep('red', 3)),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+##### PAPER #####
+
+plot(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$adaptive,
+     ylim = c(0, 0.6),
+     xlab = '',
+     ylab = '',
+     xaxt = 'n', lty = 2, lwd = 3, pch = 4, type = 'b')
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
+mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
+axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$reg,
+      lty = 3, lwd = 3, type = 'b', pch = 5)
+lines(x = log(c(4, 8, 16, 32), 2), y = GBF$adaptive,
+      lty = 1, lwd = 3, type = 'b', pch = 1)
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = consensus,
+      lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = neiswanger,
+      lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = weierstrass,
+      lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
+legend(x = 2, y = 0.6,
+       legend = c('D&C-GBF (regular mesh)',
+                  'D&C-GBF (adaptive mesh)',
+                  'GBF (adaptive mesh)',
+                  'CMC',
+                  'KDEMC',
+                  'WRS'),
+       lwd = rep(3, 7),
+       lty = c(3,2,1,4,5,6),
+       pch = c(5,4,1,3,2,1),
+       col = c(rep('black', 3), rep('red', 3)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -181,7 +219,7 @@ legend(x = 2, y = 20,
        legend = c('D&C-GBF (regular mesh)',
                   'D&C-GBF (adaptive mesh)',
                   'GBF (adaptive mesh)',
-                  'D&C-MCF',
+                  'D&C-GMCF',
                   'CMC',
                   'KDEMC',
                   'WRS'),
@@ -193,7 +231,46 @@ legend(x = 2, y = 20,
        text.font = 2,
        bty = 'n')
 
-##### compare to D&C-MCF #####
+##### PAPER #####
+
+plot(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$adaptive, 2),
+     ylim = c(-4, 18),
+     xlab = '',
+     ylab = '',
+     yaxt = 'n',
+     xaxt = 'n', lty = 2, lwd = 3, pch = 4, type = 'b')
+mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
+mtext('log(Time elapsed in seconds, 2)', 2, 2.75, font = 2, cex = 1.5)
+axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
+axis(1, at=log(c(4, 8, 16, 32, 64), 2), labels = log(c(4, 8, 16, 32, 64), 2), font = 2, cex = 1.5)
+axis(2, at=seq(-4, 20, 2), labels = seq(-4, 20, 2), font = 2, cex = 1.5)
+axis(2, at=seq(-4, 20, 1), labels=rep("", 25), lwd.ticks = 0.5)
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(balanced_time$reg, 2),
+      lty = 3, lwd = 3, type = 'b', pch = 5)
+lines(x = log(c(4, 8, 16, 32), 2), y = log(GBF_time$adaptive, 2),
+      lty = 1, lwd = 3, type = 'b', pch = 1)
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(consensus_time, 2),
+      lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(neiswanger_time, 2),
+      lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
+lines(x = log(c(4, 8, 16, 32, 64), 2), y = log(weierstrass_time, 2),
+      lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
+legend(x = 2, y = 18,
+       legend = c('D&C-GBF (regular mesh)',
+                  'D&C-GBF (adaptive mesh)',
+                  'GBF (adaptive mesh)',
+                  'CMC',
+                  'KDEMC',
+                  'WRS'),
+       lwd = rep(3, 7),
+       lty = c(3,2,1,4,5,6),
+       pch = c(5,4,1,3,2,1),
+       col = c(rep('black', 3), rep('red', 3)),
+       cex = 1.25,
+       text.font = 2,
+       bty = 'n')
+
+##### compare to D&C-GMCF #####
 
 plot(x = log(c(4, 8, 16, 32, 64), 2), y = balanced$adaptive,
      ylim = c(0, 0.6),
@@ -213,7 +290,7 @@ lines(x = log(c(4, 8, 16, 32), 2), y = GBF$adaptive,
 lines(x = log(c(4, 8, 16, 32), 2), y = NB_fusion,
       lty = 4, lwd = 3, type = 'b', pch = 4, col = 'red')
 legend(x = 2, y = 0.6,
-       legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
+       legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-GMCF'),
        lwd = c(3, 3, 3, 3),
        lty = c(1, 2, 3, 4),
        pch = c(1, 2, 3, 4),
@@ -241,7 +318,7 @@ lines(x = log(c(4, 8, 16, 32), 2), y = log(GBF_time$adaptive, 2),
 lines(x = log(c(4, 8, 16, 32), 2), y = log(NB_fusion_time, 2),
       lty = 7, lwd = 3, type = 'b', pch = 4, col = 'red')
 legend(x = 2, y = 20,
-       legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-MCF'),
+       legend = c('GBF (adaptive)', 'D&C-GBF (reg)', 'D&C-GBF (adaptive)', 'D&C-GMCF'),
        lwd = c(3, 3, 3, 3),
        lty = c(1, 2, 3, 4),
        pch = c(1, 2, 3, 4),
@@ -275,7 +352,7 @@ lines(x = log(c(4, 8, 16, 32), 2), y = NB_fusion,
       lty = 2, lwd = 3, type = 'b', pch = 2, col = 'black')
 legend(x = 2, y = 0.6,
        legend = c('D&C-GBF',
-                  'D&C-MCF',
+                  'D&C-GMCF',
                   'GBF',
                   'CMC',
                   'KDEMC',
@@ -312,7 +389,7 @@ lines(x = log(c(4, 8, 16, 32), 2), y = log(NB_fusion_time, 2),
       lty = 2, lwd = 3, type = 'b', pch = 2, col = 'black')
 legend(x = 2, y = 20,
        legend = c('D&C-GBF',
-                  'D&C-MCF',
+                  'D&C-GMCF',
                   'GBF',
                   'CMC',
                   'KDEMC',
@@ -324,7 +401,6 @@ legend(x = 2, y = 20,
        cex = 1.25,
        text.font = 2,
        bty = 'n')
-
 
 ##### ISBA slides #####
 

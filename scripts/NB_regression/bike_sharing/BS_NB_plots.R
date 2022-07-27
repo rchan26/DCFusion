@@ -68,37 +68,34 @@ weierstrass <- c(integrated_abs_distance(full_posterior,
                                          weierstrass_rejection_128$samples))
 
 plot(x = log(c(4, 8, 16, 32, 64, 128), 2), y = balanced$adaptive,
-     ylim = c(0, 0.5),
+     ylim = c(0, 0.3),
      xlab = '',
      ylab = '',
-     xaxt = 'n', lty = 2, lwd = 3, pch = 4, type = 'b')
+     xaxt = 'n', yaxt = 'n', lty = 2, lwd = 3, pch = 4, type = 'b')
 mtext('log(C, 2)', 1, 2.75, font = 2, cex = 1.5)
 mtext('Integrated Absolute Distance', 2, 2.75, font = 2, cex = 1.5)
 axis(1, at=c(seq(0, 0.9, 0.1), 0.95), labels=c("0.0", c(seq(0.1, 0.9, 0.1), 0.95)), font = 2, cex = 1.5)
 axis(1, at=log(c(4, 8, 16, 32, 64, 128), 2), labels = log(c(4, 8, 16, 32, 64, 128), 2), font = 2, cex = 1.5)
 axis(2, at=seq(0, 1, 0.1), labels=c("0.0", seq(0.1, 0.9, 0.1), "1.0"), font = 2, cex = 1.5)
-axis(2, at=seq(0, 1, 0.1), labels=rep("", 11), lwd.ticks = 0.5)
+axis(2, at=seq(0, 1, 0.05), labels=rep("", 21), lwd.ticks = 0.5)
 lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = balanced$reg,
       lty = 3, lwd = 3, type = 'b', pch = 5)
-lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = NB_fusion,
-      lty = 1, lwd = 3, type = 'b', pch = 20)
 lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = consensus,
       lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = neiswanger,
       lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = weierstrass,
       lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
-legend(x = 2, y = 0.5,
+legend(x = 2, y = 0.3,
        legend = c('D&C-GBF (regular mesh)',
                   'D&C-GBF (adaptive mesh)',
-                  'D&C-MCF',
                   'CMC',
                   'KDEMC',
                   'WRS'),
        lwd = rep(3, 6),
-       lty = c(3,2,1,4,5,6),
-       pch = c(5,4,20,3,2,1),
-       col = c(rep('black', 3), rep('red', 3)),
+       lty = c(3,2,4,5,6),
+       pch = c(5,4,3,2,1),
+       col = c(rep('black', 2), rep('red', 3)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
@@ -137,7 +134,7 @@ weierstrass_time <- c(weierstrass_rejection_4$time,
                       weierstrass_rejection_128$time)
 
 plot(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(balanced_time$adaptive, 2),
-     ylim = c(-2, 20),
+     ylim = c(-2, 18),
      xlab = '',
      ylab = '',
      yaxt = 'n',
@@ -150,25 +147,22 @@ axis(2, at=seq(-4, 20, 2), labels = seq(-4, 20, 2), font = 2, cex = 1.5)
 axis(2, at=seq(-4, 20, 1), labels=rep("", 25), lwd.ticks = 0.5)
 lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(balanced_time$reg, 2),
       lty = 3, lwd = 3, type = 'b', pch = 5)
-lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(NB_fusion_time, 2),
-      lty = 1, lwd = 3, type = 'b', pch = 20)
 lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(consensus_time, 2),
       lty = 4, lwd = 3, type = 'b', pch = 3, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(neiswanger_time, 2),
       lty = 5, lwd = 3, type = 'b', pch = 2, col = 'red')
 lines(x = log(c(4, 8, 16, 32, 64, 128), 2), y = log(weierstrass_time, 2),
       lty = 6, lwd = 3, type = 'b', pch = 1, col = 'red')
-legend(x = 2, y = 20,
+legend(x = 2, y = 18,
        legend = c('D&C-GBF (regular mesh)',
                   'D&C-GBF (adaptive mesh)',
-                  'D&C-MCF',
                   'CMC',
                   'KDEMC',
                   'WRS'),
        lwd = rep(3, 6),
-       lty = c(3,2,1,4,5,6),
-       pch = c(5,4,20,3,2,1),
-       col = c(rep('black', 3), rep('red', 3)),
+       lty = c(3,2,4,5,6),
+       pch = c(5,4,3,2,1),
+       col = c(rep('black', 2), rep('red', 3)),
        cex = 1.25,
        text.font = 2,
        bty = 'n')
